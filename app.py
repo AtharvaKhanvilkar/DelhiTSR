@@ -114,6 +114,11 @@ def parse(project_name, filename):
         result = parse_index_ii(file_path)
         if result is None:
             return jsonify({"error": "Could not parse document"})
+        # Save result to disk
+        result_filename = os.path.splitext(filename)[0] + "_result.json"
+        result_path = os.path.join(project_path, result_filename)
+        with open(result_path, "w") as f:
+            json.dump(result, f, indent=2)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -152,20 +157,29 @@ def edit_project():
     if os.path.exists(old_path):
         os.rename(old_path, new_path)
 
-    # Update id_info.json
+    
     id_info_path = os.path.join(new_path, "id_info.json")
     with open(id_info_path, "w") as f:
         json.dump({"id_type": new_id_type, "id_value": new_id_value}, f)
 
     return redirect("/projects")
 
-
-# Serve PDF file for viewer
 @app.route("/pdf/<project_name>/<path:filename>")
 def serve_pdf(project_name, filename):
     from flask import send_from_directory
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     return send_from_directory(project_path, filename)
+
+@app.route("/result/<project_name>/<path:filename>")
+def load_result(project_name, filename):
+    from flask import jsonify
+    result_filename = os.path.splitext(filename)[0] + "_result.json"
+    result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
+    if not os.path.exists(result_path):
+        return jsonify({"exists": False})
+    with open(result_path) as f:
+        data = json.load(f)
+    return jsonify({"exists": True, "data": data})
 
 if __name__ == "__main__":
     app.run(debug=True)

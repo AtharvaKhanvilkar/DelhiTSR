@@ -107,8 +107,6 @@ DOCUMENT:
     response = model.generate_content(prompt)
 
     raw = response.text.strip()
-
-    # Strip markdown code blocks if Gemini wraps the response in them
     raw = re.sub(r'^```(?:json)?\s*', '', raw)
     raw = re.sub(r'\s*```$', '', raw)
     raw = raw.strip()

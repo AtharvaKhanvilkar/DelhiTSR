@@ -601,7 +601,32 @@
     // Update PDF viewer
     var frame = document.getElementById('pdfFrame');
     if (frame) frame.src = '/pdf/{{ project_name }}/' + filename;
+    // Load saved result if exists
+    loadSavedResult(filename);
   }
+
+  // ── Load saved result ──
+  function loadSavedResult(filename) {
+    fetch('/result/{{ project_name }}/' + filename)
+      .then(res => res.json())
+      .then(data => {
+        if (data.exists) {
+          document.getElementById('jsonEmpty').style.display = 'none';
+          document.getElementById('jsonOutput').style.display = 'block';
+          renderJSON(data.data);
+        } else {
+          // No saved result — show empty state
+          document.getElementById('jsonOutput').style.display = 'none';
+          document.getElementById('jsonEmpty').style.display = 'flex';
+          document.getElementById('jsonEmpty').querySelector('p').textContent = 'No data yet — select a PDF and click Parse.';
+        }
+      });
+  }
+
+  // Auto-load result for first file on page open
+  window.addEventListener('DOMContentLoaded', function() {
+    if (selectedFile) loadSavedResult(selectedFile);
+  });
 
   // ── Delete file ──
   function deleteFile(filename) {
