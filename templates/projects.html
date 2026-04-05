@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Projects — TSR Engine</title>
+  <title>Projects - AutoTSR</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0B0B0B;
-      --card: #111111;
+      --bg: #000000;
+      --card: #080808;
       --white: #FFFFFF;
       --orange: #FF4800;
-      --muted: rgba(255,255,255,0.38);
+      --muted: rgba(144, 144, 144, 0.496);
       --border: rgba(255,255,255,0.08);
-      --divider: #1C1C1C;
+      --divider: #171717;
       --row-hover: rgba(255,255,255,0.03);
-      --red: #FF3B3B;
+      --red: #ff0000;
     }
 
     html, body {
@@ -73,7 +73,7 @@
 
     .nav-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
 
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); animation: pulse 2s ease-in-out infinite; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: pulse 1s ease-in-out infinite; }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
@@ -233,13 +233,13 @@
 <div class="page">
   <nav>
     <div class="nav-left">
-      <a href="/" class="nav-logo">TSR Engine</a>
+      <a href="/" class="nav-logo">AutoTSR</a>
       <div class="nav-sep"></div>
       <span class="nav-page">Projects</span>
     </div>
     <span class="nav-status">
       <span class="status-dot"></span>
-      Internal Tool — Restricted Access
+      Internal Tool — Limited Access
     </span>
   </nav>
 
