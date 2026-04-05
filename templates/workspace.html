@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{{ project_name.rsplit('_', 1)[0] }} — TSR Engine</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -391,17 +390,73 @@
     .json-empty-icon { font-size: 40px; opacity: 0.15; }
     .json-empty p { font-size: 13px; color: var(--muted2); }
 
-    pre.json-output {
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.7;
-      color: #d4d4d4;
-      background: #111;
-      padding: 24px;
-      border-radius: 8px;
-      overflow: auto;
-      white-space: pre-wrap;
+    /* JSON card styles */
+    .json-output { display: none; }
+
+    .json-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 860px;
+    }
+
+    .json-row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      align-items: baseline;
+      gap: 16px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      transition: background 0.1s;
+    }
+
+    .json-row:hover { background: rgba(255,255,255,0.03); }
+
+    .json-row.has-value {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .json-row.has-value:hover { background: rgba(255,255,255,0.07); }
+
+    .json-key {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .json-row.has-value .json-key { color: var(--muted); }
+    .json-row.is-null .json-key   { color: rgba(255,255,255,0.18); }
+
+    .json-value {
+      font-size: 14px;
+      font-weight: 400;
       word-break: break-word;
+    }
+
+    .json-row.has-value .json-value { color: var(--white); }
+
+    .json-row.is-null .json-value {
+      color: rgba(255, 80, 0, 0.5);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    .json-value.is-alert {
+      color: var(--orange);
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    .json-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+      padding: 20px 16px 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
     }
 
     /* Parse loading state */
@@ -496,10 +551,10 @@
     <div class="panel active" id="panel-pdf">
       <div class="pdf-viewer" id="pdfViewer">
         {% if index_iis %}
-          <div class="pdf-placeholder">
-            <div class="pdf-placeholder-icon">📄</div>
-            <p><strong>{{ index_iis[0] }}</strong>Click Parse to extract data from this document.</p>
-          </div>
+          <iframe id="pdfFrame" class="pdf-frame"
+            src="/pdf/{{ project_name }}/{{ index_iis[0] }}"
+            title="{{ index_iis[0] }}">
+          </iframe>
         {% else %}
           <div class="pdf-placeholder">
             <div class="pdf-placeholder-icon">📂</div>
@@ -516,7 +571,7 @@
           <div class="json-empty-icon">{ }</div>
           <p>No data yet — select a PDF and click Parse.</p>
         </div>
-        <pre class="json-output" id="jsonOutput" style="display:none"></pre>
+        <div class="json-output" id="jsonOutput" style="display:none"></div>
         <div class="parse-loading" id="parseLoading">
           <div class="spinner"></div>
           <p>Extracting fields...</p>
@@ -543,6 +598,9 @@
     document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
     el.classList.add('active');
     selectedFile = filename;
+    // Update PDF viewer
+    var frame = document.getElementById('pdfFrame');
+    if (frame) frame.src = '/pdf/{{ project_name }}/' + filename;
   }
 
   // ── Delete file ──
@@ -579,7 +637,7 @@
           document.getElementById('jsonEmpty').querySelector('p').textContent = 'Error: ' + data.error;
         } else {
           document.getElementById('jsonOutput').style.display = 'block';
-          document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+          renderJSON(data);
         }
       })
       .catch(err => {
@@ -587,6 +645,50 @@
         document.getElementById('jsonEmpty').style.display = 'flex';
         document.getElementById('jsonEmpty').querySelector('p').textContent = 'Something went wrong. Try again.';
       });
+  }
+
+  function renderJSON(data) {
+    var container = document.getElementById('jsonOutput');
+    container.innerHTML = '';
+
+    // Sort: filled values first, nulls last
+    var entries = Object.entries(data).sort(function(a, b) {
+      var aNull = a[1] === null || a[1] === undefined || a[1] === '';
+      var bNull = b[1] === null || b[1] === undefined || b[1] === '';
+      if (aNull && !bNull) return 1;
+      if (!aNull && bNull) return -1;
+      return 0;
+    });
+
+    entries.forEach(function([key, value]) {
+      var isNull = value === null || value === undefined || value === '';
+      var isAlert = value === 'ALERT';
+      var isArray = Array.isArray(value);
+
+      var row = document.createElement('div');
+      row.className = 'json-row ' + (isNull ? 'is-null' : 'has-value');
+
+      var keyEl = document.createElement('div');
+      keyEl.className = 'json-key';
+      keyEl.textContent = key.replace(/_/g, ' ');
+
+      var valEl = document.createElement('div');
+      valEl.className = 'json-value' + (isAlert ? ' is-alert' : '');
+
+      if (isNull) {
+        valEl.textContent = 'null';
+      } else if (isAlert) {
+        valEl.textContent = '⚠ ALERT';
+      } else if (isArray) {
+        valEl.textContent = value.join(', ');
+      } else {
+        valEl.textContent = value;
+      }
+
+      row.appendChild(keyEl);
+      row.appendChild(valEl);
+      container.appendChild(row);
+    });
   }
 </script>
 

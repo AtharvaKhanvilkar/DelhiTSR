@@ -159,5 +159,13 @@ def edit_project():
 
     return redirect("/projects")
 
+
+# Serve PDF file for viewer
+@app.route("/pdf/<project_name>/<path:filename>")
+def serve_pdf(project_name, filename):
+    from flask import send_from_directory
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    return send_from_directory(project_path, filename)
+
 if __name__ == "__main__":
     app.run(debug=True)
