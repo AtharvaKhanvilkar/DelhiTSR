@@ -100,14 +100,16 @@ def workspace(project_name):
 
 
 # Parse a PDF
-@app.route("/parse/<project_name>/<filename>")
+@app.route("/parse/<project_name>/<path:filename>")
 def parse(project_name, filename):
     from flask import jsonify
     from main import parse_index_ii
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     file_path = os.path.join(project_path, filename)
+    print("DEBUG looking for:", file_path)
+    print("DEBUG files in folder:", os.listdir(project_path))
     if not os.path.exists(file_path):
-        return jsonify({"error": "File not found"})
+        return jsonify({"error": "File not found: " + file_path})
     try:
         result = parse_index_ii(file_path)
         if result is None:
@@ -117,17 +119,45 @@ def parse(project_name, filename):
         return jsonify({"error": str(e)})
 
 
-# Deleting ffiles
-@app.route("/delete_file/<project_name>/<filename>", methods=["POST"])
+# Delete a file from a project
+@app.route("/delete_file/<project_name>/<path:filename>", methods=["POST"])
 def delete_file(project_name, filename):
+    from urllib.parse import unquote
+    filename = unquote(filename)
     file_path = os.path.join(PROJECT_FOLDER, project_name, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
     return redirect(f"/workspace/{project_name}")
 
-@app.route('/learnmore')
-def learn_more():
-    return render_template('learnmore.html')
+
+# Edit project
+@app.route("/edit_project", methods=["POST"])
+def edit_project():
+    folder      = request.form.get("folder", "").strip()
+    new_name    = request.form.get("project_name", "").strip()
+    new_id_type = request.form.get("id_type", "").strip()
+    new_id_value= request.form.get("id_value", "").strip()
+
+    if not folder or not new_name or not new_id_type or not new_id_value:
+        return redirect("/projects")
+
+    old_path = os.path.join(PROJECT_FOLDER, folder)
+
+    # Keep the same unique ID suffix, just change the name part
+    suffix = folder.rsplit("_", 1)[-1]
+    new_folder = f"{new_name}_{suffix}"
+    new_path = os.path.join(PROJECT_FOLDER, new_folder)
+
+    # Rename the folder
+    if os.path.exists(old_path):
+        os.rename(old_path, new_path)
+
+    # Update id_info.json
+    id_info_path = os.path.join(new_path, "id_info.json")
+    with open(id_info_path, "w") as f:
+        json.dump({"id_type": new_id_type, "id_value": new_id_value}, f)
+
+    return redirect("/projects")
 
 if __name__ == "__main__":
     app.run(debug=True)

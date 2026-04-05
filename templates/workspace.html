@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{{ project_name.rsplit('_', 1)[0] }} — TSR Engine</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -569,7 +570,7 @@
     document.getElementById('parseLoading').classList.add('visible');
 
     // Call the parse route
-    fetch('/parse/{{ project_name }}/' + encodeURIComponent(selectedFile))
+    fetch('/parse/{{ project_name }}/' + selectedFile)
       .then(res => res.json())
       .then(data => {
         document.getElementById('parseLoading').classList.remove('visible');

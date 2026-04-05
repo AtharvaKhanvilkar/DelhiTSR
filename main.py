@@ -88,9 +88,7 @@ DOCUMENT:
 {document_text}
 """
 
-    # ✅ MOVED INSIDE FUNCTION (this was the only real fix)
-
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(prompt)
 
     try:
