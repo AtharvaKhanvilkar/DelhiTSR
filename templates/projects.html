@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Projects — TSR Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0B0B0B;
+      --card: #111111;
+      --white: #FFFFFF;
+      --orange: #FF4800;
+      --muted: rgba(255,255,255,0.38);
+      --border: rgba(255,255,255,0.08);
+      --divider: #1C1C1C;
+      --row-hover: rgba(255,255,255,0.03);
+      --red: #FF3B3B;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inria Sans', serif;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      padding: 40px 56px;
+      gap: 40px;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 24px; }
+
+    .nav-logo {
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-logo:hover { color: var(--white); }
+
+    .nav-sep { width: 1px; height: 14px; background: var(--border); }
+
+    .nav-page { font-size: 13px; font-weight: 400; color: var(--white); letter-spacing: 0.06em; }
+
+    .nav-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
+
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); animation: pulse 2s ease-in-out infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    main { display: flex; flex-direction: column; gap: 32px; animation: fadeUp 0.5s ease 0.1s both; }
+
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; }
+
+    .page-title { font-size: clamp(36px, 5vw, 64px); font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+
+    .project-count { font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 8px; letter-spacing: 0.04em; }
+
+    .btn-create {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--white); color: #0B0B0B; border: none;
+      font-family: 'Inria Sans', serif; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 12px 24px; cursor: pointer; border-radius: 6px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-create:hover { background: #e8e8e8; transform: translateY(-1px); }
+
+    .card { background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--divider); }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 1fr 160px 160px 48px;
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .table-header span { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+    .project-row {
+      display: grid;
+      grid-template-columns: 1fr 160px 160px 48px;
+      align-items: center;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--divider);
+      transition: background 0.15s;
+    }
+    .project-row:last-child { border-bottom: none; }
+    .project-row:hover { background: var(--row-hover); }
+
+    .row-name {
+      font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+      color: var(--white); text-decoration: none;
+      transition: color 0.15s;
+    }
+    .row-name:hover { color: var(--orange); }
+
+    .row-id, .row-val { font-size: 13px; font-weight: 400; color: var(--muted); }
+
+    .btn-delete {
+      background: transparent; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.15); font-size: 14px;
+      border-radius: 4px; transition: color 0.15s, background 0.15s;
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+    }
+    .btn-delete:hover { color: var(--red); background: rgba(255,59,59,0.08); }
+
+    .empty-state { padding: 80px 28px; text-align: center; }
+    .empty-state strong { display: block; font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.15); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; color: var(--muted); }
+
+    /* ── MODALS ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: #161616; border: 1px solid #272727; border-radius: 16px;
+      padding: 40px; width: 100%; max-width: 460px;
+      transform: translateY(16px); transition: transform 0.25s ease;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .form-group label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+    .form-group input,
+    .form-group select {
+      background: #0B0B0B; border: 1px solid #272727; border-radius: 8px;
+      color: var(--white); font-family: 'Inria Sans', serif; font-size: 14px;
+      padding: 12px 14px; outline: none; transition: border-color 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--orange); }
+    .form-group input::placeholder { color: rgba(255,255,255,0.2); }
+    .form-group input.error, .form-group select.error { border-color: var(--red) !important; }
+
+    .field-error { font-size: 11px; color: var(--red); display: none; margin-top: 2px; }
+    .field-error.visible { display: block; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 32px; }
+
+    .btn-submit {
+      flex: 1; background: var(--orange); color: var(--white); border: none;
+      font-family: 'Inria Sans', serif; font-size: 14px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 14px; border-radius: 8px; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-cancel {
+      background: transparent; border: 1px solid #272727; color: var(--muted);
+      font-family: 'Inria Sans', serif; font-size: 14px;
+      padding: 14px 24px; border-radius: 8px; cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+    /* Delete confirm modal */
+    .confirm-modal {
+      background: #161616; border: 1px solid #272727; border-radius: 16px;
+      padding: 36px 40px; width: 100%; max-width: 380px; text-align: center;
+      transform: translateY(16px); transition: transform 0.25s ease;
+    }
+    .modal-overlay.open .confirm-modal { transform: translateY(0); }
+
+    .confirm-icon { font-size: 32px; margin-bottom: 16px; }
+    .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .confirm-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+    .confirm-sub strong { color: var(--white); font-weight: 700; }
+    .confirm-actions { display: flex; gap: 12px; }
+
+    .btn-confirm-delete {
+      flex: 1; background: var(--red); color: var(--white); border: none;
+      font-family: 'Inria Sans', serif; font-size: 14px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 13px; border-radius: 8px; cursor: pointer; width: 100%;
+      transition: opacity 0.2s;
+    }
+    .btn-confirm-delete:hover { opacity: 0.85; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <nav>
+    <div class="nav-left">
+      <a href="/" class="nav-logo">TSR Engine</a>
+      <div class="nav-sep"></div>
+      <span class="nav-page">Projects</span>
+    </div>
+    <span class="nav-status">
+      <span class="status-dot"></span>
+      Internal Tool — Restricted Access
+    </span>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Projects</h1>
+        <p class="project-count">{{ projects|length }} project{% if projects|length != 1 %}s{% endif %}</p>
+      </div>
+      <button class="btn-create" onclick="openModal('createModal')">+ New Project</button>
+    </div>
+
+    <div class="card">
+      <div class="table-header">
+        <span>Project Name</span>
+        <span>ID Type</span>
+        <span>ID Value</span>
+        <span></span>
+      </div>
+
+      {% if projects %}
+        {% for project in projects %}
+        <div class="project-row">
+          <a href="/workspace/{{ project.folder }}" class="row-name">{{ project.name }}</a>
+          <span class="row-id">{{ project.id_type.replace("_", " ").title() if project.id_type else "—" }}</span>
+          <span class="row-val">{{ project.id_value if project.id_value else "—" }}</span>
+          <button
+            class="btn-delete"
+            title="Delete project"
+            data-folder="{{ project.folder }}" onclick="confirmDelete(this)"
+          >✕</button>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <strong>No projects yet</strong>
+          <p>Create your first project to get started.</p>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<!-- CREATE MODAL -->
+<div class="modal-overlay" id="createModal" onclick="handleOverlayClick(event, 'createModal')">
+  <div class="modal">
+    <h2 class="modal-title">New Project</h2>
+    <p class="modal-sub">All fields are required.</p>
+    <form action="/create_project" method="POST" onsubmit="return validateForm()">
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" name="project_name" id="field_name" placeholder="e.g. Sharma Flat — Sector 7"/>
+        <span class="field-error" id="err_name">Please enter a project name.</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>ID Type</label>
+          <select name="id_type" id="field_type">
+            <option value="">Select type</option>
+            <option value="survey_no">Survey No.</option>
+            <option value="cts_no">CTS No.</option>
+            <option value="plot_no">Plot No.</option>
+          </select>
+          <span class="field-error" id="err_type">Select an ID type.</span>
+        </div>
+        <div class="form-group">
+          <label>ID Value</label>
+          <input type="text" name="id_value" id="field_value" placeholder="e.g. 42/B"/>
+          <span class="field-error" id="err_value">Enter the ID value.</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('createModal')">Cancel</button>
+        <button type="submit" name="confirm" value="1" class="btn-submit">Create Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="deleteModal" onclick="handleOverlayClick(event, 'deleteModal')">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑</div>
+    <h2 class="confirm-title">Delete Project?</h2>
+    <p class="confirm-sub">
+      This will permanently delete <strong id="deleteProjectLabel"></strong> and all its files. This cannot be undone.
+    </p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+      <form id="deleteForm" method="POST" style="flex:1">
+        <button type="submit" class="btn-confirm-delete">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    if (id === 'createModal') clearErrors();
+  }
+  function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal('createModal'); closeModal('deleteModal'); }
+  });
+
+  function validateForm() {
+    let valid = true;
+    clearErrors();
+    const name  = document.getElementById('field_name');
+    const type  = document.getElementById('field_type');
+    const value = document.getElementById('field_value');
+    if (!name.value.trim()) {
+      name.classList.add('error');
+      document.getElementById('err_name').classList.add('visible');
+      valid = false;
+    }
+    if (!type.value) {
+      type.classList.add('error');
+      document.getElementById('err_type').classList.add('visible');
+      valid = false;
+    }
+    if (!value.value.trim()) {
+      value.classList.add('error');
+      document.getElementById('err_value').classList.add('visible');
+      valid = false;
+    }
+    return valid;
+  }
+
+  function clearErrors() {
+    ['field_name','field_type','field_value'].forEach(id => document.getElementById(id).classList.remove('error'));
+    ['err_name','err_type','err_value'].forEach(id => document.getElementById(id).classList.remove('visible'));
+  }
+
+  ['field_name','field_type','field_value'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => document.getElementById(id).classList.remove('error'));
+  });
+
+  function confirmDelete(btn) {
+    var folderName = btn.getAttribute("data-folder");
+    var displayName = folderName.split("_").slice(0, -1).join("_");
+    document.getElementById('deleteProjectLabel').textContent = '"' + displayName + '"';
+    document.getElementById('deleteForm').action = '/delete_project/' + folderName;
+    openModal('deleteModal');
+  }
+</script>
+
+</body>
+</html>
