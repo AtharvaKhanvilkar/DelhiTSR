@@ -210,7 +210,6 @@
     /* Upload + file list */
     .sidebar-files {
       padding: 16px 22px;
-      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -245,9 +244,9 @@
     #fileInput { display: none; }
 
     .file-list {
-      flex: 1;
       overflow-y: auto;
       padding: 8px 0;
+      border-bottom: 1px solid var(--border);
     }
 
     .file-list::-webkit-scrollbar { width: 3px; }
@@ -287,6 +286,21 @@
     }
 
     .file-item.active .file-name { color: var(--white); font-weight: 700; }
+
+    .btn-file-delete {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.15);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      opacity: 0;
+      transition: color 0.15s, background 0.15s, opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .file-item:hover .btn-file-delete { opacity: 1; }
+    .file-item:hover .btn-file-delete:hover { color: #FF3B3B; background: rgba(255,59,59,0.1); }
 
     .file-empty {
       padding: 32px 22px;
@@ -463,6 +477,7 @@
         <div class="file-item {% if loop.first %}active{% endif %}" onclick="selectFile(this, '{{ pdf }}')">
           <span class="file-icon">📄</span>
           <span class="file-name">{{ pdf }}</span>
+          <button class="btn-file-delete" title="Delete file" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">✕</button>
         </div>
         {% endfor %}
       {% else %}
@@ -527,6 +542,16 @@
     document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
     el.classList.add('active');
     selectedFile = filename;
+  }
+
+  // ── Delete file ──
+  function deleteFile(filename) {
+    if (!confirm('Delete "' + filename + '"? This cannot be undone.')) return;
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/delete_file/{{ project_name }}/' + encodeURIComponent(filename);
+    document.body.appendChild(form);
+    form.submit();
   }
 
   // ── Parse ──

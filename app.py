@@ -2,16 +2,8 @@ import uuid
 import os
 import json
 import shutil
-try:
-    from flask import Flask, render_template, request, redirect
-except ImportError as e:
-    raise ImportError(
-        "Flask is required to run this application. Install it with `pip install flask`."
-    ) from e
+from flask import Flask, render_template, request, redirect
 from main import extract_text_from_PDF
-import google.generativeai as genai
-
-genai.configure(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
 
 app = Flask(__name__)
 
@@ -105,6 +97,33 @@ def workspace(project_name):
         id_type=id_type,
         id_value=id_value
     )
+
+
+# Parse a PDF
+@app.route("/parse/<project_name>/<filename>")
+def parse(project_name, filename):
+    from flask import jsonify
+    from main import parse_index_ii
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    file_path = os.path.join(project_path, filename)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"})
+    try:
+        result = parse_index_ii(file_path)
+        if result is None:
+            return jsonify({"error": "Could not parse document"})
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
+# Deleting ffiles
+@app.route("/delete_file/<project_name>/<filename>", methods=["POST"])
+def delete_file(project_name, filename):
+    file_path = os.path.join(PROJECT_FOLDER, project_name, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    return redirect(f"/workspace/{project_name}")
 
 if __name__ == "__main__":
     app.run(debug=True)
