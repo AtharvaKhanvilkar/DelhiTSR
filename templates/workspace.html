@@ -651,13 +651,34 @@
     var container = document.getElementById('jsonOutput');
     container.innerHTML = '';
 
-    // Sort: filled values first, nulls last
-    var entries = Object.entries(data).sort(function(a, b) {
-      var aNull = a[1] === null || a[1] === undefined || a[1] === '';
-      var bNull = b[1] === null || b[1] === undefined || b[1] === '';
-      if (aNull && !bNull) return 1;
-      if (!aNull && bNull) return -1;
-      return 0;
+    // Defined display order
+    var order = [
+      'document_type', 'registration_year', 'doc_no', 'txn_type',
+      'seller_names', 'seller_address', 'buyer_names', 'buyer_address',
+      'consideration', 'area', 'flat_no',
+      'society_building_name', 'society_building_address',
+      'cts_no', 'plot_no', 'survey_no',
+      'village', 'district',
+      'stamp_duty', 'registration_fee', 'sub_registrar_office'
+    ];
+
+    // ID fields — only show the one that's filled
+    var idFields = ['cts_no', 'plot_no', 'survey_no'];
+    var filledId = idFields.find(f => data[f] !== null && data[f] !== undefined && data[f] !== '');
+    var hiddenIds = idFields.filter(f => f !== filledId);
+
+    // Build ordered entries: first the defined order, then anything leftover
+    var seen = new Set();
+    var entries = [];
+
+    order.forEach(function(key) {
+      if (hiddenIds.includes(key)) return; // skip unfilled ID fields
+      if (key in data) { entries.push([key, data[key]]); seen.add(key); }
+    });
+
+    // Append remaining keys not in order (except hidden ID fields)
+    Object.keys(data).forEach(function(key) {
+      if (!seen.has(key) && !hiddenIds.includes(key)) entries.push([key, data[key]]);
     });
 
     entries.forEach(function([key, value]) {

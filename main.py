@@ -72,10 +72,10 @@ You are a document parser. Extract the following fields from the document and re
 - stamp_duty                      (IF NULL → RETURN "ALERT")
 - registration_fee
 
-- seller_names                    (list, exclude if LEAVE_AND_LICENSE)
-- seller_address                  (exclude if LEAVE_AND_LICENSE)
-- buyer_names                     (list, exclude if LEAVE_AND_LICENSE)
-- buyer_address                   (exclude if LEAVE_AND_LICENSE)
+- seller_names                    
+- seller_address                  
+- buyer_names                     
+- buyer_address                   
 
 - boundary_north
 - boundary_south
