@@ -2,9 +2,14 @@ import uuid
 import os
 import json
 import shutil
-from flask import Flask, render_template, request, redirect
+try:
+    from flask import Flask, render_template, request, redirect
+except ImportError as e:
+    raise ImportError(
+        "Flask is required to run this application. Install it with `pip install flask`."
+    ) from e
 from main import extract_text_from_PDF
-from google import genai
+import google.generativeai as genai
 
 client = genai.Client(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
 

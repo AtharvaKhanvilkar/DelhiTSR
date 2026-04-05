@@ -1,9 +1,7 @@
 import json
 import pdfplumber
-from google import genai
-
+import google.generativeai as genai
 client = genai.Client(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
-
 def extract_text_from_PDF(file_path):
     """Read PDF and return all text."""
     text = ""
