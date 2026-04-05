@@ -125,5 +125,9 @@ def delete_file(project_name, filename):
         os.remove(file_path)
     return redirect(f"/workspace/{project_name}")
 
+@app.route('/learnmore')
+def learn_more():
+    return render_template('learnmore.html')
+
 if __name__ == "__main__":
     app.run(debug=True)

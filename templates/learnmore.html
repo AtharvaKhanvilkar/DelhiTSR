@@ -3,11 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn More</title>
+    <title>DDR Engine - Platform Overview</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+        }
+        h2 {
+            color: #1e40af;
+            margin-top: 30px;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Learn More Page</h1>
-    <p>This is some placeholder content. Your real content goes here.</p>
-    <a href="index.html">Back to Home</a>
+    <div class="container">
+        <h1>AutoTSR — Document Reconciliation Platform for MH Property</h1>
+
+        <h2>Project Creation</h2>
+        <ul>
+            <li>Users create a new project by specifying a <span class="highlight">project name</span> and the key property identifier type (<span class="highlight">Survey Number</span>, <span class="highlight">CTS Number</span>, or <span class="highlight">Plot Number</span>).</li>
+            <li>They then enter the actual identifier value, which helps label and organize the project for quick reference.</li>
+            <li>DDR Engine generates a unique workspace for each project, keeping all uploaded documents organized.</li>
+        </ul>
+
+        <h2>Workspace & Document Upload</h2>
+        <ul>
+            <li>Each project has its own <span class="highlight">workspace</span>.</li>
+            <li>Users can upload property documents (PDFs) directly into the workspace.</li>
+            <li>The platform maintains a <span class="highlight">sidebar</span> showing all uploaded documents for easy access.</li>
+            <li>The sidebar also prominently displays the project name along with the entered Survey/CTS/Plot number, providing immediate context for every workspace.</li>
+        </ul>
+
+        <h2>Automated Data Extraction</h2>
+        <ul>
+            <li>Once a document is uploaded, AutoTSR leverages <span class="highlight">Google’s Gemini AI</span> to extract structured information based on a strict, pre-defined schema.</li>
+            <li>This includes essential fields like <span class="highlight">registration number</span>, <span class="highlight">document type</span>, <span class="highlight">license fees</span>, <span class="highlight">licensor and licensee details</span>, and <span class="highlight">plot or survey information</span>.</li>
+            <li>The AI ensures high accuracy and consistency, converting unstructured PDFs into a machine-readable JSON format.</li>
+        </ul>
+    </div>
 </body>
 </html>
