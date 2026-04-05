@@ -10,11 +10,11 @@
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #010101;
-      --white: #FFFFFF;
+      --bg: #ffffff;
+      --white: #080808;
       --orange: #FF4800;
-      --muted: rgba(142, 142, 142, 0.43);
-      --border: rgba(255,255,255,0.08);
+      --muted: rgb(17, 17, 17);
+      --border: rgba(32, 32, 32, 0.248);
     }
 
     html, body {
@@ -111,13 +111,13 @@
       font-weight: 700;
       line-height: 0.92;
       letter-spacing: -0.03em;
-      color: var(--white);
+      color: var(--black);
       opacity: 0;
       animation: fadeUp 0.7s ease 0.25s forwards;
     }
 
     .hero-title span {
-      color: var(--white);
+      color: var(--black);
     }
 
     .hero-sub {
@@ -162,7 +162,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(255,255,255,0.12);
+      background: rgba(27, 27, 27, 0.351);
       opacity: 0;
       transition: opacity 0.2s;
     }
@@ -191,7 +191,7 @@
 
     .btn-ghost:hover {
       color: var(--white);
-      border-color: rgba(255,255,255,0.3);
+      border-color: rgba(80, 80, 80, 0.3);
     }
 
     /* ── BOTTOM FOOTER ── */
@@ -209,7 +209,7 @@
       font-size: clamp(28px, 4vw, 52px);
       font-weight: 700;
       letter-spacing: -0.02em;
-      color: rgba(255,255,255,0.06);
+      color: rgba(34, 34, 34, 0.541);
       text-transform: uppercase;
       line-height: 1;
       user-select: none;
@@ -234,7 +234,7 @@
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.2);
+      color: rgba(31, 31, 31, 0.218);
     }
 
     /* ── ANIMATION ── */
@@ -286,7 +286,7 @@
           Go to Projects
           <span class="btn-arrow">→</span>
         </a>
-        <a href="#" class="btn-ghost">Learn more</a>
+        <a href="templates/learnmore.html">Learn more</a>
       </div>
     </main>
 
