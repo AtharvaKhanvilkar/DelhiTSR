@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{{ project_name.rsplit('_', 1)[0] }} — TSR Engine</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -453,18 +452,8 @@
 
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <p class="sidebar-title">Index II Documents</p>
-      {% if id_type and id_value %}
-      <div class="sidebar-id-card">
-        <span class="sidebar-id-label">{{ id_type.replace('_',' ') }}</span>
-        <span class="sidebar-id-value">{{ id_value }}</span>
-      </div>
-      {% endif %}
-    </div>
-
     <div class="sidebar-files">
-      <span class="sidebar-files-label">Files</span>
+      <span class="sidebar-files-label">Index II Documents</span>
       <button class="btn-upload" title="Upload PDF" onclick="document.getElementById('fileInput').click()">+</button>
     </div>
 
