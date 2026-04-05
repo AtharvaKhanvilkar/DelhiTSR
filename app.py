@@ -11,7 +11,7 @@ except ImportError as e:
 from main import extract_text_from_PDF
 import google.generativeai as genai
 
-client = genai.Client(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
+genai.configure(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
 
 app = Flask(__name__)
 

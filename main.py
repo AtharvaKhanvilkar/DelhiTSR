@@ -1,7 +1,10 @@
 import json
 import pdfplumber
 import google.generativeai as genai
-client = genai.Client(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
+
+genai.configure(api_key="AIzaSyBzK1Z_dlGKQoiUq-spmWiwbh0uRUIrZUQ")
+
+
 def extract_text_from_PDF(file_path):
     """Read PDF and return all text."""
     text = ""
@@ -11,6 +14,7 @@ def extract_text_from_PDF(file_path):
             if page_text:
                 text += page_text + "\n"
     return text
+
 
 def parse_index_ii(file_path):
     """
@@ -82,16 +86,13 @@ ADHERE TO PRESCRIBED INSTRUCTIONS.
 
 DOCUMENT:
 {document_text}
-
 """
 
-    # Call Gemini AI
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    # ✅ MOVED INSIDE FUNCTION (this was the only real fix)
 
-    # Convert Gemini response to Python object
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(prompt)
+
     try:
         ACT_data = json.loads(response.text)
     except json.JSONDecodeError as e:
