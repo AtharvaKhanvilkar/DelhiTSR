@@ -157,19 +157,23 @@ def edit_project():
     if os.path.exists(old_path):
         os.rename(old_path, new_path)
 
-    
+    # Update id_info.json
     id_info_path = os.path.join(new_path, "id_info.json")
     with open(id_info_path, "w") as f:
         json.dump({"id_type": new_id_type, "id_value": new_id_value}, f)
 
     return redirect("/projects")
 
+
+# Serve PDF file for viewer
 @app.route("/pdf/<project_name>/<path:filename>")
 def serve_pdf(project_name, filename):
     from flask import send_from_directory
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     return send_from_directory(project_path, filename)
 
+
+# Load saved parse result for a file
 @app.route("/result/<project_name>/<path:filename>")
 def load_result(project_name, filename):
     from flask import jsonify
@@ -180,6 +184,201 @@ def load_result(project_name, filename):
     with open(result_path) as f:
         data = json.load(f)
     return jsonify({"exists": True, "data": data})
+
+
+# Build events for a project from all saved JSON results
+@app.route("/events/<project_name>")
+def get_events(project_name):
+    from flask import jsonify
+    from datetime import datetime
+
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    events = []
+    consistency_errors = []
+
+    # Collect all _result.json files
+    result_files = [f for f in os.listdir(project_path) if f.endswith("_result.json")]
+
+    ref_society_name = None
+    ref_society_address = None
+    ref_id_field = None
+    ref_id_value = None
+
+    for rf in result_files:
+        result_path = os.path.join(project_path, rf)
+        with open(result_path) as f:
+            data = json.load(f)
+
+        txn = data.get("txn_type") or ""
+        txn = txn.upper()
+
+        # Determine property type
+        flat_no = data.get("flat_no")
+        society_name = data.get("society_building_name")
+        is_flat = bool(flat_no or society_name)
+
+        # Get the filled ID field
+        id_field, id_value = None, None
+        for field in ["cts_no", "plot_no", "survey_no"]:
+            val = data.get(field)
+            if val and val != "null":
+                id_field = field
+                id_value = val
+                break
+
+        # Consistency check
+        if ref_society_name is None and is_flat and society_name:
+            ref_society_name = society_name
+            ref_society_address = data.get("society_building_address")
+        elif is_flat and society_name and ref_society_name:
+            if society_name.strip().lower() != ref_society_name.strip().lower():
+                consistency_errors.append(f"Society name mismatch in {rf}: '{society_name}' vs expected '{ref_society_name}'")
+
+        if ref_id_value is None and id_value:
+            ref_id_field = id_field
+            ref_id_value = id_value
+        elif id_value and ref_id_value:
+            if id_value.strip().lower() != ref_id_value.strip().lower():
+                consistency_errors.append(f"ID number mismatch in {rf}: '{id_field}={id_value}' vs expected '{ref_id_field}={ref_id_value}'")
+
+        # Build event
+        event = {
+            "source_file": rf.replace("_result.json", ".pdf"),
+            "event_type": txn,
+            "event_date": data.get("date_of_execution"),
+            "event_reg_date": data.get("date_of_registration"),
+            "event_doc_no": data.get("doc_no"),
+            "area": data.get("area"),
+            "id_field": id_field,
+            "id_value": id_value,
+        }
+
+        # Property type
+        event["property_type"] = "FLAT" if is_flat else "PLOT"
+        if is_flat:
+            event["society_building_name"] = society_name
+            event["society_building_address"] = data.get("society_building_address")
+            event["flat_no"] = flat_no
+
+        # Parties based on txn type
+        if "SALE" in txn or "AGREEMENT" in txn:
+            event["seller_names"] = data.get("seller_names")
+            event["buyer_names"] = data.get("buyer_names")
+            event["consideration"] = data.get("consideration")
+        elif "GIFT" in txn:
+            event["donor_name"] = data.get("donor_name")
+            event["donee_name"] = data.get("donee_name")
+        elif "MORTGAGE" in txn or "INTIMATION" in txn:
+            event["mortgagor_name"] = data.get("mortgagor_name")
+            event["mortgagee_name"] = data.get("mortgagee_name")
+        elif "RELEASE" in txn:
+            event["releasor_names"] = data.get("seller_names")
+            event["releasee_names"] = data.get("buyer_names")
+        elif "LEAVE" in txn or "LICENSE" in txn:
+            event["licensor_name"] = data.get("licensor_name")
+            event["licensee_name"] = data.get("licensee_name")
+
+        events.append(event)
+
+    # Sort chronologically
+    def parse_date(d):
+        if not d:
+            return datetime.max
+        for fmt in ["%d-%m-%Y", "%d/%m/%Y"]:
+            try:
+                return datetime.strptime(d, fmt)
+            except:
+                pass
+        return datetime.max
+
+    events.sort(key=lambda e: parse_date(e.get("event_date")))
+
+    # Mortgage check — every mortgage needs a release
+    mortgage_events = [e for e in events if "MORTGAGE" in e.get("event_type","") or "INTIMATION" in e.get("event_type","")]
+    release_events  = [e for e in events if "RELEASE" in e.get("event_type","")]
+    unresolved_mortgages = []
+    for m in mortgage_events:
+        has_release = any(
+            parse_date(r.get("event_date")) > parse_date(m.get("event_date"))
+            for r in release_events
+        )
+        if not has_release:
+            unresolved_mortgages.append(m.get("event_doc_no") or "unknown")
+
+    return jsonify({
+        "events": events,
+        "consistency_errors": consistency_errors,
+        "unresolved_mortgages": unresolved_mortgages
+    })
+
+
+# Build ownership chain errors for a project
+@app.route("/errors/<project_name>")
+def get_errors(project_name):
+    from flask import jsonify
+    from datetime import datetime
+
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    result_files = [f for f in os.listdir(project_path) if f.endswith("_result.json")]
+
+    events = []
+    for rf in result_files:
+        with open(os.path.join(project_path, rf)) as f:
+            data = json.load(f)
+        txn = (data.get("txn_type") or "").upper()
+
+        # Get current owners (who received the property)
+        if "SALE" in txn or "AGREEMENT" in txn:
+            transferors = data.get("seller_names") or []
+            transferees = data.get("buyer_names") or []
+        elif "GIFT" in txn:
+            transferors = [data.get("donor_name")] if data.get("donor_name") else []
+            transferees = [data.get("donee_name")] if data.get("donee_name") else []
+        elif "RELEASE" in txn:
+            transferors = data.get("seller_names") or []
+            transferees = data.get("buyer_names") or []
+        else:
+            continue  # Skip mortgage, L&L etc for chain check
+
+        events.append({
+            "doc_no": data.get("doc_no"),
+            "txn_type": txn,
+            "event_date": data.get("date_of_execution"),
+            "transferors": [n.strip().lower() for n in (transferors if isinstance(transferors, list) else [transferors])],
+            "transferees": [n.strip().lower() for n in (transferees if isinstance(transferees, list) else [transferees])],
+        })
+
+    def parse_date(d):
+        if not d: return datetime(9999,1,1)
+        for fmt in ["%d-%m-%Y", "%d/%m/%Y"]:
+            try: return datetime.strptime(d, fmt)
+            except: pass
+        return datetime(9999,1,1)
+
+    events.sort(key=lambda e: parse_date(e.get("event_date")))
+
+    chain_errors = []
+    current_owners = set(events[0]["transferees"]) if events else set()
+
+    for i in range(1, len(events)):
+        ev = events[i]
+        transferors_set = set(ev["transferors"])
+
+        # Check if transferors match current owners
+        if not transferors_set.intersection(current_owners):
+            chain_errors.append({
+                "doc_no": ev["doc_no"],
+                "txn_type": ev["txn_type"],
+                "event_date": ev["event_date"],
+                "expected_sellers": list(current_owners),
+                "actual_sellers": list(transferors_set),
+                "message": f"Ownership mismatch: sellers in this deed do not match buyers from previous deed."
+            })
+
+        # Update current owners to transferees of this deed
+        current_owners = set(ev["transferees"])
+
+    return jsonify({"chain_errors": chain_errors})
 
 if __name__ == "__main__":
     app.run(debug=True)
