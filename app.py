@@ -132,6 +132,11 @@ def delete_file(project_name, filename):
     file_path = os.path.join(PROJECT_FOLDER, project_name, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
+    # Also delete the saved result JSON if it exists
+    result_filename = os.path.splitext(filename)[0] + "_result.json"
+    result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
+    if os.path.exists(result_path):
+        os.remove(result_path)
     return redirect(f"/workspace/{project_name}")
 
 
