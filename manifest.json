@@ -1,0 +1,17 @@
+{
+  "name": "AutoTSR",
+  "short_name": "AutoTSR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0B",
+  "theme_color": "black",
+  "orientation": "portrait",
+  "icons": [
+  {
+    "src": "/static/TR-logo 1.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }
+]
+
+}

@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 from flask import Flask, render_template, request, redirect
+from flask import send_from_directory
 from main import extract_text_from_PDF
 
 app = Flask(__name__)
@@ -390,6 +391,17 @@ def get_errors(project_name):
         current_owners = set(ev["transferees"])
 
     return jsonify({"chain_errors": chain_errors})
+
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('.', 'manifest.json')
+
+
+@app.route('/sw.js')
+def service_worker():
+    response = send_from_directory('.', 'sw.js')
+    response.headers['Content-Type'] = 'application/javascript'
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)

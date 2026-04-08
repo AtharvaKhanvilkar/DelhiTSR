@@ -6,6 +6,10 @@
   <title>Projects - AutoTSR</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -13,7 +17,7 @@
       --bg: #000000;
       --card: #080808;
       --white: #FFFFFF;
-      --orange: #FF4800;
+      --orange: #ff4800;
       --muted: rgba(144, 144, 144, 0.496);
       --border: rgba(255,255,255,0.08);
       --divider: #171717;
@@ -389,6 +393,20 @@
     document.getElementById('deleteForm').action = '/delete_project/' + folderName;
     openModal('deleteModal');
   }
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function () {
+        console.log('Service Worker Registered');
+      })
+      .catch(function (error) {
+        console.log('Service Worker Failed', error);
+      });
+  });
+}
 </script>
 
 </body>

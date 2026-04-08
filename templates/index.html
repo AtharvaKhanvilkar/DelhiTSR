@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TSR Engine</title>
+  <title>AutoTSR</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
   <style>
@@ -12,7 +14,7 @@
     :root {
       --bg: #ffffff;
       --white: #080808;
-      --orange: #FF4800;
+      --orange: #ff4800;
       --muted: rgb(17, 17, 17);
       --border: rgba(32, 32, 32, 0.248);
       --green: #52fe3f;
@@ -257,6 +259,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="accent-line"></div>
 
@@ -299,5 +302,20 @@
       </div>
     </footer>
   </div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function () {
+        console.log('Service Worker Registered');
+      })
+      .catch(function (error) {
+        console.log('Service Worker Failed', error);
+      });
+  });
+}
+</script>
+
 </body>
 </html>

@@ -6,6 +6,10 @@
   <title>{{ project_name.rsplit('_', 1)[0] }} — AutoTSR</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
    <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -14,7 +18,7 @@
       --topbar: #101010;
       --sidebar: #101010;
       --white: #FFFFFF;
-      --orange: #FF5500;
+      --orange: #ff4800;
       --muted: rgba(255,255,255,0.38);
       --muted2: rgba(255,255,255,0.15);
       --border: #1E1E1E;
@@ -1099,6 +1103,21 @@
         });
       });
   }
+
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function () {
+        console.log('Service Worker Registered');
+      })
+      .catch(function (error) {
+        console.log('Service Worker Failed', error);
+      });
+  });
+}
 </script>
 
 </body>
