@@ -201,8 +201,11 @@ def get_events(project_name):
     events = []
     consistency_errors = []
 
-    # Collect all _result.json files
-    result_files = [f for f in os.listdir(project_path) if f.endswith("_result.json")]
+    # Only include result files that have a matching PDF still in the folder
+    all_files = os.listdir(project_path)
+    pdfs = [f for f in all_files if f.lower().endswith(".pdf")]
+    pdf_basenames = set(os.path.splitext(p)[0] for p in pdfs)
+    result_files = [f for f in all_files if f.endswith("_result.json") and f.replace("_result.json", "") in pdf_basenames]
 
     ref_society_name = None
     ref_society_address = None
@@ -324,7 +327,10 @@ def get_errors(project_name):
     from datetime import datetime
 
     project_path = os.path.join(PROJECT_FOLDER, project_name)
-    result_files = [f for f in os.listdir(project_path) if f.endswith("_result.json")]
+    all_files = os.listdir(project_path)
+    pdfs = [f for f in all_files if f.lower().endswith(".pdf")]
+    pdf_basenames = set(os.path.splitext(p)[0] for p in pdfs)
+    result_files = [f for f in all_files if f.endswith("_result.json") and f.replace("_result.json", "") in pdf_basenames]
 
     events = []
     for rf in result_files:
