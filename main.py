@@ -3,7 +3,7 @@ import re
 import pdfplumber
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyDhsO9R03wFAzCXnkGWdcUVLXVHHRaeyuw")
+genai.configure(api_key="AIzaSyCmiRW3JQFT9Q5cxIDtBpULAt6cejEhKXk")
 
 
 def extract_text_from_PDF(file_path):
