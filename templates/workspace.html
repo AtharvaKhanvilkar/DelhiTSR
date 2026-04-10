@@ -3,793 +3,484 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#000000">
   <title>{{ project_name.rsplit('_', 1)[0] }} — AutoTSR</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
-   <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
-
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#000000">
-
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0B0B0B;
-      --topbar: #101010;
-      --sidebar: #101010;
+      --bg: #F2F2F2;
       --white: #FFFFFF;
-      --orange: #ff4800;
-      --muted: rgba(255,255,255,0.38);
-      --muted2: rgba(255,255,255,0.15);
-      --border: #1E1E1E;
-      --border2: #272727;
-      --card: #161616;
-      --active-tab: rgba(255,255,255,0.06);
+      --black: #111111;
+      --orange: #FF4800;
+      --muted: #888888;
+      --muted2: #BBBBBB;
+      --border: #E4E4E4;
+      --border2: #DEDEDE;
+      --pill-bg: #EDEDED;
+      --red: #C62828;
+      --green: #2E7D32;
+      --yellow: #E65100;
+      --purple: #6A1B9A;
+      --blue: #1565C0;
     }
 
     html, body {
       height: 100vh;
       overflow: hidden;
       background: var(--bg);
-      color: var(--white);
+      color: var(--black);
       font-family: 'Inria Sans', serif;
     }
 
-    /* ── LAYOUT ── */
     .app {
       display: grid;
-      grid-template-rows: 86px 1fr;
-      grid-template-columns: 327px 1fr;
+      grid-template-columns: 244px 1fr;
       height: 100vh;
+      gap: 10px;
+      padding: 10px;
     }
-
-    /* ── TOPBAR ── */
-    .topbar {
-      grid-column: 1 / -1;
-      background: var(--topbar);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 0;
-      position: relative;
-    }
-
-    .topbar-logo {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--white);
-      text-decoration: none;
-      white-space: nowrap;
-      padding-right: 32px;
-      border-right: 1px solid var(--border);
-      margin-right: 32px;
-    }
-
-    .topbar-project {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding-right: 32px;
-      border-right: 1px solid var(--border);
-      margin-right: 32px;
-    }
-
-    .topbar-project-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -0.01em;
-    }
-
-    .topbar-project-id {
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    /* Tabs */
-    .topbar-tabs {
-      display: flex;
-      align-items: stretch;
-      height: 100%;
-      gap: 2px;
-      flex: 1;
-    }
-
-    .tab {
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-      user-select: none;
-    }
-
-    .tab:hover { color: var(--white); background: var(--active-tab); }
-    .tab.active {
-      color: var(--white);
-      font-weight: 700;
-      border-bottom-color: var(--orange);
-    }
-
-    /* Topbar right buttons */
-    .topbar-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: auto;
-    }
-
-    .btn-parse {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--card);
-      border: 0.5px solid var(--orange);
-      color: var(--orange);
-      font-family: 'Inria Sans', serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 10px 20px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .btn-parse:hover { background: var(--orange); color: var(--white); }
-
-    .btn-json {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--card);
-      border: 1px solid var(--border2);
-      color: #606060;
-      font-family: 'Inria Sans', serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 10px 20px;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .btn-json:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
 
     /* ── SIDEBAR ── */
     .sidebar {
-      background: var(--sidebar);
-      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
+      gap: 8px;
       overflow: hidden;
     }
 
-    .sidebar-header {
-      padding: 20px 22px 16px;
+    .project-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .project-card-logo {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 8px;
+    }
+
+    .project-card-logo a {
+      text-decoration: none; color: inherit;
+      transition: color 0.15s;
+    }
+    .project-card-logo a:hover { color: var(--orange); }
+
+    .project-card-name {
+      font-size: 15px; font-weight: 700;
+      color: var(--black); letter-spacing: -0.02em;
+      margin-bottom: 3px;
+    }
+
+    .project-card-id {
+      font-size: 11px; font-weight: 400;
+      color: var(--muted); letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .files-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex; flex-direction: column;
+      overflow: hidden; flex: 1;
+    }
+
+    .files-card-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
       border-bottom: 1px solid var(--border);
     }
 
-    .sidebar-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    .sidebar-id-card {
-      background: #161616;
-      border-radius: 5px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .sidebar-id-label {
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .sidebar-id-value {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--white);
-    }
-
-    /* Upload + file list */
-    .sidebar-files {
-      padding: 16px 22px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .sidebar-files-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+    .files-card-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--muted);
     }
 
     .btn-upload {
-      width: 26px;
-      height: 26px;
-      background: #131313;
-      border: 1px solid var(--border2);
-      border-radius: 2px;
-      color: var(--white);
-      font-size: 18px;
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, border-color 0.15s;
+      width: 22px; height: 22px;
+      background: var(--black); border: none;
+      border-radius: 4px; color: var(--white);
+      font-size: 15px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
     }
-    .btn-upload:hover { background: #1e1e1e; border-color: rgba(255,255,255,0.2); }
+    .btn-upload:hover { background: var(--orange); }
 
-    /* Hidden real file input */
     #fileInput { display: none; }
 
     .file-list {
       overflow-y: auto;
-      padding: 8px 0;
       border-bottom: 1px solid var(--border);
     }
-
     .file-list::-webkit-scrollbar { width: 3px; }
-    .file-list::-webkit-scrollbar-track { background: transparent; }
     .file-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
     .file-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 22px;
-      cursor: pointer;
-      transition: background 0.15s;
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px; cursor: pointer;
+      transition: background 0.12s;
       border-left: 2px solid transparent;
     }
+    .file-item:hover { background: #F7F7F7; }
+    .file-item.active { background: #FFF3EF; border-left-color: var(--orange); }
 
-    .file-item:hover { background: rgba(255,255,255,0.03); }
-    .file-item.active {
-      background: rgba(255,85,0,0.06);
-      border-left-color: var(--orange);
-    }
-
-    .file-icon {
-      font-size: 14px;
-      opacity: 0.5;
-      flex-shrink: 0;
-    }
+    .file-icon { font-size: 12px; opacity: 0.45; flex-shrink: 0; }
 
     .file-name {
-      font-size: 13px;
-      font-weight: 400;
-      color: rgba(255,255,255,0.7);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      flex: 1;
+      font-size: 12px; color: #555;
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; flex: 1;
     }
-
-    .file-item.active .file-name { color: var(--white); font-weight: 700; }
+    .file-item.active .file-name { color: var(--black); font-weight: 700; }
 
     .btn-file-delete {
-      background: transparent;
-      border: none;
-      color: rgba(255,255,255,0.15);
-      font-size: 12px;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 3px;
-      opacity: 0;
-      transition: color 0.15s, background 0.15s, opacity 0.15s;
+      background: transparent; border: none;
+      color: var(--muted2); font-size: 10px;
+      cursor: pointer; padding: 2px 4px;
+      border-radius: 3px; opacity: 0;
+      transition: color 0.12s, background 0.12s, opacity 0.12s;
       flex-shrink: 0;
     }
     .file-item:hover .btn-file-delete { opacity: 1; }
-    .file-item:hover .btn-file-delete:hover { color: #FF3B3B; background: rgba(255,59,59,0.1); }
+    .file-item:hover .btn-file-delete:hover { color: var(--red); background: rgba(198,40,40,0.07); }
 
-    .file-empty {
-      padding: 32px 22px;
-      text-align: center;
-    }
-    .file-empty p { font-size: 12px; color: var(--muted2); line-height: 1.6; }
+    .file-empty { padding: 24px 14px; text-align: center; }
+    .file-empty p { font-size: 11px; color: var(--muted2); line-height: 1.6; }
 
-    /* ── MAIN CONTENT ── */
+    /* ── MAIN ── */
     .main {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--bg);
+      display: flex; flex-direction: column;
+      gap: 8px; overflow: hidden; min-width: 0;
     }
 
-    /* Tab panels */
-    .panel {
-      display: none;
-      flex: 1;
-      overflow: hidden;
+    .tab-bar {
+      background: var(--pill-bg);
+      border-radius: 10px; padding: 4px;
+      display: flex; align-items: center; gap: 2px;
+      flex-shrink: 0;
     }
-    .panel.active { display: flex; flex-direction: column; flex: 1; }
 
-    /* PDF Viewer */
+    .tab {
+      padding: 7px 16px;
+      font-size: 12px; font-weight: 400;
+      color: var(--muted); cursor: pointer;
+      border-radius: 7px;
+      transition: background 0.12s, color 0.12s;
+      white-space: nowrap; user-select: none;
+    }
+    .tab:hover { color: var(--black); }
+    .tab.active {
+      background: var(--white);
+      color: var(--black); font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+    }
+
+    .tab-bar-spacer { flex: 1; }
+
+    .btn-parse {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--orange); border: none;
+      color: var(--white); font-family: 'Inria Sans', serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 7px 16px; border-radius: 7px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.12s;
+    }
+    .btn-parse:hover { opacity: 0.87; transform: translateY(-1px); }
+
+    .content-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      flex: 1; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .panel.active { display: flex; }
+
+    /* PDF */
     .pdf-viewer {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background: #111;
+      flex: 1; display: flex;
+      align-items: center; justify-content: center;
+      overflow: hidden; background: #EBEBEB;
+      border-radius: 0 0 10px 10px;
     }
+    iframe.pdf-frame { width: 100%; height: 100%; border: none; }
 
-    .pdf-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      text-align: center;
+    .pdf-placeholder { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+    .pdf-placeholder-icon { font-size: 36px; opacity: 0.18; }
+    .pdf-placeholder p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .pdf-placeholder strong { display: block; font-size: 13px; color: #999; margin-bottom: 3px; }
+
+    /* JSON */
+    .json-panel { flex: 1; overflow-y: auto; padding: 22px 26px; }
+    .json-panel::-webkit-scrollbar { width: 3px; }
+    .json-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .json-empty, .events-empty, .errors-empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 10px; text-align: center;
     }
+    .json-empty-icon, .events-empty-icon, .errors-empty-icon { font-size: 32px; opacity: 0.16; }
+    .json-empty p, .events-empty p, .errors-empty p { font-size: 13px; color: var(--muted); }
 
-    .pdf-placeholder-icon {
-      font-size: 48px;
-      opacity: 0.15;
-    }
-
-    .pdf-placeholder p {
-      font-size: 13px;
-      color: var(--muted2);
-      line-height: 1.6;
-    }
-
-    .pdf-placeholder strong {
-      display: block;
-      font-size: 15px;
-      color: rgba(255,255,255,0.15);
-      margin-bottom: 4px;
-    }
-
-    iframe.pdf-frame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #D9D9D9;
-    }
-
-    /* JSON Output panel */
-    .json-panel {
-      flex: 1;
-      overflow: auto;
-      padding: 32px;
-    }
-
-    .json-panel::-webkit-scrollbar { width: 4px; }
-    .json-panel::-webkit-scrollbar-thumb { background: var(--border2); }
-
-    .json-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 12px;
-      text-align: center;
-    }
-
-    .json-empty-icon { font-size: 40px; opacity: 0.15; }
-    .json-empty p { font-size: 13px; color: var(--muted2); }
-
-    /* JSON card styles */
     .json-output { display: none; }
-
-    .json-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-width: 860px;
-    }
+    .json-grid { display: flex; flex-direction: column; gap: 1px; max-width: 700px; }
 
     .json-row {
       display: grid;
-      grid-template-columns: 220px 1fr;
-      align-items: baseline;
-      gap: 16px;
-      padding: 10px 16px;
-      border-radius: 6px;
-      transition: background 0.1s;
+      grid-template-columns: 196px 1fr;
+      align-items: baseline; gap: 16px;
+      padding: 8px 10px; border-radius: 5px;
     }
-
-    .json-row:hover { background: rgba(255,255,255,0.03); }
-
-    .json-row.has-value {
-      background: rgba(255,255,255,0.04);
-    }
-
-    .json-row.has-value:hover { background: rgba(255,255,255,0.07); }
+    .json-row.has-value { background: #FAFAFA; }
+    .json-row.has-value:hover { background: #F3F3F3; }
 
     .json-key {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
     }
-
     .json-row.has-value .json-key { color: var(--muted); }
-    .json-row.is-null .json-key   { color: rgba(255,255,255,0.18); }
+    .json-row.is-null .json-key   { color: var(--muted2); }
 
-    .json-value {
-      font-size: 14px;
-      font-weight: 400;
-      word-break: break-word;
-    }
+    .json-value { font-size: 13px; font-weight: 400; word-break: break-word; }
+    .json-row.has-value .json-value { color: var(--black); }
+    .json-row.is-null .json-value  { font-size: 12px; font-style: italic; color: var(--muted2); }
+    .json-value.is-alert { color: var(--orange); font-weight: 700; font-style: normal; }
 
-    .json-row.has-value .json-value { color: var(--white); }
-
-    .json-row.is-null .json-value {
-      color: rgba(255, 80, 0, 0.5);
-      font-size: 12px;
-      font-style: italic;
-    }
-
-    .json-value.is-alert {
-      color: var(--orange);
-      font-weight: 700;
-      font-style: normal;
-    }
-
-    .json-section-title {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.15);
-      padding: 20px 16px 6px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 4px;
-    }
-
-    /* Parse loading state */
     .parse-loading {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 16px;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 12px;
     }
-
     .parse-loading.visible { display: flex; }
-
     .spinner {
-      width: 32px;
-      height: 32px;
+      width: 26px; height: 26px;
       border: 2px solid var(--border2);
       border-top-color: var(--orange);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.7s linear infinite;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
+    .parse-loading p { font-size: 12px; color: var(--muted); }
 
-    /* Events panel */
-    .events-panel {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px;
-    }
-    .events-panel::-webkit-scrollbar { width: 4px; }
-    .events-panel::-webkit-scrollbar-thumb { background: var(--border2); }
+    /* Events */
+    .events-panel { flex: 1; overflow-y: auto; padding: 22px 26px; }
+    .events-panel::-webkit-scrollbar { width: 3px; }
+    .events-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-    .events-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; text-align: center; }
-    .events-empty-icon { font-size: 40px; opacity: 0.15; }
-    .events-empty p { font-size: 13px; color: var(--muted2); }
-
-    .timeline { display: flex; flex-direction: column; gap: 0; max-width: 760px; }
-
-    .timeline-item { display: flex; gap: 24px; }
-
-    .timeline-spine {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 20px;
-      flex-shrink: 0;
-    }
-
+    .timeline { display: flex; flex-direction: column; max-width: 660px; }
+    .timeline-item { display: flex; gap: 16px; }
+    .timeline-spine { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
     .timeline-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--orange);
-      flex-shrink: 0;
-      margin-top: 18px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--orange); flex-shrink: 0; margin-top: 16px;
+      border: 2px solid var(--white);
+      box-shadow: 0 0 0 1.5px var(--orange);
     }
-
-    .timeline-dot.mortgage { background: #FFB800; }
-    .timeline-dot.release  { background: #4CAF50; }
-    .timeline-dot.gift     { background: #9C6FFF; }
-    .timeline-dot.ll       { background: #2196F3; }
-    .timeline-dot.warning  { background: #FF3B3B; }
-
-    .timeline-line {
-      width: 1px;
-      flex: 1;
-      background: var(--border);
-      margin-top: 4px;
-    }
-
+    .timeline-dot.mortgage { background: var(--yellow); box-shadow: 0 0 0 1.5px var(--yellow); }
+    .timeline-dot.release  { background: var(--green);  box-shadow: 0 0 0 1.5px var(--green); }
+    .timeline-dot.gift     { background: var(--purple); box-shadow: 0 0 0 1.5px var(--purple); }
+    .timeline-dot.ll       { background: var(--blue);   box-shadow: 0 0 0 1.5px var(--blue); }
+    .timeline-dot.warning  { background: var(--red);    box-shadow: 0 0 0 1.5px var(--red); }
+    .timeline-line { width: 1px; flex: 1; background: var(--border); margin-top: 3px; }
     .timeline-item:last-child .timeline-line { display: none; }
 
     .timeline-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 16px;
-      flex: 1;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px;
+      margin-bottom: 12px; flex: 1;
     }
-
-    .timeline-card.unresolved-mortgage { border-color: #FFB800; }
-
-    .timeline-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
+    .timeline-card.unresolved-mortgage { border-color: #FFB300; background: #FFFDE7; }
+    .timeline-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 
     .event-type-badge {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 3px;
-      background: rgba(255,85,0,0.12);
-      color: var(--orange);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 4px;
+      background: #FFF0EB; color: var(--orange);
     }
+    .event-type-badge.mortgage { background: #FFF3E0; color: var(--yellow); }
+    .event-type-badge.release  { background: #E8F5E9; color: var(--green); }
+    .event-type-badge.gift     { background: #F3E5F5; color: var(--purple); }
+    .event-type-badge.ll       { background: #E3F2FD; color: var(--blue); }
 
-    .event-type-badge.mortgage { background: rgba(255,184,0,0.12); color: #FFB800; }
-    .event-type-badge.release  { background: rgba(76,175,80,0.12); color: #4CAF50; }
-    .event-type-badge.gift     { background: rgba(156,111,255,0.12); color: #9C6FFF; }
-    .event-type-badge.ll       { background: rgba(33,150,243,0.12); color: #2196F3; }
-
-    .event-date {
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-
-    .event-doc-no {
-      font-size: 11px;
-      color: var(--muted2);
-      margin-bottom: 12px;
-    }
-
-    .event-fields { display: flex; flex-direction: column; gap: 6px; }
-
-    .event-field { display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 13px; }
-    .event-field-key { color: var(--muted); font-weight: 400; text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; padding-top: 1px; }
-    .event-field-val { color: var(--white); }
+    .event-date { font-size: 11px; color: var(--muted); }
+    .event-doc-no { font-size: 11px; color: var(--muted2); margin-bottom: 8px; }
+    .event-fields { display: flex; flex-direction: column; gap: 4px; }
+    .event-field { display: grid; grid-template-columns: 120px 1fr; gap: 8px; font-size: 12px; }
+    .event-field-key { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding-top: 1px; }
+    .event-field-val { color: var(--black); }
 
     .consistency-warning {
-      background: rgba(255,59,59,0.06);
-      border: 1px solid rgba(255,59,59,0.2);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 12px;
-      color: #FF6B6B;
-      margin-bottom: 16px;
+      background: #FFF8E1; border: 1px solid #FFE082;
+      border-radius: 6px; padding: 8px 12px;
+      font-size: 11px; color: #7B4F00; margin-bottom: 12px;
     }
 
     .unresolved-badge {
-      font-size: 11px;
-      color: #FFB800;
-      font-weight: 700;
-      margin-top: 8px;
-      padding: 4px 10px;
-      background: rgba(255,184,0,0.08);
-      border-radius: 3px;
-      display: inline-block;
+      font-size: 10px; color: #7B4F00; font-weight: 700;
+      margin-top: 6px; padding: 2px 8px;
+      background: #FFF8E1; border-radius: 3px; display: inline-block;
     }
 
-    /* Errors panel */
-    .errors-panel {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px;
-    }
-    .errors-panel::-webkit-scrollbar { width: 4px; }
-    .errors-panel::-webkit-scrollbar-thumb { background: var(--border2); }
-
-    .errors-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; text-align: center; }
-    .errors-empty-icon { font-size: 40px; opacity: 0.15; }
-    .errors-empty p { font-size: 13px; color: var(--muted2); }
+    /* Errors */
+    .errors-panel { flex: 1; overflow-y: auto; padding: 22px 26px; }
+    .errors-panel::-webkit-scrollbar { width: 3px; }
+    .errors-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
     .error-card {
-      background: rgba(255,59,59,0.04);
-      border: 1px solid rgba(255,59,59,0.2);
-      border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 12px;
-      max-width: 760px;
+      background: #FFF5F5; border: 1px solid #FFCDD2;
+      border-radius: 8px; padding: 12px 16px;
+      margin-bottom: 10px; max-width: 660px;
     }
-
-    .error-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
+    .error-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
     .error-badge {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #FF6B6B;
-      background: rgba(255,59,59,0.1);
-      padding: 3px 10px;
-      border-radius: 3px;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--red); background: #FFEBEE;
+      padding: 2px 8px; border-radius: 3px;
     }
-
-    .error-doc { font-size: 12px; color: var(--muted); }
-    .error-message { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 10px; }
-    .error-detail { display: grid; grid-template-columns: 140px 1fr; gap: 8px; font-size: 12px; }
-    .error-detail-key { color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .error-detail-val { color: var(--white); }
+    .error-doc { font-size: 11px; color: var(--muted); }
+    .error-message { font-size: 13px; color: #5C1010; margin-bottom: 8px; line-height: 1.5; }
+    .error-detail { display: grid; grid-template-columns: 130px 1fr; gap: 5px 10px; font-size: 12px; }
+    .error-detail-key { color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; font-size: 10px; }
+    .error-detail-val { color: var(--black); }
 
     .all-clear {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; height: 100%; gap: 12px; text-align: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 10px; text-align: center;
     }
-    .all-clear-icon { font-size: 40px; }
-    .all-clear p { font-size: 14px; color: #4CAF50; font-weight: 700; }
-    .all-clear span { font-size: 12px; color: var(--muted2); }
-
-    .parse-loading p {
-      font-size: 13px;
-      color: var(--muted);
-      letter-spacing: 0.06em;
-    }
+    .all-clear-icon { font-size: 32px; }
+    .all-clear p { font-size: 14px; color: var(--green); font-weight: 700; }
+    .all-clear span { font-size: 12px; color: var(--muted); }
   </style>
 </head>
 <body>
 
 <div class="app">
 
-  <!-- ── TOPBAR ── -->
-  <header class="topbar">
-    <a href="/" class="topbar-logo">TSR Engine</a>
-
-    <div class="topbar-project">
-      <span class="topbar-project-name">{{ project_name.rsplit('_', 1)[0] }}</span>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="project-card">
+      <div class="project-card-logo"><a href="/">AutoTSR</a></div>
+      <div class="project-card-name">{{ project_name.rsplit('_', 1)[0] }}</div>
       {% if id_type and id_value %}
-      <span class="topbar-project-id">{{ id_type.replace('_',' ') }} · {{ id_value }}</span>
+      <div class="project-card-id">{{ id_type.replace('_',' ') }} · {{ id_value }}</div>
       {% endif %}
     </div>
 
-    <div class="topbar-tabs">
-      <div class="tab active" onclick="switchTab('pdf', this)">PDF Viewer</div>
-      <div class="tab" onclick="switchTab('json', this)">JSON Output</div>
-      <div class="tab" onclick="switchTab('events', this)">Events</div>
-      <div class="tab" onclick="switchTab('errors', this)">Errors</div>
-    </div>
+    <div class="files-card">
+      <div class="files-card-header">
+        <span class="files-card-label">Index II Documents</span>
+        <button class="btn-upload" title="Upload PDF" onclick="document.getElementById('fileInput').click()">+</button>
+      </div>
 
-    <div class="topbar-actions">
-      <!-- Upload form (hidden, triggered by parse) -->
       <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" style="display:none">
         <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
       </form>
 
-      <button class="btn-parse" onclick="triggerParse()">▶ Parse</button>
-      <button class="btn-json" onclick="switchTab('json', document.querySelectorAll('.tab')[1])">{ } JSON</button>
-    </div>
-  </header>
-
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-    <div class="sidebar-files">
-      <span class="sidebar-files-label">Index II Documents</span>
-      <button class="btn-upload" title="Upload PDF" onclick="document.getElementById('fileInput').click()">+</button>
-    </div>
-
-    <div class="file-list">
-      {% if index_iis %}
-        {% for pdf in index_iis %}
-        <div class="file-item {% if loop.first %}active{% endif %}" onclick="selectFile(this, '{{ pdf }}')">
-          <span class="file-icon">📄</span>
-          <span class="file-name">{{ pdf }}</span>
-          <button class="btn-file-delete" title="Delete file" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">✕</button>
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="file-empty">
-          <p>No PDFs uploaded yet.<br/>Click + to add an Index II document.</p>
-        </div>
-      {% endif %}
-    </div>
-  </aside>
-
-  <!-- ── MAIN ── -->
-  <main class="main">
-
-    <!-- PDF Panel -->
-    <div class="panel active" id="panel-pdf">
-      <div class="pdf-viewer" id="pdfViewer">
+      <div class="file-list">
         {% if index_iis %}
-          <iframe id="pdfFrame" class="pdf-frame"
-            src="/pdf/{{ project_name }}/{{ index_iis[0] }}"
-            title="{{ index_iis[0] }}">
-          </iframe>
+          {% for pdf in index_iis %}
+          <div class="file-item {% if loop.first %}active{% endif %}" onclick="selectFile(this, '{{ pdf }}')">
+            <span class="file-icon">📄</span>
+            <span class="file-name">{{ pdf }}</span>
+            <button class="btn-file-delete" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">✕</button>
+          </div>
+          {% endfor %}
         {% else %}
-          <div class="pdf-placeholder">
-            <div class="pdf-placeholder-icon">📂</div>
-            <p><strong>No document selected</strong>Upload a PDF using the + button in the sidebar.</p>
+          <div class="file-empty">
+            <p>No PDFs yet.<br/>Click + to upload.</p>
           </div>
         {% endif %}
       </div>
     </div>
+  </aside>
 
-    <!-- JSON Panel -->
-    <div class="panel" id="panel-json">
-      <div class="json-panel" id="jsonPanel">
-        <div class="json-empty" id="jsonEmpty">
-          <div class="json-empty-icon">{ }</div>
-          <p>No data yet — select a PDF and click Parse.</p>
-        </div>
-        <div class="json-output" id="jsonOutput" style="display:none"></div>
-        <div class="parse-loading" id="parseLoading">
-          <div class="spinner"></div>
-          <p>Extracting fields...</p>
-        </div>
-      </div>
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('pdf', this)">PDF Viewer</div>
+      <div class="tab" onclick="switchTab('json', this)">JSON Output</div>
+      <div class="tab" onclick="switchTab('events', this)">Events</div>
+      <div class="tab" onclick="switchTab('errors', this)">Errors</div>
+      <div class="tab-bar-spacer"></div>
+      <button class="btn-parse" onclick="triggerParse()">▶ Parse</button>
     </div>
 
+    <div class="content-card">
 
-    <!-- Events Panel -->
-    <div class="panel" id="panel-events">
-      <div class="events-panel" id="eventsPanel">
-        <div class="events-empty" id="eventsEmpty">
-          <div class="events-empty-icon">📋</div>
-          <p>No events yet — parse some documents first.</p>
+      <!-- PDF Panel -->
+      <div class="panel active" id="panel-pdf">
+        <div class="pdf-viewer" id="pdfViewer">
+          {% if index_iis %}
+            <iframe id="pdfFrame" class="pdf-frame" src="/pdf/{{ project_name }}/{{ index_iis[0] }}" title="{{ index_iis[0] }}"></iframe>
+          {% else %}
+            <div class="pdf-placeholder">
+              <div class="pdf-placeholder-icon">📂</div>
+              <p><strong>No document selected</strong>Upload a PDF using the + button.</p>
+            </div>
+          {% endif %}
         </div>
-        <div id="eventsContent" style="display:none"></div>
       </div>
-    </div>
 
-    <!-- Errors Panel -->
-    <div class="panel" id="panel-errors">
-      <div class="errors-panel" id="errorsPanel">
-        <div class="errors-empty" id="errorsEmpty">
-          <div class="errors-empty-icon">✓</div>
-          <p>No errors checked yet — parse some documents first.</p>
+      <!-- JSON Panel -->
+      <div class="panel" id="panel-json">
+        <div class="json-panel" id="jsonPanel">
+          <div class="json-empty" id="jsonEmpty">
+            <div class="json-empty-icon">{ }</div>
+            <p>No data yet — select a PDF and click Parse.</p>
+          </div>
+          <div class="json-output" id="jsonOutput" style="display:none"></div>
+          <div class="parse-loading" id="parseLoading">
+            <div class="spinner"></div>
+            <p>Extracting fields...</p>
+          </div>
         </div>
-        <div id="errorsContent" style="display:none"></div>
       </div>
-    </div>
 
-  </main>
+      <!-- Events Panel -->
+      <div class="panel" id="panel-events">
+        <div class="events-panel" id="eventsPanel">
+          <div class="events-empty" id="eventsEmpty">
+            <div class="events-empty-icon">📋</div>
+            <p>No events yet — parse some documents first.</p>
+          </div>
+          <div id="eventsContent" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Errors Panel -->
+      <div class="panel" id="panel-errors">
+        <div class="errors-panel" id="errorsPanel">
+          <div class="errors-empty" id="errorsEmpty">
+            <div class="errors-empty-icon">✓</div>
+            <p>No errors checked yet.</p>
+          </div>
+          <div id="errorsContent" style="display:none"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>
-  // ── Tab switching ──
   function switchTab(tab, el) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
@@ -799,21 +490,17 @@
     if (tab === 'errors') loadErrors();
   }
 
-  // ── File selection ──
   let selectedFile = "{{ index_iis[0] if index_iis else '' }}";
 
   function selectFile(el, filename) {
     document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
     el.classList.add('active');
     selectedFile = filename;
-    // Update PDF viewer
     var frame = document.getElementById('pdfFrame');
     if (frame) frame.src = '/pdf/{{ project_name }}/' + filename;
-    // Load saved result if exists
     loadSavedResult(filename);
   }
 
-  // ── Load saved result ──
   function loadSavedResult(filename) {
     fetch('/result/{{ project_name }}/' + filename)
       .then(res => res.json())
@@ -823,7 +510,6 @@
           document.getElementById('jsonOutput').style.display = 'block';
           renderJSON(data.data);
         } else {
-          // No saved result — show empty state
           document.getElementById('jsonOutput').style.display = 'none';
           document.getElementById('jsonEmpty').style.display = 'flex';
           document.getElementById('jsonEmpty').querySelector('p').textContent = 'No data yet — select a PDF and click Parse.';
@@ -831,12 +517,10 @@
       });
   }
 
-  // Auto-load result for first file on page open
   window.addEventListener('DOMContentLoaded', function() {
     if (selectedFile) loadSavedResult(selectedFile);
   });
 
-  // ── Delete file ──
   function deleteFile(filename) {
     if (!confirm('Delete "' + filename + '"? This cannot be undone.')) return;
     var form = document.createElement('form');
@@ -846,21 +530,14 @@
     form.submit();
   }
 
-  // ── Parse ──
   function triggerParse() {
-    if (!selectedFile) {
-      alert('Please upload and select a PDF first.');
-      return;
-    }
-
-    // Switch to JSON tab and show loading
+    if (!selectedFile) { alert('Please upload and select a PDF first.'); return; }
     const jsonTab = document.querySelectorAll('.tab')[1];
     switchTab('json', jsonTab);
     document.getElementById('jsonEmpty').style.display = 'none';
     document.getElementById('jsonOutput').style.display = 'none';
     document.getElementById('parseLoading').classList.add('visible');
 
-    // Call the parse route
     fetch('/parse/{{ project_name }}/' + selectedFile)
       .then(res => res.json())
       .then(data => {
@@ -884,10 +561,8 @@
     var container = document.getElementById('jsonOutput');
     container.innerHTML = '';
 
-    // Defined display order
     var order = [
-      'document_type',
-      'date_of_execution', 'date_of_registration',
+      'document_type', 'date_of_execution', 'date_of_registration',
       'registration_year', 'doc_no', 'txn_type',
       'seller_names', 'seller_address', 'buyer_names', 'buyer_address',
       'consideration', 'area', 'flat_no',
@@ -897,27 +572,25 @@
       'stamp_duty', 'registration_fee', 'sub_registrar_office'
     ];
 
-    // ID fields — only show the one that's filled
     var idFields = ['cts_no', 'plot_no', 'survey_no'];
     var filledId = idFields.find(f => data[f] !== null && data[f] !== undefined && data[f] !== '');
     var hiddenIds = idFields.filter(f => f !== filledId);
 
-    // Build ordered entries: first the defined order, then anything leftover
     var seen = new Set();
     var entries = [];
-
     order.forEach(function(key) {
-      if (hiddenIds.includes(key)) return; // skip unfilled ID fields
+      if (hiddenIds.includes(key)) return;
       if (key in data) { entries.push([key, data[key]]); seen.add(key); }
     });
-
-    // Append remaining keys not in order (except hidden ID fields)
     Object.keys(data).forEach(function(key) {
       if (!seen.has(key) && !hiddenIds.includes(key)) entries.push([key, data[key]]);
     });
 
+    var grid = document.createElement('div');
+    grid.className = 'json-grid';
+
     entries.forEach(function([key, value]) {
-      var isNull = value === null || value === undefined || value === '';
+      var isNull  = value === null || value === undefined || value === '';
       var isAlert = value === 'ALERT';
       var isArray = Array.isArray(value);
 
@@ -931,23 +604,19 @@
       var valEl = document.createElement('div');
       valEl.className = 'json-value' + (isAlert ? ' is-alert' : '');
 
-      if (isNull) {
-        valEl.textContent = 'null';
-      } else if (isAlert) {
-        valEl.textContent = '⚠ ALERT';
-      } else if (isArray) {
-        valEl.textContent = value.join(', ');
-      } else {
-        valEl.textContent = value;
-      }
+      if (isNull)       valEl.textContent = 'null';
+      else if (isAlert) valEl.textContent = '⚠ ALERT';
+      else if (isArray) valEl.textContent = value.join(', ');
+      else              valEl.textContent = value;
 
       row.appendChild(keyEl);
       row.appendChild(valEl);
-      container.appendChild(row);
+      grid.appendChild(row);
     });
+
+    container.appendChild(grid);
   }
 
-  // ── Events ──
   function loadEvents() {
     fetch('/events/{{ project_name }}')
       .then(res => res.json())
@@ -956,16 +625,13 @@
         var empty = document.getElementById('eventsEmpty');
 
         if (!data.events || data.events.length === 0) {
-          empty.style.display = 'flex';
-          container.style.display = 'none';
-          return;
+          empty.style.display = 'flex'; container.style.display = 'none'; return;
         }
 
         empty.style.display = 'none';
         container.style.display = 'block';
         container.innerHTML = '';
 
-        // Consistency warnings
         if (data.consistency_errors && data.consistency_errors.length > 0) {
           data.consistency_errors.forEach(function(err) {
             var w = document.createElement('div');
@@ -975,28 +641,24 @@
           });
         }
 
-        // Timeline
         var timeline = document.createElement('div');
         timeline.className = 'timeline';
-
         var unresolvedMortgages = data.unresolved_mortgages || [];
 
         data.events.forEach(function(ev) {
           var txn = (ev.event_type || '').toUpperCase();
-          var isMortgage = txn.includes('MORTGAGE') || txn.includes('INTIMATION');
-          var isRelease  = txn.includes('RELEASE');
-          var isGift     = txn.includes('GIFT');
-          var isLL       = txn.includes('LEAVE') || txn.includes('LICENSE');
+          var isMortgage   = txn.includes('MORTGAGE') || txn.includes('INTIMATION');
+          var isRelease    = txn.includes('RELEASE');
+          var isGift       = txn.includes('GIFT');
+          var isLL         = txn.includes('LEAVE') || txn.includes('LICENSE');
           var isUnresolved = unresolvedMortgages.includes(ev.event_doc_no);
 
-          var dotClass = isMortgage ? 'mortgage' : isRelease ? 'release' : isGift ? 'gift' : isLL ? 'll' : '';
+          var dotClass   = isMortgage ? 'mortgage' : isRelease ? 'release' : isGift ? 'gift' : isLL ? 'll' : '';
+          var badgeClass = dotClass;
           if (isUnresolved) dotClass = 'warning';
-
-          var badgeClass = isMortgage ? 'mortgage' : isRelease ? 'release' : isGift ? 'gift' : isLL ? 'll' : '';
 
           var item = document.createElement('div');
           item.className = 'timeline-item';
-
           item.innerHTML =
             '<div class="timeline-spine">' +
               '<div class="timeline-dot ' + dotClass + '"></div>' +
@@ -1011,10 +673,8 @@
               buildEventFields(ev) +
               (isUnresolved ? '<div class="unresolved-badge">⚠ No matching Release Deed found</div>' : '') +
             '</div>';
-
           timeline.appendChild(item);
         });
-
         container.appendChild(timeline);
       });
   }
@@ -1022,16 +682,13 @@
   function buildEventFields(ev) {
     var txn = (ev.event_type || '').toUpperCase();
     var fields = [];
-
-    if (ev.area)                  fields.push(['Area', ev.area]);
+    if (ev.area)                    fields.push(['Area', ev.area]);
     if (ev.id_field && ev.id_value) fields.push([ev.id_field.replace(/_/g,' ').toUpperCase(), ev.id_value]);
     if (ev.property_type === 'FLAT') {
-      if (ev.flat_no)                     fields.push(['Flat No', ev.flat_no]);
-      if (ev.society_building_name)       fields.push(['Society', ev.society_building_name]);
-      if (ev.society_building_address)    fields.push(['Address', ev.society_building_address]);
+      if (ev.flat_no)                  fields.push(['Flat No', ev.flat_no]);
+      if (ev.society_building_name)    fields.push(['Society', ev.society_building_name]);
+      if (ev.society_building_address) fields.push(['Address', ev.society_building_address]);
     }
-
-    // Parties
     if (txn.includes('SALE') || txn.includes('AGREEMENT')) {
       if (ev.seller_names) fields.push(['Seller', Array.isArray(ev.seller_names) ? ev.seller_names.join(', ') : ev.seller_names]);
       if (ev.buyer_names)  fields.push(['Buyer',  Array.isArray(ev.buyer_names)  ? ev.buyer_names.join(', ')  : ev.buyer_names]);
@@ -1049,9 +706,7 @@
       if (ev.licensor_name) fields.push(['Licensor', ev.licensor_name]);
       if (ev.licensee_name) fields.push(['Licensee', ev.licensee_name]);
     }
-
     if (fields.length === 0) return '';
-
     var html = '<div class="event-fields">';
     fields.forEach(function(f) {
       html += '<div class="event-field"><span class="event-field-key">' + f[0] + '</span><span class="event-field-val">' + f[1] + '</span></div>';
@@ -1060,7 +715,6 @@
     return html;
   }
 
-  // ── Errors ──
   function loadErrors() {
     fetch('/errors/{{ project_name }}')
       .then(res => res.json())
@@ -1103,19 +757,14 @@
         });
       });
   }
-
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('/sw.js')
-      .then(function () {
-        console.log('Service Worker Registered');
-      })
-      .catch(function (error) {
-        console.log('Service Worker Failed', error);
-      });
+      .then(function () { console.log('SW Registered'); })
+      .catch(function (error) { console.log('SW Failed', error); });
   });
 }
 </script>
