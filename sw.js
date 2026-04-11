@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tsr-engine-v2';
+const CACHE_NAME = 'tsr-engine-v3';
 
 const urlsToCache = [
   '/',
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// ACTIVATE (delete old caches)
+// ACTIVATE
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -29,14 +29,26 @@ self.addEventListener('activate', (event) => {
       )
     )
   );
-  return self.clients.claim();
+  self.clients.claim();
 });
 
-// FETCH (FIXED STRATEGY)
+// FETCH
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // 🔥 IMPORTANT: HTML → network first
+  // 🚫 NEVER cache API calls (CRITICAL FIX)
+  if (
+    request.url.includes('/events') ||
+    request.url.includes('/parse') ||
+    request.url.includes('/result') ||
+    request.url.includes('/delete') ||
+    request.url.includes('/workspace')
+  ) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // 🌐 HTML pages → network first
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -50,14 +62,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ⚡ Assets → cache first
+  // ⚡ Static assets → cache first
   event.respondWith(
     caches.match(request).then(response => {
-      return response || fetch(request).then(fetchRes => {
-        const copy = fetchRes.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        return fetchRes;
-      });
+      if (response) return response;
+
+      return fetch(request)
+        .then(fetchRes => {
+          const copy = fetchRes.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return fetchRes;
+        })
+        .catch(() => {
+          return new Response('Offline', { status: 503 });
+        });
     })
   );
 });

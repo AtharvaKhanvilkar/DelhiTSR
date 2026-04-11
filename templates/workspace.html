@@ -549,6 +549,7 @@
         } else {
           document.getElementById('jsonOutput').style.display = 'block';
           renderJSON(data);
+          loadEvents();
         }
       })
       .catch(err => {
@@ -564,7 +565,7 @@
 
     var order = [
       'document_type', 'date_of_execution', 'date_of_registration',
-      'registration_year', 'doc_no', 'txn_type',
+      'registration_year', 'registration_no', 'doc_no', 'txn_type',
       'seller_names', 'seller_address', 'buyer_names', 'buyer_address',
       'consideration', 'area', 'flat_no',
       'society_building_name', 'society_building_address',
