@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tsr-engine-v3';
+const CACHE_NAME = 'tsr-engine-v6';
 
 const urlsToCache = [
   '/',
@@ -7,36 +7,35 @@ const urlsToCache = [
   '/static/TR-logo 1.png'
 ];
 
-// INSTALL
 self.addEventListener('install', (event) => {
   self.skipWaiting();
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
-// ACTIVATE
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
+    caches.keys().then((keys) =>
       Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       )
     )
   );
+
   self.clients.claim();
 });
 
-// FETCH
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // 🚫 NEVER cache API calls (CRITICAL FIX)
+  // ❌ IGNORE NON-WEB REQUESTS (THIS FIXES YOUR ERROR)
+  if (!request.url.startsWith('http')) return;
+
+  // ❌ NEVER CACHE API CALLS
   if (
     request.url.includes('/events') ||
     request.url.includes('/parse') ||
@@ -48,35 +47,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 🌐 HTML pages → network first
+  // 🌐 NAVIGATION → ALWAYS FRESH HTML
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
+    event.respondWith(fetch(request, { cache: 'no-store' }));
     return;
   }
 
-  // ⚡ Static assets → cache first
+  // ⚡ STATIC FILES → SAFE CACHE
   event.respondWith(
-    caches.match(request).then(response => {
-      if (response) return response;
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
 
-      return fetch(request)
-        .then(fetchRes => {
-          const copy = fetchRes.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          return fetchRes;
-        })
-        .catch(() => {
-          return new Response('Offline', { status: 503 });
+      return fetch(request).then((response) => {
+        const clone = response.clone();
+
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, clone);
         });
+
+        return response;
+      });
     })
   );
 });
-

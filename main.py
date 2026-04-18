@@ -1,9 +1,9 @@
 import json
 import re
 import pdfplumber
-import google.generativeai as genai
+from google import genai # This is the new way
 
-genai.configure(api_key="AIzaSyCmiRW3JQFT9Q5cxIDtBpULAt6cejEhKXk")
+client = genai.Client(api_key="AIzaSyCmiRW3JQFT9Q5cxIDtBpULAt6cejEhKXk")
 
 
 def extract_text_from_PDF(file_path):
@@ -95,8 +95,10 @@ DOCUMENT:
 {document_text}
 """
 
-    model = genai.GenerativeModel("gemini-2.5-flash")
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
 
     raw = response.text.strip()
     raw = re.sub(r'^```(?:json)?\s*', '', raw)

@@ -305,14 +305,25 @@
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js')
-      .then(function () {
-        console.log('Service Worker Registered');
-      })
-      .catch(function (error) {
-        console.log('Service Worker Failed', error);
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+
+      console.log('SW registered:', reg.scope);
+
+      // 🔥 THIS IS THE MISSING PIECE
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('SW took control — reloading');
+        window.location.reload();
       });
+
+    } catch (err) {
+      console.log('SW failed:', err);
+    }
   });
 }
 </script>
