@@ -282,16 +282,18 @@ def _build_events_and_errors(project_path):
                 id_value = val
                 break
 
-        # ── Area ───────────────────────────────────────────────────────
+        # area field
         area     = data.get("area")
         area_num = _normalize_area(area)
 
-        # ── Consistency checks ─────────────────────────────────────────
+        # area vs area
         if area_num is not None:
             if ref_area is None:
                 ref_area = area_num
                 ref_area_src = source
+
             elif abs(area_num - ref_area) > 0.01:
+
                 errors.append({
                     "type": "AREA_MISMATCH",
                     "doc_no": data.get("doc_no"),
@@ -299,8 +301,7 @@ def _build_events_and_errors(project_path):
                     "source": source,
                     "message": f"Area mismatch: this document has area '{area}' but earlier document '{ref_area_src}' has a different area.",
                     "expected": str(ref_area),
-                    "actual": str(area_num)
-                })
+                    "actual": str(area_num) })
 
         if is_flat and society_name:
             if ref_society is None:
