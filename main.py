@@ -80,6 +80,11 @@ You are a document parser. Extract the following fields from the document and re
 - boundary_west
 
 - consideration                   (exclude if LEAVE_AND_LICENSE)
+- transferor_pan                  (PAN of transferor/seller/donor/mortgagor/releasor — list if multiple)
+- transferor_pin                  (PIN/Aadhaar of transferor/seller/donor/mortgagor/releasor — list if multiple)
+- transferee_pan                  (PAN of transferee/buyer/donee/mortgagee/releasee — list if multiple)
+- transferee_pin                  (PIN/Aadhaar of transferee/buyer/donee/mortgagee/releasee — list if multiple)
+
 - remarks
 
 STRICTLY DO NOT REPEAT THE SAME FIELDS IN YOUR RESPONSE. EVERY FIELD IN THE GIVEN SCHEMA TO BE ENTERED ONLY ONCE.

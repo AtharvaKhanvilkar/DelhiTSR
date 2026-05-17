@@ -1,9 +1,9 @@
 {
   "document_type": "INDEX II",
   "sub_registrar_office": "Joint S.R. Haveli 28",
-  "registration_no": "11635",
-  "registration_year": "2019",
-  "doc_no": "11635/2019",
+  "registration_no": "1211",
+  "registration_year": "2024",
+  "doc_no": "1211/2024",
   "txn_type": "SALE_DEED",
   "survey_no": null,
   "plot_no": "349/350",
@@ -11,7 +11,7 @@
   "society_building_name": "Green Park CHS",
   "society_building_address": "Hinjewadi Phase I, Koregaon Park Road, Lane no 7, Hinjewadi, Pune",
   "flat_no": "6",
-  "area": "1488 Square Feet",
+  "area": "1486 Square Feet",
   "village": "HINJEWADI",
   "district": "Pune",
   "deposit": null,
@@ -29,22 +29,22 @@
   "mortgagor_address": null,
   "mortgagee_name": null,
   "mortgagee_address": null,
-  "date_of_execution": "10-09-2019",
-  "date_of_registration": "13-09-2019",
-  "stamp_duty": "5,88,000/-",
-  "registration_fee": "30,000/-",
+  "date_of_execution": "15-08-2024",
+  "date_of_registration": "18-08-2024",
+  "stamp_duty": "5,88,000",
+  "registration_fee": "30,000",
   "seller_names": [
-    "Mrs Amit Sharma"
+    "Vijay Shekkhar"
   ],
-  "seller_address": "Flat No:14, Floor No:26, Building Name:Hiranandani Westgate - V, Block Sector: WTC Zone, Road: Farms Road, City:Baner, District:Pune, State:Maharashtra, Pin:411014",
+  "seller_address": "Flat No:14, Floor No:26, Building Name: Sairaj Residencies Tower IV, Block Sector: BTC Zone, Road: Aligarh Road, City:Baner, District:Pune, State:Maharashtra, Pin:411014",
   "buyer_names": [
-    "Vivan Gupta"
+    "Subhan Thakor"
   ],
-  "buyer_address": "Floor: 2 Flat No:13, Building Name: Omkar Residency, Block Sector:Near Treasury Office, Road:Ambedkar Road, City:Somwar Peth, District:Pune, State:Maharashtra, Pin:411011",
+  "buyer_address": "Floor: 4, Flat No:22, Building Name: Akshar Landmark Block Sector: Near Treasury Office, Road: SWP Commercial Road, City:Somwar Peth, District:Pune, State:Maharashtra, Pin:411011",
   "boundary_north": null,
   "boundary_south": null,
   "boundary_east": null,
   "boundary_west": null,
-  "consideration": "94,00,000/-",
+  "consideration": "1,28,00,000",
   "remarks": null
 }

@@ -224,6 +224,69 @@ def _normalize(name):
         return ""
     return str(name).strip().lower()
 
+# Titles/prefixes to strip before fuzzy comparison
+_STRIP_TITLES = {"mr", "mrs", "ms", "dr", "shri", "smt", "late", "sr", "jr",
+                 "kumari", "km", "prof", "advocate", "adv"}
+
+def _name_tokens(name):
+    """Return a set of meaningful tokens from a name, stripping titles and initials."""
+    import re
+    tokens = re.split(r"[\s\.\-\/]+", _normalize(name))
+    result = set()
+    for t in tokens:
+        t = t.strip(".,")
+        if not t:
+            continue
+        if t in _STRIP_TITLES:
+            continue
+        if len(t) == 1:          # single initial — skip
+            continue
+        result.add(t)
+    return result
+
+def _fuzzy_match(name_a, name_b, threshold=0.92):
+    """
+    Return True if two name strings likely refer to the same person.
+    Uses token overlap: intersection / union >= threshold.
+    """
+    if not name_a or not name_b:
+        return False
+    ta = _name_tokens(name_a)
+    tb = _name_tokens(name_b)
+    if not ta or not tb:
+        return _normalize(name_a) == _normalize(name_b)
+    intersection = ta & tb
+    union = ta | tb
+    score = len(intersection) / len(union)
+    return score >= threshold
+
+def _find_fuzzy_match(name, name_set, threshold=0.92):
+    """
+    Given a name and a set of canonical names, return the best matching
+    canonical name if any exceed threshold, else None.
+    """
+    best_match = None
+    best_score = 0.0
+    import re
+    ta = _name_tokens(name)
+    if not ta:
+        return None
+    for candidate in name_set:
+        tb = _name_tokens(candidate)
+        if not tb:
+            continue
+        intersection = ta & tb
+        union = ta | tb
+        score = len(intersection) / len(union) if union else 0
+        if score >= threshold and score > best_score:
+            best_score = score
+            best_match = candidate
+    return best_match
+
+def _canonical_name(name):
+    """Return a lowercase stripped key for use as dict key."""
+    return _normalize(name)
+
 def _normalize_area(area_str):
     """Extract numeric area value for comparison."""
     import re
@@ -260,9 +323,13 @@ def _build_events_and_errors(project_path):
     ref_id_field = None
     ref_id_src = None
 
-    # Track current owners (set of normalised names)
+    # Track current owners (set of canonical keys)
     current_owners = set()
     first_ownership_set = False
+
+    # Structured entity ledger
+    claimants = {}       # canonical_key -> claimant dict
+    encumbrances = []    # list of encumbrance dicts
 
     for rf, data in results:
         source = rf.replace("_result.json", ".pdf")
@@ -292,7 +359,7 @@ def _build_events_and_errors(project_path):
                 ref_area = area_num
                 ref_area_src = source
 
-            elif abs(area_num - ref_area) > 0.01:
+            elif abs(area_num - ref_area) > 3.0:  # >3 sq.ft absolute variance triggers mismatch
 
                 errors.append({
                     "type": "AREA_MISMATCH",
@@ -333,6 +400,119 @@ def _build_events_and_errors(project_path):
                     "expected": ref_id_val,
                     "actual": _normalize(id_value)
                 })
+
+        # ── Check 1: Registration date predates Execution date ──────────
+        exec_date = _parse_date(data.get("date_of_execution"))
+        reg_date  = _parse_date(data.get("date_of_registration"))
+        from datetime import datetime
+        sentinel  = datetime(9999, 1, 1)
+        if exec_date != sentinel and reg_date != sentinel and reg_date < exec_date:
+            errors.append({
+                "type":        "DATE_ORDER_ERROR",
+                "doc_no":      data.get("doc_no"),
+                "event_date":  data.get("date_of_execution"),
+                "source":      source,
+                "message":     f"Registration date ({data.get('date_of_registration')}) predates Execution date ({data.get('date_of_execution')}). This is legally invalid.",
+                "expected":    f"Registration on or after {data.get('date_of_execution')}",
+                "actual":      data.get("date_of_registration")
+            })
+
+        # ── Check 2 & 3: PAN/PIN format and transferor=transferee clash ─
+        import re as _re
+
+        PAN_RE = _re.compile(r'^[A-Z]{5}[0-9]{4}[A-Z]$')
+        PIN_RE = _re.compile(r'^\d{6}$')
+
+        all_pans = []
+        all_pins = []
+
+        for field_key in ["transferor_pan", "transferee_pan"]:
+            raw = data.get(field_key)
+            if not raw:
+                continue
+            items = raw if isinstance(raw, list) else [raw]
+            for val in items:
+                if val and str(val).strip().lower() not in ("null", "none", ""):
+                    all_pans.append((field_key, str(val).strip().upper()))
+
+        for field_key in ["transferor_pin", "transferee_pin"]:
+            raw = data.get(field_key)
+            if not raw:
+                continue
+            items = raw if isinstance(raw, list) else [raw]
+            for val in items:
+                if val and str(val).strip().lower() not in ("null", "none", ""):
+                    all_pins.append((field_key, str(val).strip()))
+
+        # Check 2a: PAN format
+        for field_key, pan_val in all_pans:
+            if not PAN_RE.match(pan_val):
+                errors.append({
+                    "type":       "INVALID_PAN_FORMAT",
+                    "doc_no":     data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source":     source,
+                    "message":    f"Invalid PAN format '{pan_val}' in {field_key.replace('_', ' ')}. Expected format: AAAAA9999A.",
+                    "expected":   "Format: 5 letters + 4 digits + 1 letter (e.g. ABCDE1234F)",
+                    "actual":     pan_val
+                })
+
+        # Check 2b: PIN format
+        for field_key, pin_val in all_pins:
+            if not PIN_RE.match(pin_val):
+                errors.append({
+                    "type":       "INVALID_PIN_FORMAT",
+                    "doc_no":     data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source":     source,
+                    "message":    f"Invalid PIN format '{pin_val}' in {field_key.replace('_', ' ')}. Expected 6-digit postal code.",
+                    "expected":   "6-digit numeric PIN code",
+                    "actual":     pin_val
+                })
+
+        # Check 3: Transferor PAN == Transferee PAN (same person on both sides)
+        t_or_pans = set()
+        t_ee_pans = set()
+        for field_key, pan_val in all_pans:
+            if PAN_RE.match(pan_val):  # only flag valid PANs
+                if "transferor" in field_key:
+                    t_or_pans.add(pan_val)
+                else:
+                    t_ee_pans.add(pan_val)
+
+        overlap_pans = t_or_pans & t_ee_pans
+        if overlap_pans:
+            errors.append({
+                "type":       "PAN_TRANSFEROR_TRANSFEREE_CLASH",
+                "doc_no":     data.get("doc_no"),
+                "event_date": data.get("date_of_execution"),
+                "source":     source,
+                "message":    f"Same PAN ({', '.join(overlap_pans)}) appears on both transferor and transferee sides — the same person cannot be both parties in a transaction.",
+                "expected":   "Different PANs for transferor and transferee",
+                "actual":     ', '.join(overlap_pans)
+            })
+
+        # Check 3b: Same for PIN
+        t_or_pins = set()
+        t_ee_pins = set()
+        for field_key, pin_val in all_pins:
+            if PIN_RE.match(pin_val):
+                if "transferor" in field_key:
+                    t_or_pins.add(pin_val)
+                else:
+                    t_ee_pins.add(pin_val)
+
+        overlap_pins = t_or_pins & t_ee_pins
+        if overlap_pins:
+            errors.append({
+                "type":       "PIN_TRANSFEROR_TRANSFEREE_CLASH",
+                "doc_no":     data.get("doc_no"),
+                "event_date": data.get("date_of_execution"),
+                "source":     source,
+                "message":    f"Same PIN ({', '.join(overlap_pins)}) appears on both transferor and transferee sides — verify this is not the same person.",
+                "expected":   "Different PINs for transferor and transferee",
+                "actual":     ', '.join(overlap_pins)
+            })
 
         # ── Build event ────────────────────────────────────────────────
         event = {
@@ -393,77 +573,261 @@ def _build_events_and_errors(project_path):
 
         events.append(event)
 
-        # ── Ownership chain validation (only for transfer events) ──────
+        # ── Ownership chain validation + entity ledger ──────────────
+        #
+        # Fix 3: current_owners is a SET — multiple simultaneous owners
+        #         are all kept active and all must be accounted for.
+        # Fix 4/5: Mortgage validity checked against current_owners at
+        #          the time of the mortgage event (chronological order
+        #          is already guaranteed by the sort at the top).
+        #
         if transferors or transferees:
-            norm_transferors = set(_normalize(n) for n in transferors if n)
-            norm_transferees = set(_normalize(n) for n in transferees if n)
-
             if not first_ownership_set:
-                # First transfer — establish initial owners
-                current_owners = norm_transferors | norm_transferees
-                # Add first owners to entities
-                for name in norm_transferors:
-                    entities.append({
-                        "name": name,
-                        "role": "initial_owner",
-                        "area": area,
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source
-                    })
+                # ── Seed: first transfer in the chain ─────────────────
+                # Both transferors and transferees enter the ledger;
+                # transferors are the initial sellers (historical owners
+                # before our chain starts), transferees become first
+                # active owners.
+                for name in transferors:
+                    if not name:
+                        continue
+                    key = _canonical_name(name)
+                    claimants[key] = {
+                        "display_name": name,
+                        "role":         "owner",
+                        "since_doc":    data.get("doc_no"),
+                        "since_date":   data.get("date_of_execution"),
+                        "basis":        txn,
+                        "area":         area,
+                        "status":       "active",
+                        "encumbered":   False,
+                    }
+                    current_owners.add(key)
+
+                for name in transferees:
+                    if not name:
+                        continue
+                    key = _canonical_name(name)
+                    claimants[key] = {
+                        "display_name": name,
+                        "role":         "owner",
+                        "since_doc":    data.get("doc_no"),
+                        "since_date":   data.get("date_of_execution"),
+                        "basis":        txn,
+                        "area":         area,
+                        "status":       "active",
+                        "encumbered":   False,
+                    }
+                    current_owners.add(key)
+
+                # After seeding, only transferees are the active owners
+                # (transferors were the prior sellers — retire them)
+                for name in transferors:
+                    if not name:
+                        continue
+                    key = _canonical_name(name)
+                    current_owners.discard(key)
+                    if key in claimants:
+                        claimants[key]["status"] = "transferred_out"
+
                 first_ownership_set = True
+
             else:
-                # Check if transferors are current owners
-                if norm_transferors and not norm_transferors.intersection(current_owners):
+                # ── Subsequent transfers ───────────────────────────────
+                # Each transferor must fuzzy-match a CURRENTLY ACTIVE
+                # owner. Former owners who already transferred away do
+                # NOT count, even if their name appears in a later deed.
+
+                matched_keys = []
+                unmatched_names = []
+
+                for name in transferors:
+                    if not name:
+                        continue
+                    # Only search within ACTIVE current owners
+                    matched_key = _find_fuzzy_match(name, current_owners)
+                    if matched_key:
+                        matched_keys.append(matched_key)
+                    else:
+                        unmatched_names.append(name)
+
+                if transferors and not matched_keys:
+                    # No transferor matched any active owner → chain break
                     errors.append({
-                        "type": "CHAIN_ERROR",
-                        "doc_no": data.get("doc_no"),
+                        "type":       "CHAIN_ERROR",
+                        "doc_no":     data.get("doc_no"),
                         "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": "Ownership mismatch: the transferor in this deed does not match the current owner on record.",
-                        "expected": list(current_owners),
-                        "actual": list(norm_transferors)
+                        "source":     source,
+                        "message":    "Ownership chain break: the transferor(s) in this deed do not match any current active owner on record.",
+                        "expected":   list(current_owners),
+                        "actual":     [_canonical_name(n) for n in transferors if n]
                     })
                 else:
-                    # Check area — transferors can only transfer what they own
-                    # (simplified: if area in this doc != reference area, already caught above)
-                    # Remove transferors, add transferees
-                    current_owners -= norm_transferors
-                    current_owners |= norm_transferees
+                    # Valid transfer — retire matched transferors
+                    for key in matched_keys:
+                        current_owners.discard(key)
+                        if key in claimants:
+                            claimants[key]["status"] = "transferred_out"
 
-            # Log to entities
-            for name in norm_transferees:
-                entities.append({
-                    "name": name,
-                    "role": "acquired",
-                    "area": area,
-                    "doc_no": data.get("doc_no"),
+                    # Add all transferees as new active owners (Fix 3:
+                    # multiple transferees → multiple simultaneous owners)
+                    for name in transferees:
+                        if not name:
+                            continue
+                        # If this exact person is already active (e.g.
+                        # partial release back to existing owner), just
+                        # refresh their entry rather than duplicate.
+                        existing_key = _find_fuzzy_match(name, current_owners)
+                        if existing_key:
+                            key = existing_key
+                        else:
+                            key = _canonical_name(name)
+                        claimants[key] = {
+                            "display_name": name,
+                            "role":         "owner",
+                            "since_doc":    data.get("doc_no"),
+                            "since_date":   data.get("date_of_execution"),
+                            "basis":        txn,
+                            "area":         area,
+                            "status":       "active",
+                            "encumbered":   False,
+                        }
+                        current_owners.add(key)
+
+        # ── Mortgages: validate against current owners, then encumber ─
+        #
+        # Fix 4/5: A mortgage is only valid if the mortgagor is a
+        # CURRENT ACTIVE owner at the time this deed is processed.
+        # If the mortgagor previously owned the property but has since
+        # transferred it away, flag the mortgage as STALE_OWNERSHIP.
+        #
+        if "MORTGAGE" in txn or "INTIMATION" in txn:
+            mortgagor = data.get("mortgagor_name")
+            mortgagee = data.get("mortgagee_name")
+
+            mortgagor_is_current = False
+            mortgagor_matched_key = None
+
+            if mortgagor and first_ownership_set:
+                mortgagor_matched_key = _find_fuzzy_match(mortgagor, current_owners)
+                mortgagor_is_current = mortgagor_matched_key is not None
+
+            if not mortgagor_is_current and first_ownership_set:
+                # Check if the mortgagor ever appeared in the chain
+                # (former owner) vs completely unknown
+                ever_owned = _find_fuzzy_match(mortgagor or "", set(claimants.keys())) if mortgagor else None
+                if ever_owned:
+                    err_msg = (
+                        f"Mortgage deed lists '{mortgagor}' as mortgagor, but this person "
+                        f"previously transferred ownership away and is no longer a current "
+                        f"owner. Current owners on record: {list(current_owners)}."
+                    )
+                    err_type = "INVALID_MORTGAGOR"
+                else:
+                    err_msg = (
+                        f"Mortgage deed lists '{mortgagor}' as mortgagor, but this person "
+                        f"does not appear anywhere in the ownership chain. "
+                        f"Current owners on record: {list(current_owners)}."
+                    )
+                    err_type = "UNKNOWN_MORTGAGOR"
+
+                errors.append({
+                    "type":       err_type,
+                    "doc_no":     data.get("doc_no"),
                     "event_date": data.get("date_of_execution"),
-                    "source": source,
-                    "txn_type": txn
+                    "source":     source,
+                    "message":    err_msg,
+                    "expected":   list(current_owners),
+                    "actual":     [_canonical_name(mortgagor)] if mortgagor else []
                 })
 
-    # ── Unresolved mortgage check ──────────────────────────────────────
-    mortgage_events = [e for e in events if "MORTGAGE" in e.get("event_type","") or "INTIMATION" in e.get("event_type","")]
-    release_events  = [e for e in events if "RELEASE"  in e.get("event_type","")]
-    unresolved_mortgages = []
+            # Regardless of validity error, record the encumbrance so
+            # it appears in the ledger (user needs to see it either way)
+            enc = {
+                "mortgagor":  mortgagor,
+                "holder":     mortgagee,
+                "type":       txn,
+                "doc_no":     data.get("doc_no"),
+                "since_date": data.get("date_of_execution"),
+                "status":     "UNRESOLVED",
+                "valid":      mortgagor_is_current,
+            }
+            encumbrances.append(enc)
 
-    for m in mortgage_events:
-        has_release = any(
-            _parse_date(r.get("event_date")) > _parse_date(m.get("event_date"))
-            for r in release_events
-        )
-        if not has_release:
-            unresolved_mortgages.append(m.get("event_doc_no") or "unknown")
+            # Flag the mortgagor in claimants as encumbered (only if valid)
+            if mortgagor_is_current and mortgagor_matched_key and mortgagor_matched_key in claimants:
+                claimants[mortgagor_matched_key]["encumbered"] = True
+                claimants[mortgagor_matched_key]["encumbrance_doc"] = data.get("doc_no")
+
+    # ── Mortgage release matching (fuzzy mortgagor + mortgagee) ──────
+    release_events_data = [(rf2, d2) for rf2, d2 in results
+                           if ("RELEASE" in (d2.get("txn_type") or "").upper())]
+
+    for enc in encumbrances:
+        for rf2, d2 in release_events_data:
+            rel_date = _parse_date(d2.get("date_of_execution"))
+            enc_date = _parse_date(enc["since_date"])
+            if rel_date <= enc_date:
+                continue
+            # Match mortgagor and mortgagee via fuzzy
+            rel_sellers = d2.get("seller_names") or []
+            rel_buyers  = d2.get("buyer_names")  or []
+            if isinstance(rel_sellers, str):
+                rel_sellers = [rel_sellers]
+            if isinstance(rel_buyers, str):
+                rel_buyers = [rel_buyers]
+
+            mortgagor_match = enc["mortgagor"] and any(
+                _fuzzy_match(enc["mortgagor"], n) for n in rel_sellers if n
+            )
+            mortgagee_match = enc["holder"] and any(
+                _fuzzy_match(enc["holder"], n) for n in rel_buyers if n
+            )
+
+            if mortgagor_match and mortgagee_match:
+                enc["status"] = "RESOLVED"
+                enc["resolved_doc"] = d2.get("doc_no")
+                enc["resolved_date"] = d2.get("date_of_execution")
+                # Un-flag the mortgagor's encumbrance in claimants
+                if enc["mortgagor"]:
+                    matched_key = _find_fuzzy_match(enc["mortgagor"], set(claimants.keys()))
+                    if matched_key and matched_key in claimants:
+                        # Only clear if no other unresolved encumbrances remain
+                        still_encumbered = any(
+                            e["status"] == "UNRESOLVED" and
+                            _fuzzy_match(enc["mortgagor"], e["mortgagor"] or "")
+                            for e in encumbrances if e is not enc
+                        )
+                        if not still_encumbered:
+                            claimants[matched_key]["encumbered"] = False
+                break  # one release per mortgage
+
+    # ── Build unresolved_mortgages list + errors ──────────────────────
+    unresolved_mortgages = []
+    for enc in encumbrances:
+        if enc["status"] == "UNRESOLVED":
+            unresolved_mortgages.append(enc["doc_no"] or "unknown")
             errors.append({
-                "type": "UNRESOLVED_MORTGAGE",
-                "doc_no": m.get("event_doc_no"),
-                "event_date": m.get("event_date"),
-                "source": m.get("source_file"),
-                "message": "Unresolved mortgage: no matching Release Deed found for this mortgage.",
-                "expected": "A Release Deed",
-                "actual": "None found"
+                "type":     "UNRESOLVED_MORTGAGE",
+                "doc_no":   enc["doc_no"],
+                "event_date": enc["since_date"],
+                "source":   "",
+                "message":  f"Unresolved mortgage: no matching Release Deed found. Mortgagor: {enc['mortgagor']}, Mortgagee: {enc['holder']}.",
+                "expected": "A matching Release Deed (mortgagor + mortgagee names)",
+                "actual":   "None found"
             })
+
+    # ── Final entities snapshot ───────────────────────────────────────
+    active_owners = [
+        {**v, "canonical": k}
+        for k, v in claimants.items()
+        if v["status"] == "active"
+    ]
+    active_encumbrances = [e for e in encumbrances if e["status"] == "UNRESOLVED"]
+    entities = {
+        "owners":       active_owners,
+        "encumbrances": active_encumbrances,
+    }
 
     return events, entities, errors, unresolved_mortgages
 
@@ -498,7 +862,7 @@ def get_entities(project_name):
     from flask import jsonify
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
-    return jsonify({"entities": entities})
+    return jsonify(entities)  # already structured as {owners, encumbrances}
 
 
 if __name__ == "__main__":
