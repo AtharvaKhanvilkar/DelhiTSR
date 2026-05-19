@@ -1,1312 +1,1165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ project_name.rsplit('_', 1)[0] }} — AutoTSR</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
+
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#ffffff">
+
+  <!-- Tailwind via Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Geist Sans (shadcn default since 2024) + JetBrains Mono for code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Lucide icons (shadcn default) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            border:      'hsl(var(--border))',
+            input:       'hsl(var(--input))',
+            ring:        'hsl(var(--ring))',
+            background:  'hsl(var(--background))',
+            foreground:  'hsl(var(--foreground))',
+            primary: {
+              DEFAULT: 'hsl(var(--primary))',
+              foreground: 'hsl(var(--primary-foreground))',
+            },
+            secondary: {
+              DEFAULT: 'hsl(var(--secondary))',
+              foreground: 'hsl(var(--secondary-foreground))',
+            },
+            destructive: {
+              DEFAULT: 'hsl(var(--destructive))',
+              foreground: 'hsl(var(--destructive-foreground))',
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))',
+            },
+            accent: {
+              DEFAULT: 'hsl(var(--accent))',
+              foreground: 'hsl(var(--accent-foreground))',
+            },
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))',
+            },
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          },
+        },
+      },
+    };
+  </script>
 
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
-      --white: #FFFFFF;
-      --black: #111111;
-      --orange: #FF3B30;
-      --sidebar-bg: #FFFFFF;
-      --sidebar-border: rgba(0,0,0,0.08);
-      --content-bg: #F7F7F7;
-      --content-border: #E8E8E8;
-      --pill-bg: #EDEDED;
-      --muted: rgba(0,0,0,0.4);
-      --muted-dark: rgba(255,255,255,0.45);
-      --file-hover: #F5F5F5;
-      --file-active: #FFF0EE;
+      --background:            0 0% 100%;
+      --foreground:            240 10% 3.9%;
+      --card:                  0 0% 100%;
+      --card-foreground:       240 10% 3.9%;
+      --primary:               240 5.9% 10%;
+      --primary-foreground:    0 0% 98%;
+      --secondary:             240 4.8% 95.9%;
+      --secondary-foreground:  240 5.9% 10%;
+      --muted:                 240 4.8% 95.9%;
+      --muted-foreground:      240 3.8% 46.1%;
+      --accent:                240 4.8% 95.9%;
+      --accent-foreground:     240 5.9% 10%;
+      --destructive:           0 84.2% 60.2%;
+      --destructive-foreground:0 0% 98%;
+      --border:                240 5.9% 90%;
+      --input:                 240 5.9% 90%;
+      --ring:                  240 5.9% 10%;
+      --radius:                0.5rem;
     }
 
     html, body {
-      height: 100vh;
-      overflow: hidden;
-      background: var(--white);
-      color: var(--black);
-      font-family: 'Inria Sans', serif;
+      font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+      font-feature-settings: "rlig" 1, "calt" 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 14px;
+      line-height: 1.5;
+      color: hsl(var(--foreground));
+      background-color: hsl(var(--background));
     }
+    /* Hard reset to prevent FOUC giant text before Tailwind loads */
+    h1, h2, h3, h4, h5, h6, p, span, div, button, input, a, li {
+      font-size: inherit;
+      line-height: inherit;
+      margin: 0;
+    }
+    button { background: none; border: 0; padding: 0; color: inherit; font-family: inherit; cursor: pointer; }
+    input { font-family: inherit; }
+    * { box-sizing: border-box; }
 
-    /* ── LAYOUT: sidebar | main ── */
-    .app {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      height: 100vh;
-    }
+    /* Scrollbars — shadcn-style: thin, neutral */
+    ::-webkit-scrollbar             { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track       { background: transparent; }
+    ::-webkit-scrollbar-thumb       { background: hsl(var(--border)); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
 
-    /* ════════════════════════════════
-       SIDEBAR
-    ════════════════════════════════ */
-    .sidebar {
-      background: #FFFFFF;
-      border-right: 1px solid #EBEBEB;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      height: 100vh;
-      width: 280px;
-    }
+    /* Tab content visibility */
+    .panel              { display: none; height: 100%; }
+    .panel.active       { display: flex; flex-direction: column; }
+    .sb-panel           { display: none; flex: 1; overflow-y: auto; min-height: 0; }
+    .sb-panel.active    { display: flex; flex-direction: column; }
 
-    /* Logo row */
-    .sb-logo-row {
-      padding: 14px 16px 10px;
-      flex-shrink: 0;
-    }
-
-    .sb-logo {
-      display: flex; align-items: center; gap: 9px;
-      text-decoration: none; margin-bottom: 0;
-    }
-    .sb-logo img { width: 29px; height: 29px; border-radius: 6px; object-fit: contain; }
-    .sb-logo-text { font-size: 15px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
-
-    /* Project header row — now ABOVE search */
-    .sb-project-row {
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 2px 16px 8px;
-      flex-shrink: 0;
-    }
-    .sb-project-name {
-      font-size: 15px; font-weight: 700;
-      color: #111; letter-spacing: -0.02em;
-      white-space: nowrap; overflow: hidden;
-      text-overflow: ellipsis; flex: 1;
-    }
-    .btn-rename {
-      display: flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px;
-      color: #BBB; background: transparent;
-      border: none; cursor: pointer;
-      border-radius: 5px;
-      transition: color 0.12s, background 0.12s;
-      flex-shrink: 0;
-    }
-    .btn-rename:hover { color: #555; background: #F0F0F0; }
-    .btn-rename svg { display: block; }
-
-    /* Search bar */
-    .sb-search {
-      padding: 0 12px 10px;
-      flex-shrink: 0;
-    }
-    .sb-search-inner {
-      display: flex; align-items: center; gap: 7px;
-      background: #F5F5F5; border-radius: 7px;
-      padding: 7px 11px;
-    }
-    .sb-search-icon { display: flex; align-items: center; color: #BBB; flex-shrink: 0; }
-    .sb-search-input {
-      border: none; background: transparent; outline: none;
-      font-family: 'Inria Sans', serif; font-size: 13px;
-      color: #333; width: 100%;
-    }
-    .sb-search-input::placeholder { color: #BBB; }
-
-    /* Tabs: Documents | Events — segmented pill */
-    .sb-tabs {
-      display: flex;
-      padding: 0 12px 8px;
-      flex-shrink: 0;
-    }
-    .sb-tabs-inner {
-      display: flex;
-      background: #E6E6E6;
-      border-radius: 10px;
-      padding: 3px;
-      width: 100%;
-    }
-    .sb-tab {
-      flex: 1; text-align: center;
-      font-size: 13px; font-weight: 500;
-      color: #888; padding: 7px 10px;
-      border-radius: 8px; cursor: pointer;
-      transition: color 0.15s;
-      user-select: none;
-      white-space: nowrap;
-    }
-    .sb-tab:hover { color: #444; }
-    .sb-tab.active {
-      background: #FFFFFF;
-      color: #111; font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.04);
-    }
-
-    /* Tab panels */
-    .sb-panel { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
-    .sb-panel.active { display: flex; }
-    .sb-panel::-webkit-scrollbar { width: 3px; }
-    .sb-panel::-webkit-scrollbar-thumb { background: #E0E0E0; border-radius: 2px; }
-
-    /* Tree */
-    .tree { padding: 4px 0 12px; }
-
-    /* Level 0 — INDEX IIs */
-    .tree-l0 {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 16px; cursor: default;
-      font-size: 13px; font-weight: 600; color: #111;
-      position: relative;
-    }
-    .tree-l0-icon { display: flex; align-items: center; color: #555; flex-shrink: 0; }
-
-    /* Level 1 — Attached Files */
-    .tree-l1 {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 14px 5px 30px;
-      font-size: 13px; font-weight: 500; color: #444;
-      position: relative;
-    }
-    /* Vertical line from l0 down through l1 */
-    .tree-l1::before {
-      content: '';
-      position: absolute; left: 22px; top: -6px;
-      width: 1px; height: calc(100% + 6px);
-      background: #E0E0E0;
-    }
-    .tree-l1-icon { display: flex; align-items: center; color: #666; flex-shrink: 0; }
-
-    /* Level 2 wrapper — full width, holds the line decorations */
-    .tree-l2-wrap {
-      position: relative;
-      padding: 0 8px 0 0;
-    }
-    /* Continuous vertical line through all siblings */
-    .tree-l2-wrap::before {
-      content: '';
-      position: absolute; left: 34px; top: 0; bottom: 0;
-      width: 1px;
-      background: #E0E0E0;
-    }
-    /* Stop the vertical line after the last sibling */
-    .tree-l2-wrap.last::before {
-      bottom: 50%;
-    }
-    /* Horizontal tick into each file row */
-    .tree-l2-wrap::after {
-      content: '';
-      position: absolute; left: 34px; top: 50%;
-      width: 9px; height: 1px;
-      background: #E0E0E0;
-    }
-
-    /* Level 2 — individual files: hover rect inset from sidebar edges */
-    .tree-l2 {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 10px 5px 44px;
-      font-size: 13px; font-weight: 400; color: #555;
-      cursor: pointer; border-radius: 7px;
-      margin: 0 10px 0 8px;
-      transition: background 0.1s; position: relative;
-    }
-    .tree-l2:hover { background: #F0F0F0; }
-    .tree-l2.active { background: #EBEBEB; color: #111; font-weight: 600; }
-    .tree-l2-icon { display: flex; align-items: center; color: #999; flex-shrink: 0; }
-    .tree-l2-name {
-      font-size: 13px; color: inherit;
-      white-space: nowrap; overflow: hidden;
-      text-overflow: ellipsis; flex: 1;
-    }
-    .tree-l2-count {
-      font-size: 11px; color: #AAA;
-      background: #EFEFEF; border-radius: 10px;
-      padding: 1px 6px; flex-shrink: 0; font-weight: 500;
-    }
-    .tree-l2.active .tree-l2-count { background: #E0E0E0; color: #666; }
-
-    .btn-file-delete {
-      display: flex; align-items: center; justify-content: center;
-      background: transparent; border: none;
-      color: #CCC; width: 20px; height: 20px;
-      cursor: pointer; padding: 0;
-      border-radius: 3px; opacity: 0;
-      transition: color 0.1s, opacity 0.1s, background 0.1s;
-      flex-shrink: 0;
-    }
-    .tree-l2:hover .btn-file-delete { opacity: 1; }
-    .tree-l2:hover .btn-file-delete:hover { color: #E53935; background: #FFE5E5; }
-
-    .tree-empty { padding: 12px 44px; font-size: 12px; color: #CCC; }
-
-    /* Upload button inside tree */
-    .tree-upload-btn {
-      display: flex; align-items: center; gap: 7px;
-      padding: 4px 10px 4px 44px; margin: 0 6px;
-      font-size: 13px; color: #AAA; cursor: pointer;
-      border-radius: 6px; transition: background 0.1s, color 0.1s;
-      border: none; background: transparent; font-family: 'Inria Sans', serif;
-      width: 100%; text-align: left;
-    }
-    .tree-upload-btn:hover { background: #F5F5F5; color: #333; }
-    .tree-upload-btn svg { flex-shrink: 0; }
-
-    /* Events sidebar panel */
-    .sb-events-empty {
-      padding: 32px 16px; text-align: center;
-      font-size: 13px; color: #BBB; line-height: 1.6;
-    }
-    .sb-events-header {
-      padding: 10px 14px 4px;
-      border-bottom: 1px solid #F0F0F0;
-      flex-shrink: 0;
-    }
-    .sb-events-title {
-      font-size: 12px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: #AAA;
-    }
-    .sb-event-item {
-      padding: 10px 15px;
-      border-bottom: 1px solid #F5F5F5;
-      cursor: pointer;
-      transition: background 0.1s;
-    }
-    .sb-event-item:hover { background: #F8F8F8; }
-    .sb-event-item-top {
-      display: flex; align-items: center;
-      justify-content: space-between; gap: 6px;
-      margin-bottom: 3px;
-    }
-    .sb-event-badge {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 2px 6px; border-radius: 3px;
-      background: rgba(255,59,48,0.12); color: var(--orange);
-      flex-shrink: 0;
-    }
-    .sb-event-badge.mortgage { background: rgba(255,179,0,0.12); color: #FFB300; }
-    .sb-event-badge.release  { background: rgba(76,175,80,0.12); color: #4CAF50; }
-    .sb-event-badge.gift     { background: rgba(156,111,255,0.12); color: #9C6FFF; }
-    .sb-event-badge.ll       { background: rgba(33,150,243,0.12); color: #2196F3; }
-    .sb-event-date { font-size: 11px; color: #BBB; }
-    .sb-event-docno { font-size: 11px; color: #CCC; }
-
-    #fileInput { display: none; }
-
-    /* ════════════════════════════════
-       MAIN — dark content panel
-    ════════════════════════════════ */
-    .main {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--white);
-    }
-
-    /* Top strip — project info + tab pill + actions */
-    .main-top {
-      background: var(--white);
-      padding: 14px 20px 0;
-      flex-shrink: 0;
-    }
-
-    .main-toprow {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    /* Tab pill bar */
-    .tab-bar {
-      background: var(--pill-bg);
-      border-radius: 10px;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
-    }
-
-    .tab {
-      padding: 6px 16px;
-      font-size: 12px;
-      font-weight: 400;
-      color: rgba(0,0,0,0.45);
-      cursor: pointer;
-      border-radius: 7px;
-      transition: background 0.12s, color 0.12s;
-      white-space: nowrap;
-      user-select: none;
-    }
-    .tab:hover { color: var(--black); }
-    .tab.active {
-      background: var(--white);
-      color: var(--black);
-      font-weight: 700;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    .tab-bar-spacer { flex: 1; }
-
-    /* Actions */
-    .btn-parse {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--orange); border: none;
-      color: var(--white); font-family: 'Inria Sans', serif;
-      font-size: 11px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 7px 16px; border-radius: 7px;
-      cursor: pointer; flex-shrink: 0;
-      transition: opacity 0.15s;
-    }
-    .btn-parse:hover { opacity: 0.88; }
-
-    /* Dark content card */
-    .content-card {
-      background: var(--white);
-      border-radius: 10px 10px 0 0;
-      flex: 1;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      margin: 0 8px;
-    }
-
-    .panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
-    .panel.active { display: flex; }
-
-    /* PDF Viewer */
-    .pdf-viewer {
-      flex: 1; display: flex;
-      align-items: center; justify-content: center;
-      overflow: hidden; background: #1E1E1E;
-    }
-    iframe.pdf-frame { width: 100%; height: 100%; border: none; }
-
-    .pdf-placeholder {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 12px; text-align: center;
-    }
-    .pdf-placeholder-icon { font-size: 40px; opacity: 0.12; }
-    .pdf-placeholder p { font-size: 13px; color: var(--muted-dark); line-height: 1.6; }
-    .pdf-placeholder strong { display: block; font-size: 13px; color: rgba(255,255,255,0.2); margin-bottom: 3px; }
-
-    /* JSON */
-    .json-panel { flex: 1; overflow-y: auto; padding: 20px 28px; background: var(--white); }
-    .json-panel::-webkit-scrollbar { width: 3px; }
-    .json-panel::-webkit-scrollbar-thumb { background: #DDD; border-radius: 2px; }
-
-    .json-empty, .events-empty, .errors-empty {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; gap: 10px; text-align: center;
-    }
-    .json-empty-icon, .events-empty-icon, .errors-empty-icon { font-size: 32px; opacity: 0.12; }
-    .json-empty p, .events-empty p, .errors-empty p { font-size: 13px; color: #999; }
-
-    .json-output { display: none; }
-    .json-grid { display: flex; flex-direction: column; gap: 2px; }
-
-    .json-row {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      align-items: baseline; gap: 16px;
-      padding: 9px 14px; border-radius: 6px;
-    }
-    .json-row.has-value { background: #F8F8F8; }
-    .json-row.has-value:hover { background: #F1F1F1; }
-
-    .json-key {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-    }
-    .json-row.has-value .json-key { color: #999; }
-    .json-row.is-null .json-key   { color: #CCC; }
-
-    .json-value { font-size: 13px; font-weight: 400; word-break: break-word; }
-    .json-row.has-value .json-value { color: var(--black); }
-    .json-row.is-null .json-value  { font-size: 12px; font-style: italic; color: #CCC; }
-    .json-value.is-alert { color: var(--orange); font-weight: 700; font-style: normal; }
-
-    /* Parse loading */
-    .parse-loading {
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; gap: 14px;
-    }
-    .parse-loading.visible { display: flex; }
+    /* Spinner */
     .spinner {
-      width: 28px; height: 28px;
-      border: 2px solid rgba(255,255,255,0.1);
-      border-top-color: var(--orange);
+      width: 16px; height: 16px;
+      border: 2px solid hsl(var(--border));
+      border-top-color: hsl(var(--foreground));
       border-radius: 50%;
-      animation: spin 0.75s linear infinite;
+      animation: spin 0.6s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .parse-loading p { font-size: 12px; color: var(--muted-dark); }
 
-    /* Events */
-    .events-panel { flex: 1; overflow-y: auto; padding: 20px 28px; background: var(--white); }
-    .events-panel::-webkit-scrollbar { width: 3px; }
-    .events-panel::-webkit-scrollbar-thumb { background: #DDD; border-radius: 2px; }
-
-    .timeline { display: flex; flex-direction: column;  }
-    .timeline-item { display: flex; gap: 18px; }
-    .timeline-spine { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
-    .timeline-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--orange); flex-shrink: 0; margin-top: 15px;
-      border: 2px solid var(--white);
-      box-shadow: 0 0 0 1.5px var(--orange);
+    /* Tree connector lines */
+    .tree-l2-wrap          { position: relative; }
+    .tree-l2-wrap::before  {
+      content: ''; position: absolute;
+      left: 30px; top: 0; bottom: 0;
+      width: 1px; background: hsl(var(--border));
     }
-    .timeline-dot.mortgage { background: #FFB300; box-shadow: 0 0 0 1.5px #FFB300; }
-    .timeline-dot.release  { background: #4CAF50; box-shadow: 0 0 0 1.5px #4CAF50; }
-    .timeline-dot.gift     { background: #9C6FFF; box-shadow: 0 0 0 1.5px #9C6FFF; }
-    .timeline-dot.ll       { background: #2196F3; box-shadow: 0 0 0 1.5px #2196F3; }
-    .timeline-dot.warning  { background: #FF3B3B; box-shadow: 0 0 0 1.5px #FF3B3B; }
-    .timeline-line { width: 1px; flex: 1; background: #E8E8E8; margin-top: 3px; }
-    .timeline-item:last-child .timeline-line { display: none; }
-
-    .timeline-card {
-      background: var(--white);
-      border: 1px solid #EBEBEB;
-      border-radius: 8px; padding: 13px 17px;
-      margin-bottom: 12px; flex: 1;
-    }
-    .timeline-card.unresolved-mortgage { border-color: #FFB300; background: #FFFDE7; }
-    .timeline-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
-
-    .event-type-badge {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 4px;
-      background: rgba(255,59,48,0.15); color: var(--orange);
-    }
-    .event-type-badge.mortgage { background: rgba(255,179,0,0.12); color: #FFB300; }
-    .event-type-badge.release  { background: rgba(76,175,80,0.12); color: #4CAF50; }
-    .event-type-badge.gift     { background: rgba(156,111,255,0.12); color: #9C6FFF; }
-    .event-type-badge.ll       { background: rgba(33,150,243,0.12); color: #2196F3; }
-
-    .event-date { font-size: 11px; color: #999; }
-    .event-doc-no { font-size: 11px; color: #BBB; margin-bottom: 9px; }
-    .event-fields { display: flex; flex-direction: column; gap: 5px; }
-    .event-field { display: grid; grid-template-columns: 120px 1fr; gap: 10px; font-size: 12px; }
-    .event-field-key { color: #999; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
-    .event-field-val { color: var(--black); }
-
-    .consistency-warning {
-      background: #FFF8E1;
-      border: 1px solid #FFE082;
-      border-radius: 6px; padding: 8px 12px;
-      font-size: 11px; color: #7B4F00; margin-bottom: 12px;
-    }
-    .unresolved-badge {
-      font-size: 10px; color: #7B4F00; font-weight: 700;
-      margin-top: 7px; padding: 2px 8px;
-      background: #FFF8E1; border-radius: 3px; display: inline-block;
+    .tree-l2-wrap.last::before { bottom: 50%; }
+    .tree-l2-wrap::after   {
+      content: ''; position: absolute;
+      left: 30px; top: 50%;
+      width: 10px; height: 1px;
+      background: hsl(var(--border));
     }
 
-    /* Entities */
-    .entities-panel { flex: 1; overflow-y: auto; padding: 20px 28px; background: var(--white); display: flex; flex-direction: column; gap: 22px; }
-    .entities-panel::-webkit-scrollbar { width: 3px; }
-    .entities-panel::-webkit-scrollbar-thumb { background: #DDD; border-radius: 2px; }
-    .entities-section-title {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: #BBB; margin-bottom: 10px;
-    }
-    .entities-grid { display: flex; flex-direction: column; gap: 8px; }
-    .entity-card {
-      border: 1px solid #F0F0F0; border-radius: 10px;
-      padding: 12px 14px; background: #FAFAFA;
-      display: flex; flex-direction: column; gap: 5px;
-    }
-    .entity-card.encumbered { border-color: #FFE0B2; background: #FFFAF5; }
-    .entity-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .entity-name { font-size: 13px; font-weight: 600; color: #111; }
-    .entity-badge {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.07em;
-      text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
-      background: rgba(76,175,80,0.12); color: #2E7D32; flex-shrink: 0;
-    }
-    .entity-badge.encumbered-badge { background: rgba(255,152,0,0.15); color: #E65100; }
-    .entity-meta { font-size: 11px; color: #AAA; }
-    .entity-area { font-size: 12px; color: #555; font-weight: 500; }
-    .entity-enc-note { font-size: 11px; color: #E65100; margin-top: 2px; }
 
-    .enc-card {
-      border: 1px solid #FFE0B2; border-radius: 10px;
-      padding: 12px 14px; background: #FFFAF5;
-      display: flex; flex-direction: column; gap: 5px;
-    }
-    .enc-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .enc-holder { font-size: 13px; font-weight: 600; color: #111; }
-    .enc-badge {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.07em;
-      text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
-      background: rgba(255,59,48,0.1); color: #C62828; flex-shrink: 0;
-    }
-    .enc-meta { font-size: 11px; color: #AAA; }
-    .enc-mortgagor { font-size: 11px; color: #888; }
-
-    .entities-empty {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; gap: 10px; text-align: center;
-    }
-    .entities-empty-icon { font-size: 32px; opacity: 0.12; }
-    .entities-empty p { font-size: 13px; color: #999; }
-
-    /* Errors */
-    .errors-panel { flex: 1; overflow-y: auto; padding: 20px 28px; background: var(--white); }
-    .errors-panel::-webkit-scrollbar { width: 3px; }
-    .errors-panel::-webkit-scrollbar-thumb { background: #DDD; border-radius: 2px; }
-
-    .error-card {
-      background: #FFF5F5;
-      border: 1px solid #FFCDD2;
-      border-radius: 8px; padding: 13px 17px;
-      margin-bottom: 10px; 
-    }
-    .error-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
-    .error-badge {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: #C62828; background: #FFEBEE;
-      padding: 2px 8px; border-radius: 3px;
-    }
-    .error-doc { font-size: 11px; color: #999; }
-    .error-message { font-size: 13px; color: #5C1010; margin-bottom: 8px; line-height: 1.5; }
-    .error-detail { display: grid; grid-template-columns: 140px 1fr; gap: 5px 10px; font-size: 12px; }
-    .error-detail-key { color: #999; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; font-size: 10px; }
-    .error-detail-val { color: var(--black); }
-
-    .all-clear {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; gap: 10px; text-align: center;
-    }
-    .all-clear-icon { font-size: 36px; opacity: 0.15; }
-    .all-clear p { font-size: 14px; color: #2E7D32; font-weight: 700; }
-    .all-clear span { font-size: 12px; color: #999; }
   </style>
 </head>
-<body>
+<body class="bg-background text-foreground antialiased">
 
-<div class="app">
+<div class="flex h-screen w-screen overflow-hidden">
 
-  <!-- ════════════════════════════════
+  <!-- ════════════════════════════════════════════════
        SIDEBAR
-  ════════════════════════════════ -->
-  <aside class="sidebar">
+  ════════════════════════════════════════════════ -->
+  <aside class="w-72 shrink-0 border-r border-border bg-background flex flex-col">
 
     <!-- Logo -->
-    <div class="sb-logo-row">
-      <a href="/" class="sb-logo">
-        <img src="{{ url_for('static', filename='TR-logo 1.png') }}" alt="AutoTSR"/>
-        <span class="sb-logo-text">AutoTSR</span>
-      </a>
+    <div class="px-4 pt-4 pb-3 flex items-center gap-2.5">
+      <img src="{{ url_for('static', filename='TR-logo 1.png') }}" alt="AutoTSR" class="w-7 h-7 rounded-md object-contain"/>
+      <span class="text-sm font-semibold tracking-tight">AutoTSR</span>
     </div>
 
-    <!-- Project name + Rename icon — ABOVE search -->
-    <div class="sb-project-row">
-      <span class="sb-project-name">{{ project_name.rsplit('_', 1)[0] }}</span>
-      <button class="btn-rename" onclick="renameProject()" title="Rename project">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
+    <!-- Project header + Rename -->
+    <div class="px-4 pb-3 flex items-center justify-between gap-2">
+      <h1 class="text-base font-semibold tracking-tight truncate">{{ project_name.rsplit('_', 1)[0] }}</h1>
+      <button onclick="renameProject()" title="Rename project"
+              class="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+        <i data-lucide="pencil" class="w-4 h-4"></i>
       </button>
     </div>
 
     <!-- Search -->
-    <div class="sb-search">
-      <div class="sb-search-inner">
-        <span class="sb-search-icon">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </span>
-        <input class="sb-search-input" type="text" placeholder="Search..." oninput="filterTree(this.value)"/>
+    <div class="px-3 pb-2">
+      <div class="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0">
+        <i data-lucide="search" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+        <input type="text" placeholder="Search files..." oninput="filterTree(this.value)"
+               class="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"/>
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="sb-tabs">
-      <div class="sb-tabs-inner">
-        <div class="sb-tab active" onclick="switchSbTab('documents', this)">Documents</div>
-        <div class="sb-tab" style="color:#111" onclick="switchSbTab('events-sb', this)">Events</div>
+    <!-- Sidebar tabs (shadcn Tabs pattern) -->
+    <div class="px-3 pb-2">
+      <div class="inline-flex h-9 w-full items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+        <button id="sb-tab-docs" onclick="switchSbTab('documents', this)"
+                class="sb-tab active inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
+                data-state="active">Documents</button>
+        <button id="sb-tab-events" onclick="switchSbTab('events-sb', this)"
+                class="sb-tab inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
+                data-state="inactive">Events</button>
       </div>
     </div>
 
-    <!-- Upload form -->
-    <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" style="display:none">
+    <!-- Upload form (hidden) -->
+    <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" class="hidden">
       <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
     </form>
 
     <!-- DOCUMENTS panel -->
-    <div class="sb-panel active" id="sb-panel-documents">
-      <div class="tree" id="fileTree">
+    <div class="sb-panel active px-2 py-2" id="sb-panel-documents">
+      <div class="space-y-0.5" id="fileTree">
 
-        <!-- Level 0: INDEX IIs -->
-        <div class="tree-l0">
-          <span class="tree-l0-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#111" stroke="#111" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-          </span>
+        <!-- Root -->
+        <div class="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold">
+          <i data-lucide="folder" class="w-4 h-4" style="fill:currentColor;stroke-width:1.5"></i>
           <span>INDEX IIs</span>
-          <span class="tree-l2-count" style="margin-left:auto">{{ index_iis|length }}</span>
+          <span class="ml-auto inline-flex items-center justify-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">{{ index_iis|length }}</span>
         </div>
 
-        <!-- Level 1: Attached Files -->
-        <div class="tree-l1">
-          <span class="tree-l1-icon">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-          </span>
+        <!-- Branch -->
+        <div class="flex items-center gap-2 pl-7 pr-2 py-1.5 text-sm text-foreground/80">
+          <i data-lucide="folder" class="w-4 h-4 text-muted-foreground"></i>
           <span>Attached Files</span>
-          <span class="tree-l2-count" style="margin-left:auto">{{ index_iis|length }}</span>
+          <button onclick="document.getElementById('fileInput').click()"
+                  title="Add file"
+                  class="ml-auto inline-flex items-center justify-center h-6 w-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          </button>
         </div>
 
-        <!-- Level 2: individual files -->
+        <!-- Files -->
         {% if index_iis %}
           {% for pdf in index_iis %}
           <div class="tree-l2-wrap {% if loop.last %}last{% endif %}">
-            <div class="tree-l2 {% if loop.first %}active{% endif %}" onclick="selectFile(this, '{{ pdf }}')">
-              <span class="tree-l2-icon">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                </svg>
-              </span>
-              <span class="tree-l2-name">{{ pdf }}</span>
-              <button class="btn-file-delete" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
+            <div class="tree-l2 {% if loop.first %}bg-accent text-accent-foreground{% endif %} group flex items-center gap-2 pl-10 pr-2 py-1.5 mx-1 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm transition-colors"
+                 onclick="selectFile(this, '{{ pdf }}')">
+              <i data-lucide="file-text" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+              <span class="tree-l2-name flex-1 truncate">{{ pdf }}</span>
+              <button class="opacity-0 group-hover:opacity-100 inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                      title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
+                <i data-lucide="x" class="w-3 h-3"></i>
               </button>
             </div>
           </div>
           {% endfor %}
         {% else %}
-          <div class="tree-empty">No files yet</div>
+          <div class="pl-10 py-2 text-xs text-muted-foreground">No files yet</div>
         {% endif %}
 
-        <!-- Upload button -->
-        <button class="tree-upload-btn" onclick="document.getElementById('fileInput').click()">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Add file
-        </button>
 
       </div>
     </div>
 
     <!-- EVENTS sidebar panel -->
     <div class="sb-panel" id="sb-panel-events-sb">
-      <div class="sb-events-header">
-        <span class="sb-events-title">Timeline</span>
+      <div class="px-4 py-3 border-b border-border">
+        <span class="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Timeline</span>
       </div>
-      <div class="sb-events-empty" id="sbEventsEmpty">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.2;margin-bottom:8px">
-          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-        Parse documents to see events here.
+      <div id="sbEventsEmpty" class="flex flex-col items-center justify-center py-12 px-6 text-center gap-2">
+        <i data-lucide="calendar" class="w-7 h-7 text-muted-foreground/30"></i>
+        <p class="text-sm text-muted-foreground">Parse documents to see events.</p>
       </div>
-      <div id="sbEventsList"></div>
+      <div id="sbEventsList" class="px-2 py-2 space-y-1"></div>
     </div>
 
   </aside>
 
-  <!-- ════════════════════════════════
+  <!-- ════════════════════════════════════════════════
        MAIN
-  ════════════════════════════════ -->
-  <div class="main">
+  ════════════════════════════════════════════════ -->
+  <main class="flex-1 flex flex-col min-w-0 bg-background">
 
-    <!-- Top strip: tabs + parse button -->
-    <div class="main-top">
-      <div class="main-toprow">
-        <div class="tab-bar" id="mainTabBar">
-          <div class="tab active" id="tab-pdf" onclick="switchTab('pdf', this)">PDF Viewer</div>
-          <div class="tab" id="tab-json" onclick="switchTab('json', this)">JSON Output</div>
-          <div class="tab doc-only-hidden" id="tab-events" onclick="switchTab('events', this)" style="display:none">Events</div>
-          <div class="tab doc-only-hidden" id="tab-entities" onclick="switchTab('entities', this)" style="display:none">Entities</div>
-          <div class="tab doc-only-hidden" id="tab-errors" onclick="switchTab('errors', this)" style="display:none">Errors</div>
-          <div class="tab-bar-spacer"></div>
-        </div>
-        <button class="btn-parse" onclick="triggerParse()">▶ Parse</button>
+    <!-- Top bar: tabs + Parse button -->
+    <div class="flex items-center gap-3 px-6 py-3 border-b border-border">
+      <!-- Tabs (shadcn pattern) -->
+      <div id="mainTabBar" class="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+        <button id="tab-pdf" onclick="switchTab('pdf', this)"
+                class="tab inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                data-state="active">PDF Viewer</button>
+        <button id="tab-json" onclick="switchTab('json', this)"
+                class="tab inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                data-state="inactive">JSON Output</button>
+        <button id="tab-events" onclick="switchTab('events', this)" style="display:none"
+                class="tab doc-only-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                data-state="inactive">Events</button>
+        <button id="tab-entities" onclick="switchTab('entities', this)" style="display:none"
+                class="tab doc-only-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                data-state="inactive">Entities</button>
+        <button id="tab-errors" onclick="switchTab('errors', this)" style="display:none"
+                class="tab doc-only-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                data-state="inactive">Errors</button>
       </div>
+
+      <div class="flex-1"></div>
+
+      <!-- Parse button (shadcn primary button) -->
+      <button onclick="triggerParse()"
+              class="btn-parse inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4">
+        <i data-lucide="play" class="w-3.5 h-3.5"></i>
+        <span>Parse</span>
+      </button>
     </div>
 
-    <!-- Dark content card -->
-    <div class="content-card">
+    <!-- Panel content area -->
+    <div class="flex-1 overflow-hidden">
 
-      <!-- PDF Panel -->
+      <!-- PDF -->
       <div class="panel active" id="panel-pdf">
-        <div class="pdf-viewer" id="pdfViewer">
+        <div class="flex-1 bg-muted/50" id="pdfViewer">
           {% if index_iis %}
-            <iframe id="pdfFrame" class="pdf-frame"
-              src="/pdf/{{ project_name }}/{{ index_iis[0] }}"
-              title="{{ index_iis[0] }}">
-            </iframe>
+            <iframe id="pdfFrame" class="w-full h-full border-0"
+                    src="/pdf/{{ project_name }}/{{ index_iis[0] }}"
+                    title="{{ index_iis[0] }}"></iframe>
           {% else %}
-            <div class="pdf-placeholder">
-              <div class="pdf-placeholder-icon">📂</div>
-              <p><strong>No document selected</strong>Upload a PDF using the + button in the sidebar.</p>
+            <div class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+              <i data-lucide="file-text" class="w-10 h-10 opacity-30"></i>
+              <p class="text-sm">Upload an Index II to begin.</p>
             </div>
           {% endif %}
         </div>
       </div>
 
-      <!-- JSON Panel -->
+      <!-- JSON -->
       <div class="panel" id="panel-json">
-        <div class="json-panel" id="jsonPanel">
-          <div class="json-empty" id="jsonEmpty">
-            <div class="json-empty-icon">{ }</div>
-            <p>No data yet — select a PDF and click Parse.</p>
+        <div class="flex-1 overflow-auto bg-background" id="jsonPanel">
+          <div id="jsonEmpty" class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground p-8">
+            <i data-lucide="file-text" class="w-10 h-10 opacity-30"></i>
+            <p class="text-sm">Parse a document to view its extracted fields.</p>
           </div>
-          <div class="json-output" id="jsonOutput" style="display:none"></div>
-          <div class="parse-loading" id="parseLoading">
+          <div id="jsonOutput" class="hidden p-8"></div>
+          <div id="parseLoading" class="hidden flex-col items-center justify-center h-full gap-3 text-muted-foreground">
             <div class="spinner"></div>
-            <p>Extracting fields...</p>
+            <p class="text-sm">Parsing...</p>
           </div>
         </div>
       </div>
 
-      <!-- Events Panel -->
+      <!-- Events -->
       <div class="panel" id="panel-events">
-        <div class="events-panel" id="eventsPanel">
-          <div class="events-empty" id="eventsEmpty">
-            <div class="events-empty-icon">📋</div>
-            <p>No events yet — parse some documents first.</p>
+        <div class="flex-1 overflow-auto" id="eventsPanel">
+          <div id="eventsEmpty" class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground p-8">
+            <i data-lucide="calendar" class="w-10 h-10 opacity-30"></i>
+            <p class="text-sm">Parse documents to view the event timeline.</p>
           </div>
-          <div id="eventsContent" style="display:none"></div>
+          <div id="eventsContent" class="hidden p-8 space-y-4"></div>
         </div>
       </div>
 
-      <!-- Errors Panel -->
+      <!-- Entities -->
       <div class="panel" id="panel-entities">
-        <div class="entities-panel" id="entitiesPanel">
-          <div class="entities-empty" id="entitiesEmpty">
-            <div class="entities-empty-icon">👤</div>
-            <p>Parse documents to see the entity ledger.</p>
+        <div class="flex-1 overflow-auto" id="entitiesPanel">
+          <div id="entitiesEmpty" class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground p-8">
+            <i data-lucide="users" class="w-10 h-10 opacity-30"></i>
+            <p class="text-sm">Parse documents to view the entity ledger.</p>
           </div>
-          <div id="entitiesContent" style="display:none"></div>
+          <div id="entitiesContent" class="hidden p-8"></div>
         </div>
       </div>
 
+      <!-- Errors -->
       <div class="panel" id="panel-errors">
-        <div class="errors-panel" id="errorsPanel">
-          <div class="errors-empty" id="errorsEmpty">
-            <div class="errors-empty-icon">✓</div>
-            <p>No errors checked yet — parse some documents first.</p>
+        <div class="flex-1 overflow-auto" id="errorsPanel">
+          <div id="errorsEmpty" class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground p-8">
+            <i data-lucide="check-circle-2" class="w-10 h-10 opacity-30"></i>
+            <p class="text-sm">No errors checked yet — parse some documents first.</p>
           </div>
-          <div id="errorsContent" style="display:none"></div>
+          <div id="errorsContent" class="hidden p-8 space-y-3"></div>
         </div>
       </div>
 
     </div>
-  </div>
+  </main>
 </div>
 
 <script>
-  // ── Sidebar tabs ──
+  // ─────────────────────────────────────────────────────────
+  // Helper: set shadcn data-state on tabs (visual driver)
+  // ─────────────────────────────────────────────────────────
+  function setTabState(buttonEl, state) {
+    if (!buttonEl) return;
+    buttonEl.setAttribute('data-state', state);
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Sidebar tabs (Documents | Events)
+  // ─────────────────────────────────────────────────────────
   function switchSbTab(panel, el) {
-    document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sb-tab').forEach(t => {
+      t.classList.remove('active');
+      setTabState(t, 'inactive');
+    });
     el.classList.add('active');
+    setTabState(el, 'active');
+
     document.querySelectorAll('.sb-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('sb-panel-' + panel).classList.add('active');
 
-    var evTab  = document.getElementById('tab-events');
-    var entTab = document.getElementById('tab-entities');
-    var errTab = document.getElementById('tab-errors');
-
-    var pdfTab  = document.getElementById('tab-pdf');
-    var jsonTab = document.getElementById('tab-json');
+    const evTab  = document.getElementById('tab-events');
+    const entTab = document.getElementById('tab-entities');
+    const errTab = document.getElementById('tab-errors');
+    const pdfTab = document.getElementById('tab-pdf');
+    const jsonTab = document.getElementById('tab-json');
 
     if (panel === 'events-sb') {
-      // Hide PDF + JSON, show Events + Errors
       pdfTab.style.display  = 'none';
       jsonTab.style.display = 'none';
       evTab.style.display   = '';
       entTab.style.display  = '';
       errTab.style.display  = '';
-      // Auto-activate Events tab in main area
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.remove('active');
+        setTabState(t, 'inactive');
+      });
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       evTab.classList.add('active');
+      setTabState(evTab, 'active');
       document.getElementById('panel-events').classList.add('active');
       loadEvents();
       loadSbEvents();
     } else {
-      // Show PDF + JSON, hide Events + Errors
       pdfTab.style.display  = '';
       jsonTab.style.display = '';
       evTab.style.display   = 'none';
       entTab.style.display  = 'none';
       errTab.style.display  = 'none';
-      // If currently on events/errors panel, switch back to PDF
-      var activePanel = document.querySelector('.panel.active');
-      if (activePanel && (activePanel.id === 'panel-events' || activePanel.id === 'panel-errors')) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+      const activePanel = document.querySelector('.panel.active');
+      if (activePanel && ['panel-events','panel-entities','panel-errors'].includes(activePanel.id)) {
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.remove('active');
+          setTabState(t, 'inactive');
+        });
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         pdfTab.classList.add('active');
+        setTabState(pdfTab, 'active');
         document.getElementById('panel-pdf').classList.add('active');
       }
     }
   }
 
-  function filterTree(query) {
-    var q = query.toLowerCase();
-    document.querySelectorAll('.tree-l2-wrap').forEach(function(wrap) {
-      var name = wrap.querySelector('.tree-l2-name');
-      if (name) wrap.style.display = name.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-  }
-
-  function renameProject() {
-    var newName = prompt('Enter new project name:');
-    if (newName && newName.trim()) {
-      // Build a form and submit to /edit_project
-      var form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/edit_project';
-      var fields = {
-        folder: '{{ project_name }}',
-        project_name: newName.trim(),
-        id_type: '{{ id_type or "" }}',
-        id_value: '{{ id_value or "" }}'
-      };
-      Object.entries(fields).forEach(function([k,v]) {
-        var i = document.createElement('input');
-        i.type = 'hidden'; i.name = k; i.value = v;
-        form.appendChild(i);
-      });
-      document.body.appendChild(form);
-      form.submit();
-    }
-  }
-
-  function loadSbEvents() {
-    fetch('/events/{{ project_name }}')
-      .then(res => res.json())
-      .then(data => {
-        var list = document.getElementById('sbEventsList');
-        var empty = document.getElementById('sbEventsEmpty');
-        if (!data.events || data.events.length === 0) {
-          empty.style.display = 'block'; list.innerHTML = ''; return;
-        }
-        empty.style.display = 'none';
-        list.innerHTML = '';
-        data.events.forEach(function(ev) {
-          var txn = (ev.event_type || '').toUpperCase();
-          var badgeClass = txn.includes('MORTGAGE') || txn.includes('INTIMATION') ? 'mortgage'
-            : txn.includes('RELEASE') ? 'release'
-            : txn.includes('GIFT') ? 'gift'
-            : (txn.includes('LEAVE') || txn.includes('LICENSE')) ? 'll' : '';
-          var item = document.createElement('div');
-          item.className = 'sb-event-item';
-          item.innerHTML =
-            '<div class="sb-event-item-top">' +
-              '<span class="sb-event-badge ' + badgeClass + '">' + (ev.event_type || '—') + '</span>' +
-              '<span class="sb-event-date">' + (ev.event_date || '') + '</span>' +
-            '</div>' +
-            '<div class="sb-event-docno">Doc: ' + (ev.event_doc_no || '—') + '</div>';
-          list.appendChild(item);
-        });
-      });
-  }
-
-  // ── Main tabs ──
+  // ─────────────────────────────────────────────────────────
+  // Main tabs
+  // ─────────────────────────────────────────────────────────
   function switchTab(tab, el) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active');
+      setTabState(t, 'inactive');
+    });
     el.classList.add('active');
+    setTabState(el, 'active');
+
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + tab).classList.add('active');
+
     if (tab === 'events')   loadEvents();
     if (tab === 'entities') loadEntities();
     if (tab === 'errors')   loadErrors();
   }
 
+  // ─────────────────────────────────────────────────────────
+  // Tree
+  // ─────────────────────────────────────────────────────────
   let selectedFile = "{{ index_iis[0] if index_iis else '' }}";
 
   function selectFile(el, filename) {
-    document.querySelectorAll('.tree-l2').forEach(f => f.classList.remove('active'));
-    el.classList.add('active');
+    document.querySelectorAll('.tree-l2').forEach(t => {
+      t.classList.remove('bg-accent', 'text-accent-foreground');
+    });
+    el.classList.add('bg-accent', 'text-accent-foreground');
     selectedFile = filename;
-    var frame = document.getElementById('pdfFrame');
+    const frame = document.getElementById('pdfFrame');
     if (frame) frame.src = '/pdf/{{ project_name }}/' + filename;
-    loadSavedResult(filename);
   }
 
-  function loadSavedResult(filename) {
+  function loadJsonForSelected(filename) {
     fetch('/result/{{ project_name }}/' + filename)
-      .then(res => res.json())
+      .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data.exists) {
-          document.getElementById('jsonEmpty').style.display = 'none';
-          document.getElementById('jsonOutput').style.display = 'block';
-          renderJSON(data.data);
-        } else {
-          document.getElementById('jsonOutput').style.display = 'none';
-          document.getElementById('jsonEmpty').style.display = 'flex';
-          document.getElementById('jsonEmpty').querySelector('p').textContent = 'No data yet — select a PDF and click Parse.';
+        const out   = document.getElementById('jsonOutput');
+        const empty = document.getElementById('jsonEmpty');
+        if (!data) {
+          out.classList.add('hidden');
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          return;
         }
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        out.classList.remove('hidden');
+        out.innerHTML = renderJsonAsTable(data);
       });
   }
 
-  window.addEventListener('DOMContentLoaded', function() {
-    if (selectedFile) loadSavedResult(selectedFile);
-  });
-
   function deleteFile(filename) {
-    if (!confirm('Delete "' + filename + '"? This cannot be undone.')) return;
-    var form = document.createElement('form');
+    if (!confirm('Delete ' + filename + '?')) return;
+    const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/delete_file/{{ project_name }}/' + encodeURIComponent(filename);
     document.body.appendChild(form);
     form.submit();
   }
 
-  function triggerParse() {
-    if (!selectedFile) { alert('Please upload and select a PDF first.'); return; }
-    const jsonTab = document.querySelectorAll('.tab')[1];
-    switchTab('json', jsonTab);
-    document.getElementById('jsonEmpty').style.display = 'none';
-    document.getElementById('jsonOutput').style.display = 'none';
-    document.getElementById('parseLoading').classList.add('visible');
+  function filterTree(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.tree-l2-wrap').forEach(wrap => {
+      const name = wrap.querySelector('.tree-l2-name');
+      if (name) wrap.style.display = name.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
 
+  function renameProject() {
+    const newName = prompt('Rename project:', '{{ project_name.rsplit("_", 1)[0] }}');
+    if (!newName) return;
+    fetch('/rename_project/{{ project_name }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({new_name: newName})
+    }).then(r => r.json()).then(d => {
+      if (d.new_project) window.location.href = '/workspace/' + d.new_project;
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Parse
+  // ─────────────────────────────────────────────────────────
+  function triggerParse() {
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active');
+      setTabState(t, 'inactive');
+    });
+    const jsonTab = document.getElementById('tab-json');
+    jsonTab.classList.add('active');
+    setTabState(jsonTab, 'active');
+
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-json').classList.add('active');
+
+    document.getElementById('jsonEmpty').classList.add('hidden');
+    document.getElementById('jsonEmpty').classList.remove('flex');
+    document.getElementById('jsonOutput').classList.add('hidden');
+    const loader = document.getElementById('parseLoading');
+    loader.classList.remove('hidden');
+    loader.classList.add('flex');
+
+    if (!selectedFile) {
+      loader.classList.add('hidden');
+      loader.classList.remove('flex');
+      alert('Select a file first.');
+      return;
+    }
     fetch('/parse/{{ project_name }}/' + selectedFile)
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
-        document.getElementById('parseLoading').classList.remove('visible');
-        if (data.error) {
-          document.getElementById('jsonEmpty').style.display = 'flex';
-          document.getElementById('jsonEmpty').querySelector('p').textContent = 'Error: ' + data.error;
-        } else {
-          document.getElementById('jsonOutput').style.display = 'block';
-          renderJSON(data);
-        }
+        loader.classList.add('hidden');
+        loader.classList.remove('flex');
+        const out = document.getElementById('jsonOutput');
+        out.classList.remove('hidden');
+        out.innerHTML = renderJsonAsTable(data);
       })
-      .catch(err => {
-        document.getElementById('parseLoading').classList.remove('visible');
-        document.getElementById('jsonEmpty').style.display = 'flex';
-        document.getElementById('jsonEmpty').querySelector('p').textContent = 'Something went wrong. Try again.';
+      .catch(() => {
+        loader.classList.add('hidden');
+        loader.classList.remove('flex');
+        alert('Parse failed.');
       });
   }
 
-  function renderJSON(data) {
-    var container = document.getElementById('jsonOutput');
-    container.innerHTML = '';
+  // ─────────────────────────────────────────────────────────
+  // JSON syntax highlighting (kept simple, shadcn-muted)
+  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────
+  // Render parsed JSON as a clean reference panel
+  // (definition-list style, like shadcn docs tables)
+  // ─────────────────────────────────────────────────────────
+  function humanLabel(key) {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
 
-    var order = [
-      'document_type', 'date_of_execution', 'date_of_registration',
-      'registration_year', 'doc_no', 'txn_type',
-      'seller_names', 'seller_address', 'buyer_names', 'buyer_address',
-      'consideration', 'area', 'flat_no',
+  function formatValue(v) {
+    if (v === null || v === undefined || v === '' || v === 'null')
+      return '<span class="text-muted-foreground italic">—</span>';
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '<span class="text-muted-foreground italic">—</span>';
+      return v.map(item => `<span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium mr-1 mb-1">${escapeHtml(String(item))}</span>`).join('');
+    }
+    if (typeof v === 'object') {
+      return `<pre class="font-mono text-xs text-foreground/80 whitespace-pre-wrap">${escapeHtml(JSON.stringify(v, null, 2))}</pre>`;
+    }
+    return `<span class="text-sm text-foreground">${escapeHtml(String(v))}</span>`;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderJsonAsTable(payload) {
+    // Unwrap if there's a `data` key (matches the screenshot's structure)
+    const obj = (payload && typeof payload === 'object' && payload.data && typeof payload.data === 'object')
+      ? payload.data
+      : payload;
+
+    if (!obj || typeof obj !== 'object') {
+      return '<div class="text-sm text-muted-foreground">No data to display.</div>';
+    }
+
+    // Field display order — mirrors how a person reads a deed
+    const FIELD_ORDER = [
+      // 1. Document identity
+      'document_type', 'txn_type',
+      'sub_registrar_office', 'registration_no', 'registration_year', 'doc_no',
+
+      // 2. When
+      'date_of_execution', 'date_of_registration',
+
+      // 3. Property — location
       'society_building_name', 'society_building_address',
-      'cts_no', 'plot_no', 'survey_no',
+      'flat_no', 'plot_no', 'survey_no', 'cts_no',
       'village', 'district',
-      'stamp_duty', 'registration_fee', 'sub_registrar_office'
+      'area',
+
+      // 4. Property — boundaries
+      'boundary_north', 'boundary_south', 'boundary_east', 'boundary_west',
+
+      // 5. Parties — Sale / Agreement / Release
+      'seller_names', 'seller_address',
+      'buyer_names',  'buyer_address',
+
+      // 6. Parties — Gift
+      'donor_name',  'donor_address',
+      'donee_name',  'donee_address',
+
+      // 7. Parties — Mortgage
+      'mortgagor_name', 'mortgagor_address',
+      'mortgagee_name', 'mortgagee_address',
+
+      // 8. Parties — Leave & License
+      'licensor_name', 'licensor_address',
+      'licensee_name', 'licensee_address',
+      'leave_license_months',
+
+      // 9. Identity proofs
+      'transferor_pan', 'transferor_pin',
+      'transferee_pan', 'transferee_pin',
+
+      // 10. Money
+      'consideration', 'deposit', 'license_fee',
+      'stamp_duty', 'registration_fee',
+
+      // 11. Misc
+      'remarks',
     ];
 
-    var idFields = ['cts_no', 'plot_no', 'survey_no'];
-    var filledId = idFields.find(f => data[f] !== null && data[f] !== undefined && data[f] !== '');
-    var hiddenIds = idFields.filter(f => f !== filledId);
+    const orderIndex = (key) => {
+      const i = FIELD_ORDER.indexOf(key);
+      return i === -1 ? 999 : i;  // unknown keys land at the end
+    };
 
-    var seen = new Set();
-    var entries = [];
-    order.forEach(function(key) {
-      if (hiddenIds.includes(key)) return;
-      if (key in data) { entries.push([key, data[key]]); seen.add(key); }
-    });
-    Object.keys(data).forEach(function(key) {
-      if (!seen.has(key) && !hiddenIds.includes(key)) entries.push([key, data[key]]);
-    });
+    const isEmpty = (v) =>
+      v === null || v === undefined || v === '' || v === 'null' ||
+      (Array.isArray(v) && v.length === 0);
 
-    var grid = document.createElement('div');
-    grid.className = 'json-grid';
+    // ── Filter out irrelevant party blocks based on txn_type ─────
+    // A Sale Deed should not show donor/donee/mortgagor/licensor rows.
+    const PARTY_GROUPS = {
+      sale:     ['seller_names', 'seller_address', 'buyer_names', 'buyer_address'],
+      gift:     ['donor_name', 'donor_address', 'donee_name', 'donee_address'],
+      mortgage: ['mortgagor_name', 'mortgagor_address', 'mortgagee_name', 'mortgagee_address'],
+      license:  ['licensor_name', 'licensor_address', 'licensee_name', 'licensee_address', 'leave_license_months', 'deposit', 'license_fee'],
+    };
 
-    entries.forEach(function([key, value]) {
-      var isNull  = value === null || value === undefined || value === '';
-      var isAlert = value === 'ALERT';
-      var isArray = Array.isArray(value);
+    function relevantGroupsFor(txn) {
+      const t = (txn || '').toUpperCase();
+      if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE'))
+        return ['sale'];
+      if (t.includes('GIFT'))
+        return ['gift'];
+      if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
+        return ['mortgage'];
+      if (t.includes('LEAVE') || t.includes('LICENSE'))
+        return ['license'];
+      return Object.keys(PARTY_GROUPS);  // unknown txn → show everything
+    }
 
-      var row = document.createElement('div');
-      row.className = 'json-row ' + (isNull ? 'is-null' : 'has-value');
-
-      var keyEl = document.createElement('div');
-      keyEl.className = 'json-key';
-      keyEl.textContent = key.replace(/_/g, ' ');
-
-      var valEl = document.createElement('div');
-      valEl.className = 'json-value' + (isAlert ? ' is-alert' : '');
-
-      if (isNull)       valEl.textContent = 'null';
-      else if (isAlert) valEl.textContent = '⚠ ALERT';
-      else if (isArray) valEl.textContent = value.join(', ');
-      else              valEl.textContent = value;
-
-      row.appendChild(keyEl);
-      row.appendChild(valEl);
-      grid.appendChild(row);
+    const txnType = obj.txn_type || obj.document_type;
+    const relevantGroups = new Set(relevantGroupsFor(txnType));
+    const hiddenPartyFields = new Set();
+    Object.entries(PARTY_GROUPS).forEach(([groupName, fields]) => {
+      if (!relevantGroups.has(groupName)) {
+        fields.forEach(f => hiddenPartyFields.add(f));
+      }
     });
 
-    container.appendChild(grid);
-  }
-
-  function loadEvents() {
-    fetch('/events/{{ project_name }}')
-      .then(res => res.json())
-      .then(data => {
-        var container = document.getElementById('eventsContent');
-        var empty = document.getElementById('eventsEmpty');
-
-        if (!data.events || data.events.length === 0) {
-          empty.style.display = 'flex'; container.style.display = 'none'; return;
-        }
-
-        empty.style.display = 'none';
-        container.style.display = 'block';
-        container.innerHTML = '';
-
-        if (data.consistency_errors && data.consistency_errors.length > 0) {
-          data.consistency_errors.forEach(function(err) {
-            var w = document.createElement('div');
-            w.className = 'consistency-warning';
-            w.textContent = '⚠ ' + err;
-            container.appendChild(w);
-          });
-        }
-
-        var timeline = document.createElement('div');
-        timeline.className = 'timeline';
-        var unresolvedMortgages = data.unresolved_mortgages || [];
-
-        data.events.forEach(function(ev) {
-          var txn = (ev.event_type || '').toUpperCase();
-          var isMortgage   = txn.includes('MORTGAGE') || txn.includes('INTIMATION');
-          var isRelease    = txn.includes('RELEASE');
-          var isGift       = txn.includes('GIFT');
-          var isLL         = txn.includes('LEAVE') || txn.includes('LICENSE');
-          var isUnresolved = unresolvedMortgages.includes(ev.event_doc_no);
-
-          var dotClass   = isMortgage ? 'mortgage' : isRelease ? 'release' : isGift ? 'gift' : isLL ? 'll' : '';
-          var badgeClass = dotClass;
-          if (isUnresolved) dotClass = 'warning';
-
-          var item = document.createElement('div');
-          item.className = 'timeline-item';
-          item.innerHTML =
-            '<div class="timeline-spine">' +
-              '<div class="timeline-dot ' + dotClass + '"></div>' +
-              '<div class="timeline-line"></div>' +
-            '</div>' +
-            '<div class="timeline-card' + (isUnresolved ? ' unresolved-mortgage' : '') + '">' +
-              '<div class="timeline-card-header">' +
-                '<span class="event-type-badge ' + badgeClass + '">' + txn + '</span>' +
-                '<span class="event-date">' + (ev.event_date || '—') + '</span>' +
-              '</div>' +
-              '<div class="event-doc-no">Doc No: ' + (ev.event_doc_no || '—') + ' &nbsp;|&nbsp; Reg Date: ' + (ev.event_reg_date || '—') + '</div>' +
-              buildEventFields(ev) +
-              (isUnresolved ? '<div class="unresolved-badge">⚠ No matching Release Deed found</div>' : '') +
-            '</div>';
-          timeline.appendChild(item);
-        });
-        container.appendChild(timeline);
+    // Sort: populated fields in deed-reading order, then empty fields,
+    // dropping irrelevant party fields entirely.
+    const entries = Object.entries(obj)
+      .filter(([k, v]) => {
+        if (!hiddenPartyFields.has(k)) return true;
+        // Keep an irrelevant-group field only if it actually has data
+        // (extraction quirk — surface it rather than hide real info)
+        return !isEmpty(v);
+      })
+      .sort((a, b) => {
+        const aEmpty = isEmpty(a[1]);
+        const bEmpty = isEmpty(b[1]);
+        if (aEmpty !== bEmpty) return aEmpty ? 1 : -1;
+        const ai = orderIndex(a[0]);
+        const bi = orderIndex(b[0]);
+        if (ai !== bi) return ai - bi;
+        return a[0].localeCompare(b[0]);
       });
-  }
 
-  function buildEventFields(ev) {
-    var txn = (ev.event_type || '').toUpperCase();
-    var fields = [];
-    if (ev.area)                    fields.push(['Area', ev.area]);
-    if (ev.id_field && ev.id_value) fields.push([ev.id_field.replace(/_/g,' ').toUpperCase(), ev.id_value]);
-    if (ev.property_type === 'FLAT') {
-      if (ev.flat_no)                  fields.push(['Flat No', ev.flat_no]);
-      if (ev.society_building_name)    fields.push(['Society', ev.society_building_name]);
-      if (ev.society_building_address) fields.push(['Address', ev.society_building_address]);
-    }
-    if (txn.includes('SALE') || txn.includes('AGREEMENT')) {
-      if (ev.seller_names) fields.push(['Seller', Array.isArray(ev.seller_names) ? ev.seller_names.join(', ') : ev.seller_names]);
-      if (ev.buyer_names)  fields.push(['Buyer',  Array.isArray(ev.buyer_names)  ? ev.buyer_names.join(', ')  : ev.buyer_names]);
-      if (ev.consideration) fields.push(['Consideration', ev.consideration]);
-    } else if (txn.includes('GIFT')) {
-      if (ev.donor_name) fields.push(['Donor', ev.donor_name]);
-      if (ev.donee_name) fields.push(['Donee', ev.donee_name]);
-    } else if (txn.includes('MORTGAGE') || txn.includes('INTIMATION')) {
-      if (ev.mortgagor_name) fields.push(['Mortgagor', ev.mortgagor_name]);
-      if (ev.mortgagee_name) fields.push(['Mortgagee', ev.mortgagee_name]);
-    } else if (txn.includes('RELEASE')) {
-      if (ev.releasor_names) fields.push(['Releasor', Array.isArray(ev.releasor_names) ? ev.releasor_names.join(', ') : ev.releasor_names]);
-      if (ev.releasee_names) fields.push(['Releasee', Array.isArray(ev.releasee_names) ? ev.releasee_names.join(', ') : ev.releasee_names]);
-    } else if (txn.includes('LEAVE') || txn.includes('LICENSE')) {
-      if (ev.licensor_name) fields.push(['Licensor', ev.licensor_name]);
-      if (ev.licensee_name) fields.push(['Licensee', ev.licensee_name]);
-    }
-    if (fields.length === 0) return '';
-    var html = '<div class="event-fields">';
-    fields.forEach(function(f) {
-      html += '<div class="event-field"><span class="event-field-key">' + f[0] + '</span><span class="event-field-val">' + f[1] + '</span></div>';
+    let html = '<div class="rounded-lg border border-border bg-card overflow-hidden">';
+    entries.forEach(([k, v], i) => {
+      const isLast = i === entries.length - 1;
+      html += `
+        <div class="grid grid-cols-[180px_1fr] gap-4 px-5 py-3 ${isLast ? '' : 'border-b border-border'}">
+          <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground self-start pt-0.5">${humanLabel(k)}</div>
+          <div class="text-sm text-foreground break-words">${formatValue(v)}</div>
+        </div>`;
     });
     html += '</div>';
     return html;
   }
 
-  function loadEntities() {
-    fetch('/entities/{{ project_name }}')
-      .then(res => res.json())
-      .then(data => {
-        var container = document.getElementById('entitiesContent');
-        var empty     = document.getElementById('entitiesEmpty');
-        var owners       = data.owners       || [];
-        var encumbrances = data.encumbrances || [];
-
-        if (owners.length === 0 && encumbrances.length === 0) {
-          empty.style.display = 'flex'; container.style.display = 'none'; return;
-        }
-        empty.style.display = 'none';
-        container.style.display = 'block';
-        container.innerHTML = '';
-
-        // ── Title holders ──
-        if (owners.length > 0) {
-          var ownerSection = document.createElement('div');
-          ownerSection.innerHTML = '<div class="entities-section-title">Current Title Holders</div>';
-          var grid = document.createElement('div');
-          grid.className = 'entities-grid';
-
-          owners.forEach(function(o) {
-            var card = document.createElement('div');
-            card.className = 'entity-card' + (o.encumbered ? ' encumbered' : '');
-
-            var basisLabel = {
-              'SALE_DEED':       'Sale Deed',
-              'AGREEMENT_OF_SALE': 'Agreement of Sale',
-              'GIFT_DEED':       'Gift Deed',
-              'RELEASE_DEED':    'Release Deed',
-              'DEED_OF_RELEASE': 'Deed of Release',
-            }[o.basis] || o.basis || '—';
-
-            card.innerHTML =
-              '<div class="entity-card-top">' +
-                '<span class="entity-name">' + (o.display_name || o.canonical || '—') + '</span>' +
-                (o.encumbered
-                  ? '<span class="entity-badge encumbered-badge">Encumbered</span>'
-                  : '<span class="entity-badge">Active Owner</span>') +
-              '</div>' +
-              (o.area ? '<div class="entity-area">' + o.area + '</div>' : '') +
-              '<div class="entity-meta">Since: ' + (o.since_date || '—') + ' &nbsp;·&nbsp; ' + basisLabel + ' &nbsp;·&nbsp; Doc: ' + (o.since_doc || '—') + '</div>' +
-              (o.encumbered && o.encumbrance_doc
-                ? '<div class="entity-enc-note">⚠ Encumbered — Mortgage Doc: ' + o.encumbrance_doc + '</div>'
-                : '');
-
-            grid.appendChild(card);
-          });
-
-          ownerSection.appendChild(grid);
-          container.appendChild(ownerSection);
-        }
-
-        // ── Active encumbrances ──
-        if (encumbrances.length > 0) {
-          var encSection = document.createElement('div');
-          encSection.innerHTML = '<div class="entities-section-title">Active Encumbrances</div>';
-          var encGrid = document.createElement('div');
-          encGrid.className = 'entities-grid';
-
-          encumbrances.forEach(function(e) {
-            var card = document.createElement('div');
-            card.className = 'enc-card';
-            card.innerHTML =
-              '<div class="enc-card-top">' +
-                '<span class="enc-holder">' + (e.holder || 'Unknown Mortgagee') + '</span>' +
-                '<span class="enc-badge">Unresolved</span>' +
-              '</div>' +
-              '<div class="enc-mortgagor">Mortgagor: ' + (e.mortgagor || '—') + '</div>' +
-              '<div class="enc-meta">Doc: ' + (e.doc_no || '—') + ' &nbsp;·&nbsp; Since: ' + (e.since_date || '—') + '</div>';
-            encGrid.appendChild(card);
-          });
-
-          encSection.appendChild(encGrid);
-          container.appendChild(encSection);
-        }
-      });
+  // ─────────────────────────────────────────────────────────
+  // Events (timeline)
+  // ─────────────────────────────────────────────────────────
+  function eventBadgeClasses(type) {
+    const t = (type || '').toUpperCase();
+    if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
+      return 'bg-amber-50 text-amber-700 border-amber-200';
+    if (t.includes('RELEASE'))
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (t.includes('GIFT'))
+      return 'bg-violet-50 text-violet-700 border-violet-200';
+    if (t.includes('LEAVE') || t.includes('LICENSE'))
+      return 'bg-sky-50 text-sky-700 border-sky-200';
+    return 'bg-rose-50 text-rose-700 border-rose-200';
   }
 
-  function loadErrors() {
-    fetch('/errors/{{ project_name }}')
-      .then(res => res.json())
+  function loadEvents() {
+    fetch('/events/{{ project_name }}')
+      .then(r => r.json())
       .then(data => {
-        var container = document.getElementById('errorsContent');
-        var empty = document.getElementById('errorsEmpty');
+        const container = document.getElementById('eventsContent');
+        const empty     = document.getElementById('eventsEmpty');
+        const events    = data.events || [];
 
-        if (!data.chain_errors || data.chain_errors.length === 0) {
-          empty.style.display = 'flex';
-          empty.querySelector('p').textContent = 'No errors found — ownership chain looks clean.';
-          container.style.display = 'none';
+        if (events.length === 0) {
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          container.classList.add('hidden');
           return;
         }
-
-        empty.style.display = 'none';
-        container.style.display = 'block';
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        container.classList.remove('hidden');
         container.innerHTML = '';
 
-        data.chain_errors.forEach(function(err) {
-          var card = document.createElement('div');
-          card.className = 'error-card';
+        events.forEach(ev => {
+          const card = document.createElement('div');
+          card.className = 'rounded-lg border border-border bg-card text-card-foreground shadow-sm';
 
-          // Badge label + colour by error type
-          var badgeLabel = 'Chain Error';
-          var badgeStyle = '';
-          if (err.type === 'DATE_ORDER_ERROR') {
-            badgeLabel = 'Date Order'; badgeStyle = 'background:rgba(255,152,0,0.12);color:#E65100;';
-          } else if (err.type === 'INVALID_PAN_FORMAT') {
-            badgeLabel = 'Invalid PAN'; badgeStyle = 'background:rgba(33,150,243,0.12);color:#1565C0;';
-          } else if (err.type === 'INVALID_PIN_FORMAT') {
-            badgeLabel = 'Invalid PIN'; badgeStyle = 'background:rgba(33,150,243,0.12);color:#1565C0;';
-          } else if (err.type === 'PAN_TRANSFEROR_TRANSFEREE_CLASH') {
-            badgeLabel = 'PAN Clash'; badgeStyle = 'background:rgba(156,39,176,0.12);color:#6A1B9A;';
-          } else if (err.type === 'PIN_TRANSFEROR_TRANSFEREE_CLASH') {
-            badgeLabel = 'PIN Clash'; badgeStyle = 'background:rgba(156,39,176,0.12);color:#6A1B9A;';
-          } else if (err.type === 'UNRESOLVED_MORTGAGE') {
-            badgeLabel = 'Unresolved Mortgage'; badgeStyle = 'background:rgba(255,59,48,0.12);color:#C62828;';
-          } else if (err.type === 'AREA_MISMATCH') {
-            badgeLabel = 'Area Mismatch'; badgeStyle = 'background:rgba(255,152,0,0.12);color:#E65100;';
-          } else if (err.type === 'SOCIETY_MISMATCH') {
-            badgeLabel = 'Society Mismatch'; badgeStyle = 'background:rgba(255,152,0,0.12);color:#E65100;';
-          } else if (err.type === 'ID_MISMATCH') {
-            badgeLabel = 'ID Mismatch'; badgeStyle = 'background:rgba(255,152,0,0.12);color:#E65100;';
-          } else if (err.type === 'INVALID_MORTGAGOR') {
-            badgeLabel = 'Invalid Mortgagor'; badgeStyle = 'background:rgba(255,152,0,0.12);color:#E65100;';
-          } else if (err.type === 'UNKNOWN_MORTGAGOR') {
-            badgeLabel = 'Unknown Mortgagor'; badgeStyle = 'background:rgba(255,59,48,0.12);color:#C62828;';
-          } else if (err.type === 'CHAIN_ERROR') {
-            badgeLabel = 'Chain Error'; badgeStyle = 'background:rgba(255,59,48,0.12);color:#C62828;';
-          }
+          const badge = eventBadgeClasses(ev.event_type);
+          const fields = [
+            ['Area',          ev.area],
+            ['Plot No',       ev.id_value && ev.id_field === 'plot_no' ? ev.id_value : null],
+            ['Flat No',       ev.flat_no],
+            ['Society',       ev.society_building_name],
+            ['Address',       ev.society_building_address],
+            ['Seller',        Array.isArray(ev.seller_names) ? ev.seller_names.join(', ') : ev.seller_names],
+            ['Buyer',         Array.isArray(ev.buyer_names)  ? ev.buyer_names.join(', ')  : ev.buyer_names],
+            ['Donor',         ev.donor_name],
+            ['Donee',         ev.donee_name],
+            ['Mortgagor',     ev.mortgagor_name],
+            ['Mortgagee',     ev.mortgagee_name],
+            ['Licensor',      ev.licensor_name],
+            ['Licensee',      ev.licensee_name],
+            ['Consideration', ev.consideration],
+          ].filter(([_, v]) => v);
 
-          // Expected/Actual labels vary by type
-          var expectedLabel = 'Expected';
-          var actualLabel   = 'Actual';
-          if (err.type === 'CHAIN_ERROR') { expectedLabel = 'Expected Sellers'; actualLabel = 'Actual Sellers'; }
-
-          var expectedVal = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
-          var actualVal   = Array.isArray(err.actual)   ? err.actual.join(', ')   : (err.actual   || '—');
-
-          card.innerHTML =
-            '<div class="error-card-header">' +
-              '<span class="error-badge" style="' + badgeStyle + '">' + badgeLabel + '</span>' +
-              '<span class="error-doc">' + (err.doc_no || '—') + ' &nbsp;|&nbsp; ' + (err.event_date || '—') + '</span>' +
-            '</div>' +
-            '<div class="error-message">' + err.message + '</div>' +
-            '<div class="error-detail">' +
-              '<span class="error-detail-key">' + expectedLabel + '</span>' +
-              '<span class="error-detail-val">' + expectedVal + '</span>' +
-              '<span class="error-detail-key">' + actualLabel + '</span>' +
-              '<span class="error-detail-val">' + actualVal + '</span>' +
-            '</div>';
+          card.innerHTML = `
+            <div class="px-6 pt-5 pb-3 flex items-start justify-between gap-4">
+              <div class="space-y-1.5">
+                <div class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${badge}">${ev.event_type || '—'}</div>
+                <div class="text-xs text-muted-foreground">
+                  Doc No: ${ev.event_doc_no || '—'} &nbsp;·&nbsp; Reg Date: ${ev.event_reg_date || '—'}
+                </div>
+              </div>
+              <div class="text-xs text-muted-foreground shrink-0">${ev.event_date || '—'}</div>
+            </div>
+            <div class="px-6 pb-5">
+              <div class="grid grid-cols-[120px_1fr] gap-y-2 gap-x-4 text-sm">
+                ${fields.map(([k, v]) => `
+                  <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground self-center">${k}</div>
+                  <div class="text-sm text-foreground">${v}</div>
+                `).join('')}
+              </div>
+            </div>`;
           container.appendChild(card);
         });
       });
   }
+
+  // ─────────────────────────────────────────────────────────
+  // Sidebar timeline
+  // ─────────────────────────────────────────────────────────
+  function loadSbEvents() {
+    fetch('/events/{{ project_name }}')
+      .then(r => r.json())
+      .then(data => {
+        const list  = document.getElementById('sbEventsList');
+        const empty = document.getElementById('sbEventsEmpty');
+        if (!data.events || data.events.length === 0) {
+          empty.style.display = ''; list.innerHTML = ''; return;
+        }
+        empty.style.display = 'none';
+        list.innerHTML = '';
+        data.events.forEach(ev => {
+          const badge = eventBadgeClasses(ev.event_type);
+          const item = document.createElement('div');
+          item.className = 'px-3 py-2.5 rounded-md hover:bg-accent transition-colors cursor-pointer';
+          item.innerHTML = `
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${badge}">${ev.event_type || '—'}</div>
+              <span class="text-xs text-muted-foreground shrink-0">${ev.event_date || ''}</span>
+            </div>
+            <div class="text-xs text-muted-foreground">Doc: ${ev.event_doc_no || '—'}</div>`;
+          list.appendChild(item);
+        });
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Entities
+  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────
+  // Entities — two-column party graph
+  // ─────────────────────────────────────────────────────────
+  const BASIS_LABELS = {
+    'SALE_DEED':              'Sale Deed',
+    'AGREEMENT_OF_SALE':      'Agreement of Sale',
+    'GIFT_DEED':              'Gift Deed',
+    'RELEASE_DEED':           'Release Deed',
+    'DEED_OF_RELEASE':        'Deed of Release',
+    'MORTGAGE_DEED':          'Mortgage Deed',
+    'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
+    'LEAVE_AND_LICENSE':      'Leave & License',
+  };
+  const basisLabel = (b) => BASIS_LABELS[b] || b || '—';
+
+  // shadcn Badge primitive
+  function Badge(variant, text) {
+    const variants = {
+      'default':     'border-transparent bg-primary text-primary-foreground',
+      'secondary':   'border-transparent bg-secondary text-secondary-foreground',
+      'outline':     'text-foreground',
+      'success':     'border-emerald-200 bg-emerald-50 text-emerald-700',
+      'warning':     'border-amber-200 bg-amber-50 text-amber-700',
+      'destructive': 'border-rose-200 bg-rose-50 text-rose-700',
+      'muted':       'border-border bg-muted text-muted-foreground',
+    };
+    return `<span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${variants[variant] || variants.outline}">${text}</span>`;
+  }
+
+  // shadcn-style Separator
+  function Separator() {
+    return '<div class="shrink-0 bg-border h-[1px] w-full my-3"></div>';
+  }
+
+  // Column header (sticky lookalike)
+  function ColumnHeader(icon, title, count) {
+    return `
+      <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
+        <div class="flex items-center gap-2">
+          <i data-lucide="${icon}" class="w-4 h-4 text-muted-foreground"></i>
+          <h3 class="text-sm font-semibold tracking-tight">${title}</h3>
+        </div>
+        <span class="inline-flex items-center justify-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground tabular-nums">${count}</span>
+      </div>`;
+  }
+
+  // Subgroup label inside a column
+  function SubgroupLabel(text) {
+    return `<div class="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 mb-2 mt-4 first:mt-0">${text}</div>`;
+  }
+
+  // ── Transfer Party Card ────────────────────────────────────
+  function renderTransferPartyCard(o) {
+    const isActive = o.status === 'active';
+    const isRoot   = !!o._isRoot;
+
+    // Card border: encumbered (amber) > root (yellow) > default
+    const borderClass =
+      (isActive && o.encumbered) ? 'border-amber-200/70 bg-amber-50/30' :
+      isRoot                     ? 'border-yellow-300/70 bg-yellow-50/40' :
+                                   'border-border bg-card';
+
+    // Status badge on the right of the header
+    const statusBadge = isActive
+      ? (o.encumbered ? Badge('warning', 'Encumbered') : Badge('success', 'Active Owner'))
+      : Badge('muted', 'Former');
+
+    // Root of Title pill — yellow, sits above the name on its own row
+    const rootRibbon = isRoot
+      ? `<div class="px-4 pt-3"><span class="inline-flex items-center gap-1 rounded-md border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-800"><i data-lucide="flag" class="w-3 h-3"></i>Root of Title</span></div>`
+      : '';
+
+    return `
+      <div class="rounded-lg border ${borderClass} text-card-foreground shadow-sm transition-colors">
+        ${rootRibbon}
+        <div class="flex items-center justify-between gap-3 px-4 ${isRoot ? 'pt-2' : 'pt-3'} pb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-muted-foreground shrink-0"></i>
+            <span class="text-sm font-semibold truncate ${isActive ? '' : 'text-foreground/70'}">${o.display_name || o.canonical || '—'}</span>
+          </div>
+          ${statusBadge}
+        </div>
+
+        <div class="px-4 pb-3 space-y-1">
+          ${isActive && o.area ? `<div class="text-xs text-foreground/80">${o.area}</div>` : ''}
+
+          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <i data-lucide="arrow-down-right" class="w-3 h-3"></i>
+            <span>Acquired ${o.since_date || '—'} · ${basisLabel(o.basis)} · Doc ${o.since_doc || '—'}</span>
+          </div>
+
+          ${!isActive && o.exited_date ? `
+            <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+              <span>Exited ${o.exited_date} · ${basisLabel(o.exited_via)} · Doc ${o.exited_doc || '—'}</span>
+            </div>` : ''}
+
+          ${isActive && o.encumbered && o.encumbrance_doc ? `
+            <div class="flex items-center gap-1.5 text-xs text-amber-700 pt-1">
+              <i data-lucide="lock" class="w-3 h-3"></i>
+              <span>Encumbered by Mortgage Doc ${o.encumbrance_doc}</span>
+            </div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // ── Encumbrance Card ───────────────────────────────────────
+  // For RESOLVED mortgages, the card visually pairs the mortgage
+  // and its release inside ONE unit, separated by a divider.
+  function renderEncumbranceCard(e) {
+    const isResolved = e.status === 'RESOLVED';
+    const headerBadge = isResolved
+      ? Badge('success', 'Released')
+      : Badge('destructive', 'Active');
+
+    const containerClass = isResolved
+      ? 'rounded-lg border border-border bg-card text-card-foreground shadow-sm'
+      : 'rounded-lg border border-amber-200/70 bg-amber-50/30 text-card-foreground shadow-sm';
+
+    let html = `
+      <div class="${containerClass}">
+        <div class="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="landmark" class="w-3.5 h-3.5 ${isResolved ? 'text-muted-foreground' : 'text-amber-700'} shrink-0"></i>
+            <span class="text-sm font-semibold truncate ${isResolved ? 'text-foreground/70' : ''}">${e.holder || 'Unknown Mortgagee'}</span>
+          </div>
+          ${headerBadge}
+        </div>
+
+        <div class="px-4 pb-3 space-y-1">
+          <div class="text-xs text-foreground/80">
+            <span class="text-muted-foreground">Mortgagor:</span> ${e.mortgagor || '—'}
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <i data-lucide="file-text" class="w-3 h-3"></i>
+            <span>Filed ${e.since_date || '—'} · Doc ${e.doc_no || '—'}</span>
+          </div>
+        </div>`;
+
+    if (isResolved) {
+      // Release pair — inset, divider above, lighter background
+      html += `
+        <div class="mx-4 h-[1px] bg-border"></div>
+        <div class="px-4 py-3 bg-emerald-50/40 rounded-b-lg">
+          <div class="flex items-center gap-2 mb-1">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span class="text-xs font-semibold text-emerald-700">Released</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-muted-foreground pl-5">
+            <span>${e.resolved_date || '—'} · Doc ${e.resolved_doc || '—'}</span>
+          </div>
+        </div>`;
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  // ── Empty subgroup placeholder ─────────────────────────────
+  function renderEmptyPlaceholder(text) {
+    return `<div class="rounded-lg border border-dashed border-border px-4 py-6 text-center text-xs text-muted-foreground">${text}</div>`;
+  }
+
+  // ── Main loader ────────────────────────────────────────────
+  function loadEntities() {
+    fetch('/entities/{{ project_name }}')
+      .then(r => r.json())
+      .then(data => {
+        const container = document.getElementById('entitiesContent');
+        const empty     = document.getElementById('entitiesEmpty');
+        const owners       = data.owners       || [];
+        const encumbrances = data.encumbrances || [];
+
+        if (owners.length === 0 && encumbrances.length === 0) {
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          container.classList.add('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        container.classList.remove('hidden');
+
+        // ── Order transfer parties chronologically (top → bottom).
+        // Sort by acquisition date (since_date), oldest first.
+        // Tag the earliest entry as the "Root of Title".
+        // Tag any active owner as "Active Owner". All others are "Former".
+        const allParties = [...owners].sort((a, b) => {
+          const da = a.since_date || '';
+          const db = b.since_date || '';
+          return da.localeCompare(db);
+        });
+
+        if (allParties.length > 0) {
+          allParties[0]._isRoot = true;
+        }
+
+        const activeEnc = encumbrances.filter(e => e.status !== 'RESOLVED');
+        const pastEnc   = encumbrances.filter(e => e.status === 'RESOLVED')
+          .sort((a, b) => (b.resolved_date || '').localeCompare(a.resolved_date || ''));
+
+        const totalParties = allParties.length;
+        const totalEnc     = activeEnc.length + pastEnc.length;
+
+        // ── LEFT COLUMN: Transfer Parties (single chronological flow) ──
+        let leftCol = ColumnHeader('users', 'Transfer Parties', totalParties);
+
+        if (allParties.length > 0) {
+          leftCol += '<div class="space-y-2">';
+          allParties.forEach(o => { leftCol += renderTransferPartyCard(o); });
+          leftCol += '</div>';
+        } else {
+          leftCol += renderEmptyPlaceholder('No transfer parties yet.');
+        }
+
+        // ── RIGHT COLUMN: Encumbrances ──
+        let rightCol = ColumnHeader('landmark', 'Encumbrances', totalEnc);
+
+        if (activeEnc.length > 0) {
+          rightCol += SubgroupLabel('Active');
+          rightCol += '<div class="space-y-2">';
+          activeEnc.forEach(e => { rightCol += renderEncumbranceCard(e); });
+          rightCol += '</div>';
+        }
+
+        if (pastEnc.length > 0) {
+          rightCol += SubgroupLabel('Released');
+          rightCol += '<div class="space-y-2">';
+          pastEnc.forEach(e => { rightCol += renderEncumbranceCard(e); });
+          rightCol += '</div>';
+        }
+
+        if (totalEnc === 0) {
+          rightCol += renderEmptyPlaceholder('No encumbrances recorded.');
+        }
+
+        // ── Assemble: 2-column grid ──
+        container.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div>${leftCol}</div>
+            <div>${rightCol}</div>
+          </div>`;
+
+        if (window.lucide) lucide.createIcons();
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Errors
+  // ─────────────────────────────────────────────────────────
+  function errorBadgeClasses(type) {
+    const t = type || '';
+    if (['INVALID_PAN_FORMAT','INVALID_PIN_FORMAT'].includes(t))
+      return 'bg-sky-50 text-sky-700 border-sky-200';
+    if (['PAN_TRANSFEROR_TRANSFEREE_CLASH','PIN_TRANSFEROR_TRANSFEREE_CLASH'].includes(t))
+      return 'bg-violet-50 text-violet-700 border-violet-200';
+    if (['DATE_ORDER_ERROR','AREA_MISMATCH','SOCIETY_MISMATCH','ID_MISMATCH','INVALID_MORTGAGOR'].includes(t))
+      return 'bg-amber-50 text-amber-700 border-amber-200';
+    return 'bg-rose-50 text-rose-700 border-rose-200';
+  }
+
+  function errorBadgeLabel(type) {
+    const map = {
+      'DATE_ORDER_ERROR':                'Date Order',
+      'INVALID_PAN_FORMAT':              'Invalid PAN',
+      'INVALID_PIN_FORMAT':              'Invalid PIN',
+      'PAN_TRANSFEROR_TRANSFEREE_CLASH': 'PAN Clash',
+      'PIN_TRANSFEROR_TRANSFEREE_CLASH': 'PIN Clash',
+      'UNRESOLVED_MORTGAGE':             'Unresolved Mortgage',
+      'AREA_MISMATCH':                   'Area Mismatch',
+      'SOCIETY_MISMATCH':                'Society Mismatch',
+      'ID_MISMATCH':                     'ID Mismatch',
+      'INVALID_MORTGAGOR':               'Invalid Mortgagor',
+      'UNKNOWN_MORTGAGOR':               'Unknown Mortgagor',
+      'CHAIN_ERROR':                     'Chain Error',
+    };
+    return map[type] || 'Error';
+  }
+
+  function loadErrors() {
+    fetch('/errors/{{ project_name }}')
+      .then(r => r.json())
+      .then(data => {
+        const container = document.getElementById('errorsContent');
+        const empty     = document.getElementById('errorsEmpty');
+        if (!data.chain_errors || data.chain_errors.length === 0) {
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          container.classList.add('hidden');
+          return;
+        }
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        container.classList.remove('hidden');
+        container.innerHTML = '';
+
+        data.chain_errors.forEach(err => {
+          const card = document.createElement('div');
+          card.className = 'rounded-lg border border-border bg-card px-5 py-4';
+
+          const badge        = errorBadgeClasses(err.type);
+          const label        = errorBadgeLabel(err.type);
+          const expectedLbl  = err.type === 'CHAIN_ERROR' ? 'Expected Sellers' : 'Expected';
+          const actualLbl    = err.type === 'CHAIN_ERROR' ? 'Actual Sellers'   : 'Actual';
+          const expectedVal  = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
+          const actualVal    = Array.isArray(err.actual)   ? err.actual.join(', ')   : (err.actual   || '—');
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${badge}">${label}</div>
+              <div class="text-xs text-muted-foreground shrink-0">Doc ${err.doc_no || '—'} · ${err.event_date || '—'}</div>
+            </div>
+            <div class="text-sm text-foreground mb-3">${err.message || ''}</div>
+            <div class="grid grid-cols-[120px_1fr] gap-y-1.5 gap-x-4 text-xs">
+              <div class="font-medium uppercase tracking-wider text-muted-foreground">${expectedLbl}</div>
+              <div class="text-foreground/90">${expectedVal}</div>
+              <div class="font-medium uppercase tracking-wider text-muted-foreground">${actualLbl}</div>
+              <div class="text-foreground/90">${actualVal}</div>
+            </div>`;
+          container.appendChild(card);
+        });
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Init: load JSON for first selected file, render icons
+  // ─────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide) lucide.createIcons();
+    if (selectedFile) loadJsonForSelected(selectedFile);
+  });
 </script>
 
 <script>

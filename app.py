@@ -628,7 +628,10 @@ def _build_events_and_errors(project_path):
                     key = _canonical_name(name)
                     current_owners.discard(key)
                     if key in claimants:
-                        claimants[key]["status"] = "transferred_out"
+                        claimants[key]["status"]      = "transferred_out"
+                        claimants[key]["exited_doc"]  = data.get("doc_no")
+                        claimants[key]["exited_date"] = data.get("date_of_execution")
+                        claimants[key]["exited_via"]  = txn
 
                 first_ownership_set = True
 
@@ -652,7 +655,10 @@ def _build_events_and_errors(project_path):
                         unmatched_names.append(name)
 
                 if transferors and not matched_keys:
-                    # No transferor matched any active owner → chain break
+                    # No transferor matched any active owner → chain break.
+                    # Flag the error, but STILL record the parties in the
+                    # ledger so the Entities tab shows the full picture.
+                    # The error makes the broken link visible to the reviewer.
                     errors.append({
                         "type":       "CHAIN_ERROR",
                         "doc_no":     data.get("doc_no"),
@@ -662,12 +668,68 @@ def _build_events_and_errors(project_path):
                         "expected":   list(current_owners),
                         "actual":     [_canonical_name(n) for n in transferors if n]
                     })
+
+                    # Record the unmatched transferors as parties anyway —
+                    # the deed names them, so they enter the ledger as former
+                    # parties. The reviewer uses the Errors tab to judge
+                    # whether the chain break is legitimate.
+                    for name in transferors:
+                        if not name:
+                            continue
+                        key = _canonical_name(name)
+                        if key not in claimants:
+                            claimants[key] = {
+                                "display_name": name,
+                                "role":         "owner",
+                                "since_doc":    data.get("doc_no"),
+                                "since_date":   data.get("date_of_execution"),
+                                "basis":        txn,
+                                "area":         area,
+                                "status":       "transferred_out",
+                                "exited_doc":   data.get("doc_no"),
+                                "exited_date":  data.get("date_of_execution"),
+                                "exited_via":   txn,
+                                "encumbered":   False,
+                            }
+
+                    # The deed asserts an ownership transfer regardless of
+                    # whether the chain is intact. Record what the deed says:
+                    # retire the previous active owners and add the new
+                    # transferees. Subsequent deeds will be checked against
+                    # this new state.
+                    for key in list(current_owners):
+                        current_owners.discard(key)
+                        if key in claimants and claimants[key]["status"] == "active":
+                            claimants[key]["status"]      = "transferred_out"
+                            claimants[key]["exited_doc"]  = data.get("doc_no")
+                            claimants[key]["exited_date"] = data.get("date_of_execution")
+                            claimants[key]["exited_via"]  = txn
+
+                    for name in transferees:
+                        if not name:
+                            continue
+                        key = _canonical_name(name)
+                        claimants[key] = {
+                            "display_name": name,
+                            "role":         "owner",
+                            "since_doc":    data.get("doc_no"),
+                            "since_date":   data.get("date_of_execution"),
+                            "basis":        txn,
+                            "area":         area,
+                            "status":       "active",
+                            "encumbered":   False,
+                        }
+                        current_owners.add(key)
+
                 else:
                     # Valid transfer — retire matched transferors
                     for key in matched_keys:
                         current_owners.discard(key)
                         if key in claimants:
-                            claimants[key]["status"] = "transferred_out"
+                            claimants[key]["status"]      = "transferred_out"
+                            claimants[key]["exited_doc"]  = data.get("doc_no")
+                            claimants[key]["exited_date"] = data.get("date_of_execution")
+                            claimants[key]["exited_via"]  = txn
 
                     # Add all transferees as new active owners (Fix 3:
                     # multiple transferees → multiple simultaneous owners)
@@ -817,16 +879,19 @@ def _build_events_and_errors(project_path):
                 "actual":   "None found"
             })
 
-    # ── Final entities snapshot ───────────────────────────────────────
-    active_owners = [
+    # ── Final entities snapshot — return EVERYONE, not just current ──
+    # Frontend groups by status to render Current / Previous sections.
+    owners_all = [
         {**v, "canonical": k}
         for k, v in claimants.items()
-        if v["status"] == "active"
     ]
-    active_encumbrances = [e for e in encumbrances if e["status"] == "UNRESOLVED"]
+    # Encumbrances: surface all of them with their final status.
+    # Frontend separates UNRESOLVED (active) from RESOLVED (historical).
+    encumbrances_all = list(encumbrances)
+
     entities = {
-        "owners":       active_owners,
-        "encumbrances": active_encumbrances,
+        "owners":       owners_all,        # mixed: active + transferred_out
+        "encumbrances": encumbrances_all,  # mixed: UNRESOLVED + RESOLVED
     }
 
     return events, entities, errors, unresolved_mortgages
