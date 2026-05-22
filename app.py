@@ -80,6 +80,28 @@ def workspace(project_name):
             file_path = os.path.join(project_path, uploaded_file.filename)
             uploaded_file.save(file_path)
 
+    # Clean up stale unmarked result files. Anything that isn't a
+    # properly-marked parse result gets removed on workspace load,
+    # so the user only ever sees data they explicitly parsed.
+    for f in os.listdir(project_path):
+        if not f.endswith("_result.json"):
+            continue
+        fpath = os.path.join(project_path, f)
+        try:
+            with open(fpath) as fh:
+                raw = json.load(fh)
+        except (OSError, json.JSONDecodeError):
+            try:
+                os.remove(fpath)
+            except OSError:
+                pass
+            continue
+        if not (isinstance(raw, dict) and raw.get("parsed") is True):
+            try:
+                os.remove(fpath)
+            except OSError:
+                pass
+
     index_iis = [f for f in os.listdir(project_path) if f.lower().endswith(".pdf")]
 
     id_type, id_value = None, None
@@ -114,11 +136,12 @@ def parse(project_name, filename):
         result = parse_index_ii(file_path)
         if result is None:
             return jsonify({"error": "Could not parse document"})
-        # Save result to disk
+        # Save result to disk WITH a "parsed" marker so we can
+        # distinguish freshly-parsed results from stale files on disk.
         result_filename = os.path.splitext(filename)[0] + "_result.json"
         result_path = os.path.join(project_path, result_filename)
         with open(result_path, "w") as f:
-            json.dump(result, f, indent=2)
+            json.dump({"parsed": True, "data": result}, f, indent=2)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -194,7 +217,11 @@ def load_result(project_name, filename):
 # ── Shared helper ──────────────────────────────────────────────────────────
 
 def _load_results(project_path):
-    """Load all result JSON files that have a matching PDF."""
+    """Load all result JSON files that have a matching PDF
+    AND carry the {"parsed": true} marker. Files without the
+    marker are stale (from before the parse-marker system) and
+    are silently ignored — they will be cleaned up on the next
+    workspace load."""
     all_files = os.listdir(project_path)
     pdfs = [f for f in all_files if f.lower().endswith(".pdf")]
     pdf_basenames = set(os.path.splitext(p)[0] for p in pdfs)
@@ -202,9 +229,15 @@ def _load_results(project_path):
                     and f.replace("_result.json", "") in pdf_basenames]
     results = []
     for rf in result_files:
-        with open(os.path.join(project_path, rf)) as f:
-            data = json.load(f)
-        results.append((rf, data))
+        try:
+            with open(os.path.join(project_path, rf)) as f:
+                raw = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        # Only accept marked results. Unwrap the inner data field
+        # so callers continue to receive the flat dict shape.
+        if isinstance(raw, dict) and raw.get("parsed") is True and isinstance(raw.get("data"), dict):
+            results.append((rf, raw["data"]))
     return results
 
 def _parse_date(d):
@@ -898,6 +931,24 @@ def _build_events_and_errors(project_path):
 
 
 # Build events for a project
+# Clear all parse results for a project (does NOT delete PDFs)
+@app.route("/clear_results/<project_name>", methods=["POST"])
+def clear_results(project_name):
+    from flask import jsonify
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    if not os.path.isdir(project_path):
+        return jsonify({"ok": False, "removed": 0}), 404
+    removed = 0
+    for f in os.listdir(project_path):
+        if f.endswith("_result.json"):
+            try:
+                os.remove(os.path.join(project_path, f))
+                removed += 1
+            except OSError:
+                pass
+    return jsonify({"ok": True, "removed": removed})
+
+
 @app.route("/events/<project_name>")
 def get_events(project_name):
     from flask import jsonify
@@ -905,10 +956,19 @@ def get_events(project_name):
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
     # Pull out only consistency errors for the events tab warnings
     consistency_errors = [e["message"] for e in errors if e["type"] in ("AREA_MISMATCH","SOCIETY_MISMATCH","ID_MISMATCH")]
+    # Encumbrance counts for the metadata bar (total vs unresolved)
+    encumbrances = (entities or {}).get("encumbrances", [])
+    encumbrances_total      = len(encumbrances)
+    encumbrances_unresolved = len([e for e in encumbrances if e.get("status") == "UNRESOLVED"])
     return jsonify({
         "events": events,
         "consistency_errors": consistency_errors,
-        "unresolved_mortgages": unresolved_mortgages
+        "unresolved_mortgages": unresolved_mortgages,
+        # Full findings list so the Events tab can render them inline
+        # (the separate Errors tab has been removed).
+        "chain_errors": errors,
+        "encumbrances_total": encumbrances_total,
+        "encumbrances_unresolved": encumbrances_unresolved,
     })
 
 
