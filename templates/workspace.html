@@ -234,14 +234,21 @@
         {% if index_iis %}
           {% for pdf in index_iis %}
           <div class="tree-l2-wrap {% if loop.last %}last{% endif %}">
-            <div class="tree-l2 {% if loop.first %}bg-accent text-accent-foreground{% endif %} group flex items-center gap-2 pl-10 pr-2 py-1.5 mx-1 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm transition-colors"
+            <div id="file-row-{{ loop.index }}"
+                 class="tree-l2 {% if loop.first %}bg-accent text-accent-foreground{% endif %} group flex items-center gap-1.5 pl-10 pr-2 py-1.5 mx-1 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm transition-colors"
                  onclick="selectFile(this, '{{ pdf }}')">
               <i data-lucide="file-text" class="w-4 h-4 text-muted-foreground shrink-0"></i>
-              <span class="tree-l2-name flex-1 truncate">{{ pdf }}</span>
-              <button class="opacity-0 group-hover:opacity-100 inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                      title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
-                <i data-lucide="x" class="w-3 h-3"></i>
-              </button>
+              <span class="tree-l2-name flex-1 truncate" data-filename="{{ pdf }}">{{ pdf }}</span>
+              <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-all">
+                <button class="inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                        title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
+                  <i data-lucide="pencil" class="w-3 h-3"></i>
+                </button>
+                <button class="inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                        title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
+                  <i data-lucide="x" class="w-3 h-3"></i>
+                </button>
+              </div>
             </div>
           </div>
           {% endfor %}
@@ -255,8 +262,9 @@
 
     <!-- EVENTS sidebar panel -->
     <div class="sb-panel" id="sb-panel-events-sb">
-      <div class="px-4 py-3 border-b border-border">
+      <div class="px-4 py-3 border-b border-border flex items-center justify-between">
         <span class="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Timeline</span>
+        <span id="sbEventsCount" class="hidden inline-flex items-center rounded-md border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground tabular-nums"></span>
       </div>
       <div id="sbEventsEmpty" class="flex flex-col items-center justify-center py-12 px-6 text-center">
         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted mb-3">
@@ -264,7 +272,7 @@
         </div>
         <p class="text-xs text-muted-foreground">Parse documents to see events here.</p>
       </div>
-      <div id="sbEventsList" class="px-2 py-2 space-y-1"></div>
+      <div id="sbEventsList" class="py-1.5"></div>
     </div>
 
   </aside>
@@ -369,6 +377,80 @@
 
     </div>
   </main>
+</div>
+
+<!-- ── Event detail modal (centered) ──────────────── -->
+<div id="eventDrawerBackdrop"
+     onclick="closeEventDetail()"
+     class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center">
+  <div id="eventDrawer"
+       onclick="event.stopPropagation()"
+       class="relative z-50 w-full max-w-3xl bg-background border border-border rounded-xl shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-out flex flex-col max-h-[82vh] mx-4">
+    <div id="eventDrawerContent" class="flex flex-col min-h-0">
+      <!-- populated by openEventDetail() -->
+    </div>
+  </div>
+</div>
+
+<!-- ── AI Assistant: floating button + chat overlay ──────────────── -->
+<button id="chatFab" onclick="toggleChat()"
+        class="fixed bottom-6 right-6 z-40 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 active:scale-95 transition-all"
+        title="Ask the AI assistant">
+  <i data-lucide="sparkles" class="w-5 h-5"></i>
+</button>
+
+<div id="chatOverlay"
+     class="fixed bottom-24 right-6 z-50 w-[400px] max-w-[calc(100vw-3rem)] h-[560px] max-h-[calc(100vh-8rem)] bg-background border border-border rounded-xl shadow-2xl flex flex-col opacity-0 scale-95 pointer-events-none origin-bottom-right transition-all duration-200 ease-out">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-border shrink-0">
+    <div class="flex items-center gap-2 min-w-0">
+      <div class="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+      </div>
+      <div class="min-w-0">
+        <div class="text-sm font-semibold tracking-tight leading-none">AutoTSR Assistant</div>
+        <div class="text-[10px] text-muted-foreground mt-0.5">Answers from this property's data</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-0.5 shrink-0">
+      <button onclick="clearChat()" title="New conversation"
+              class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+      </button>
+      <button onclick="toggleChat()" title="Close"
+              class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="chatMessages" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
+    <!-- greeting injected on first open -->
+  </div>
+
+  <!-- Suggested prompts (shown when empty) -->
+  <div id="chatSuggest" class="px-4 pb-2 flex flex-wrap gap-1.5">
+    <button onclick="askSuggested('Who currently owns this property?')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Who owns it now?</button>
+    <button onclick="askSuggested('Summarise the ownership history.')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Ownership history</button>
+    <button onclick="askSuggested('Explain the findings on this property.')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Explain the findings</button>
+    <button onclick="askSuggested('Are there any unresolved encumbrances?')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Encumbrances?</button>
+  </div>
+
+  <!-- Input -->
+  <div class="border-t border-border p-3 shrink-0">
+    <div class="flex items-end gap-2">
+      <textarea id="chatInput" rows="1" placeholder="Ask about this property..."
+                onkeydown="chatKeydown(event)"
+                oninput="autoGrowChat(this)"
+                class="flex-1 resize-none max-h-28 rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/15 focus:border-ring transition-all placeholder:text-muted-foreground/60"></textarea>
+      <button id="chatSend" onclick="sendChat()"
+              class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all shrink-0 disabled:opacity-40">
+        <i data-lucide="arrow-up" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -513,6 +595,66 @@
     form.action = '/delete_file/{{ project_name }}/' + encodeURIComponent(filename);
     document.body.appendChild(form);
     form.submit();
+  }
+
+  function startRename(btn, filename) {
+    // Find the name span in this row
+    const row  = btn.closest('.tree-l2');
+    const span = row.querySelector('.tree-l2-name');
+    if (!span) return;
+
+    const baseName = filename.replace(/\.pdf$/i, '');
+
+    // Replace the span with an inline input
+    const input = document.createElement('input');
+    input.type  = 'text';
+    input.value = baseName;
+    input.className = 'flex-1 min-w-0 bg-transparent border-0 border-b border-ring outline-none text-sm font-[inherit] px-0';
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    // Hide row click while editing
+    row.onclick = null;
+
+    function commitRename() {
+      const newBase = input.value.trim();
+      if (!newBase || newBase === baseName) {
+        cancelRename();
+        return;
+      }
+      const newName = newBase.endsWith('.pdf') ? newBase : newBase + '.pdf';
+
+      fetch('/rename_file/{{ project_name }}/' + encodeURIComponent(filename), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_name: newName })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          location.reload();
+        } else {
+          alert(d.error || 'Rename failed');
+          cancelRename();
+        }
+      });
+    }
+
+    function cancelRename() {
+      const newSpan = document.createElement('span');
+      newSpan.className = 'tree-l2-name flex-1 truncate';
+      newSpan.setAttribute('data-filename', filename);
+      newSpan.textContent = filename;
+      input.replaceWith(newSpan);
+      row.onclick = function() { selectFile(row, filename); };
+    }
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter')  { e.preventDefault(); commitRename(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelRename(); }
+    });
+    input.addEventListener('blur', commitRename);
   }
 
   function filterTree(query) {
@@ -768,6 +910,11 @@
     return 'bg-rose-50 text-rose-700 border-rose-200';
   }
 
+  // Holds the currently-rendered sorted events so the detail
+  // drawer can look an event up by its index when a row is clicked.
+  let _eventsStore = [];
+  let _currentOwnerName = null;
+
   function loadEvents() {
     fetch('/events/{{ project_name }}')
       .then(r => r.json())
@@ -810,6 +957,9 @@
           (a.event_date || '').localeCompare(b.event_date || '')
         );
 
+        // Persist for the detail drawer (looked up by row index).
+        _eventsStore = sorted;
+
         // Walk forward to find latest sale/transfer buyer = current owner
         let currentOwner = null, currentOwnerSince = null, currentOwnerDoc = null;
         sorted.forEach(ev => {
@@ -825,10 +975,14 @@
           }
         });
 
+        _currentOwnerName = currentOwner;
+
         // Findings (all errors/discrepancies) and encumbrance counts —
         // these come straight from the /events response.
         const findings           = data.chain_errors || [];
-        const findingsCount       = findings.length;
+        const activeFindings     = findings.filter(f => !f.dismissed);
+        const dismissedFindings  = findings.filter(f => f.dismissed);
+        const findingsCount      = activeFindings.length;
         const encumbrancesTotal   = data.encumbrances_total || 0;
         const encumbrancesUnresolved = data.encumbrances_unresolved || 0;
 
@@ -868,7 +1022,7 @@
                 </div>
               </div>
             </div>
-            <div class="grid grid-cols-5 border-t border-border divide-x divide-border">
+            <div class="grid grid-cols-4 border-t border-border divide-x divide-border">
               <div class="px-6 py-4">
                 <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Events</div>
                 <div class="text-2xl font-semibold tracking-tight tabular-nums">${events.length}</div>
@@ -878,10 +1032,6 @@
                 <div class="text-2xl font-semibold tracking-tight tabular-nums ${encumbrancesUnresolved > 0 ? 'text-amber-600' : ''}">
                   ${encumbrancesTotal}${encumbrancesUnresolved > 0 ? `<span class="text-sm font-medium text-amber-600"> – ${encumbrancesUnresolved} unresolved</span>` : ''}
                 </div>
-              </div>
-              <div class="px-6 py-4">
-                <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Findings</div>
-                <div class="text-2xl font-semibold tracking-tight tabular-nums ${findingsCount > 0 ? 'text-rose-600' : 'text-emerald-600'}">${findingsCount}</div>
               </div>
               <div class="px-6 py-4">
                 <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Chain Span</div>
@@ -903,12 +1053,13 @@
                 <span class="inline-flex items-center rounded-md border border-border bg-background px-2 py-0.5 text-xs text-muted-foreground tabular-nums">${events.length}</span>
               </div>
             </div>
-            <div class="grid grid-cols-[64px_120px_minmax(0,1fr)_140px_110px] px-6 py-2.5 border-b border-border bg-background gap-4">
+            <div class="grid grid-cols-[64px_120px_minmax(0,1fr)_140px_90px_20px] px-6 py-2.5 border-b border-border bg-background gap-4">
               <span class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Year</span>
               <span class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Type</span>
               <span class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Parties</span>
               <span class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground text-right">Consideration</span>
               <span class="text-[10px] font-medium uppercase tracking-wider text-muted-foreground text-right">Doc</span>
+              <span></span>
             </div>`;
 
         sorted.forEach((ev, idx) => {
@@ -955,7 +1106,8 @@
           const unresolved = ev.unresolved && (t.includes('MORTGAGE') || t.includes('INTIMATION'));
 
           html += `
-            <div class="grid grid-cols-[64px_120px_minmax(0,1fr)_140px_110px] items-center px-6 py-3.5 ${isLast ? '' : 'border-b border-border'} hover:bg-muted/30 transition-colors gap-4 cursor-pointer group">
+            <div onclick="openEventDetail(${idx})" data-event-idx="${idx}"
+                 class="grid grid-cols-[64px_120px_minmax(0,1fr)_140px_90px_20px] items-center px-6 py-3.5 ${isLast ? '' : 'border-b border-border'} hover:bg-muted/40 transition-colors gap-4 cursor-pointer group">
               <span class="text-sm text-muted-foreground tabular-nums">${year}</span>
               <span class="inline-flex items-center justify-self-start rounded-md border ${typeBadgeClass} px-2 py-0.5 text-xs font-medium">${typeLabel}</span>
               <div class="flex items-center gap-2 min-w-0 text-sm">
@@ -967,64 +1119,43 @@
               </div>
               <span class="text-sm text-right tabular-nums ${ev.consideration ? '' : 'text-muted-foreground'}">${ev.consideration || '—'}</span>
               <span class="text-xs text-muted-foreground text-right tabular-nums truncate">${ev.event_doc_no || '—'}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground/40 group-hover:text-muted-foreground transition-colors justify-self-end"><path d="m9 18 6-6-6-6"/></svg>
             </div>`;
         });
 
         html += `</div>`;
 
-        // ── Render FINDINGS section (errors + discrepancies) ───────
-        // Replaces the removed Errors tab. Sits below the ownership
-        // chain, using the same card container styling as the timeline.
+        // ── Render FINDINGS section — shadcn restrained, dismissible ──
         html += `
-          <div class="mt-4 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-3 border-b border-border bg-muted/40">
-              <div class="flex items-center gap-2">
-                <h3 class="text-sm font-semibold">Findings</h3>
-                <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs tabular-nums ${findingsCount > 0 ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}">${findingsCount}</span>
-              </div>
+          <div class="mt-8">
+            <div class="flex items-center gap-2.5 mb-3 px-1">
+              <h3 class="text-sm font-semibold tracking-tight">Findings</h3>
+              <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums text-secondary-foreground">${findingsCount}</span>
+              ${dismissedFindings.length > 0 ? `<span class="text-xs text-muted-foreground/70">· ${dismissedFindings.length} dismissed</span>` : ''}
             </div>`;
 
-        if (findingsCount === 0) {
+        if (findings.length === 0) {
           html += `
-            <div class="flex flex-col items-center justify-center px-6 py-10 text-center">
-              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 mb-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
-              </div>
+            <div class="rounded-lg border border-dashed border-border bg-muted/20 flex flex-col items-center justify-center px-6 py-10 text-center">
               <p class="text-sm font-medium">No findings</p>
-              <p class="text-xs text-muted-foreground mt-0.5">No errors or discrepancies detected in the chain.</p>
-            </div>`;
+              <p class="text-xs text-muted-foreground mt-1">No errors or discrepancies detected.</p>
+            </div>
+          </div>`;
         } else {
-          html += `<div class="divide-y divide-border">`;
-          findings.forEach(err => {
-            const badge       = errorBadgeClasses(err.type);
-            const label       = errorBadgeLabel(err.type);
-            const expectedLbl = err.type === 'CHAIN_ERROR' ? 'Expected Sellers' : 'Expected';
-            const actualLbl   = err.type === 'CHAIN_ERROR' ? 'Actual Sellers'   : 'Actual';
-            const expectedVal = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
-            const actualVal   = Array.isArray(err.actual)   ? err.actual.join(', ')   : (err.actual   || '—');
-            const hasDetail   = (err.expected !== undefined && err.expected !== null) ||
-                                (err.actual   !== undefined && err.actual   !== null);
+          // Active findings first, then dismissed (visually distinct, in place).
+          html += `<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
+          activeFindings.forEach(err => { html += renderFindingCard(err, false); });
+          dismissedFindings.forEach(err => { html += renderFindingCard(err, true); });
 
-            html += `
-              <div class="px-6 py-4">
-                <div class="flex items-start justify-between gap-3 mb-2">
-                  <div class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${badge}">${label}</div>
-                  <div class="text-xs text-muted-foreground shrink-0 tabular-nums">${err.doc_no ? 'Doc ' + err.doc_no : ''}${err.doc_no && err.event_date ? ' · ' : ''}${err.event_date || ''}</div>
-                </div>
-                <div class="text-sm text-foreground ${hasDetail ? 'mb-3' : ''}">${err.message || ''}</div>
-                ${hasDetail ? `
-                  <div class="grid grid-cols-[120px_1fr] gap-y-1.5 gap-x-4 text-xs">
-                    <div class="font-medium uppercase tracking-wider text-muted-foreground">${expectedLbl}</div>
-                    <div class="text-foreground/90">${expectedVal}</div>
-                    <div class="font-medium uppercase tracking-wider text-muted-foreground">${actualLbl}</div>
-                    <div class="text-foreground/90">${actualVal}</div>
-                  </div>` : ''}
-              </div>`;
-          });
-          html += `</div>`;
+          // If everything is dismissed, show a gentle note at the top.
+          if (activeFindings.length === 0 && dismissedFindings.length > 0) {
+            html = html.replace(
+              '<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">',
+              '<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border"><div class="px-5 py-3 bg-muted/30 text-xs text-muted-foreground">All findings dismissed. Restore any below to re-surface it.</div>'
+            );
+          }
+          html += `</div></div>`;
         }
-
-        html += `</div>`;
 
         container.innerHTML = html;
         if (window.lucide) lucide.createIcons();
@@ -1032,31 +1163,268 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // Sidebar timeline
+  // Event detail drawer
   // ─────────────────────────────────────────────────────────
+  const DETAIL_TXN_LABELS = {
+    'SALE_DEED': 'Sale Deed', 'AGREEMENT_OF_SALE': 'Agreement of Sale',
+    'GIFT_DEED': 'Gift Deed', 'RELEASE_DEED': 'Release Deed',
+    'DEED_OF_RELEASE': 'Deed of Release', 'MORTGAGE_DEED': 'Mortgage Deed',
+    'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
+    'LEAVE_AND_LICENSE': 'Leave & License',
+  };
+
+  // Only builds a row if the value is non-empty.
+  function _detailRowIfPresent(label, value) {
+    if (value === undefined || value === null || value === '' ||
+        (Array.isArray(value) && value.filter(Boolean).length === 0)) return '';
+    const display = Array.isArray(value) ? value.filter(Boolean).join(', ') : String(value);
+    return `
+      <div class="flex gap-4 px-4 py-2.5 border-b border-border/60 last:border-0">
+        <div class="w-28 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground pt-0.5">${label}</div>
+        <div class="text-sm text-foreground min-w-0 break-words flex-1">${display}</div>
+      </div>`;
+  }
+
+  function _detailCol(title, rows) {
+    if (!rows) return '';
+    return `
+      <div>
+        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 mb-2 px-1">${title}</div>
+        <div class="rounded-lg border border-border bg-card overflow-hidden">${rows}</div>
+      </div>`;
+  }
+
+  function openEventDetail(idx) {
+    const ev = _eventsStore[idx];
+    if (!ev) return;
+
+    const t         = (ev.event_type || '').toUpperCase();
+    const typeLabel = DETAIL_TXN_LABELS[ev.event_type] || ev.event_type || '—';
+
+    // Resolve parties
+    let fromLabel = 'From', toLabel = 'To', fromVal = null, toVal = null;
+    if (t.includes('SALE') || t.includes('AGREEMENT')) {
+      fromLabel = 'Seller'; toLabel = 'Buyer';
+      fromVal = ev.seller_names; toVal = ev.buyer_names;
+    } else if (t.includes('GIFT')) {
+      fromLabel = 'Donor'; toLabel = 'Donee';
+      fromVal = ev.donor_name; toVal = ev.donee_name;
+    } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+      fromLabel = 'Mortgagor'; toLabel = 'Mortgagee';
+      fromVal = ev.mortgagor_name; toVal = ev.mortgagee_name;
+    } else if (t.includes('RELEASE')) {
+      fromLabel = 'Releasor'; toLabel = 'Releasee';
+      fromVal = ev.seller_names; toVal = ev.buyer_names;
+    } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
+      fromLabel = 'Licensor'; toLabel = 'Licensee';
+      fromVal = ev.licensor_name; toVal = ev.licensee_name;
+    }
+
+    const buyerName = Array.isArray(toVal) ? toVal.filter(Boolean).join(', ') : toVal;
+    const isCurrent = buyerName && _currentOwnerName && buyerName === _currentOwnerName;
+
+    // Left column — identity + parties + financials
+    const leftRows =
+      _detailRowIfPresent('Doc No',       ev.event_doc_no) +
+      _detailRowIfPresent('Executed',     ev.event_date) +
+      _detailRowIfPresent('Registered',   ev.event_reg_date) +
+      _detailRowIfPresent('Sub-Registrar',ev.sub_registrar_office);
+
+    const partyRows =
+      _detailRowIfPresent(fromLabel, fromVal) +
+      _detailRowIfPresent(toLabel,   toVal);
+
+    const moneyRows =
+      _detailRowIfPresent('Consideration', ev.consideration) +
+      _detailRowIfPresent('Stamp Duty',    ev.stamp_duty) +
+      _detailRowIfPresent('Market Value',  ev.market_value);
+
+    // Right column — property
+    const plotNo = ev.id_field === 'plot_no' ? ev.id_value : (ev.plot_no || null);
+    const propRows =
+      _detailRowIfPresent('Society',  ev.society_building_name) +
+      _detailRowIfPresent('Flat No',  ev.flat_no) +
+      _detailRowIfPresent('Plot No',  plotNo) +
+      _detailRowIfPresent('Area',     ev.area) +
+      _detailRowIfPresent('Address',  ev.society_building_address) +
+      _detailRowIfPresent('Village',  ev.village) +
+      _detailRowIfPresent('District', ev.district);
+
+    const backdrop = document.getElementById('eventDrawerBackdrop');
+    const drawer   = document.getElementById('eventDrawer');
+    const body     = document.getElementById('eventDrawerContent');
+
+    body.innerHTML = `
+      <div class="flex items-start justify-between gap-4 px-6 py-5 border-b border-border shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium">${typeLabel}</span>
+            ${isCurrent ? '<span class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg> Current Owner</span>' : ''}
+          </div>
+          <div class="text-xl font-semibold tracking-tight">Doc ${ev.event_doc_no || '—'}</div>
+          <div class="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+            <span>${ev.event_date || '—'}</span>
+            ${ev.event_reg_date ? '<span class="text-border">·</span><span>Reg. ' + ev.event_reg_date + '</span>' : ''}
+          </div>
+        </div>
+        <button onclick="closeEventDetail()"
+                class="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:bg-accent transition-colors shrink-0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto min-h-0">
+        <div class="grid grid-cols-2 gap-5 p-6">
+
+          <div class="space-y-5">
+            ${_detailCol('Document', leftRows)}
+            ${partyRows ? _detailCol('Parties', partyRows) : ''}
+            ${moneyRows ? _detailCol('Financials', moneyRows) : ''}
+          </div>
+
+          <div class="space-y-5">
+            ${propRows ? _detailCol('Property', propRows) : ''}
+          </div>
+
+        </div>
+      </div>`;
+
+    backdrop.classList.remove('opacity-0', 'pointer-events-none');
+    backdrop.classList.add('opacity-100');
+    drawer.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+    drawer.classList.add('opacity-100', 'scale-100');
+  }
+
+  function closeEventDetail() {
+    const drawer   = document.getElementById('eventDrawer');
+    const backdrop = document.getElementById('eventDrawerBackdrop');
+    drawer.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+    drawer.classList.remove('opacity-100', 'scale-100');
+    backdrop.classList.add('opacity-0', 'pointer-events-none');
+    backdrop.classList.remove('opacity-100');
+  }
+
+  // Esc closes the drawer
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEventDetail();
+  });
+
+  // ─────────────────────────────────────────────────────────
+  // Sidebar timeline — design F (restrained two-line + finding flag)
+  // ─────────────────────────────────────────────────────────
+
+  // Short human-readable labels for the sidebar type badge
+  const SB_TYPE_LABELS = {
+    'SALE_DEED':              'Sale',
+    'AGREEMENT_OF_SALE':      'Agreement',
+    'GIFT_DEED':              'Gift',
+    'MORTGAGE_DEED':          'Mortgage',
+    'INTIMATION_OF_MORTGAGE': 'Mortgage',
+    'RELEASE_DEED':           'Release',
+    'DEED_OF_RELEASE':        'Release',
+    'LEAVE_AND_LICENSE':      'Licence',
+  };
+
+  // Neutral muted badge — one restrained style per type, no bright fills
+  function sbTypeBadge(type) {
+    const t = (type || '').toUpperCase();
+    // Subtle semantic tints — kept very low saturation to match the restrained ask
+    if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
+      return 'border-border bg-amber-50/60 text-amber-800';
+    if (t.includes('RELEASE'))
+      return 'border-border bg-emerald-50/60 text-emerald-800';
+    if (t.includes('GIFT'))
+      return 'border-border bg-violet-50/60 text-violet-800';
+    if (t.includes('LEAVE') || t.includes('LICENSE'))
+      return 'border-border bg-sky-50/60 text-sky-800';
+    // Sale / Agreement — completely neutral
+    return 'border-border bg-secondary text-secondary-foreground';
+  }
+
   function loadSbEvents() {
     fetch('/events/{{ project_name }}')
       .then(r => r.json())
       .then(data => {
-        const list  = document.getElementById('sbEventsList');
-        const empty = document.getElementById('sbEventsEmpty');
-        if (!data.events || data.events.length === 0) {
-          empty.style.display = ''; list.innerHTML = ''; return;
+        const list   = document.getElementById('sbEventsList');
+        const empty  = document.getElementById('sbEventsEmpty');
+        const cntEl  = document.getElementById('sbEventsCount');
+        const events = data.events || [];
+
+        if (events.length === 0) {
+          empty.style.display = '';
+          list.innerHTML = '';
+          cntEl.classList.add('hidden');
+          return;
         }
+
         empty.style.display = 'none';
-        list.innerHTML = '';
-        data.events.forEach(ev => {
-          const badge = eventBadgeClasses(ev.event_type);
-          const item = document.createElement('div');
-          item.className = 'px-3 py-2.5 rounded-md hover:bg-accent transition-colors cursor-pointer';
-          item.innerHTML = `
-            <div class="flex items-center justify-between gap-2 mb-1">
-              <div class="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${badge}">${ev.event_type || '—'}</div>
-              <span class="text-xs text-muted-foreground shrink-0">${ev.event_date || ''}</span>
-            </div>
-            <div class="text-xs text-muted-foreground">Doc: ${ev.event_doc_no || '—'}</div>`;
-          list.appendChild(item);
-        });
+        cntEl.textContent = events.length;
+        cntEl.classList.remove('hidden');
+
+        // Build a set of doc_nos that have at least one ACTIVE finding
+        // so we can show the flag only where it matters.
+        const findings = data.chain_errors || [];
+        const flaggedDocs = new Set(
+          findings
+            .filter(f => !f.dismissed && f.doc_no)
+            .map(f => String(f.doc_no))
+        );
+
+        // Sort chronologically (same order as main timeline)
+        const sorted = [...events].sort((a, b) =>
+          (a.event_date || '').localeCompare(b.event_date || '')
+        );
+
+        list.innerHTML = sorted.map((ev, idx) => {
+          const label     = SB_TYPE_LABELS[ev.event_type] || (ev.event_type || '').replace(/_/g, ' ').toLowerCase().replace(/\w/g, c => c.toUpperCase());
+          const badgeCls  = sbTypeBadge(ev.event_type);
+          const docNo     = ev.event_doc_no || '—';
+          const date      = ev.event_date   || '';
+          const hasFlag   = flaggedDocs.has(String(docNo));
+
+          // Parties — pick the right names by type
+          const t = (ev.event_type || '').toUpperCase();
+          let from = null, to = null;
+          if (t.includes('SALE') || t.includes('AGREEMENT')) {
+            const sellers = ev.seller_names;
+            const buyers  = ev.buyer_names;
+            from = Array.isArray(sellers) ? sellers[0] : sellers;
+            to   = Array.isArray(buyers)  ? buyers[0]  : buyers;
+          } else if (t.includes('GIFT')) {
+            from = ev.donor_name; to = ev.donee_name;
+          } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+            from = ev.mortgagor_name; to = ev.mortgagee_name;
+          } else if (t.includes('RELEASE')) {
+            const rel = ev.releasor_names;
+            from = Array.isArray(rel) ? rel[0] : rel;
+          } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
+            from = ev.licensor_name; to = ev.licensee_name;
+          }
+
+          // Shorten long names to first surname only for sidebar density
+          const shorten = name => {
+            if (!name) return null;
+            const parts = String(name).trim().split(/\s+/);
+            return parts.length > 2 ? parts.slice(-1)[0] : name;
+          };
+
+          const partiesText = [shorten(from), shorten(to)].filter(Boolean).join(' → ');
+
+          return `
+            <div onclick="openEventDetail(${idx})"
+                 class="group flex flex-col gap-0.5 px-3 py-2.5 mx-1 rounded-md cursor-pointer hover:bg-accent transition-colors">
+              <div class="flex items-center justify-between gap-2">
+                <span class="inline-flex items-center rounded border ${badgeCls} px-1.5 py-0.5 text-[10px] font-medium shrink-0">${label}</span>
+                <span class="text-[10px] text-muted-foreground tabular-nums shrink-0">${date}</span>
+              </div>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-mono text-foreground/70 shrink-0">${docNo}</span>
+                ${partiesText ? `<span class="text-muted-foreground/50 text-[10px] shrink-0">·</span><span class="text-[10px] text-muted-foreground truncate">${partiesText}</span>` : ''}
+                ${hasFlag ? `<span class="ml-auto shrink-0 text-[9px] font-medium text-muted-foreground border border-border rounded px-1 py-0.5 tabular-nums">!</span>` : ''}
+              </div>
+            </div>`;
+        }).join('');
+
         if (window.lucide) lucide.createIcons();
       });
   }
@@ -1117,24 +1485,114 @@
 
   // ── Transfer Party Card ────────────────────────────────────
   function renderTransferPartyCard(o) {
-    const isActive = o.status === 'active';
-    const isRoot   = !!o._isRoot;
+    const isActive    = o.status === 'active';
+    const isRoot      = !!o._isRoot;
+    const entryType   = o.entry_type || 'buyer';
+    // entry_type values:
+    //   'buyer'       — we have a deed where they received the property (normal)
+    //   'root_seller' — first deed's seller; root of chain, no prior record
+    //   'seller_only' — appeared only as seller in a chain-break deed; never received
 
-    // Card border: encumbered (amber) > root (yellow) > default
-    const borderClass =
-      (isActive && o.encumbered) ? 'border-amber-200/70 bg-amber-50/30' :
-      isRoot                     ? 'border-yellow-300/70 bg-yellow-50/40' :
-                                   'border-border bg-card';
+    // ── Card border ──────────────────────────────────────────
+    let borderClass = 'border-border bg-card';
+    if (isActive && o.encumbered) borderClass = 'border-amber-200/70 bg-amber-50/30';
+    else if (isRoot)              borderClass = 'border-yellow-300/70 bg-yellow-50/40';
 
-    // Status badge on the right of the header
-    const statusBadge = isActive
-      ? (o.encumbered ? Badge('warning', 'Encumbered') : Badge('success', 'Active Owner'))
-      : Badge('muted', 'Former');
+    // ── Status badge ─────────────────────────────────────────
+    let statusBadge;
+    if (isActive && o.encumbered) statusBadge = Badge('warning', 'Encumbered');
+    else if (isActive)            statusBadge = Badge('success', 'Active Owner');
+    else                          statusBadge = Badge('muted', 'Former');
 
-    // Root of Title pill — yellow, sits above the name on its own row
+    // ── Root ribbon ──────────────────────────────────────────
     const rootRibbon = isRoot
       ? `<div class="px-4 pt-3"><span class="inline-flex items-center gap-1 rounded-md border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-800"><i data-lucide="flag" class="w-3 h-3"></i>Root of Title</span></div>`
       : '';
+
+    // ── Area (active owners only) ────────────────────────────
+    const areaLine = (isActive && o.area)
+      ? `<div class="text-xs text-foreground/80">${o.area}</div>`
+      : '';
+
+    // ── First line: how they entered the record ───────────────
+    // root_seller → "Root of title · <deed type> · Doc X"
+    //               No date shown — we don't know when they acquired it.
+    // seller_only → "Named as seller · <deed type> · Doc X · <date>"
+    //               We only know they appeared as a seller. No acquisition record.
+    // buyer (normal) → "Acquired <date> · <deed type> · Doc X"
+    //                   We witnessed their receipt.
+    let entryIcon, entryText;
+    if (entryType === 'root_seller') {
+      entryIcon = 'anchor';
+      entryText = 'Root of title · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—');
+    } else if (entryType === 'seller_only') {
+      entryIcon = 'arrow-up-right';
+      entryText = 'Named as seller · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—')
+                + (o.since_date ? ' · ' + o.since_date : '');
+    } else {
+      entryIcon = 'arrow-down-right';
+      entryText = 'Acquired ' + (o.since_date || '—') + ' · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—');
+    }
+
+    const entryLine = `
+      <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <i data-lucide="${entryIcon}" class="w-3 h-3 shrink-0"></i>
+        <span>${entryText}</span>
+      </div>`;
+
+    // ── Exit line ────────────────────────────────────────────
+    // Show an exit line for ANYONE no longer active, worded by how
+    // they left so it's never misleading and never blank-looking:
+    //   buyer/normal → "Exited <date> · <deed> · Doc X"  (we saw them transfer out)
+    //   seller_only  → "Exited via this deed · Doc X"     (their only appearance WAS the exit)
+    //   root_seller  → "Exited via root deed · Doc X"     (root deed is itself their exit)
+    let exitLine = '';
+    if (!isActive && o.exited_date) {
+      let exitText;
+      if (entryType === 'root_seller') {
+        exitText = 'Exited via root deed · Doc ' + (o.exited_doc || '—') + ' · ' + o.exited_date;
+      } else if (entryType === 'seller_only') {
+        exitText = 'Exited via this deed · Doc ' + (o.exited_doc || '—') + ' · ' + o.exited_date;
+      } else {
+        exitText = 'Exited ' + o.exited_date + ' · ' + basisLabel(o.exited_via) + ' · Doc ' + (o.exited_doc || '—');
+      }
+      exitLine = `
+        <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <i data-lucide="arrow-up-right" class="w-3 h-3 shrink-0"></i>
+          <span>${exitText}</span>
+        </div>`;
+    }
+
+    // ── Encumbrance warning (active owners only) ─────────────
+    const encLine = (isActive && o.encumbered && o.encumbrance_doc)
+      ? `<div class="flex items-center gap-1.5 text-xs text-amber-700 pt-1">
+           <i data-lucide="lock" class="w-3 h-3 shrink-0"></i>
+           <span>Encumbered · Mortgage Doc ${o.encumbrance_doc}</span>
+         </div>`
+      : '';
+
+    // ── PAN / PIN footer (shown for every entity) ────────────
+    // o.pan and o.pin are lists. Show them as small mono chips.
+    // If none captured, show a muted "—" so the layout stays consistent.
+    const pans = Array.isArray(o.pan) ? o.pan.filter(Boolean) : (o.pan ? [o.pan] : []);
+    const pins = Array.isArray(o.pin) ? o.pin.filter(Boolean) : (o.pin ? [o.pin] : []);
+
+    function idChips(label, arr) {
+      const inner = arr.length
+        ? arr.map(v => `<span class="font-mono text-[11px] text-foreground/80">${v}</span>`).join('<span class="text-border mx-1">·</span>')
+        : '<span class="text-[11px] text-muted-foreground/60">—</span>';
+      return `
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 w-7 shrink-0">${label}</span>
+          ${inner}
+        </div>`;
+    }
+
+    const idFooter = `
+      <div class="mt-2 pt-2 border-t border-border/60 space-y-1">
+        ${idChips('PAN', pans)}
+        ${idChips('PIN', pins)}
+      </div>`;
 
     return `
       <div class="rounded-lg border ${borderClass} text-card-foreground shadow-sm transition-colors">
@@ -1146,26 +1604,12 @@
           </div>
           ${statusBadge}
         </div>
-
         <div class="px-4 pb-3 space-y-1">
-          ${isActive && o.area ? `<div class="text-xs text-foreground/80">${o.area}</div>` : ''}
-
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <i data-lucide="arrow-down-right" class="w-3 h-3"></i>
-            <span>Acquired ${o.since_date || '—'} · ${basisLabel(o.basis)} · Doc ${o.since_doc || '—'}</span>
-          </div>
-
-          ${!isActive && o.exited_date ? `
-            <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-              <span>Exited ${o.exited_date} · ${basisLabel(o.exited_via)} · Doc ${o.exited_doc || '—'}</span>
-            </div>` : ''}
-
-          ${isActive && o.encumbered && o.encumbrance_doc ? `
-            <div class="flex items-center gap-1.5 text-xs text-amber-700 pt-1">
-              <i data-lucide="lock" class="w-3 h-3"></i>
-              <span>Encumbered by Mortgage Doc ${o.encumbrance_doc}</span>
-            </div>` : ''}
+          ${areaLine}
+          ${entryLine}
+          ${exitLine}
+          ${encLine}
+          ${idFooter}
         </div>
       </div>`;
   }
@@ -1342,8 +1786,264 @@
       'INVALID_MORTGAGOR':               'Invalid Mortgagor',
       'UNKNOWN_MORTGAGOR':               'Unknown Mortgagor',
       'CHAIN_ERROR':                     'Chain Error',
+      'ZERO_CONSIDERATION':              'Zero Consideration',
+      'CONSIDERATION_ANOMALY':           'Price Anomaly',
+      'NAME_SPELLING_VARIATION':         'Name Spelling',
+      'SHARED_PAN':                      'Shared PAN',
+      'SHARED_PIN':                      'Shared PIN',
     };
     return map[type] || 'Error';
+  }
+
+  // Severity drives the finding card's accent + icon.
+  // 'warning' = softer data-quality issues; 'error' = hard chain/identity problems.
+  function errorSeverity(type) {
+    const warnings = [
+      'DATE_ORDER_ERROR', 'AREA_MISMATCH', 'SOCIETY_MISMATCH',
+      'ID_MISMATCH', 'INVALID_MORTGAGOR', 'INVALID_PAN_FORMAT',
+      'INVALID_PIN_FORMAT', 'CONSIDERATION_ANOMALY', 'NAME_SPELLING_VARIATION',
+    ];
+    return warnings.includes(type) ? 'warning' : 'error';
+  }
+
+  // ── Render one finding card (active or dismissed) ────────────
+  function renderFindingCard(err, isDismissed) {
+    const label       = errorBadgeLabel(err.type);
+    const sev         = errorSeverity(err.type);
+    const expectedLbl = err.type === 'CHAIN_ERROR' ? 'Expected sellers' : 'Expected';
+    const actualLbl   = err.type === 'CHAIN_ERROR' ? 'Actual sellers'   : 'Actual';
+    const expectedVal = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
+    const actualVal   = Array.isArray(err.actual)   ? err.actual.join(', ')   : (err.actual   || '—');
+    const hasDetail   = (err.expected !== undefined && err.expected !== null) ||
+                        (err.actual   !== undefined && err.actual   !== null);
+    const fid         = err.finding_id;
+
+    const sevLabel = sev === 'error' ? 'Error' : 'Warning';
+
+    // Dismissed cards: muted background, reduced opacity, a "Dismissed"
+    // badge, and a Restore action. Same layout/spacing as active — just
+    // visually receded so it reads as "handled" without disappearing.
+    const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30' : 'px-5 py-4';
+    const dimText  = isDismissed ? 'text-muted-foreground' : 'text-foreground';
+    const dimMsg   = isDismissed ? 'text-muted-foreground' : 'text-foreground';
+
+    const actionBtn = isDismissed
+      ? `<button onclick="restoreFinding('${fid}')" class="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shrink-0">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+           Restore
+         </button>`
+      : `<button onclick="dismissFinding('${fid}')" class="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+           Dismiss
+         </button>`;
+
+    const dismissedBadge = isDismissed
+      ? '<span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Dismissed</span>'
+      : '';
+
+    const typeBadgeCls = isDismissed
+      ? 'border-border text-muted-foreground'
+      : (sev === 'error' ? 'border-border text-foreground' : 'border-border text-muted-foreground');
+
+    return `
+      <div class="${rowClass}">
+        <div class="flex items-start justify-between gap-4 mb-2">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="inline-flex items-center rounded-md border ${typeBadgeCls} bg-background px-2 py-0.5 text-xs font-semibold ${isDismissed ? 'line-through decoration-1' : ''}">${label}</span>
+            <span class="inline-flex items-center rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">${sevLabel}</span>
+            ${dismissedBadge}
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <div class="text-xs text-muted-foreground tabular-nums">${(() => {
+              // Build the document reference string.
+              // Cross-doc findings have ref_doc_no (the first/reference doc)
+              // + doc_no (the conflicting doc). Single-doc findings have only doc_no.
+              // SHARED_PAN/PIN span all docs — show no specific doc.
+              const parts = [];
+              if (err.ref_doc_no && err.ref_doc_no !== err.doc_no) {
+                parts.push('Doc ' + err.ref_doc_no);
+              }
+              if (err.doc_no) {
+                parts.push('Doc ' + err.doc_no);
+              }
+              return parts.length ? parts.join(' &amp; ') : '';
+            })()}${err.event_date ? (err.doc_no || err.ref_doc_no ? ' · ' : '') + err.event_date : ''}</div>
+            ${actionBtn}
+          </div>
+        </div>
+        <p class="text-sm ${dimMsg} leading-relaxed ${hasDetail ? 'mb-3' : ''}">${err.message || ''}</p>
+        ${hasDetail ? `
+          <div class="grid grid-cols-[110px_1fr] gap-y-2 gap-x-4 text-xs pt-3 border-t border-border">
+            <div class="font-medium uppercase tracking-wider text-muted-foreground">${expectedLbl}</div>
+            <div class="${dimText}">${expectedVal}</div>
+            <div class="font-medium uppercase tracking-wider text-muted-foreground">${actualLbl}</div>
+            <div class="${dimText}">${actualVal}</div>
+          </div>` : ''}
+      </div>`;
+  }
+
+  // ── Dismiss / restore handlers ───────────────────────────────
+  function dismissFinding(fid) {
+    fetch('/dismiss_finding/{{ project_name }}/' + fid, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) loadEvents(); });
+  }
+  function restoreFinding(fid) {
+    fetch('/restore_finding/{{ project_name }}/' + fid, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) loadEvents(); });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // AI Assistant chat
+  // ─────────────────────────────────────────────────────────
+  let _chatHistory = [];      // [{role:'user'|'assistant', content:'...'}]
+  let _chatOpen    = false;
+  let _chatBusy    = false;
+
+  function toggleChat() {
+    const overlay = document.getElementById('chatOverlay');
+    _chatOpen = !_chatOpen;
+    if (_chatOpen) {
+      overlay.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+      overlay.classList.add('opacity-100', 'scale-100');
+      if (_chatHistory.length === 0) renderChatGreeting();
+      setTimeout(() => document.getElementById('chatInput').focus(), 150);
+    } else {
+      overlay.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+      overlay.classList.remove('opacity-100', 'scale-100');
+    }
+  }
+
+  function renderChatGreeting() {
+    const box = document.getElementById('chatMessages');
+    box.innerHTML = `
+      <div class="flex gap-2.5">
+        <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0 mt-0.5">
+          <i data-lucide="sparkles" class="w-3 h-3"></i>
+        </div>
+        <div class="text-sm text-foreground/90 leading-relaxed">
+          Ask me anything about this property — owners, the chain of title, findings, encumbrances, dates, or parties. I answer only from the parsed documents.
+        </div>
+      </div>`;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function autoGrowChat(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 112) + 'px';
+  }
+
+  function chatKeydown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  }
+
+  function askSuggested(text) {
+    document.getElementById('chatInput').value = text;
+    sendChat();
+  }
+
+  function clearChat() {
+    _chatHistory = [];
+    renderChatGreeting();
+    document.getElementById('chatSuggest').style.display = '';
+  }
+
+  function appendChatMessage(role, text) {
+    const box = document.getElementById('chatMessages');
+    const wrap = document.createElement('div');
+    if (role === 'user') {
+      wrap.className = 'flex justify-end';
+      wrap.innerHTML = `
+        <div class="max-w-[85%] rounded-lg rounded-br-sm bg-primary text-primary-foreground px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap">${escapeChatHtml(text)}</div>`;
+    } else {
+      wrap.className = 'flex gap-2.5';
+      wrap.innerHTML = `
+        <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0 mt-0.5">
+          <i data-lucide="sparkles" class="w-3 h-3"></i>
+        </div>
+        <div class="max-w-[85%] text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">${escapeChatHtml(text)}</div>`;
+    }
+    box.appendChild(wrap);
+    box.scrollTop = box.scrollHeight;
+    if (window.lucide) lucide.createIcons();
+    return wrap;
+  }
+
+  function escapeChatHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function showChatTyping() {
+    const box = document.getElementById('chatMessages');
+    const wrap = document.createElement('div');
+    wrap.id = 'chatTyping';
+    wrap.className = 'flex gap-2.5';
+    wrap.innerHTML = `
+      <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0 mt-0.5">
+        <i data-lucide="sparkles" class="w-3 h-3"></i>
+      </div>
+      <div class="flex items-center gap-1 px-1 py-2">
+        <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-pulse"></span>
+        <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-pulse" style="animation-delay:0.15s"></span>
+        <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-pulse" style="animation-delay:0.3s"></span>
+      </div>`;
+    box.appendChild(wrap);
+    box.scrollTop = box.scrollHeight;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function removeChatTyping() {
+    const t = document.getElementById('chatTyping');
+    if (t) t.remove();
+  }
+
+  function sendChat() {
+    if (_chatBusy) return;
+    const input = document.getElementById('chatInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    // Hide suggestions after first message
+    document.getElementById('chatSuggest').style.display = 'none';
+
+    appendChatMessage('user', text);
+    _chatHistory.push({ role: 'user', content: text });
+    input.value = '';
+    autoGrowChat(input);
+
+    _chatBusy = true;
+    document.getElementById('chatSend').disabled = true;
+    showChatTyping();
+
+    fetch('/chat/{{ project_name }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history: _chatHistory })
+    })
+      .then(r => r.json())
+      .then(data => {
+        removeChatTyping();
+        const reply = (data && data.ok && data.reply)
+          ? data.reply
+          : ((data && data.error) ? ('Error: ' + data.error) : 'Sorry, I could not answer that.');
+        appendChatMessage('assistant', reply);
+        _chatHistory.push({ role: 'assistant', content: reply });
+      })
+      .catch(err => {
+        removeChatTyping();
+        appendChatMessage('assistant', 'Network error — please try again.');
+      })
+      .finally(() => {
+        _chatBusy = false;
+        document.getElementById('chatSend').disabled = false;
+        document.getElementById('chatInput').focus();
+      });
   }
 
   // ─────────────────────────────────────────────────────────

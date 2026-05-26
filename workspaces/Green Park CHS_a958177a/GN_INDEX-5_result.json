@@ -2,60 +2,99 @@
   "parsed": true,
   "data": {
     "document_type": "INDEX II",
+    "txn_type": "SALE_DEED",
     "sub_registrar_office": "Joint S.R. Haveli 28",
     "registration_no": "11635",
     "registration_year": "2019",
     "doc_no": "11635/2019",
-    "txn_type": "SALE_DEED",
+    "date_of_execution": "10-09-2019",
+    "date_of_registration": "13-09-2019",
     "survey_no": null,
     "plot_no": "349/350",
     "cts_no": null,
+    "khasra_no": null,
     "society_building_name": "Green Park CHS",
-    "society_building_address": "Hinjewadi Phase I, Koregaon Park Road, Lane no 7, Hinjewadi, Pune",
+    "society_building_address": "Bldg B-5, Flat no 6, Floor No:1, Building Name:Green Park CHS, Block Sector:Hinjewadi Phase I, Road:Koregaon Park Road, Lane no 7, City:Hinjewadi, District:Pune",
     "flat_no": "6",
     "area": "1488 Square Feet",
     "village": "HINJEWADI",
     "district": "Pune",
-    "deposit": null,
-    "license_fee": null,
-    "licensor_name": null,
-    "licensor_address": null,
-    "licensee_name": null,
-    "licensee_address": null,
-    "leave_license_months": null,
-    "donor_name": null,
-    "donor_address": null,
-    "donee_name": null,
-    "donee_address": null,
-    "mortgagor_name": null,
-    "mortgagor_address": null,
-    "mortgagee_name": null,
-    "mortgagee_address": null,
-    "date_of_execution": "10-09-2019",
-    "date_of_registration": "13-09-2019",
-    "stamp_duty": "588000",
-    "registration_fee": "30000",
-    "seller_names": [
-      "Mrs Amit Sharma"
-    ],
-    "seller_address": "Flat No:14, Floor No:26, Hiranandani Westgate - V, WTC Zone, Farms Road, Baner, Pune, Maharashtra, 411014",
-    "buyer_names": [
-      "Vivan Gupta"
-    ],
-    "buyer_address": "Floor: 2 Flat No:13, Omkar Residency, Near Treasury Office, Ambedkar Road, Somwar Peth, Pune, Maharashtra, 411011",
     "boundary_north": null,
     "boundary_south": null,
     "boundary_east": null,
     "boundary_west": null,
-    "consideration": "9400000",
+    "property_schedule_text": "Corporation: Pune, Other details: Apartment/Flat No:Bldg B-5, Flat no 6, Floor No:1, Building Name:Green Park CHS, Block Sector:Hinjewadi Phase I, Road:Koregaon Park Road, Lane no 7, City:Hinjewadi, District:Pune, Plot Number : 349/350",
+    "consideration": "Rs. 94,00,000/-",
+    "stamp_duty": "Rs. 5,88,000/-",
+    "registration_fee": "Rs.30,000/-",
+    "market_value": null,
+    "seller_names": [
+      "Mrs Amit Sharma"
+    ],
+    "seller_address": "Flat No:14, Floor No:26, Building Name:Hiranandani Westgate - V, Block Sector: WTC Zone, Road: Farms Road, City:Baner, District:Pune, State:Maharashtra, Pin:411014",
+    "buyer_names": [
+      "Vivan Gupta"
+    ],
+    "buyer_address": "Floor: 2 Flat No:13, Building Name: Omkar Residency, Block Sector:Near Treasury Office, Road:Ambedkar Road, City:Somwar Peth, District:Pune, State:Maharashtra, Pin:411011",
+    "donor_name": null,
+    "donor_address": null,
+    "donee_name": null,
+    "donee_address": null,
+    "licensor_name": null,
+    "licensor_address": null,
+    "licensee_name": null,
+    "licensee_address": null,
+    "deposit": null,
+    "license_fee": null,
+    "leave_license_months": null,
+    "mortgagors": null,
+    "mortgagee_name": null,
+    "mortgagee_branch_address": null,
+    "mortgagee_authorized_signatory": null,
+    "ownership_declaration": null,
+    "loan_purpose": null,
+    "prior_encumbrance_references": null,
+    "principal_amount_figures": null,
+    "principal_amount_words": null,
+    "interest_rate": null,
+    "repayment_terms": null,
+    "security_collateral_references": null,
+    "mortgagor_name": null,
+    "mortgagor_address": null,
+    "released_mortgage_doc_no": null,
+    "released_mortgage_date": null,
+    "released_mortgagors": null,
+    "release_is_partial": null,
+    "released_area": null,
+    "release_consideration": null,
+    "transferor_parties": [
+      {
+        "name": "Mrs Amit Sharma",
+        "pan": "AECPJ3248K",
+        "pin": "411014",
+        "address": "Flat No:14, Floor No:26, Building Name:Hiranandani Westgate - V, Block Sector: WTC Zone, Road: Farms Road, City:Baner, District:Pune, State:Maharashtra, Pin:411014"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "Vivan Gupta",
+        "pan": "BAREN2438L",
+        "pin": "411011",
+        "address": "Floor: 2 Flat No:13, Building Name: Omkar Residency, Block Sector:Near Treasury Office, Road:Ambedkar Road, City:Somwar Peth, District:Pune, State:Maharashtra, Pin:411011"
+      }
+    ],
     "transferor_pan": [
       "AECPJ3248K"
     ],
-    "transferor_pin": null,
+    "transferor_pin": [
+      "411014"
+    ],
     "transferee_pan": [
       "BAREN2438L"
     ],
-    "transferee_pin": null,
+    "transferee_pin": [
+      "411011"
+    ],
     "remarks": null
   }
 }

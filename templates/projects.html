@@ -3,345 +3,345 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Projects - AutoTSR</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap" rel="stylesheet"/>
+  <title>Projects — AutoTSR</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#ffffff">
 
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#000000">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            border:     'hsl(var(--border))',
+            input:      'hsl(var(--input))',
+            ring:       'hsl(var(--ring))',
+            background: 'hsl(var(--background))',
+            foreground: 'hsl(var(--foreground))',
+            primary:    { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary:  { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            destructive:{ DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+            muted:      { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            accent:     { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+            card:       { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          },
+        },
+      },
+    };
+  </script>
 
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
-      --bg: #000000;
-      --card: #080808;
-      --white: #FFFFFF;
-      --orange: #ff4800;
-      --muted: rgba(144, 144, 144, 0.496);
-      --border: rgba(255,255,255,0.08);
-      --divider: #171717;
-      --row-hover: rgba(255,255,255,0.03);
-      --green: #52fe3f;
+      --background:             0 0% 100%;
+      --foreground:             240 10% 3.9%;
+      --card:                   0 0% 100%;
+      --card-foreground:        240 10% 3.9%;
+      --primary:                240 5.9% 10%;
+      --primary-foreground:     0 0% 98%;
+      --secondary:              240 4.8% 95.9%;
+      --secondary-foreground:   240 5.9% 10%;
+      --muted:                  240 4.8% 95.9%;
+      --muted-foreground:       240 3.8% 46.1%;
+      --accent:                 240 4.8% 95.9%;
+      --accent-foreground:      240 5.9% 10%;
+      --destructive:            0 84.2% 60.2%;
+      --destructive-foreground: 0 0% 98%;
+      --border:                 240 5.9% 90%;
+      --input:                  240 5.9% 90%;
+      --ring:                   240 5.9% 10%;
+      --radius:                 0.5rem;
     }
 
     html, body {
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--white);
-      font-family: 'Inria Sans', serif;
+      font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+      font-feature-settings: "rlig" 1, "calt" 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 14px;
+      line-height: 1.5;
+      color: hsl(var(--foreground));
+      background-color: hsl(var(--background));
     }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
+    h1,h2,h3,h4,h5,h6,p,span,div,button,input,a,li,select,option {
+      font-size: inherit; line-height: inherit; margin: 0;
     }
+    button { background: none; border: 0; padding: 0; color: inherit; font-family: inherit; cursor: pointer; }
+    input, select { font-family: inherit; }
+    * { box-sizing: border-box; }
 
-    .page {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      padding: 40px 56px;
-      gap: 40px;
+    ::-webkit-scrollbar             { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track       { background: transparent; }
+    ::-webkit-scrollbar-thumb       { background: hsl(var(--border)); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
+    .anim-1 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+    .anim-2 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.07s both; }
+    .anim-3 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.14s both; }
 
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 40px;
-      border-bottom: 1px solid var(--border);
-      animation: fadeUp 0.5s ease forwards;
-    }
+    .project-row { transition: background 0.15s ease; }
+    .project-row:hover { background: hsl(var(--muted) / 0.5); }
+    .project-row:hover .row-chevron { opacity: 1; transform: translateX(1px); }
+    .row-chevron { opacity: 0.25; transition: opacity 0.15s ease, transform 0.15s ease; }
 
-    .nav-left { display: flex; align-items: center; gap: 24px; }
+    .btn-delete { transition: background 0.15s ease, color 0.15s ease; }
+    .btn-delete:hover { background: hsl(var(--destructive) / 0.08); color: hsl(var(--destructive)); }
 
-    .nav-logo {
-      font-size: 13px; font-weight: 700;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--muted); text-decoration: none;
-      transition: color 0.2s;
-    }
-    .nav-logo:hover { color: var(--white); }
-
-    .nav-sep { width: 1px; height: 14px; background: var(--border); }
-
-    .nav-page { font-size: 13px; font-weight: 400; color: var(--white); letter-spacing: 0.06em; }
-
-    .nav-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
-
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1s ease-in-out infinite; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.8); }
-    }
-
-    main { display: flex; flex-direction: column; gap: 32px; animation: fadeUp 0.5s ease 0.1s both; }
-
-    .page-header { display: flex; align-items: flex-end; justify-content: space-between; }
-
-    .page-title { font-size: clamp(36px, 5vw, 64px); font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
-
-    .project-count { font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 8px; letter-spacing: 0.04em; }
-
-    .btn-create {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--white); color: #0B0B0B; border: none;
-      font-family: 'Inria Sans', serif; font-size: 13px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 12px 24px; cursor: pointer; border-radius: 6px;
-      transition: background 0.2s, transform 0.15s;
-    }
-    .btn-create:hover { background: #e8e8e8; transform: translateY(-1px); }
-
-    .card { background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid var(--divider); }
-
-    .table-header {
-      display: grid;
-      grid-template-columns: 1fr 160px 160px 48px;
-      padding: 16px 28px;
-      border-bottom: 1px solid var(--divider);
-    }
-    .table-header span { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-
-    .project-row {
-      display: grid;
-      grid-template-columns: 1fr 160px 160px 48px;
-      align-items: center;
-      padding: 20px 28px;
-      border-bottom: 1px solid var(--divider);
-      transition: background 0.15s;
-    }
-    .project-row:last-child { border-bottom: none; }
-    .project-row:hover { background: var(--row-hover); }
-
-    .row-name {
-      font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
-      color: var(--white); text-decoration: none;
-      transition: color 0.15s;
-    }
-    .row-name:hover { color: var(--orange); }
-
-    .row-id, .row-val { font-size: 13px; font-weight: 400; color: var(--muted); }
-
-    .btn-delete {
-      background: transparent; border: none; cursor: pointer;
-      color: rgba(255,255,255,0.15); font-size: 14px;
-      border-radius: 4px; transition: color 0.15s, background 0.15s;
-      display: flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px;
-    }
-    .btn-delete:hover { color: var(--red); background: rgba(255,59,59,0.08); }
-
-    .empty-state { padding: 80px 28px; text-align: center; }
-    .empty-state strong { display: block; font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.15); margin-bottom: 8px; }
-    .empty-state p { font-size: 14px; color: var(--muted); }
-
-    /* ── MODALS ── */
+    /* Modal */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(4px);
-      z-index: 100; display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s ease;
     }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
 
-    .modal {
-      background: #161616; border: 1px solid #272727; border-radius: 16px;
-      padding: 40px; width: 100%; max-width: 460px;
-      transform: translateY(16px); transition: transform 0.25s ease;
+    .modal-box, .confirm-box {
+      background: hsl(var(--background));
+      border: 0.5px solid hsl(var(--border));
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06);
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.2s cubic-bezier(0.16,1,0.3,1);
+      margin: 0 16px;
     }
-    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-box    { width: 100%; max-width: 460px; }
+    .confirm-box  { width: 100%; max-width: 380px; }
+    .modal-overlay.open .modal-box,
+    .modal-overlay.open .confirm-box { transform: translateY(0) scale(1); }
 
-    .modal-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
-    .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
-
-    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-    .form-group label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-
-    .form-group input,
-    .form-group select {
-      background: #0B0B0B; border: 1px solid #272727; border-radius: 8px;
-      color: var(--white); font-family: 'Inria Sans', serif; font-size: 14px;
-      padding: 12px 14px; outline: none; transition: border-color 0.2s;
-      appearance: none; -webkit-appearance: none;
+    /* Inputs */
+    .form-input {
+      width: 100%; height: 36px;
+      padding: 0 12px;
+      border: 0.5px solid hsl(var(--border));
+      border-radius: calc(var(--radius) - 2px);
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      font-size: 14px; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none; appearance: none;
     }
-    .form-group input:focus, .form-group select:focus { border-color: var(--orange); }
-    .form-group input::placeholder { color: rgba(255,255,255,0.2); }
-    .form-group input.error, .form-group select.error { border-color: var(--red) !important; }
+    .form-input:focus {
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15);
+    }
+    .form-input::placeholder { color: hsl(var(--muted-foreground) / 0.6); }
+    .form-input.input-error  { border-color: hsl(var(--destructive)); }
+    .form-input.input-error:focus { box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.15); }
 
-    .field-error { font-size: 11px; color: var(--red); display: none; margin-top: 2px; }
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: ''; position: absolute;
+      right: 12px; top: 50%; transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid hsl(var(--muted-foreground));
+      pointer-events: none;
+    }
+
+    .field-error { display: none; font-size: 12px; color: hsl(var(--destructive)); margin-top: 4px; }
     .field-error.visible { display: block; }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .modal-actions { display: flex; gap: 12px; margin-top: 32px; }
-
-    .btn-submit {
-      flex: 1; background: var(--orange); color: var(--white); border: none;
-      font-family: 'Inria Sans', serif; font-size: 14px; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 14px; border-radius: 8px; cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
-    }
-    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
-
-    .btn-cancel {
-      background: transparent; border: 1px solid #272727; color: var(--muted);
-      font-family: 'Inria Sans', serif; font-size: 14px;
-      padding: 14px 24px; border-radius: 8px; cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .btn-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
-
-    /* Delete confirm modal */
-    .confirm-modal {
-      background: #161616; border: 1px solid #272727; border-radius: 16px;
-      padding: 36px 40px; width: 100%; max-width: 380px; text-align: center;
-      transform: translateY(16px); transition: transform 0.25s ease;
-    }
-    .modal-overlay.open .confirm-modal { transform: translateY(0); }
-
-    .confirm-icon { font-size: 32px; margin-bottom: 16px; }
-    .confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .confirm-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
-    .confirm-sub strong { color: var(--white); font-weight: 700; }
-    .confirm-actions { display: flex; gap: 12px; }
-
-    .btn-confirm-delete {
-      flex: 1; background: var(--red); color: var(--white); border: none;
-      font-family: 'Inria Sans', serif; font-size: 14px; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 13px; border-radius: 8px; cursor: pointer; width: 100%;
-      transition: opacity 0.2s;
-    }
-    .btn-confirm-delete:hover { opacity: 0.85; }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
-<body>
+<body class="min-h-screen">
 
-<div class="page">
-  <nav>
-    <div class="nav-left">
-      <a href="/" class="nav-logo">AutoTSR</a>
-      <div class="nav-sep"></div>
-      <span class="nav-page">Projects</span>
+<!-- ── Top nav — h-14 matches workspace.html exactly ── -->
+<header class="anim-1 h-14 border-b border-border flex items-center justify-between px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+  <div class="flex items-center gap-3">
+    <img src="{{ url_for('static', filename='TR-logo 1.png') }}" alt="AutoTSR" class="w-7 h-7 rounded-md object-contain"/>
+    <span class="text-sm font-semibold tracking-tight">AutoTSR</span>
+    <div class="w-px h-4 bg-border mx-1"></div>
+    <span class="text-sm text-muted-foreground">Projects</span>
+  </div>
+  <button onclick="openModal('createModal')"
+          class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+    New Project
+  </button>
+</header>
+
+<!-- ── Page body ── -->
+<main class="max-w-4xl mx-auto px-6 py-10">
+
+  <!-- Page header -->
+  <div class="anim-2 mb-8">
+    <h1 class="text-2xl font-semibold tracking-tight mb-1">Projects</h1>
+    <p class="text-sm text-muted-foreground">
+      {{ projects|length }} project{% if projects|length != 1 %}s{% endif %}
+    </p>
+  </div>
+
+  <!-- Table card -->
+  <div class="anim-3 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+
+    <!-- Column headers -->
+    <div class="grid grid-cols-[1fr_160px_160px_40px] gap-4 px-6 py-3 border-b border-border bg-muted/40">
+      <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Project Name</span>
+      <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">ID Type</span>
+      <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">ID Value</span>
+      <span></span>
     </div>
-    <span class="nav-status">
-      <span class="status-dot"></span>
-      Internal Tool — Limited Access
-    </span>
-  </nav>
 
-  <main>
-    <div class="page-header">
-      <div>
-        <h1 class="page-title">Projects</h1>
-        <p class="project-count">{{ projects|length }} project{% if projects|length != 1 %}s{% endif %}</p>
+    {% if projects %}
+      {% for project in projects %}
+      <div class="project-row grid grid-cols-[1fr_160px_160px_40px] gap-4 items-center px-6 py-4 {% if not loop.last %}border-b border-border{% endif %}">
+
+        <a href="/workspace/{{ project.folder }}" class="flex items-center gap-2.5 group min-w-0">
+          <i data-lucide="folder" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+          <span class="text-sm font-medium truncate group-hover:underline underline-offset-2 decoration-border">{{ project.name }}</span>
+          <i data-lucide="chevron-right" class="row-chevron w-3.5 h-3.5 text-muted-foreground shrink-0"></i>
+        </a>
+
+        <span class="text-sm text-muted-foreground truncate">
+          {{ project.id_type.replace("_", " ").title() if project.id_type else "—" }}
+        </span>
+
+        <span class="text-sm text-muted-foreground font-mono truncate">
+          {{ project.id_value if project.id_value else "—" }}
+        </span>
+
+        <button class="btn-delete inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground/40"
+                title="Delete project"
+                data-folder="{{ project.folder }}"
+                onclick="confirmDelete(this)">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        </button>
+
       </div>
-      <button class="btn-create" onclick="openModal('createModal')">+ New Project</button>
-    </div>
-
-    <div class="card">
-      <div class="table-header">
-        <span>Project Name</span>
-        <span>ID Type</span>
-        <span>ID Value</span>
-        <span></span>
+      {% endfor %}
+    {% else %}
+      <div class="flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+          <i data-lucide="folder-open" class="w-5 h-5 text-muted-foreground"></i>
+        </div>
+        <p class="text-sm font-medium mb-1">No projects yet</p>
+        <p class="text-sm text-muted-foreground mb-5">Create your first project to get started.</p>
+        <button onclick="openModal('createModal')"
+                class="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent transition-colors">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          New Project
+        </button>
       </div>
+    {% endif %}
+  </div>
 
-      {% if projects %}
-        {% for project in projects %}
-        <div class="project-row">
-          <a href="/workspace/{{ project.folder }}" class="row-name">{{ project.name }}</a>
-          <span class="row-id">{{ project.id_type.replace("_", " ").title() if project.id_type else "—" }}</span>
-          <span class="row-val">{{ project.id_value if project.id_value else "—" }}</span>
-          <button
-            class="btn-delete"
-            title="Delete project"
-            data-folder="{{ project.folder }}" onclick="confirmDelete(this)"
-          >✕</button>
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="empty-state">
-          <strong>No projects yet</strong>
-          <p>Create your first project to get started.</p>
-        </div>
-      {% endif %}
-    </div>
-  </main>
-</div>
+</main>
 
-<!-- CREATE MODAL -->
+<!-- ── CREATE MODAL ── -->
 <div class="modal-overlay" id="createModal" onclick="handleOverlayClick(event, 'createModal')">
-  <div class="modal">
-    <h2 class="modal-title">New Project</h2>
-    <p class="modal-sub">All fields are required.</p>
-    <form action="/create_project" method="POST" onsubmit="return validateForm()">
-      <div class="form-group">
-        <label>Project Name</label>
-        <input type="text" name="project_name" id="field_name" placeholder="e.g. Sharma Flat — Sector 7"/>
-        <span class="field-error" id="err_name">Please enter a project name.</span>
+  <div class="modal-box">
+    <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-5 border-b border-border">
+      <div>
+        <h2 class="text-base font-semibold tracking-tight">New Project</h2>
+        <p class="text-sm text-muted-foreground mt-0.5">All fields are required.</p>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>ID Type</label>
-          <select name="id_type" id="field_type">
-            <option value="">Select type</option>
-            <option value="survey_no">Survey No.</option>
-            <option value="cts_no">CTS No.</option>
-            <option value="plot_no">Plot No.</option>
-          </select>
-          <span class="field-error" id="err_type">Select an ID type.</span>
+      <button onclick="closeModal('createModal')"
+              class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent transition-colors -mt-0.5 shrink-0">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form action="/create_project" method="POST" onsubmit="return validateForm()" class="px-6 py-5">
+
+      <div class="mb-4">
+        <label class="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Project Name</label>
+        <input type="text" name="project_name" id="field_name"
+               placeholder="e.g. Sharma Flat — Sector 7"
+               class="form-input"/>
+        <p class="field-error" id="err_name">Please enter a project name.</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">ID Type</label>
+          <div class="select-wrap">
+            <select name="id_type" id="field_type" class="form-input pr-8">
+              <option value="">Select type</option>
+              <option value="survey_no">Survey No.</option>
+              <option value="cts_no">CTS No.</option>
+              <option value="plot_no">Plot No.</option>
+            </select>
+          </div>
+          <p class="field-error" id="err_type">Select an ID type.</p>
         </div>
-        <div class="form-group">
-          <label>ID Value</label>
-          <input type="text" name="id_value" id="field_value" placeholder="e.g. 42/B"/>
-          <span class="field-error" id="err_value">Enter the ID value.</span>
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">ID Value</label>
+          <input type="text" name="id_value" id="field_value"
+                 placeholder="e.g. 42/B"
+                 class="form-input"/>
+          <p class="field-error" id="err_value">Enter the ID value.</p>
         </div>
       </div>
-      <div class="modal-actions">
-        <button type="button" class="btn-cancel" onclick="closeModal('createModal')">Cancel</button>
-        <button type="submit" name="confirm" value="1" class="btn-submit">Create Project</button>
+
+      <div class="flex items-center justify-end gap-3 pt-5 mt-5 border-t border-border">
+        <button type="button" onclick="closeModal('createModal')"
+                class="inline-flex items-center h-9 px-4 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent transition-colors">
+          Cancel
+        </button>
+        <button type="submit" name="confirm" value="1"
+                class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+          Create Project
+        </button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- DELETE CONFIRM MODAL -->
+<!-- ── DELETE CONFIRM MODAL ── -->
 <div class="modal-overlay" id="deleteModal" onclick="handleOverlayClick(event, 'deleteModal')">
-  <div class="confirm-modal">
-    <div class="confirm-icon">🗑</div>
-    <h2 class="confirm-title">Delete Project?</h2>
-    <p class="confirm-sub">
-      This will permanently delete <strong id="deleteProjectLabel"></strong> and all its files. This cannot be undone.
-    </p>
-    <div class="confirm-actions">
-      <button type="button" class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
-      <form id="deleteForm" method="POST" style="flex:1">
-        <button type="submit" class="btn-confirm-delete">Delete</button>
+  <div class="confirm-box">
+    <div class="px-6 pt-6 pb-5">
+      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10 mb-4">
+        <i data-lucide="trash-2" class="w-4 h-4 text-destructive"></i>
+      </div>
+      <h2 class="text-base font-semibold tracking-tight mb-1">Delete project?</h2>
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        This will permanently delete <span id="deleteProjectLabel" class="font-medium text-foreground"></span> and all its files. This cannot be undone.
+      </p>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/30 rounded-b-lg">
+      <button type="button" onclick="closeModal('deleteModal')"
+              class="inline-flex items-center h-9 px-4 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent transition-colors">
+        Cancel
+      </button>
+      <form id="deleteForm" method="POST" style="display:contents">
+        <button type="submit"
+                class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-destructive text-destructive-foreground text-sm font-medium shadow-sm hover:bg-destructive/90 active:scale-[0.98] transition-all">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          Delete
+        </button>
       </form>
     </div>
   </div>
 </div>
 
 <script>
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  lucide.createIcons();
+
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
   function closeModal(id) {
     document.getElementById(id).classList.remove('open');
     if (id === 'createModal') clearErrors();
@@ -354,57 +354,41 @@
   });
 
   function validateForm() {
-    let valid = true;
     clearErrors();
+    let valid = true;
     const name  = document.getElementById('field_name');
     const type  = document.getElementById('field_type');
     const value = document.getElementById('field_value');
-    if (!name.value.trim()) {
-      name.classList.add('error');
-      document.getElementById('err_name').classList.add('visible');
-      valid = false;
-    }
-    if (!type.value) {
-      type.classList.add('error');
-      document.getElementById('err_type').classList.add('visible');
-      valid = false;
-    }
-    if (!value.value.trim()) {
-      value.classList.add('error');
-      document.getElementById('err_value').classList.add('visible');
-      valid = false;
-    }
+    if (!name.value.trim())  { name.classList.add('input-error');  document.getElementById('err_name').classList.add('visible');  valid = false; }
+    if (!type.value)         { type.classList.add('input-error');  document.getElementById('err_type').classList.add('visible');  valid = false; }
+    if (!value.value.trim()) { value.classList.add('input-error'); document.getElementById('err_value').classList.add('visible'); valid = false; }
     return valid;
   }
 
   function clearErrors() {
-    ['field_name','field_type','field_value'].forEach(id => document.getElementById(id).classList.remove('error'));
+    ['field_name','field_type','field_value'].forEach(id => document.getElementById(id).classList.remove('input-error'));
     ['err_name','err_type','err_value'].forEach(id => document.getElementById(id).classList.remove('visible'));
   }
 
   ['field_name','field_type','field_value'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => document.getElementById(id).classList.remove('error'));
+    document.getElementById(id).addEventListener('input', () => document.getElementById(id).classList.remove('input-error'));
   });
 
   function confirmDelete(btn) {
-    var folderName = btn.getAttribute("data-folder");
-    var displayName = folderName.split("_").slice(0, -1).join("_");
+    const folder = btn.getAttribute('data-folder');
+    const displayName = folder.split('_').slice(0, -1).join(' ');
     document.getElementById('deleteProjectLabel').textContent = '"' + displayName + '"';
-    document.getElementById('deleteForm').action = '/delete_project/' + folderName;
+    document.getElementById('deleteForm').action = '/delete_project/' + folder;
     openModal('deleteModal');
   }
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
+  window.addEventListener('load', function() {
     navigator.serviceWorker.register('/sw.js')
-      .then(function () {
-        console.log('Service Worker Registered');
-      })
-      .catch(function (error) {
-        console.log('Service Worker Failed', error);
-      });
+      .then(() => console.log('SW Registered'))
+      .catch(err => console.log('SW Failed', err));
   });
 }
 </script>
