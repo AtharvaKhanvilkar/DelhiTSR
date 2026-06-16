@@ -4,16 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ project_name.rsplit('_', 1)[0] }} — AutoTSR</title>
+  <meta name="theme-color" content="#ffffff">
 
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
+  <link class="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
 
   <!-- Tailwind via Play CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Geist Sans (shadcn default since 2024) + JetBrains Mono for code -->
+  <!-- Plus Jakarta Sans & JetBrains Mono Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block">
 
   <!-- Lucide icons (shadcn default) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -23,7 +25,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
             mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
           },
           colors: {
@@ -90,16 +92,15 @@
     }
 
     html, body {
-      font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+      font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
       font-feature-settings: "rlig" 1, "calt" 1;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       font-size: 14px;
       line-height: 1.5;
-      color: hsl(var(--foreground));
-      background-color: hsl(var(--background));
+      color: #18181b;
+      background-color: #ffffff;
     }
-    /* Hard reset to prevent FOUC giant text before Tailwind loads */
     h1, h2, h3, h4, h5, h6, p, span, div, button, input, a, li {
       font-size: inherit;
       line-height: inherit;
@@ -118,8 +119,6 @@
     /* Tab content visibility */
     .panel              { display: none; height: 100%; }
     .panel.active       { display: flex; flex-direction: column; }
-    .sb-panel           { display: none; flex: 1; overflow-y: auto; min-height: 0; }
-    .sb-panel.active    { display: flex; flex-direction: column; }
 
     /* Spinner */
     .spinner {
@@ -131,191 +130,509 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Tree connector lines */
-    .tree-l2-wrap          { position: relative; }
-    .tree-l2-wrap::before  {
-      content: ''; position: absolute;
-      left: 30px; top: 0; bottom: 0;
-      width: 1px; background: hsl(var(--border));
+    /* Chat animations */
+    @keyframes chatMsgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .tree-l2-wrap.last::before { bottom: 50%; }
-    .tree-l2-wrap::after   {
-      content: ''; position: absolute;
-      left: 30px; top: 50%;
-      width: 10px; height: 1px;
-      background: hsl(var(--border));
+    .chat-msg-in { animation: chatMsgIn 0.32s cubic-bezier(0.16,1,0.3,1) both; }
+
+    @keyframes chatDot {
+      0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+      30%           { opacity: 0.9;  transform: translateY(-3px); }
     }
+    .chat-dot { animation: chatDot 1.2s ease-in-out infinite; }
 
+    /* ── Sidebar collapse to icon-rail ── */
+    #appSidebar.sb-collapsed { width: 56px !important; }
+    #appSidebar.sb-collapsed .sb-label,
+    #appSidebar.sb-collapsed .sb-only-expanded { display: none !important; }
+    #appSidebar.sb-collapsed .sb-row-content { justify-content: center; width: 100%; }
+    #appSidebar.sb-collapsed .sb-section-label { display: none; }
 
+    /* Chat scroll area scrollbar */
+    #chatScroll::-webkit-scrollbar { width: 8px; }
+    #chatScroll::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
+
+    /* ════════════════════════════════════════════════════════════
+       ASSISTANT TAB — Google AI Studio UI (preserved verbatim,
+       scoped under #panel-assistant so it can't affect the app).
+       ════════════════════════════════════════════════════════════ */
+    #panel-assistant {
+      width: 100%; min-width: 0; overflow: hidden;
+      --as-bg: #ffffff;
+      --as-text-primary: #1f1f1f;
+      --as-text-tertiary: #5e5e5e;
+      --as-label-muted: #5f6368;
+      --as-icon: #444746;
+      --as-run-text: #b0b3b1;
+      --as-hover-bg: #f1f3f4;
+      --as-font-display: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+      --as-font-body: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+      background: var(--as-bg);
+    }
+    #panel-assistant .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal; font-style: normal; line-height: 1;
+      letter-spacing: normal; text-transform: none; display: inline-block;
+      white-space: nowrap; word-wrap: normal; direction: ltr;
+      -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      user-select: none;
+    }
+    #panel-assistant .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border: none; background: transparent;
+      border-radius: 50%; color: var(--as-icon); cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    #panel-assistant .icon-btn:hover { background: var(--as-hover-bg); }
+    #panel-assistant .icon-btn .material-symbols-outlined { font-size: 22px; }
+
+    /* Chat area */
+    #panel-assistant .chat-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    #panel-assistant .chat-content { max-width: 1216px; margin: 0 auto; padding: 28px 40px 0; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+    #panel-assistant .chat-scroll { width: 100%; min-width: 0; }
+
+    #panel-assistant .turn {
+      position: relative; padding: 16px 16px; margin: -4px -16px;
+      border: 1px solid transparent; border-radius: 12px;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+    #panel-assistant .turn:hover { border-color: #e3e3e3; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+    #panel-assistant .turn-toolbar {
+      position: absolute; top: -18px; right: 12px;
+      display: flex; align-items: center; gap: 2px; padding: 2px;
+      background: var(--as-bg); border: 1px solid #e3e3e3; border-radius: 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      opacity: 0; visibility: hidden; transition: opacity 0.12s ease;
+    }
+    #panel-assistant .turn:hover .turn-toolbar { opacity: 1; visibility: visible; }
+    #panel-assistant .turn-toolbar .icon-btn { width: 34px; height: 34px; }
+    #panel-assistant .turn-toolbar .icon-btn .material-symbols-outlined { font-size: 19px; }
+
+    #panel-assistant .turn-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    #panel-assistant .turn-role, #panel-assistant .turn-time {
+      font-family: var(--as-font-body); font-size: 13px; color: var(--as-label-muted);
+    }
+    #panel-assistant .turn-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--as-label-muted); display: inline-block; }
+
+    #panel-assistant .turn-body { font-family: var(--as-font-body); font-size: 15px; line-height: 1.6; color: var(--as-text-primary); }
+    #panel-assistant .turn-body p { margin: 0 0 16px; }
+    #panel-assistant .turn-body p:last-child { margin-bottom: 0; }
+    #panel-assistant .turn-body strong { font-weight: 700; }
+
+    #panel-assistant .model-actions { display: flex; align-items: center; gap: 2px; margin-top: 14px; padding-bottom: 10px; position: relative; }
+    #panel-assistant .turn.model:hover .model-actions::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #e3e3e3; z-index: 0;
+    }
+    #panel-assistant .model-actions .feedback-btn, #panel-assistant .model-actions .gen-time { position: relative; z-index: 1; }
+    #panel-assistant .feedback-btn { width: 32px; height: 32px; }
+    #panel-assistant .feedback-btn .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+    #panel-assistant .gen-time { font-family: var(--as-font-body); font-size: 13px; color: var(--as-text-tertiary); margin-left: 8px; }
+
+    #panel-assistant .disclaimer { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--as-text-tertiary); font-family: var(--as-font-body); font-size: 13px; }
+    #panel-assistant .disclaimer .material-symbols-outlined { font-size: 17px; color: var(--as-text-tertiary); }
+
+    /* Composer */
+    #panel-assistant .composer-wrap { flex-shrink: 0; padding: 12px 24px 20px; width: 100%; min-width: 0; }
+    #panel-assistant .composer {
+      max-width: 1216px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px;
+      padding: 14px 16px 10px; background: #fcfcfc; box-sizing: border-box;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    #panel-assistant .composer:focus-within { border-color: #c4c4c4; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    #panel-assistant .composer-input {
+      width: 100%; border: none; outline: none; resize: none;
+      font-family: var(--as-font-body); font-size: 15px; color: var(--as-text-primary);
+      background: transparent; line-height: 1.5; min-height: 24px;
+    }
+    #panel-assistant .composer-input::placeholder { color: #8c8f8e; }
+    #panel-assistant .composer-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    #panel-assistant .composer-left { display: flex; align-items: center; gap: 8px; }
+    #panel-assistant .composer-icon-btn { width: 40px; height: 40px; }
+
+    #panel-assistant .model-switch {
+      display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 8px 0 4px;
+      border: none; border-radius: 8px; background: transparent;
+      font-family: var(--as-font-display); font-size: 14px; font-weight: 500; color: var(--as-text-primary);
+      cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
+    }
+    #panel-assistant .model-switch:hover { background: rgba(0,0,0,0.04); }
+    #panel-assistant .model-switch .model-chevron { color: var(--as-text-tertiary); transition: transform 0.15s ease; }
+    #panel-assistant .model-switch[aria-expanded="true"] .model-chevron { transform: rotate(180deg); }
+
+    #panel-assistant .model-menu-wrap { position: relative; }
+    #panel-assistant .model-menu {
+      position: absolute; bottom: calc(100% + 8px); left: 0; min-width: 248px;
+      background: var(--as-bg); border: 1px solid #e6e6e6; border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12); padding: 6px; display: none; z-index: 20;
+    }
+    #panel-assistant .model-menu.open { display: block; }
+    #panel-assistant .model-menu-item {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px;
+      border: none; background: transparent; border-radius: 8px;
+      font-family: var(--as-font-body); color: var(--as-text-primary); text-align: left; cursor: pointer;
+    }
+    #panel-assistant .model-menu-item:hover { background: rgba(0,0,0,0.04); }
+    #panel-assistant .model-menu-item .item-text { display: flex; flex-direction: column; }
+    #panel-assistant .model-menu-item .item-name { font-family: var(--as-font-display); font-size: 14px; font-weight: 500; color: var(--as-text-primary); }
+    #panel-assistant .model-menu-item .item-sub { font-size: 12px; color: var(--as-text-tertiary); margin-top: 2px; }
+    #panel-assistant .model-menu-item .check { margin-left: auto; color: #1f1f1f; visibility: hidden; flex-shrink: 0; }
+    #panel-assistant .model-menu-item.selected .check { visibility: visible; }
+
+    #panel-assistant .composer-right { display: flex; align-items: center; gap: 4px; }
+    #panel-assistant .composer-right .composer-icon-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: transparent; }
+    #panel-assistant .composer-right .composer-icon-btn:hover { background: var(--as-hover-bg); }
+    #panel-assistant .composer-right .composer-icon-btn .material-symbols-outlined { font-size: 20px; color: var(--as-icon); font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+
+    #panel-assistant .run-btn {
+      display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
+      border: 1px solid transparent; border-radius: 19px; background: transparent;
+      font-family: var(--as-font-display); font-size: 15px; font-weight: 500; color: var(--as-run-text);
+      cursor: default; margin-left: 2px;
+    }
+    #panel-assistant .run-btn .run-shortcut { display: inline-flex; align-items: center; gap: 5px; }
+    #panel-assistant .run-btn .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+    #panel-assistant .run-btn.active {
+      background: #ffffff; color: var(--as-text-primary); border-color: #e3e3e3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer;
+    }
+    #panel-assistant .run-btn.active:hover { background: #f8f9fa; }
+    #panel-assistant .run-btn.active .run-shortcut { color: var(--as-text-primary); }
+    #panel-assistant .run-btn.active .material-symbols-outlined { color: var(--as-text-primary); }
+
+    #panel-assistant .chat-scroll::-webkit-scrollbar { width: 10px; }
+    #panel-assistant .chat-scroll::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 5px; }
+
+    /* Scope menu */
+    #panel-assistant .scope-menu {
+      position: absolute; bottom: calc(100% + 8px); right: 0; min-width: 264px;
+      background: var(--as-bg); border: 1px solid #e6e6e6; border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12); padding: 6px; display: none; z-index: 20;
+    }
+    #panel-assistant .scope-menu.open { display: block; }
+    #panel-assistant .scope-menu-head {
+      font-family: var(--as-font-body); font-size: 11px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.06em; color: var(--as-text-tertiary);
+      padding: 6px 10px 4px;
+    }
+    #panel-assistant .scope-item {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px;
+      border: none; background: transparent; border-radius: 8px;
+      font-family: var(--as-font-body); color: var(--as-text-primary); text-align: left; cursor: pointer;
+    }
+    #panel-assistant .scope-item:hover { background: rgba(0,0,0,0.04); }
+    #panel-assistant .scope-item > .material-symbols-outlined { font-size: 20px; color: var(--as-icon); flex-shrink: 0; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+    #panel-assistant .scope-item .scope-text { display: flex; flex-direction: column; min-width: 0; }
+    #panel-assistant .scope-item .scope-name { font-family: var(--as-font-display); font-size: 14px; font-weight: 500; }
+    #panel-assistant .scope-item .scope-sub { font-size: 12px; color: var(--as-text-tertiary); margin-top: 2px; }
+    #panel-assistant .scope-item .scope-check { margin-left: auto; color: #1f1f1f; visibility: hidden; flex-shrink: 0; }
+    #panel-assistant .scope-item.selected .scope-check { visibility: visible; }
+
+    #panel-assistant .composer-icon-btn.scope-active { background: #f4f4f5; }
+    #panel-assistant .composer-icon-btn.scope-active .material-symbols-outlined { color: #18181b; }
+
+    /* Mic active listening state */
+    #panel-assistant .composer-icon-btn.listening { background: #18181b; }
+    #panel-assistant .composer-icon-btn.listening .material-symbols-outlined { color: #ffffff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    @keyframes micPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(24,24,27,0.4); } 50% { box-shadow: 0 0 0 5px rgba(24,24,27,0); } }
+    #panel-assistant .composer-icon-btn.listening { animation: micPulse 1.4s ease-in-out infinite; }
+
+    /* Scope chip */
+    #panel-assistant .scope-chip {
+      display: none; align-items: center; gap: 5px;
+      font-family: var(--as-font-body); font-size: 12px; color: #18181b;
+      background: #f4f4f5; border-radius: 12px; padding: 2px 10px; margin-bottom: 8px;
+      width: fit-content;
+    }
+    #panel-assistant .scope-chip.show { display: inline-flex; }
+    #panel-assistant .scope-chip .material-symbols-outlined { font-size: 14px; }
+    #panel-assistant .scope-chip button { border: none; background: none; cursor: pointer; color: #18181b; display: inline-flex; padding: 0; }
   </style>
 </head>
-<body class="bg-background text-foreground antialiased">
+<body class="bg-[#ffffff] text-zinc-900 antialiased font-sans">
 
 <div class="flex h-screen w-screen overflow-hidden">
 
   <!-- ════════════════════════════════════════════════
-       SIDEBAR
+       UNIFIED SIDEBAR (Minimalist Monochromatic UI)
   ════════════════════════════════════════════════ -->
-  <aside class="w-72 shrink-0 border-r border-border bg-background flex flex-col">
-
-    <!-- Logo / brand row -->
-    <div class="h-14 px-4 flex items-center gap-2.5 border-b border-border">
-      <img src="{{ url_for('static', filename='TR-logo 1.png') }}" alt="AutoTSR" class="w-7 h-7 rounded-md object-contain"/>
-      <span class="text-sm font-semibold tracking-tight">AutoTSR</span>
+  <aside id="appSidebar" class="w-[260px] shrink-0 border-r border-zinc-200 bg-[#fafafa] flex flex-col h-full transition-[width] duration-150">
+    
+    <!-- Top Branding Box -->
+    <div class="h-14 px-4 flex items-center justify-between border-b border-zinc-100 shrink-0 bg-white">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-md bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-200 shadow-sm">
+          <img src="{{ url_for('static', filename='TR-logo 1.png') }}" alt="AutoTSR" class="w-4 h-4 object-contain"/>
+        </div>
+        <span class="text-[13px] font-bold tracking-tight text-zinc-800 sb-label">AutoTSR</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <!-- Collapse Sidebar Button -->
+        <button onclick="toggleSidebarCollapse()" title="Collapse sidebar" class="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 p-1.5 rounded-md transition-all">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
+          </svg>
+        </button>
+        <!-- Clear parse results -->
+        <button onclick="clearParseResults()" title="Clear all extraction results" class="text-zinc-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-md transition-colors sb-only-expanded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <!-- Workspace header — project name -->
-    <div class="px-4 pt-4 pb-3">
-      <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1">Workspace</div>
+    <!-- Active Workspace Detail Header -->
+    <div class="px-4 py-3.5 border-b border-zinc-200/50 bg-white/40 sb-only-expanded">
+      <div class="text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-400 mb-1.5">Workspace</div>
       <div class="flex items-center justify-between gap-2">
-        <h1 class="text-base font-semibold tracking-tight truncate">{{ project_name.rsplit('_', 1)[0] }}</h1>
-        <div class="flex items-center gap-0.5 shrink-0">
-          <button onclick="clearParseResults()" title="Clear parse results"
-                  class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-            <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
-          </button>
-          <button onclick="renameProject()" title="Rename project"
-                  class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-          </button>
+        <div class="flex items-center gap-1.5 min-w-0">
+          <svg class="w-3.5 h-3.5 text-zinc-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <h1 class="text-[12px] font-semibold text-zinc-700 truncate" id="projectNameDisplay">{{ project_name.rsplit('_', 1)[0] }}</h1>
         </div>
+        <button onclick="renameProject()" title="Rename project" class="p-1 hover:bg-zinc-200/60 rounded text-zinc-400 hover:text-zinc-700 transition-colors shrink-0">
+          <i data-lucide="pencil" class="w-3 h-3"></i>
+        </button>
       </div>
     </div>
 
-    <!-- Search -->
-    <div class="px-3 pb-2">
-      <div class="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0">
-        <i data-lucide="search" class="w-4 h-4 text-muted-foreground shrink-0"></i>
-        <input type="text" placeholder="Search files..." oninput="filterTree(this.value)"
-               class="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"/>
+    <!-- Search Input -->
+    <div class="px-4 py-2.5 shrink-0 sb-only-expanded border-b border-zinc-200/30">
+      <div class="relative">
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.3-4.3" />
+          </svg>
+        </span>
+        <input type="text" placeholder="Quick find..." oninput="filterTree(this.value)" id="sidebarSearch"
+               class="w-full h-8 pl-8 pr-11 bg-white border border-zinc-200 rounded-md text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400 transition-all" />
+        <kbd class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none inline-flex items-center gap-0.5 rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[9px] font-mono text-zinc-400">
+          <span>⌘</span><span>K</span>
+        </kbd>
       </div>
     </div>
 
-    <!-- Sidebar tabs (shadcn Tabs pattern) -->
-    <div class="px-3 pb-2">
-      <div class="inline-flex h-9 w-full items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
-        <button id="sb-tab-docs" onclick="switchSbTab('documents', this)"
-                class="sb-tab active inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
-                data-state="active">Documents</button>
-        <button id="sb-tab-events" onclick="switchSbTab('events-sb', this)"
-                class="sb-tab inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-1"
-                data-state="inactive">Events</button>
-      </div>
-    </div>
-
-    <!-- Upload form (hidden) -->
-    <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" class="hidden">
-      <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
-    </form>
-
-    <!-- DOCUMENTS panel -->
-    <div class="sb-panel active px-2 py-2" id="sb-panel-documents">
-      <div class="space-y-0.5" id="fileTree">
-
-        <!-- Root -->
-        <div class="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold">
-          <i data-lucide="folder" class="w-4 h-4" style="fill:currentColor;stroke-width:1.5"></i>
-          <span>INDEX IIs</span>
-          <span class="ml-auto inline-flex items-center justify-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">{{ index_iis|length }}</span>
-        </div>
-
-        <!-- Branch -->
-        <div class="flex items-center gap-2 pl-7 pr-2 py-1.5 text-sm text-foreground/80">
-          <i data-lucide="folder" class="w-4 h-4 text-muted-foreground"></i>
-          <span>Attached Files</span>
-          <button onclick="document.getElementById('fileInput').click()"
-                  title="Add file"
-                  class="ml-auto inline-flex items-center justify-center h-6 w-6 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <!-- Files -->
-        {% if index_iis %}
-          {% for pdf in index_iis %}
-          <div class="tree-l2-wrap {% if loop.last %}last{% endif %}">
-            <div id="file-row-{{ loop.index }}"
-                 class="tree-l2 {% if loop.first %}bg-accent text-accent-foreground{% endif %} group flex items-center gap-1.5 pl-10 pr-2 py-1.5 mx-1 rounded-md cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm transition-colors"
-                 onclick="selectFile(this, '{{ pdf }}')">
-              <i data-lucide="file-text" class="w-4 h-4 text-muted-foreground shrink-0"></i>
-              <span class="tree-l2-name flex-1 truncate" data-filename="{{ pdf }}">{{ pdf }}</span>
-              <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-all">
-                <button class="inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
-                        title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
-                  <i data-lucide="pencil" class="w-3 h-3"></i>
-                </button>
-                <button class="inline-flex items-center justify-center h-5 w-5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                        title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
-                  <i data-lucide="x" class="w-3 h-3"></i>
-                </button>
-              </div>
-            </div>
+    <!-- Navigation Stream -->
+    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-4" id="sidebarMenu">
+      
+      <!-- Section: Core Data -->
+      <div class="space-y-1">
+        <div class="sb-section-label sb-only-expanded px-2 pb-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400">Documents</div>
+        
+        <!-- Transactions Tab Toggle -->
+        <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 rounded-md cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </span>
+            <span class="sb-label">Transactions</span>
           </div>
-          {% endfor %}
-        {% else %}
-          <div class="pl-10 py-2 text-xs text-muted-foreground">No files yet</div>
-        {% endif %}
-
-
-      </div>
-    </div>
-
-    <!-- EVENTS sidebar panel -->
-    <div class="sb-panel" id="sb-panel-events-sb">
-      <div class="px-4 py-3 border-b border-border flex items-center justify-between">
-        <span class="text-xs font-semibold tracking-wider uppercase text-muted-foreground">Timeline</span>
-        <span id="sbEventsCount" class="hidden inline-flex items-center rounded-md border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground tabular-nums"></span>
-      </div>
-      <div id="sbEventsEmpty" class="flex flex-col items-center justify-center py-12 px-6 text-center">
-        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted mb-3">
-          <i data-lucide="calendar" class="w-4 h-4 text-muted-foreground"></i>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
         </div>
-        <p class="text-xs text-muted-foreground">Parse documents to see events here.</p>
+
+        <!-- Nested Files Sub-tree (Only visible when sidebar expanded) -->
+        <div class="sb-only-expanded pl-2 pt-1 mt-1 space-y-1 border-l border-zinc-200/50 ml-4">
+          <div class="flex items-center justify-between px-2 py-1 text-zinc-400 font-bold text-[10px] uppercase tracking-[0.08em]">
+            <span>Attached Files</span>
+            <button onclick="document.getElementById('fileInput').click()" title="Attach PDF transaction file" class="text-zinc-400 hover:text-zinc-900 p-0.5 rounded hover:bg-zinc-100 transition-colors">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Document list container -->
+          <div id="fileTree" class="space-y-0.5 max-h-[180px] overflow-y-auto pr-1">
+            {% if index_iis %}
+              {% for pdf in index_iis %}
+                <div class="group relative flex items-center justify-between px-2 py-1.5 rounded-md cursor-pointer text-zinc-600 hover:bg-zinc-100/70 hover:text-zinc-900 text-[12.5px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" onclick="selectFile(this, '{{ pdf }}')">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
+                  </div>
+                  <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0 ml-1">
+                    <button class="p-0.5 hover:bg-zinc-200 rounded text-zinc-500 hover:text-zinc-800" title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
+                      <i data-lucide="pencil" class="w-3 h-3"></i>
+                    </button>
+                    <button class="p-0.5 hover:bg-red-50 rounded text-zinc-500 hover:text-red-600" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="px-2 py-1.5 text-[11px] text-zinc-400 italic">No files yet</div>
+            {% endif %}
+          </div>
+        </div>
       </div>
-      <div id="sbEventsList" class="py-1.5"></div>
+
+      <!-- Section: Analytical tools -->
+      <div class="space-y-1">
+        <div class="sb-section-label sb-only-expanded px-2 pb-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400">Analysis & Insights</div>
+
+        <!-- Events & Findings -->
+        <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 rounded-md cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <span class="sb-label">Events & Findings</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+
+        <!-- Entities -->
+        <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 rounded-md cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <span class="sb-label">Entities</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+
+        <!-- AI Assistant -->
+        <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 rounded-md cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </span>
+            <span class="sb-label">AI Assistant</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- Section: Registry Portals -->
+      <div class="space-y-1">
+        <div class="sb-section-label sb-only-expanded px-2 pb-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400">External Portals</div>
+
+        <!-- DORIS -->
+        <div id="sidebar-doris" onclick="switchMainTab('doris')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 rounded-md cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+                <line x1="17" y1="21" x2="7" y2="21"/>
+              </svg>
+            </span>
+            <span class="sb-label">DORIS Registry</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13l-6 6-6-6"/>
+            </svg>
+          </span>
+        </div>
+
+        <!-- NGDRS -->
+        <div id="sidebar-ngdrs" onclick="switchMainTab('ngdrs')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 rounded-md cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                <path d="M2 12h20"/>
+              </svg>
+            </span>
+            <span class="sb-label">NGDRS Portal</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13l-6 6-6-6"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
     </div>
 
+    <!-- Footer: Parse status metadata -->
+    <div class="sb-only-expanded shrink-0 border-t border-zinc-200 bg-white px-4 py-3 text-[11px] text-zinc-500">
+      <div class="flex items-center justify-between">
+        <span class="flex items-center gap-1.5 font-medium text-zinc-600">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+          <span id="sbDocCount">{{ index_iis|length if index_iis else 0 }}</span> active document{% if not index_iis or index_iis|length != 1 %}s{% endif %}
+        </span>
+        <span id="sbParseStatus" class="font-semibold text-zinc-400">Ready</span>
+      </div>
+    </div>
   </aside>
 
+  <!-- Upload Action Form (Hidden) -->
+  <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" class="hidden">
+    <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
+  </form>
+
   <!-- ════════════════════════════════════════════════
-       MAIN
+       MAIN VIEWPORT
   ════════════════════════════════════════════════ -->
-  <main class="flex-1 flex flex-col min-w-0 bg-background">
+  <main class="flex-1 flex flex-col min-w-0 bg-[#ffffff] relative">
 
-    <!-- Top bar: tabs + Parse button -->
-    <header class="flex items-center gap-4 h-14 px-6 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <!-- Tabs (shadcn pattern) -->
-      <nav id="mainTabBar" class="inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
-        <button id="tab-pdf" onclick="switchTab('pdf', this)"
-                class="tab inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                data-state="active">PDF Viewer</button>
-        <button id="tab-json" onclick="switchTab('json', this)"
-                class="tab inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                data-state="inactive">JSON Output</button>
-        <button id="tab-events" onclick="switchTab('events', this)" style="display:none"
-                class="tab doc-only-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                data-state="inactive">Events</button>
-        <button id="tab-entities" onclick="switchTab('entities', this)" style="display:none"
-                class="tab doc-only-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                data-state="inactive">Entities</button>
-      </nav>
-
-      <div class="flex-1"></div>
-
-      <!-- Parse button -->
-      <button onclick="triggerParse()"
-              class="btn-parse inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] h-9 px-4 shadow-sm">
-        <i data-lucide="play" class="w-3.5 h-3.5"></i>
+    <!-- Floating Top-Right Controls Menu Pill -->
+    <div id="dynamic-controls" class="absolute top-4 right-6 z-30 flex items-center gap-2">
+      <div class="inline-flex items-center bg-zinc-100 p-0.5 rounded-full border border-zinc-200/60 shadow-sm">
+        <button id="toggle-pdf-btn" onclick="toggleDocView('pdf')" class="px-4 py-1 text-xs font-semibold rounded-full bg-white text-zinc-900 shadow-sm transition-all">PDF</button>
+        <button id="toggle-json-btn" onclick="toggleDocView('json')" class="px-4 py-1 text-xs font-medium rounded-full text-zinc-500 hover:text-zinc-900 transition-all">JSON</button>
+      </div>
+      <button onclick="triggerParse()" class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full text-xs font-semibold bg-[#222222] text-white hover:bg-black active:scale-[0.98] h-7 px-4 shadow-sm transition-all">
+        <i data-lucide="play" class="w-3 h-3"></i>
         <span>Parse</span>
       </button>
-    </header>
+    </div>
 
-    <!-- Panel content area -->
-    <div class="flex-1 overflow-hidden">
+    <!-- Panel Content viewport -->
+    <div class="flex-1 overflow-hidden h-full">
 
-      <!-- PDF -->
+      <!-- PDF Panel -->
       <div class="panel active" id="panel-pdf">
-        <div class="flex-1 bg-muted/50" id="pdfViewer">
+        <div class="flex-1 bg-zinc-50" id="pdfViewer">
           {% if index_iis %}
             <iframe id="pdfFrame" class="w-full h-full border-0"
                     src="/pdf/{{ project_name }}/{{ index_iis[0] }}"
@@ -323,21 +640,21 @@
           {% else %}
             <div class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
               <i data-lucide="file-text" class="w-10 h-10 opacity-30"></i>
-              <p class="text-sm">Upload an Index II to begin.</p>
+              <p class="text-sm">Upload a PDF Transaction file to begin.</p>
             </div>
           {% endif %}
         </div>
       </div>
 
-      <!-- JSON -->
+      <!-- JSON Panel -->
       <div class="panel" id="panel-json">
-        <div class="flex-1 overflow-auto bg-background" id="jsonPanel">
+        <div class="flex-1 overflow-auto bg-white" id="jsonPanel">
           <div id="jsonEmpty" class="flex flex-col items-center justify-center h-full p-8">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <i data-lucide="file-text" class="w-5 h-5 text-muted-foreground"></i>
             </div>
-            <h3 class="text-sm font-semibold mb-1">No data yet</h3>
-            <p class="text-sm text-muted-foreground">Parse a document to view its extracted fields.</p>
+            <h3 class="text-sm font-semibold mb-1">No data extracted</h3>
+            <p class="text-sm text-muted-foreground">Extract structured fields by selecting Parse on this document.</p>
           </div>
           <div id="jsonOutput" class="hidden p-6"></div>
           <div id="parseLoading" class="hidden flex-col items-center justify-center h-full gap-3 text-muted-foreground">
@@ -347,31 +664,146 @@
         </div>
       </div>
 
-      <!-- Events -->
+      <!-- Events Timeline Panel -->
       <div class="panel" id="panel-events">
         <div class="flex-1 overflow-auto" id="eventsPanel">
           <div id="eventsEmpty" class="flex flex-col items-center justify-center h-full p-8">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <i data-lucide="calendar" class="w-5 h-5 text-muted-foreground"></i>
             </div>
-            <h3 class="text-sm font-semibold mb-1">No events yet</h3>
-            <p class="text-sm text-muted-foreground">Parse documents to view the event timeline.</p>
+            <h3 class="text-sm font-semibold mb-1">No timeline available</h3>
+            <p class="text-sm text-muted-foreground">Parse documents to populate the chronological timeline.</p>
           </div>
           <div id="eventsContent" class="hidden p-6"></div>
         </div>
       </div>
 
-      <!-- Entities -->
+      <!-- Entities Ledger Panel -->
       <div class="panel" id="panel-entities">
         <div class="flex-1 overflow-auto" id="entitiesPanel">
           <div id="entitiesEmpty" class="flex flex-col items-center justify-center h-full p-8">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <i data-lucide="users" class="w-5 h-5 text-muted-foreground"></i>
             </div>
-            <h3 class="text-sm font-semibold mb-1">No entities yet</h3>
-            <p class="text-sm text-muted-foreground">Parse documents to view the entity ledger.</p>
+            <h3 class="text-sm font-semibold mb-1">No entities parsed</h3>
+            <p class="text-sm text-muted-foreground">Extracted entities will be displayed here once parsed.</p>
           </div>
           <div id="entitiesContent" class="hidden p-6"></div>
+        </div>
+      </div>
+
+      <!-- AI Assistant Panel -->
+      <div class="panel" id="panel-assistant">
+        <main class="chat-scroll" id="chatScroll">
+          <div class="chat-content" id="chatMessages"></div>
+        </main>
+
+        <!-- Chat Composer Box -->
+        <div class="composer-wrap">
+          <div class="composer">
+            <div class="scope-chip" id="scopeChip">
+              <span class="material-symbols-outlined" id="scopeChipIcon">filter_alt</span>
+              <span id="scopeChipLabel">Findings</span>
+              <button onclick="selectScope('all','General',null)" aria-label="Clear scope"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <textarea class="composer-input" id="chatInput" rows="1"
+                      placeholder="Start typing a prompt to ask about this property"
+                      onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
+
+            <div class="composer-bottom">
+              <div class="composer-left">
+                <div class="model-menu-wrap">
+                  <button class="model-switch" id="modelBtn" aria-haspopup="listbox" aria-expanded="false">
+                    <span id="modelLabel">Gemini 2.5 Flash</span>
+                    <svg class="model-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <div class="model-menu" id="modelMenu" role="listbox">
+                    <button class="model-menu-item selected" role="option" data-model="Gemini 2.5 Flash" data-id="gemini-2.5-flash">
+                      <span class="item-text"><span class="item-name">Gemini 2.5 Flash</span><span class="item-sub">Fast, everyday tasks</span></span>
+                      <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="model-menu-item" role="option" data-model="Gemini 2.5 Pro" data-id="gemini-2.5-pro">
+                      <span class="item-text"><span class="item-name">Gemini 2.5 Pro</span><span class="item-sub">Advanced reasoning</span></span>
+                      <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="model-menu-item" role="option" data-model="Gemini 2.0 Flash" data-id="gemini-2.0-flash">
+                      <span class="item-text"><span class="item-name">Gemini 2.0 Flash</span><span class="item-sub">Previous generation</span></span>
+                      <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="composer-right">
+                <!-- Scope context button -->
+                <div class="scope-menu-wrap" style="position:relative">
+                  <button class="composer-icon-btn" id="scopeBtn" aria-label="Choose context scope" title="Choose what the assistant searches" onclick="toggleScopeMenu(event)">
+                    <span class="material-symbols-outlined" id="scopeIcon">add</span>
+                  </button>
+                  <div class="scope-menu" id="scopeMenu" role="listbox">
+                    <div class="scope-menu-head">Search within</div>
+                    <button class="scope-item selected" role="option" data-scope="all" onclick="selectScope('all','General',this)">
+                      <span class="material-symbols-outlined">all_inclusive</span>
+                      <span class="scope-text"><span class="scope-name">General (All)</span><span class="scope-sub">Everything — normal mode</span></span>
+                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="scope-item" role="option" data-scope="json" onclick="selectScope('json','JSON',this)">
+                      <span class="material-symbols-outlined">data_object</span>
+                      <span class="scope-text"><span class="scope-name">All JSON outputs</span><span class="scope-sub">Raw parsed fields, every doc</span></span>
+                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="scope-item" role="option" data-scope="events" onclick="selectScope('events','Events',this)">
+                      <span class="material-symbols-outlined">timeline</span>
+                      <span class="scope-text"><span class="scope-name">Events</span><span class="scope-sub">The chronological timeline</span></span>
+                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="scope-item" role="option" data-scope="findings" onclick="selectScope('findings','Findings',this)">
+                      <span class="material-symbols-outlined">flag</span>
+                      <span class="scope-text"><span class="scope-name">Findings</span><span class="scope-sub">Validation findings only</span></span>
+                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                  </div>
+                </div>
+                <!-- Microphone input -->
+                <button class="composer-icon-btn" id="micBtn" aria-label="Use microphone" title="Speak your question" onclick="toggleVoice()">
+                  <span class="material-symbols-outlined">mic</span>
+                </button>
+                <button class="run-btn" id="runBtn" onclick="sendChat()">
+                  Run
+                  <span class="run-shortcut">
+                    Ctrl
+                    <span class="material-symbols-outlined">keyboard_return</span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placeholder Panel for DORIS -->
+      <div class="panel" id="panel-doris">
+        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 mb-4 text-[#71717a]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" /><path d="M12 6v12M15 9H10.5a2.5 2.5 0 0 0 0 5H13.5a2.5 2.5 0 0 1 0 5H9" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1">DORIS Integration</h3>
+          <p class="text-sm text-zinc-500 max-w-sm">The DORIS data registry connector interface module is currently in development.</p>
+        </div>
+      </div>
+
+      <!-- Placeholder Panel for NGDRS -->
+      <div class="panel" id="panel-ngdrs">
+        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 mb-4 text-[#71717a]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-semibold mb-1">NGDRS Integration</h3>
+          <p class="text-sm text-zinc-500 max-w-sm">The National Generic Document Registration System integration portal is currently in development.</p>
         </div>
       </div>
 
@@ -379,178 +811,127 @@
   </main>
 </div>
 
-<!-- ── Event detail modal (centered) ──────────────── -->
+<!-- ── Event details overlay drawer ──────────────── -->
 <div id="eventDrawerBackdrop"
      onclick="closeEventDetail()"
      class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center">
   <div id="eventDrawer"
        onclick="event.stopPropagation()"
        class="relative z-50 w-full max-w-3xl bg-background border border-border rounded-xl shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-out flex flex-col max-h-[82vh] mx-4">
-    <div id="eventDrawerContent" class="flex flex-col min-h-0">
-      <!-- populated by openEventDetail() -->
-    </div>
-  </div>
-</div>
-
-<!-- ── AI Assistant: floating button + chat overlay ──────────────── -->
-<button id="chatFab" onclick="toggleChat()"
-        class="fixed bottom-6 right-6 z-40 inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 active:scale-95 transition-all"
-        title="Ask the AI assistant">
-  <i data-lucide="sparkles" class="w-5 h-5"></i>
-</button>
-
-<div id="chatOverlay"
-     class="fixed bottom-24 right-6 z-50 w-[400px] max-w-[calc(100vw-3rem)] h-[560px] max-h-[calc(100vh-8rem)] bg-background border border-border rounded-xl shadow-2xl flex flex-col opacity-0 scale-95 pointer-events-none origin-bottom-right transition-all duration-200 ease-out">
-
-  <!-- Header -->
-  <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-border shrink-0">
-    <div class="flex items-center gap-2 min-w-0">
-      <div class="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0">
-        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-      </div>
-      <div class="min-w-0">
-        <div class="text-sm font-semibold tracking-tight leading-none">AutoTSR Assistant</div>
-        <div class="text-[10px] text-muted-foreground mt-0.5">Answers from this property's data</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-0.5 shrink-0">
-      <button onclick="clearChat()" title="New conversation"
-              class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-      </button>
-      <button onclick="toggleChat()" title="Close"
-              class="inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- Messages -->
-  <div id="chatMessages" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0">
-    <!-- greeting injected on first open -->
-  </div>
-
-  <!-- Suggested prompts (shown when empty) -->
-  <div id="chatSuggest" class="px-4 pb-2 flex flex-wrap gap-1.5">
-    <button onclick="askSuggested('Who currently owns this property?')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Who owns it now?</button>
-    <button onclick="askSuggested('Summarise the ownership history.')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Ownership history</button>
-    <button onclick="askSuggested('Explain the findings on this property.')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Explain the findings</button>
-    <button onclick="askSuggested('Are there any unresolved encumbrances?')" class="text-[11px] rounded-full border border-border bg-secondary px-2.5 py-1 text-secondary-foreground hover:bg-muted transition-colors">Encumbrances?</button>
-  </div>
-
-  <!-- Input -->
-  <div class="border-t border-border p-3 shrink-0">
-    <div class="flex items-end gap-2">
-      <textarea id="chatInput" rows="1" placeholder="Ask about this property..."
-                onkeydown="chatKeydown(event)"
-                oninput="autoGrowChat(this)"
-                class="flex-1 resize-none max-h-28 rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/15 focus:border-ring transition-all placeholder:text-muted-foreground/60"></textarea>
-      <button id="chatSend" onclick="sendChat()"
-              class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all shrink-0 disabled:opacity-40">
-        <i data-lucide="arrow-up" class="w-4 h-4"></i>
-      </button>
-    </div>
+    <div id="eventDrawerContent" class="flex flex-col min-h-0"></div>
   </div>
 </div>
 
 <script>
-  // ─────────────────────────────────────────────────────────
-  // Helper: set shadcn data-state on tabs (visual driver)
-  // ─────────────────────────────────────────────────────────
-  function setTabState(buttonEl, state) {
-    if (!buttonEl) return;
-    buttonEl.setAttribute('data-state', state);
+  // ════════════════════════════════════════════════════════════
+  // UNIFIED APPLICATION ROUTING STATE & TOGGLES
+  // ════════════════════════════════════════════════════════════
+  let activeMainView = 'pdf';      // 'pdf' | 'json' | 'events' | 'entities' | 'assistant' | 'doris' | 'ngdrs'
+  let selectedDocSubView = 'pdf';  // 'pdf' | 'json'
+  let selectedFile = "{{ index_iis[0] if index_iis else '' }}";
+
+  function toggleSidebarCollapse() {
+    const sb = document.getElementById('appSidebar');
+    if (sb) sb.classList.toggle('sb-collapsed');
   }
 
-  // ─────────────────────────────────────────────────────────
-  // Sidebar tabs (Documents | Events)
-  // ─────────────────────────────────────────────────────────
-  function switchSbTab(panel, el) {
-    document.querySelectorAll('.sb-tab').forEach(t => {
-      t.classList.remove('active');
-      setTabState(t, 'inactive');
+  function switchMainTab(view) {
+    // 1. Reset selection states of navigation sidebar elements
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+      el.classList.remove('bg-zinc-200/50', 'font-semibold', 'text-zinc-900');
+      el.classList.add('text-zinc-600', 'font-medium');
     });
-    el.classList.add('active');
-    setTabState(el, 'active');
 
-    document.querySelectorAll('.sb-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('sb-panel-' + panel).classList.add('active');
+    // Match document subviews to general navigation selector keys
+    let activeKey = view;
+    if (view === 'pdf' || view === 'json') {
+      activeKey = 'transactions';
+    }
 
-    const evTab  = document.getElementById('tab-events');
-    const entTab = document.getElementById('tab-entities');
-    const pdfTab = document.getElementById('tab-pdf');
-    const jsonTab = document.getElementById('tab-json');
+    // 2. Highlight active tab
+    const targetSidebarEl = document.getElementById('sidebar-' + activeKey);
+    if (targetSidebarEl) {
+      targetSidebarEl.classList.remove('text-zinc-600', 'font-medium');
+      targetSidebarEl.classList.add('bg-zinc-200/50', 'font-semibold', 'text-zinc-900');
+    }
 
-    if (panel === 'events-sb') {
-      pdfTab.style.display  = 'none';
-      jsonTab.style.display = 'none';
-      evTab.style.display   = '';
-      entTab.style.display  = '';
+    // 3. Toggle Visibility of top right document control switches
+    const controls = document.getElementById('dynamic-controls');
+    if (view === 'pdf' || view === 'json') {
+      if (controls) controls.classList.remove('hidden');
+      view = selectedDocSubView;
+    } else {
+      if (controls) controls.classList.add('hidden');
+    }
 
-      document.querySelectorAll('.tab').forEach(t => {
-        t.classList.remove('active');
-        setTabState(t, 'inactive');
-      });
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      evTab.classList.add('active');
-      setTabState(evTab, 'active');
-      document.getElementById('panel-events').classList.add('active');
+    activeMainView = view;
+
+    // 4. Toggle view Panel visibility
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const targetPanel = document.getElementById('panel-' + view);
+    if (targetPanel) {
+      targetPanel.classList.add('active');
+    }
+
+    // 5. Trigger load hooks
+    if (view === 'events') {
       loadEvents();
       loadSbEvents();
-    } else {
-      pdfTab.style.display  = '';
-      jsonTab.style.display = '';
-      evTab.style.display   = 'none';
-      entTab.style.display  = 'none';
-
-      const activePanel = document.querySelector('.panel.active');
-      if (activePanel && ['panel-events','panel-entities'].includes(activePanel.id)) {
-        document.querySelectorAll('.tab').forEach(t => {
-          t.classList.remove('active');
-          setTabState(t, 'inactive');
-        });
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        pdfTab.classList.add('active');
-        setTabState(pdfTab, 'active');
-        document.getElementById('panel-pdf').classList.add('active');
-      }
+    }
+    if (view === 'entities') {
+      loadEntities();
+    }
+    if (view === 'assistant') {
+      if (_chatHistory.length === 0) renderChatGreeting();
+      setTimeout(() => { const i = document.getElementById('chatInput'); if (i) i.focus(); }, 100);
     }
   }
 
-  // ─────────────────────────────────────────────────────────
-  // Main tabs
-  // ─────────────────────────────────────────────────────────
-  function switchTab(tab, el) {
-    document.querySelectorAll('.tab').forEach(t => {
-      t.classList.remove('active');
-      setTabState(t, 'inactive');
-    });
-    el.classList.add('active');
-    setTabState(el, 'active');
+  // Segmented view toggle switch logic (PDF <-> JSON)
+  function toggleDocView(subView) {
+    selectedDocSubView = subView;
+    
+    const pdfBtn = document.getElementById('toggle-pdf-btn');
+    const jsonBtn = document.getElementById('toggle-json-btn');
+    
+    if (subView === 'pdf') {
+      pdfBtn.className = "px-4 py-1 text-xs font-semibold rounded-full bg-white text-zinc-900 shadow-sm transition-all";
+      jsonBtn.className = "px-4 py-1 text-xs font-medium rounded-full text-zinc-500 hover:text-zinc-900 transition-all";
+    } else {
+      jsonBtn.className = "px-4 py-1 text-xs font-semibold rounded-full bg-white text-zinc-900 shadow-sm transition-all";
+      pdfBtn.className = "px-4 py-1 text-xs font-medium rounded-full text-zinc-500 hover:text-zinc-900 transition-all";
+    }
+    switchMainTab(subView);
+  }
 
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + tab).classList.add('active');
-
-    if (tab === 'events')   loadEvents();
-    if (tab === 'entities') loadEntities();
+  // Click handler for top Transactions Category
+  function selectTransactionsMenu() {
+    switchMainTab('pdf');
   }
 
   // ─────────────────────────────────────────────────────────
-  // Tree
+  // Document selection
   // ─────────────────────────────────────────────────────────
-  let selectedFile = "{{ index_iis[0] if index_iis else '' }}";
-
   function selectFile(el, filename) {
-    document.querySelectorAll('.tree-l2').forEach(t => {
-      t.classList.remove('bg-accent', 'text-accent-foreground');
+    document.querySelectorAll('#fileTree > div').forEach(t => {
+      t.classList.remove('bg-zinc-200/50', 'font-semibold', 'text-zinc-900');
+      t.classList.add('text-zinc-600');
     });
-    el.classList.add('bg-accent', 'text-accent-foreground');
+    
+    el.classList.add('bg-zinc-200/50', 'font-semibold', 'text-zinc-900');
+    el.classList.remove('text-zinc-600');
     selectedFile = filename;
+    
     const frame = document.getElementById('pdfFrame');
-    if (frame) frame.src = '/pdf/{{ project_name }}/' + filename;
-    // Refresh JSON panel for the newly selected file — otherwise
-    // the panel keeps showing whichever file was loaded last.
+    if (frame) {
+      frame.src = '/pdf/{{ project_name }}/' + filename;
+    }
     loadJsonForSelected(filename);
+
+    // Automatically transition focus back to standard document panel if outside of it
+    if (activeMainView !== 'pdf' && activeMainView !== 'json') {
+      switchMainTab('pdf');
+    }
   }
 
   function loadJsonForSelected(filename) {
@@ -560,10 +941,6 @@
         const out   = document.getElementById('jsonOutput');
         const empty = document.getElementById('jsonEmpty');
 
-        // Backend response shape for an unparsed file:
-        //   {exists: false}
-        // For a parsed file:
-        //   {exists: true, data: {parsed: true, data: {...real fields}}}
         const notParsed = !payload
                        || payload.exists === false
                        || !payload.data;
@@ -575,7 +952,6 @@
           return;
         }
 
-        // Unwrap the marker layer to get to the actual extracted fields.
         let fields = payload.data;
         if (fields && typeof fields === 'object' && fields.parsed === true && fields.data) {
           fields = fields.data;
@@ -598,23 +974,20 @@
   }
 
   function startRename(btn, filename) {
-    // Find the name span in this row
-    const row  = btn.closest('.tree-l2');
+    const row  = btn.closest('#fileTree > div');
     const span = row.querySelector('.tree-l2-name');
     if (!span) return;
 
     const baseName = filename.replace(/\.pdf$/i, '');
 
-    // Replace the span with an inline input
     const input = document.createElement('input');
     input.type  = 'text';
     input.value = baseName;
-    input.className = 'flex-1 min-w-0 bg-transparent border-0 border-b border-ring outline-none text-sm font-[inherit] px-0';
+    input.className = 'flex-1 min-w-0 bg-transparent border-0 border-b border-ring outline-none text-[13px] font-[inherit] px-0';
     span.replaceWith(input);
     input.focus();
     input.select();
 
-    // Hide row click while editing
     row.onclick = null;
 
     function commitRename() {
@@ -643,7 +1016,7 @@
 
     function cancelRename() {
       const newSpan = document.createElement('span');
-      newSpan.className = 'tree-l2-name flex-1 truncate';
+      newSpan.className = 'truncate tree-l2-name';
       newSpan.setAttribute('data-filename', filename);
       newSpan.textContent = filename;
       input.replaceWith(newSpan);
@@ -659,7 +1032,7 @@
 
   function filterTree(query) {
     const q = query.toLowerCase();
-    document.querySelectorAll('.tree-l2-wrap').forEach(wrap => {
+    document.querySelectorAll('#fileTree > div').forEach(wrap => {
       const name = wrap.querySelector('.tree-l2-name');
       if (name) wrap.style.display = name.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
@@ -692,19 +1065,11 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // Parse
+  // Parsing Operation Trigger
   // ─────────────────────────────────────────────────────────
   function triggerParse() {
-    document.querySelectorAll('.tab').forEach(t => {
-      t.classList.remove('active');
-      setTabState(t, 'inactive');
-    });
-    const jsonTab = document.getElementById('tab-json');
-    jsonTab.classList.add('active');
-    setTabState(jsonTab, 'active');
-
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-json').classList.add('active');
+    selectedDocSubView = 'json';
+    toggleDocView('json');
 
     document.getElementById('jsonEmpty').classList.add('hidden');
     document.getElementById('jsonEmpty').classList.remove('flex');
@@ -736,11 +1101,7 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // JSON syntax highlighting (kept simple, shadcn-muted)
-  // ─────────────────────────────────────────────────────────
-  // ─────────────────────────────────────────────────────────
-  // Render parsed JSON as a clean reference panel
-  // (definition-list style, like shadcn docs tables)
+  // JSON Output rendering
   // ─────────────────────────────────────────────────────────
   function humanLabel(key) {
     return key
@@ -748,6 +1109,7 @@
       .replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  // Value cleanups and table elements escape formatter
   function formatValue(v) {
     if (v === null || v === undefined || v === '' || v === 'null')
       return '<span class="text-muted-foreground italic">—</span>';
@@ -761,12 +1123,12 @@
     return `<span class="text-sm text-foreground">${escapeHtml(String(v))}</span>`;
   }
 
+  // Simple string utility function
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function renderJsonAsTable(payload) {
-    // Unwrap if there's a `data` key (matches the screenshot's structure)
     const obj = (payload && typeof payload === 'object' && payload.data && typeof payload.data === 'object')
       ? payload.data
       : payload;
@@ -775,64 +1137,28 @@
       return '<div class="text-sm text-muted-foreground">No data to display.</div>';
     }
 
-    // Field display order — mirrors how a person reads a deed
     const FIELD_ORDER = [
-      // 1. Document identity
-      'document_type', 'txn_type',
-      'sub_registrar_office', 'registration_no', 'registration_year', 'doc_no',
-
-      // 2. When
+      'document_type', 'txn_type', 'sub_registrar_office', 'registration_no', 'registration_year', 'doc_no',
       'date_of_execution', 'date_of_registration',
-
-      // 3. Property — location
-      'society_building_name', 'society_building_address',
-      'flat_no', 'plot_no', 'survey_no', 'cts_no',
-      'village', 'district',
-      'area',
-
-      // 4. Property — boundaries
+      'society_building_name', 'society_building_address', 'flat_no', 'plot_no', 'survey_no', 'cts_no', 'village', 'district', 'area',
       'boundary_north', 'boundary_south', 'boundary_east', 'boundary_west',
-
-      // 5. Parties — Sale / Agreement / Release
-      'seller_names', 'seller_address',
-      'buyer_names',  'buyer_address',
-
-      // 6. Parties — Gift
-      'donor_name',  'donor_address',
-      'donee_name',  'donee_address',
-
-      // 7. Parties — Mortgage
-      'mortgagor_name', 'mortgagor_address',
-      'mortgagee_name', 'mortgagee_address',
-
-      // 8. Parties — Leave & License
-      'licensor_name', 'licensor_address',
-      'licensee_name', 'licensee_address',
-      'leave_license_months',
-
-      // 9. Identity proofs
-      'transferor_pan', 'transferor_pin',
-      'transferee_pan', 'transferee_pin',
-
-      // 10. Money
-      'consideration', 'deposit', 'license_fee',
-      'stamp_duty', 'registration_fee',
-
-      // 11. Misc
-      'remarks',
+      'seller_names', 'seller_address', 'buyer_names',  'buyer_address',
+      'donor_name',  'donor_address', 'donee_name',  'donee_address',
+      'mortgagor_name', 'mortgagor_address', 'mortgagee_name', 'mortgagee_address',
+      'licensor_name', 'licensor_address', 'licensee_name', 'licensee_address', 'leave_license_months',
+      'transferor_pan', 'transferor_pin', 'transferee_pan', 'transferee_pin',
+      'consideration', 'deposit', 'license_fee', 'stamp_duty', 'registration_fee', 'remarks'
     ];
 
     const orderIndex = (key) => {
       const i = FIELD_ORDER.indexOf(key);
-      return i === -1 ? 999 : i;  // unknown keys land at the end
+      return i === -1 ? 999 : i;
     };
 
     const isEmpty = (v) =>
       v === null || v === undefined || v === '' || v === 'null' ||
       (Array.isArray(v) && v.length === 0);
 
-    // ── Filter out irrelevant party blocks based on txn_type ─────
-    // A Sale Deed should not show donor/donee/mortgagor/licensor rows.
     const PARTY_GROUPS = {
       sale:     ['seller_names', 'seller_address', 'buyer_names', 'buyer_address'],
       gift:     ['donor_name', 'donor_address', 'donee_name', 'donee_address'],
@@ -842,15 +1168,11 @@
 
     function relevantGroupsFor(txn) {
       const t = (txn || '').toUpperCase();
-      if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE'))
-        return ['sale'];
-      if (t.includes('GIFT'))
-        return ['gift'];
-      if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
-        return ['mortgage'];
-      if (t.includes('LEAVE') || t.includes('LICENSE'))
-        return ['license'];
-      return Object.keys(PARTY_GROUPS);  // unknown txn → show everything
+      if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE')) return ['sale'];
+      if (t.includes('GIFT')) return ['gift'];
+      if (t.includes('MORTGAGE') || t.includes('INTIMATION')) return ['mortgage'];
+      if (t.includes('LEAVE') || t.includes('LICENSE')) return ['license'];
+      return Object.keys(PARTY_GROUPS);
     }
 
     const txnType = obj.txn_type || obj.document_type;
@@ -862,13 +1184,9 @@
       }
     });
 
-    // Sort: populated fields in deed-reading order, then empty fields,
-    // dropping irrelevant party fields entirely.
     const entries = Object.entries(obj)
       .filter(([k, v]) => {
         if (!hiddenPartyFields.has(k)) return true;
-        // Keep an irrelevant-group field only if it actually has data
-        // (extraction quirk — surface it rather than hide real info)
         return !isEmpty(v);
       })
       .sort((a, b) => {
@@ -895,29 +1213,14 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // Events (timeline)
+  // Timeline Events View
   // ─────────────────────────────────────────────────────────
-  function eventBadgeClasses(type) {
-    const t = (type || '').toUpperCase();
-    if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    if (t.includes('RELEASE'))
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    if (t.includes('GIFT'))
-      return 'bg-violet-50 text-violet-700 border-violet-200';
-    if (t.includes('LEAVE') || t.includes('LICENSE'))
-      return 'bg-sky-50 text-sky-700 border-sky-200';
-    return 'bg-rose-50 text-rose-700 border-rose-200';
-  }
-
-  // Holds the currently-rendered sorted events so the detail
-  // drawer can look an event up by its index when a row is clicked.
   let _eventsStore = [];
   let _currentOwnerName = null;
 
   function loadEvents() {
     fetch('/events/{{ project_name }}')
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : { events: [] })
       .then(data => {
         const container = document.getElementById('eventsContent');
         const empty     = document.getElementById('eventsEmpty');
@@ -934,8 +1237,6 @@
         container.classList.remove('hidden');
         container.innerHTML = '';
 
-        // ── Derive property facts from the events ──────────────────
-        // The property identity is the most common (mode) value across events.
         function mode(arr) {
           const counts = {};
           arr.filter(Boolean).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
@@ -952,15 +1253,12 @@
           address: mode(events.map(e => e.society_building_address)),
         };
 
-        // Sort events chronologically (oldest first) to find current owner
         const sorted = [...events].sort((a, b) =>
           (a.event_date || '').localeCompare(b.event_date || '')
         );
 
-        // Persist for the detail drawer (looked up by row index).
         _eventsStore = sorted;
 
-        // Walk forward to find latest sale/transfer buyer = current owner
         let currentOwner = null, currentOwnerSince = null, currentOwnerDoc = null;
         sorted.forEach(ev => {
           const t = (ev.event_type || '').toUpperCase();
@@ -977,8 +1275,6 @@
 
         _currentOwnerName = currentOwner;
 
-        // Findings (all errors/discrepancies) and encumbrance counts —
-        // these come straight from the /events response.
         const findings           = data.chain_errors || [];
         const activeFindings     = findings.filter(f => !f.dismissed);
         const dismissedFindings  = findings.filter(f => f.dismissed);
@@ -986,7 +1282,6 @@
         const encumbrancesTotal   = data.encumbrances_total || 0;
         const encumbrancesUnresolved = data.encumbrances_unresolved || 0;
 
-        // Chain span
         const firstDate = sorted[0]?.event_date;
         const lastDate  = sorted[sorted.length - 1]?.event_date;
         function spanLabel(a, b) {
@@ -1003,7 +1298,6 @@
           return y + 'y ' + m + 'm';
         }
 
-        // ── Render facts header ────────────────────────────────────
         let html = `
           <div class="rounded-lg border border-border bg-card shadow-sm">
             <div class="grid grid-cols-2 gap-6 p-6 pb-5">
@@ -1044,7 +1338,6 @@
             </div>
           </div>`;
 
-        // ── Render timeline table ──────────────────────────────────
         html += `
           <div class="mt-4 rounded-lg border border-border bg-card shadow-sm overflow-hidden">
             <div class="flex items-center justify-between px-6 py-3 border-b border-border bg-muted/40">
@@ -1067,7 +1360,6 @@
           const year = (ev.event_date || '').split('-')[2] || '—';
           const isLast = idx === sorted.length - 1;
 
-          // Restrained shadcn badge variants
           let typeBadgeClass = 'border-border bg-secondary text-secondary-foreground';
           let typeLabel = ev.event_type || '—';
           if (t.includes('SALE') || t.includes('AGREEMENT')) {
@@ -1087,8 +1379,7 @@
             typeLabel = 'Leave & License';
           }
 
-          // Parties
-          let from = null, to = null, arrow = 'arrow-right';
+          let from = null, to = null;
           if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE')) {
             from = Array.isArray(ev.seller_names) ? ev.seller_names.join(', ') : ev.seller_names;
             to   = Array.isArray(ev.buyer_names)  ? ev.buyer_names.join(', ')  : ev.buyer_names;
@@ -1096,10 +1387,8 @@
             from = ev.donor_name; to = ev.donee_name;
           } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
             from = ev.mortgagor_name; to = ev.mortgagee_name;
-            arrow = 'arrows-up-down';
           } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
             from = ev.licensor_name; to = ev.licensee_name;
-            arrow = 'arrow-right';
           }
 
           const isCurrent = to && currentOwner && to === currentOwner;
@@ -1125,7 +1414,6 @@
 
         html += `</div>`;
 
-        // ── Render FINDINGS section — shadcn restrained, dismissible ──
         html += `
           <div class="mt-8">
             <div class="flex items-center gap-2.5 mb-3 px-1">
@@ -1142,12 +1430,10 @@
             </div>
           </div>`;
         } else {
-          // Active findings first, then dismissed (visually distinct, in place).
           html += `<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
           activeFindings.forEach(err => { html += renderFindingCard(err, false); });
           dismissedFindings.forEach(err => { html += renderFindingCard(err, true); });
 
-          // If everything is dismissed, show a gentle note at the top.
           if (activeFindings.length === 0 && dismissedFindings.length > 0) {
             html = html.replace(
               '<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">',
@@ -1163,37 +1449,48 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // Event detail drawer
+  // Sidebar Sub-panel rendering logic
   // ─────────────────────────────────────────────────────────
-  const DETAIL_TXN_LABELS = {
-    'SALE_DEED': 'Sale Deed', 'AGREEMENT_OF_SALE': 'Agreement of Sale',
-    'GIFT_DEED': 'Gift Deed', 'RELEASE_DEED': 'Release Deed',
-    'DEED_OF_RELEASE': 'Deed of Release', 'MORTGAGE_DEED': 'Mortgage Deed',
-    'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
-    'LEAVE_AND_LICENSE': 'Leave & License',
+  const SB_TYPE_LABELS = {
+    'SALE_DEED':              'Sale',
+    'AGREEMENT_OF_SALE':      'Agreement',
+    'GIFT_DEED':              'Gift',
+    'MORTGAGE_DEED':          'Mortgage',
+    'INTIMATION_OF_MORTGAGE': 'Mortgage',
+    'RELEASE_DEED':           'Release',
+    'DEED_OF_RELEASE':        'Release',
+    'LEAVE_AND_LICENSE':      'Licence',
   };
 
-  // Only builds a row if the value is non-empty.
-  function _detailRowIfPresent(label, value) {
-    if (value === undefined || value === null || value === '' ||
-        (Array.isArray(value) && value.filter(Boolean).length === 0)) return '';
-    const display = Array.isArray(value) ? value.filter(Boolean).join(', ') : String(value);
-    return `
-      <div class="flex gap-4 px-4 py-2.5 border-b border-border/60 last:border-0">
-        <div class="w-28 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground pt-0.5">${label}</div>
-        <div class="text-sm text-foreground min-w-0 break-words flex-1">${display}</div>
-      </div>`;
+  function sbTypeBadge(type) {
+    const t = (type || '').toUpperCase();
+    if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
+      return 'border-border bg-amber-50/60 text-amber-800';
+    if (t.includes('RELEASE'))
+      return 'border-border bg-emerald-50/60 text-emerald-800';
+    if (t.includes('GIFT'))
+      return 'border-border bg-violet-50/60 text-violet-800';
+    if (t.includes('LEAVE') || t.includes('LICENSE'))
+      return 'border-border bg-sky-50/60 text-sky-800';
+    return 'border-border bg-secondary text-secondary-foreground';
   }
 
-  function _detailCol(title, rows) {
-    if (!rows) return '';
-    return `
-      <div>
-        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 mb-2 px-1">${title}</div>
-        <div class="rounded-lg border border-border bg-card overflow-hidden">${rows}</div>
-      </div>`;
+  function loadSbEvents() {
+    fetch('/events/{{ project_name }}')
+      .then(r => r.ok ? r.json() : { chain_errors: [] })
+      .then(data => {
+        const findings = data.chain_errors || [];
+        const flaggedDocs = new Set(
+          findings
+            .filter(f => !f.dismissed && f.doc_no)
+            .map(f => String(f.doc_no))
+        );
+      });
   }
 
+  // ─────────────────────────────────────────────────────────
+  // Detailed Event Overlays
+  // ─────────────────────────────────────────────────────────
   function openEventDetail(idx) {
     const ev = _eventsStore[idx];
     if (!ev) return;
@@ -1201,7 +1498,6 @@
     const t         = (ev.event_type || '').toUpperCase();
     const typeLabel = DETAIL_TXN_LABELS[ev.event_type] || ev.event_type || '—';
 
-    // Resolve parties
     let fromLabel = 'From', toLabel = 'To', fromVal = null, toVal = null;
     if (t.includes('SALE') || t.includes('AGREEMENT')) {
       fromLabel = 'Seller'; toLabel = 'Buyer';
@@ -1223,7 +1519,6 @@
     const buyerName = Array.isArray(toVal) ? toVal.filter(Boolean).join(', ') : toVal;
     const isCurrent = buyerName && _currentOwnerName && buyerName === _currentOwnerName;
 
-    // Left column — identity + parties + financials
     const leftRows =
       _detailRowIfPresent('Doc No',       ev.event_doc_no) +
       _detailRowIfPresent('Executed',     ev.event_date) +
@@ -1239,7 +1534,6 @@
       _detailRowIfPresent('Stamp Duty',    ev.stamp_duty) +
       _detailRowIfPresent('Market Value',  ev.market_value);
 
-    // Right column — property
     const plotNo = ev.id_field === 'plot_no' ? ev.id_value : (ev.plot_no || null);
     const propRows =
       _detailRowIfPresent('Society',  ev.society_building_name) +
@@ -1275,17 +1569,14 @@
 
       <div class="flex-1 overflow-y-auto min-h-0">
         <div class="grid grid-cols-2 gap-5 p-6">
-
           <div class="space-y-5">
             ${_detailCol('Document', leftRows)}
             ${partyRows ? _detailCol('Parties', partyRows) : ''}
             ${moneyRows ? _detailCol('Financials', moneyRows) : ''}
           </div>
-
           <div class="space-y-5">
             ${propRows ? _detailCol('Property', propRows) : ''}
           </div>
-
         </div>
       </div>`;
 
@@ -1304,136 +1595,40 @@
     backdrop.classList.remove('opacity-100');
   }
 
-  // Esc closes the drawer
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeEventDetail();
   });
 
-  // ─────────────────────────────────────────────────────────
-  // Sidebar timeline — design F (restrained two-line + finding flag)
-  // ─────────────────────────────────────────────────────────
-
-  // Short human-readable labels for the sidebar type badge
-  const SB_TYPE_LABELS = {
-    'SALE_DEED':              'Sale',
-    'AGREEMENT_OF_SALE':      'Agreement',
-    'GIFT_DEED':              'Gift',
-    'MORTGAGE_DEED':          'Mortgage',
-    'INTIMATION_OF_MORTGAGE': 'Mortgage',
-    'RELEASE_DEED':           'Release',
-    'DEED_OF_RELEASE':        'Release',
-    'LEAVE_AND_LICENSE':      'Licence',
+  const DETAIL_TXN_LABELS = {
+    'SALE_DEED': 'Sale Deed', 'AGREEMENT_OF_SALE': 'Agreement of Sale',
+    'GIFT_DEED': 'Gift Deed', 'RELEASE_DEED': 'Release Deed',
+    'DEED_OF_RELEASE': 'Deed of Release', 'MORTGAGE_DEED': 'Mortgage Deed',
+    'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
+    'LEAVE_AND_LICENSE': 'Leave & License',
   };
 
-  // Neutral muted badge — one restrained style per type, no bright fills
-  function sbTypeBadge(type) {
-    const t = (type || '').toUpperCase();
-    // Subtle semantic tints — kept very low saturation to match the restrained ask
-    if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
-      return 'border-border bg-amber-50/60 text-amber-800';
-    if (t.includes('RELEASE'))
-      return 'border-border bg-emerald-50/60 text-emerald-800';
-    if (t.includes('GIFT'))
-      return 'border-border bg-violet-50/60 text-violet-800';
-    if (t.includes('LEAVE') || t.includes('LICENSE'))
-      return 'border-border bg-sky-50/60 text-sky-800';
-    // Sale / Agreement — completely neutral
-    return 'border-border bg-secondary text-secondary-foreground';
+  function _detailRowIfPresent(label, value) {
+    if (value === undefined || value === null || value === '' ||
+        (Array.isArray(value) && value.filter(Boolean).length === 0)) return '';
+    const display = Array.isArray(value) ? value.filter(Boolean).join(', ') : String(value);
+    return `
+      <div class="flex gap-4 px-4 py-2.5 border-b border-border/60 last:border-0">
+        <div class="w-28 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground pt-0.5">${label}</div>
+        <div class="text-sm text-foreground min-w-0 break-words flex-1">${display}</div>
+      </div>`;
   }
 
-  function loadSbEvents() {
-    fetch('/events/{{ project_name }}')
-      .then(r => r.json())
-      .then(data => {
-        const list   = document.getElementById('sbEventsList');
-        const empty  = document.getElementById('sbEventsEmpty');
-        const cntEl  = document.getElementById('sbEventsCount');
-        const events = data.events || [];
-
-        if (events.length === 0) {
-          empty.style.display = '';
-          list.innerHTML = '';
-          cntEl.classList.add('hidden');
-          return;
-        }
-
-        empty.style.display = 'none';
-        cntEl.textContent = events.length;
-        cntEl.classList.remove('hidden');
-
-        // Build a set of doc_nos that have at least one ACTIVE finding
-        // so we can show the flag only where it matters.
-        const findings = data.chain_errors || [];
-        const flaggedDocs = new Set(
-          findings
-            .filter(f => !f.dismissed && f.doc_no)
-            .map(f => String(f.doc_no))
-        );
-
-        // Sort chronologically (same order as main timeline)
-        const sorted = [...events].sort((a, b) =>
-          (a.event_date || '').localeCompare(b.event_date || '')
-        );
-
-        list.innerHTML = sorted.map((ev, idx) => {
-          const label     = SB_TYPE_LABELS[ev.event_type] || (ev.event_type || '').replace(/_/g, ' ').toLowerCase().replace(/\w/g, c => c.toUpperCase());
-          const badgeCls  = sbTypeBadge(ev.event_type);
-          const docNo     = ev.event_doc_no || '—';
-          const date      = ev.event_date   || '';
-          const hasFlag   = flaggedDocs.has(String(docNo));
-
-          // Parties — pick the right names by type
-          const t = (ev.event_type || '').toUpperCase();
-          let from = null, to = null;
-          if (t.includes('SALE') || t.includes('AGREEMENT')) {
-            const sellers = ev.seller_names;
-            const buyers  = ev.buyer_names;
-            from = Array.isArray(sellers) ? sellers[0] : sellers;
-            to   = Array.isArray(buyers)  ? buyers[0]  : buyers;
-          } else if (t.includes('GIFT')) {
-            from = ev.donor_name; to = ev.donee_name;
-          } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
-            from = ev.mortgagor_name; to = ev.mortgagee_name;
-          } else if (t.includes('RELEASE')) {
-            const rel = ev.releasor_names;
-            from = Array.isArray(rel) ? rel[0] : rel;
-          } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
-            from = ev.licensor_name; to = ev.licensee_name;
-          }
-
-          // Shorten long names to first surname only for sidebar density
-          const shorten = name => {
-            if (!name) return null;
-            const parts = String(name).trim().split(/\s+/);
-            return parts.length > 2 ? parts.slice(-1)[0] : name;
-          };
-
-          const partiesText = [shorten(from), shorten(to)].filter(Boolean).join(' → ');
-
-          return `
-            <div onclick="openEventDetail(${idx})"
-                 class="group flex flex-col gap-0.5 px-3 py-2.5 mx-1 rounded-md cursor-pointer hover:bg-accent transition-colors">
-              <div class="flex items-center justify-between gap-2">
-                <span class="inline-flex items-center rounded border ${badgeCls} px-1.5 py-0.5 text-[10px] font-medium shrink-0">${label}</span>
-                <span class="text-[10px] text-muted-foreground tabular-nums shrink-0">${date}</span>
-              </div>
-              <div class="flex items-center gap-1.5 min-w-0">
-                <span class="text-[11px] font-mono text-foreground/70 shrink-0">${docNo}</span>
-                ${partiesText ? `<span class="text-muted-foreground/50 text-[10px] shrink-0">·</span><span class="text-[10px] text-muted-foreground truncate">${partiesText}</span>` : ''}
-                ${hasFlag ? `<span class="ml-auto shrink-0 text-[9px] font-medium text-muted-foreground border border-border rounded px-1 py-0.5 tabular-nums">!</span>` : ''}
-              </div>
-            </div>`;
-        }).join('');
-
-        if (window.lucide) lucide.createIcons();
-      });
+  function _detailCol(title, rows) {
+    if (!rows) return '';
+    return `
+      <div>
+        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 mb-2 px-1">${title}</div>
+        <div class="rounded-lg border border-border bg-card overflow-hidden">${rows}</div>
+      </div>`;
   }
 
   // ─────────────────────────────────────────────────────────
-  // Entities
-  // ─────────────────────────────────────────────────────────
-  // ─────────────────────────────────────────────────────────
-  // Entities — two-column party graph
+  // Entities rendering logic
   // ─────────────────────────────────────────────────────────
   const BASIS_LABELS = {
     'SALE_DEED':              'Sale Deed',
@@ -1447,7 +1642,6 @@
   };
   const basisLabel = (b) => BASIS_LABELS[b] || b || '—';
 
-  // shadcn Badge primitive
   function Badge(variant, text) {
     const variants = {
       'default':     'border-transparent bg-primary text-primary-foreground',
@@ -1461,12 +1655,6 @@
     return `<span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${variants[variant] || variants.outline}">${text}</span>`;
   }
 
-  // shadcn-style Separator
-  function Separator() {
-    return '<div class="shrink-0 bg-border h-[1px] w-full my-3"></div>';
-  }
-
-  // Column header (sticky lookalike)
   function ColumnHeader(icon, title, count) {
     return `
       <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
@@ -1478,49 +1666,32 @@
       </div>`;
   }
 
-  // Subgroup label inside a column
   function SubgroupLabel(text) {
     return `<div class="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 mb-2 mt-4 first:mt-0">${text}</div>`;
   }
 
-  // ── Transfer Party Card ────────────────────────────────────
   function renderTransferPartyCard(o) {
     const isActive    = o.status === 'active';
     const isRoot      = !!o._isRoot;
     const entryType   = o.entry_type || 'buyer';
-    // entry_type values:
-    //   'buyer'       — we have a deed where they received the property (normal)
-    //   'root_seller' — first deed's seller; root of chain, no prior record
-    //   'seller_only' — appeared only as seller in a chain-break deed; never received
 
-    // ── Card border ──────────────────────────────────────────
     let borderClass = 'border-border bg-card';
     if (isActive && o.encumbered) borderClass = 'border-amber-200/70 bg-amber-50/30';
     else if (isRoot)              borderClass = 'border-yellow-300/70 bg-yellow-50/40';
 
-    // ── Status badge ─────────────────────────────────────────
     let statusBadge;
     if (isActive && o.encumbered) statusBadge = Badge('warning', 'Encumbered');
     else if (isActive)            statusBadge = Badge('success', 'Active Owner');
     else                          statusBadge = Badge('muted', 'Former');
 
-    // ── Root ribbon ──────────────────────────────────────────
     const rootRibbon = isRoot
       ? `<div class="px-4 pt-3"><span class="inline-flex items-center gap-1 rounded-md border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-800"><i data-lucide="flag" class="w-3 h-3"></i>Root of Title</span></div>`
       : '';
 
-    // ── Area (active owners only) ────────────────────────────
     const areaLine = (isActive && o.area)
       ? `<div class="text-xs text-foreground/80">${o.area}</div>`
       : '';
 
-    // ── First line: how they entered the record ───────────────
-    // root_seller → "Root of title · <deed type> · Doc X"
-    //               No date shown — we don't know when they acquired it.
-    // seller_only → "Named as seller · <deed type> · Doc X · <date>"
-    //               We only know they appeared as a seller. No acquisition record.
-    // buyer (normal) → "Acquired <date> · <deed type> · Doc X"
-    //                   We witnessed their receipt.
     let entryIcon, entryText;
     if (entryType === 'root_seller') {
       entryIcon = 'anchor';
@@ -1540,12 +1711,6 @@
         <span>${entryText}</span>
       </div>`;
 
-    // ── Exit line ────────────────────────────────────────────
-    // Show an exit line for ANYONE no longer active, worded by how
-    // they left so it's never misleading and never blank-looking:
-    //   buyer/normal → "Exited <date> · <deed> · Doc X"  (we saw them transfer out)
-    //   seller_only  → "Exited via this deed · Doc X"     (their only appearance WAS the exit)
-    //   root_seller  → "Exited via root deed · Doc X"     (root deed is itself their exit)
     let exitLine = '';
     if (!isActive && o.exited_date) {
       let exitText;
@@ -1563,7 +1728,6 @@
         </div>`;
     }
 
-    // ── Encumbrance warning (active owners only) ─────────────
     const encLine = (isActive && o.encumbered && o.encumbrance_doc)
       ? `<div class="flex items-center gap-1.5 text-xs text-amber-700 pt-1">
            <i data-lucide="lock" class="w-3 h-3 shrink-0"></i>
@@ -1571,9 +1735,6 @@
          </div>`
       : '';
 
-    // ── PAN / PIN footer (shown for every entity) ────────────
-    // o.pan and o.pin are lists. Show them as small mono chips.
-    // If none captured, show a muted "—" so the layout stays consistent.
     const pans = Array.isArray(o.pan) ? o.pan.filter(Boolean) : (o.pan ? [o.pan] : []);
     const pins = Array.isArray(o.pin) ? o.pin.filter(Boolean) : (o.pin ? [o.pin] : []);
 
@@ -1614,9 +1775,6 @@
       </div>`;
   }
 
-  // ── Encumbrance Card ───────────────────────────────────────
-  // For RESOLVED mortgages, the card visually pairs the mortgage
-  // and its release inside ONE unit, separated by a divider.
   function renderEncumbranceCard(e) {
     const isResolved = e.status === 'RESOLVED';
     const headerBadge = isResolved
@@ -1636,7 +1794,6 @@
           </div>
           ${headerBadge}
         </div>
-
         <div class="px-4 pb-3 space-y-1">
           <div class="text-xs text-foreground/80">
             <span class="text-muted-foreground">Mortgagor:</span> ${e.mortgagor || '—'}
@@ -1648,7 +1805,6 @@
         </div>`;
 
     if (isResolved) {
-      // Release pair — inset, divider above, lighter background
       html += `
         <div class="mx-4 h-[1px] bg-border"></div>
         <div class="px-4 py-3 bg-emerald-50/40 rounded-b-lg">
@@ -1666,7 +1822,6 @@
     return html;
   }
 
-  // ── Empty subgroup placeholder ─────────────────────────────
   function renderEmptyPlaceholder(text) {
     return `<div class="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-10 flex flex-col items-center justify-center text-center">
       <i data-lucide="inbox" class="w-5 h-5 text-muted-foreground/60 mb-2"></i>
@@ -1674,10 +1829,9 @@
     </div>`;
   }
 
-  // ── Main loader ────────────────────────────────────────────
   function loadEntities() {
     fetch('/entities/{{ project_name }}')
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : { owners: [], encumbrances: [] })
       .then(data => {
         const container = document.getElementById('entitiesContent');
         const empty     = document.getElementById('entitiesEmpty');
@@ -1694,10 +1848,6 @@
         empty.classList.remove('flex');
         container.classList.remove('hidden');
 
-        // ── Order transfer parties chronologically (top → bottom).
-        // Sort by acquisition date (since_date), oldest first.
-        // Tag the earliest entry as the "Root of Title".
-        // Tag any active owner as "Active Owner". All others are "Former".
         const allParties = [...owners].sort((a, b) => {
           const da = a.since_date || '';
           const db = b.since_date || '';
@@ -1715,9 +1865,7 @@
         const totalParties = allParties.length;
         const totalEnc     = activeEnc.length + pastEnc.length;
 
-        // ── LEFT COLUMN: Transfer Parties (single chronological flow) ──
         let leftCol = ColumnHeader('users', 'Transfer Parties', totalParties);
-
         if (allParties.length > 0) {
           leftCol += '<div class="space-y-2">';
           allParties.forEach(o => { leftCol += renderTransferPartyCard(o); });
@@ -1726,28 +1874,23 @@
           leftCol += renderEmptyPlaceholder('No transfer parties yet.');
         }
 
-        // ── RIGHT COLUMN: Encumbrances ──
         let rightCol = ColumnHeader('landmark', 'Encumbrances', totalEnc);
-
         if (activeEnc.length > 0) {
           rightCol += SubgroupLabel('Active');
           rightCol += '<div class="space-y-2">';
           activeEnc.forEach(e => { rightCol += renderEncumbranceCard(e); });
           rightCol += '</div>';
         }
-
         if (pastEnc.length > 0) {
           rightCol += SubgroupLabel('Released');
           rightCol += '<div class="space-y-2">';
           pastEnc.forEach(e => { rightCol += renderEncumbranceCard(e); });
           rightCol += '</div>';
         }
-
         if (totalEnc === 0) {
           rightCol += renderEmptyPlaceholder('No encumbrances recorded.');
         }
 
-        // ── Assemble: 2-column grid ──
         container.innerHTML = `
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>${leftCol}</div>
@@ -1759,19 +1902,8 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // Errors
+  // Errors Formatting Utility
   // ─────────────────────────────────────────────────────────
-  function errorBadgeClasses(type) {
-    const t = type || '';
-    if (['INVALID_PAN_FORMAT','INVALID_PIN_FORMAT'].includes(t))
-      return 'bg-sky-50 text-sky-700 border-sky-200';
-    if (['PAN_TRANSFEROR_TRANSFEREE_CLASH','PIN_TRANSFEROR_TRANSFEREE_CLASH'].includes(t))
-      return 'bg-violet-50 text-violet-700 border-violet-200';
-    if (['DATE_ORDER_ERROR','AREA_MISMATCH','SOCIETY_MISMATCH','ID_MISMATCH','INVALID_MORTGAGOR'].includes(t))
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    return 'bg-rose-50 text-rose-700 border-rose-200';
-  }
-
   function errorBadgeLabel(type) {
     const map = {
       'DATE_ORDER_ERROR':                'Date Order',
@@ -1795,8 +1927,6 @@
     return map[type] || 'Error';
   }
 
-  // Severity drives the finding card's accent + icon.
-  // 'warning' = softer data-quality issues; 'error' = hard chain/identity problems.
   function errorSeverity(type) {
     const warnings = [
       'DATE_ORDER_ERROR', 'AREA_MISMATCH', 'SOCIETY_MISMATCH',
@@ -1806,7 +1936,6 @@
     return warnings.includes(type) ? 'warning' : 'error';
   }
 
-  // ── Render one finding card (active or dismissed) ────────────
   function renderFindingCard(err, isDismissed) {
     const label       = errorBadgeLabel(err.type);
     const sev         = errorSeverity(err.type);
@@ -1820,9 +1949,6 @@
 
     const sevLabel = sev === 'error' ? 'Error' : 'Warning';
 
-    // Dismissed cards: muted background, reduced opacity, a "Dismissed"
-    // badge, and a Restore action. Same layout/spacing as active — just
-    // visually receded so it reads as "handled" without disappearing.
     const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30' : 'px-5 py-4';
     const dimText  = isDismissed ? 'text-muted-foreground' : 'text-foreground';
     const dimMsg   = isDismissed ? 'text-muted-foreground' : 'text-foreground';
@@ -1855,10 +1981,6 @@
           </div>
           <div class="flex items-center gap-3 shrink-0">
             <div class="text-xs text-muted-foreground tabular-nums">${(() => {
-              // Build the document reference string.
-              // Cross-doc findings have ref_doc_no (the first/reference doc)
-              // + doc_no (the conflicting doc). Single-doc findings have only doc_no.
-              // SHARED_PAN/PIN span all docs — show no specific doc.
               const parts = [];
               if (err.ref_doc_no && err.ref_doc_no !== err.doc_no) {
                 parts.push('Doc ' + err.ref_doc_no);
@@ -1882,7 +2004,6 @@
       </div>`;
   }
 
-  // ── Dismiss / restore handlers ───────────────────────────────
   function dismissFinding(fid) {
     fetch('/dismiss_finding/{{ project_name }}/' + fid, { method: 'POST' })
       .then(r => r.json())
@@ -1895,112 +2016,199 @@
   }
 
   // ─────────────────────────────────────────────────────────
-  // AI Assistant chat
+  // AI Assistant Chat operations
   // ─────────────────────────────────────────────────────────
-  let _chatHistory = [];      // [{role:'user'|'assistant', content:'...'}]
+  let _chatHistory = [];
   let _chatOpen    = false;
   let _chatBusy    = false;
+  let _chatModel   = 'gemini-2.5-flash';
+  let _chatReqStart = 0;
+  let _chatScope   = 'all';
+  let _recognition = null;
+  let _listening   = false;
 
-  function toggleChat() {
-    const overlay = document.getElementById('chatOverlay');
-    _chatOpen = !_chatOpen;
-    if (_chatOpen) {
-      overlay.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-      overlay.classList.add('opacity-100', 'scale-100');
-      if (_chatHistory.length === 0) renderChatGreeting();
-      setTimeout(() => document.getElementById('chatInput').focus(), 150);
-    } else {
-      overlay.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-      overlay.classList.remove('opacity-100', 'scale-100');
-    }
+  const SPARK_SVG = `<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10 17.5833C10 16.5278 9.79861 15.5417 9.39583 14.625C9.00694 13.7083 8.46528 12.9097 7.77083 12.2292C7.09028 11.5347 6.29167 10.9931 5.375 10.6042C4.45833 10.2014 3.47222 10 2.41667 10C3.47222 10 4.45833 9.80556 5.375 9.41667C6.29167 9.01389 7.09028 8.47222 7.77083 7.79167C8.46528 7.09722 9.00694 6.29167 9.39583 5.375C9.79861 4.44444 10 3.45833 10 2.41667C10 3.45833 10.1944 4.44444 10.5833 5.375C10.9861 6.29167 11.5278 7.09722 12.2083 7.79167C12.9028 8.47222 13.7083 9.01389 14.625 9.41667C15.5556 9.80556 16.5417 10 17.5833 10C16.5417 10 15.5556 10.2014 14.625 10.6042C13.7083 10.9931 12.9028 11.5347 12.2083 12.2292C11.5278 12.9097 10.9861 13.7083 10.5833 14.625C10.1944 15.5417 10 16.5278 10 17.5833Z\" fill=\"url(#sparkGrad)\"/><defs><linearGradient id=\"sparkGrad\" x1=\"10\" y1=\"0\" x2=\"10\" y2=\"20\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#18181b\"/><stop offset=\"0.44\" stop-color=\"#52525b\"/><stop offset=\"0.88\" stop-color=\"#71717a\"/></linearGradient></defs></svg>`;
+
+  function turnToolbar() {
+    return `
+      <div class="turn-toolbar">
+        <button class="icon-btn" aria-label="Copy" onclick="copyTurn(this)"><span class="material-symbols-outlined">content_copy</span></button>
+        <button class="icon-btn spark-btn" aria-label="Rerun this turn" onclick="rerunTurn(this)">${SPARK_SVG}</button>
+        <button class="icon-btn" aria-label="More options"><span class="material-symbols-outlined">more_vert</span></button>
+      </div>`;
   }
 
   function renderChatGreeting() {
     const box = document.getElementById('chatMessages');
     box.innerHTML = `
-      <div class="flex gap-2.5">
-        <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0 mt-0.5">
-          <i data-lucide="sparkles" class="w-3 h-3"></i>
+      <section class="turn model" style="border-color:transparent;box-shadow:none">
+        <div class="turn-header">
+          <span class="turn-role">Model</span>
+          <span class="turn-dot"></span>
+          <span class="turn-time">${nowTime()}</span>
         </div>
-        <div class="text-sm text-foreground/90 leading-relaxed">
-          Ask me anything about this property — owners, the chain of title, findings, encumbrances, dates, or parties. I answer only from the parsed documents.
+        <div class="turn-body">
+          <p>Ask me anything about this property — owners, the chain of title, findings, encumbrances, dates, or parties. I answer only from the parsed documents.</p>
         </div>
-      </div>`;
-    if (window.lucide) lucide.createIcons();
+      </section>`;
   }
 
-  function autoGrowChat(el) {
+  function composerInput(el) {
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 112) + 'px';
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    const run = document.getElementById('runBtn');
+    if (run) run.classList.toggle('active', el.value.trim().length > 0);
   }
+
+  function autoGrowChat(el) { composerInput(el); }
 
   function chatKeydown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendChat();
-    }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendChat(); }
   }
 
   function askSuggested(text) {
-    document.getElementById('chatInput').value = text;
-    sendChat();
+    const i = document.getElementById('chatInput');
+    i.value = text; composerInput(i); sendChat();
   }
 
   function clearChat() {
     _chatHistory = [];
     renderChatGreeting();
-    document.getElementById('chatSuggest').style.display = '';
   }
 
-  function appendChatMessage(role, text) {
+  function nowTime() {
+    const d = new Date();
+    let h = d.getHours(), m = d.getMinutes();
+    const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    return h + ':' + (m < 10 ? '0' + m : m) + '\u00A0' + ap;
+  }
+
+  // Formatting operations
+  function clearGreetingIfPresent() {
     const box = document.getElementById('chatMessages');
-    const wrap = document.createElement('div');
-    if (role === 'user') {
-      wrap.className = 'flex justify-end';
-      wrap.innerHTML = `
-        <div class="max-w-[85%] rounded-lg rounded-br-sm bg-primary text-primary-foreground px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap">${escapeChatHtml(text)}</div>`;
-    } else {
-      wrap.className = 'flex gap-2.5';
-      wrap.innerHTML = `
-        <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0 mt-0.5">
-          <i data-lucide="sparkles" class="w-3 h-3"></i>
-        </div>
-        <div class="max-w-[85%] text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">${escapeChatHtml(text)}</div>`;
+    if (box.children.length === 1 && !box.querySelector('.model-actions') && _chatHistory.length === 0) {
+      box.innerHTML = '';
     }
-    box.appendChild(wrap);
-    box.scrollTop = box.scrollHeight;
-    if (window.lucide) lucide.createIcons();
-    return wrap;
+  }
+
+  function appendChatMessage(role, text, elapsed) {
+    const box = document.getElementById('chatMessages');
+    const sec = document.createElement('section');
+    sec.className = 'turn ' + (role === 'user' ? 'user' : 'model');
+
+    if (role === 'user') {
+      sec.innerHTML = `
+        ${turnToolbar()}
+        <div class="turn-header">
+          <span class="turn-role">User</span>
+          <span class="turn-dot"></span>
+          <span class="turn-time">${nowTime()}</span>
+        </div>
+        <div class="turn-body"><p>${escapeChatHtml(text)}</p></div>`;
+    } else {
+      const secs = (typeof elapsed === 'number') ? (Math.round(elapsed * 10) / 10 + 's') : '';
+      sec.innerHTML = `
+        ${turnToolbar()}
+        <div class="turn-header">
+          <span class="turn-role">Model</span>
+          <span class="turn-dot"></span>
+          <span class="turn-time">${nowTime()}</span>
+        </div>
+        <div class="turn-body">${formatAsstBody(text)}</div>
+        <div class="model-actions">
+          <button class="icon-btn feedback-btn" aria-label="Good response" onclick="rateMsg(this)"><span class="material-symbols-outlined">thumb_up</span></button>
+          <button class="icon-btn feedback-btn" aria-label="Bad response" onclick="rateMsg(this)"><span class="material-symbols-outlined">thumb_down</span></button>
+          ${secs ? `<span class="gen-time">${secs}</span>` : ''}
+        </div>
+        <div class="disclaimer">
+          <span class="material-symbols-outlined">info</span>
+          <span>Answers come only from parsed documents and may contain mistakes, so double-check outputs.</span>
+        </div>`;
+    }
+    box.appendChild(sec);
+    scrollChatToBottom();
+    return sec;
+  }
+
+  function formatAsstBody(text) {
+    const paras = String(text).split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+    if (!paras.length) return `<p>${mdInline(escapeChatHtml(text))}</p>`;
+    return paras.map(block => {
+      const lines = block.split(/\n/);
+      const allBullets = lines.length > 0 && lines.every(l => /^\s*[-*•]\s+/.test(l));
+      if (allBullets) {
+        const items = lines.map(l => `<li>${mdInline(escapeChatHtml(l.replace(/^\s*[-*•]\s+/, '')))}</li>`).join('');
+        return `<ul style="margin:0 0 16px;padding-left:20px">${items}</ul>`;
+      }
+      return `<p>${mdInline(escapeChatHtml(block)).replace(/\n/g, '<br>')}</p>`;
+    }).join('');
+  }
+
+  function mdInline(escaped) {
+    const codes = [];
+    let s = escaped.replace(/`([^`]+)`/g, (m, c) => {
+      codes.push(c);
+      return '\u0000CODE' + (codes.length - 1) + '\u0000';
+    });
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*\w])\*(\S(?:[^*\n]*\S)?)\*(?![*\w])/g, '$1<em>$2</em>');
+    s = s.replace(/\u0000CODE(\d+)\u0000/g, (m, i) =>
+      '<code style="font-family:ui-monospace,monospace;font-size:0.92em;background:rgba(0,0,0,0.05);padding:1px 4px;border-radius:4px">' + codes[Number(i)] + '</code>');
+    return s;
+  }
+
+  function rateMsg(btn) {
+    const row = btn.parentElement;
+    row.querySelectorAll('.feedback-btn').forEach(b => b.style.color = '');
+    btn.style.color = '#1f1f1f';
+  }
+
+  function copyTurn(btn) {
+    const turn = btn.closest('.turn');
+    const body = turn ? turn.querySelector('.turn-body') : null;
+    if (body) {
+      navigator.clipboard.writeText(body.innerText.trim());
+      const span = btn.querySelector('.material-symbols-outlined');
+      if (span) { const o = span.textContent; span.textContent = 'check'; setTimeout(() => span.textContent = o, 1300); }
+    }
+  }
+
+  function rerunTurn(btn) {
+    const lastUser = [..._chatHistory].reverse().find(m => m.role === 'user');
+    if (lastUser && !_chatBusy) { const i = document.getElementById('chatInput'); i.value = lastUser.content; sendChat(); }
   }
 
   function escapeChatHtml(s) {
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
   }
 
   function showChatTyping() {
     const box = document.getElementById('chatMessages');
-    const wrap = document.createElement('div');
-    wrap.id = 'chatTyping';
-    wrap.className = 'flex gap-2.5';
-    wrap.innerHTML = `
-      <div class="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground shrink-0 mt-0.5">
-        <i data-lucide="sparkles" class="w-3 h-3"></i>
+    const sec = document.createElement('section');
+    sec.className = 'turn model'; sec.id = 'chatTyping';
+    sec.innerHTML = `
+      <div class="turn-header">
+        <span class="turn-role">Model</span>
+        <span class="turn-dot"></span>
+        <span class="turn-time">${nowTime()}</span>
       </div>
-      <div class="flex items-center gap-1 px-1 py-2">
-        <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-pulse"></span>
-        <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-pulse" style="animation-delay:0.15s"></span>
-        <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-pulse" style="animation-delay:0.3s"></span>
+      <div class="turn-body" style="display:flex;align-items:center;gap:5px;padding:4px 0">
+        <span class="chat-dot" style="width:6px;height:6px;border-radius:50%;background:#9aa0a6;display:inline-block"></span>
+        <span class="chat-dot" style="width:6px;height:6px;border-radius:50%;background:#9aa0a6;display:inline-block;animation-delay:0.2s"></span>
+        <span class="chat-dot" style="width:6px;height:6px;border-radius:50%;background:#9aa0a6;display:inline-block;animation-delay:0.4s"></span>
       </div>`;
-    box.appendChild(wrap);
-    box.scrollTop = box.scrollHeight;
-    if (window.lucide) lucide.createIcons();
+    box.appendChild(sec);
+    scrollChatToBottom();
+  }
+
+  function scrollChatToBottom() {
+    const sc = document.getElementById('chatScroll');
+    if (sc) sc.scrollTop = sc.scrollHeight;
   }
 
   function removeChatTyping() {
-    const t = document.getElementById('chatTyping');
-    if (t) t.remove();
+    const t = document.getElementById('chatTyping'); if (t) t.remove();
   }
 
   function sendChat() {
@@ -2009,49 +2217,170 @@
     const text  = input.value.trim();
     if (!text) return;
 
-    // Hide suggestions after first message
-    document.getElementById('chatSuggest').style.display = 'none';
-
+    clearGreetingIfPresent();
     appendChatMessage('user', text);
     _chatHistory.push({ role: 'user', content: text });
-    input.value = '';
-    autoGrowChat(input);
+    input.value = ''; composerInput(input);
 
     _chatBusy = true;
-    document.getElementById('chatSend').disabled = true;
+    const run = document.getElementById('runBtn'); if (run) run.classList.remove('active');
     showChatTyping();
+    _chatReqStart = performance.now();
 
     fetch('/chat/{{ project_name }}', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ history: _chatHistory })
+      body: JSON.stringify({ history: _chatHistory, model: _chatModel, scope: _chatScope })
     })
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : { reply: 'Internal processing error.' })
       .then(data => {
         removeChatTyping();
-        const reply = (data && data.ok && data.reply)
+        const elapsed = (performance.now() - _chatReqStart) / 1000;
+        const reply = (data && data.reply)
           ? data.reply
-          : ((data && data.error) ? ('Error: ' + data.error) : 'Sorry, I could not answer that.');
-        appendChatMessage('assistant', reply);
+          : 'Sorry, I could not answer that.';
+        appendChatMessage('assistant', reply, elapsed);
         _chatHistory.push({ role: 'assistant', content: reply });
       })
-      .catch(err => {
-        removeChatTyping();
-        appendChatMessage('assistant', 'Network error — please try again.');
-      })
-      .finally(() => {
-        _chatBusy = false;
-        document.getElementById('chatSend').disabled = false;
-        document.getElementById('chatInput').focus();
+      .catch(() => { removeChatTyping(); appendChatMessage('assistant', 'Network error — please try again.'); })
+      .finally(() => { _chatBusy = false; document.getElementById('chatInput').focus(); });
+  }
+
+  function toggleScopeMenu(e) {
+    e.stopPropagation();
+    const m = document.getElementById('scopeMenu');
+    const open = m.classList.toggle('open');
+    const closeOnOut = (ev) => {
+      if (!m.contains(ev.target) && ev.target.id !== 'scopeBtn') {
+        m.classList.remove('open');
+        document.removeEventListener('click', closeOnOut);
+      }
+    };
+    if (open) setTimeout(() => document.addEventListener('click', closeOnOut), 0);
+  }
+
+  function selectScope(scope, label, el) {
+    _chatScope = scope;
+    document.querySelectorAll('#scopeMenu .scope-item').forEach(i => i.classList.remove('selected'));
+    const item = el || document.querySelector(`#scopeMenu .scope-item[data-scope="${scope}"]`);
+    if (item) item.classList.add('selected');
+
+    const btn  = document.getElementById('scopeBtn');
+    const chip = document.getElementById('scopeChip');
+    if (scope === 'all') {
+      btn.classList.remove('scope-active');
+      document.getElementById('scopeIcon').textContent = 'add';
+      chip.classList.remove('show');
+    } else {
+      btn.classList.add('scope-active');
+      document.getElementById('scopeIcon').textContent = 'filter_alt';
+      const icons = { json: 'data_object', events: 'timeline', findings: 'flag' };
+      document.getElementById('scopeChipIcon').textContent = icons[scope] || 'filter_alt';
+      document.getElementById('scopeChipLabel').textContent = label;
+      chip.classList.add('show');
+    }
+    document.getElementById('scopeMenu').classList.remove('open');
+    const i = document.getElementById('chatInput'); if (i) i.focus();
+  }
+
+  function initVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const micBtn = document.getElementById('micBtn');
+    if (!SR) {
+      if (micBtn) { micBtn.disabled = true; micBtn.title = 'Voice input not supported in this browser'; micBtn.style.opacity = '0.45'; }
+      return;
+    }
+    _recognition = new SR();
+    _recognition.continuous = false;
+    _recognition.interimResults = true;
+    _recognition.lang = 'en-IN';
+
+    let baseText = '';
+    const micGlyph = () => micBtn.querySelector('.material-symbols-outlined');
+    _recognition.onstart = () => {
+      _listening = true;
+      micBtn.classList.add('listening');
+      micBtn.title = 'Stop recording';
+      micBtn.setAttribute('aria-label', 'Stop recording');
+      if (micGlyph()) micGlyph().textContent = 'stop';
+    };
+    const resetMic = () => {
+      _listening = false;
+      micBtn.classList.remove('listening');
+      micBtn.title = 'Speak your question';
+      micBtn.setAttribute('aria-label', 'Use microphone');
+      if (micGlyph()) micGlyph().textContent = 'mic';
+    };
+    _recognition.onend   = resetMic;
+    _recognition.onerror = resetMic;
+    _recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript;
+      const input = document.getElementById('chatInput');
+      input.value = (baseText ? baseText + ' ' : '') + transcript;
+      composerInput(input);
+    };
+    micBtn._getBase = () => baseText;
+    micBtn._setBase = (v) => { baseText = v; };
+  }
+
+  function toggleVoice() {
+    if (!_recognition) return;
+    const micBtn = document.getElementById('micBtn');
+    if (_listening) {
+      _recognition.stop();
+    } else {
+      const input = document.getElementById('chatInput');
+      micBtn._setBase(input.value.trim());
+      try { _recognition.start(); } catch (e) {}
+    }
+  }
+
+  function initModelSwitch() {
+    const btn = document.getElementById('modelBtn');
+    const menu = document.getElementById('modelMenu');
+    const label = document.getElementById('modelLabel');
+    if (!btn || !menu) return;
+    const items = menu.querySelectorAll('.model-menu-item');
+    function closeMenu() { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    items.forEach(function (item) {
+      item.addEventListener('click', function () {
+        items.forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        label.textContent = item.getAttribute('data-model');
+        _chatModel = item.getAttribute('data-id') || 'gemini-2.5-flash';
+        closeMenu();
       });
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.contains(e.target) && !btn.contains(e.target)) closeMenu();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
   }
 
   // ─────────────────────────────────────────────────────────
-  // Init: load JSON for first selected file, render icons
+  // Initializer logic
   // ─────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function() {
     if (window.lucide) lucide.createIcons();
     if (selectedFile) loadJsonForSelected(selectedFile);
+    initModelSwitch();
+    initVoice();
+    switchMainTab('pdf'); // Set initial active tab state to document viewer
+
+    // ⌘K / Ctrl+K focuses the sidebar search
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const s = document.getElementById('sidebarSearch');
+        if (s) s.focus();
+      }
+    });
   });
 </script>
 

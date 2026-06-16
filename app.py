@@ -1399,6 +1399,7 @@ def chat(project_name):
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     payload = request.get_json(silent=True) or {}
     history = payload.get("history", [])
+    model   = payload.get("model", "gemini-2.5-flash")
 
     if not isinstance(history, list) or not history:
         return jsonify({"ok": False, "error": "No question provided"}), 400
@@ -1436,7 +1437,7 @@ def chat(project_name):
     except (TypeError, ValueError):
         context_json = str(context)
 
-    reply = chat_about_property(context_json, history)
+    reply = chat_about_property(context_json, history, model=model)
     return jsonify({"ok": True, "reply": reply})
 
 

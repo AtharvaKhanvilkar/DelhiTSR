@@ -214,7 +214,7 @@ DOCUMENT:
     return ACT_data
 
 
-def chat_about_property(context_json, history):
+def chat_about_property(context_json, history, model="gemini-2.5-flash"):
     """
     Answer a reviewer's question about a specific property, grounded ONLY in
     the parsed data for that project.
@@ -276,7 +276,7 @@ def chat_about_property(context_json, history):
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=model or "gemini-2.5-flash",
             contents=contents,
         )
         return (response.text or "").strip()
