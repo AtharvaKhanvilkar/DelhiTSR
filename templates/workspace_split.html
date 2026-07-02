@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ project_name.rsplit('_', 1)[0] }} — AutoTSR</title>
+  <meta name="theme-color" content="#ffffff">
+
+  <link class="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
+
+  <!-- Tailwind via Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block">
+
+  <!-- Lucide icons (shadcn default) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            border:      'hsl(var(--border))',
+            input:       'hsl(var(--input))',
+            ring:        'hsl(var(--ring))',
+            background:  'hsl(var(--background))',
+            foreground:  'hsl(var(--foreground))',
+            primary: {
+              DEFAULT: 'hsl(var(--primary))',
+              foreground: 'hsl(var(--primary-foreground))',
+            },
+            secondary: {
+              DEFAULT: 'hsl(var(--secondary))',
+              foreground: 'hsl(var(--secondary-foreground))',
+            },
+            destructive: {
+              DEFAULT: 'hsl(var(--destructive))',
+              foreground: 'hsl(var(--destructive-foreground))',
+            },
+            muted: {
+              DEFAULT: 'hsl(var(--muted))',
+              foreground: 'hsl(var(--muted-foreground))',
+            },
+            accent: {
+              DEFAULT: 'hsl(var(--accent))',
+              foreground: 'hsl(var(--accent-foreground))',
+            },
+            card: {
+              DEFAULT: 'hsl(var(--card))',
+              foreground: 'hsl(var(--card-foreground))',
+            },
+          },
+          borderRadius: {
+            lg: 'var(--radius)',
+            md: 'calc(var(--radius) - 2px)',
+            sm: 'calc(var(--radius) - 4px)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root {
+      --background:            0 0% 100%;
+      --foreground:            240 10% 3.9%;
+      --card:                  0 0% 100%;
+      --card-foreground:       240 10% 3.9%;
+      --primary:               240 5.9% 10%;
+      --primary-foreground:    0 0% 98%;
+      --secondary:             240 4.8% 95.9%;
+      --secondary-foreground:  240 5.9% 10%;
+      --muted:                 240 4.8% 95.9%;
+      --muted-foreground:      240 3.8% 46.1%;
+      --accent:                240 4.8% 95.9%;
+      --accent-foreground:     240 5.9% 10%;
+      --destructive:           0 84.2% 60.2%;
+      --destructive-foreground:0 0% 98%;
+      --border:                240 5.9% 90%;
+      --input:                 240 5.9% 90%;
+      --ring:                  240 5.9% 10%;
+      --radius:                0px;
+    }
+
+    html, body {
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      font-feature-settings: "rlig" 1, "calt" 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #18181b;
+      background-color: #ffffff;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, div, button, input, select, option, textarea, a, li {
+      font-size: inherit;
+      line-height: inherit;
+      margin: 0;
+    }
+    button { background: none; border: 0; padding: 0; color: inherit; font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+    * { box-sizing: border-box; border-radius: 0px !important; }
+
+    /* Scrollbars — strict flat style */
+    ::-webkit-scrollbar             { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track       { background: transparent; }
+    ::-webkit-scrollbar-thumb       { background: #d4d4d8; }
+    ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+    /* Panel layouts */
+    .panel-header {
+      height: 36px;
+      padding: 0 16px;
+      border-bottom: 1px solid #e4e4e7;
+      background-color: #f4f4f5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .panel-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #71717a;
+    }
+
+    /* Tab content visibility */
+    .panel              { display: none !important; height: 100%; }
+    .panel.active       { display: flex !important; flex-direction: column; }
+
+    .desk-tab-panel     { display: none !important; height: 100%; }
+    .desk-tab-panel.active { display: flex !important; flex-direction: column; }
+
+    /* Spinner */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid #e4e4e7;
+      border-top-color: #18181b;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Sidebar collapse rail */
+    #appSidebar.sb-collapsed { width: 56px !important; }
+    #appSidebar.sb-collapsed .sb-label,
+    #appSidebar.sb-collapsed .sb-only-expanded { display: none !important; }
+    #appSidebar.sb-collapsed .sb-row-content { justify-content: center; width: 100%; }
+    #appSidebar.sb-collapsed .sb-section-label { display: none; }
+
+    /* Console terminal customized scroll */
+    #consoleScroll::-webkit-scrollbar-thumb {
+      background: #e4e4e7;
+    }
+    #consoleScroll::-webkit-scrollbar-thumb:hover {
+      background: #d4d4d8;
+    }
+  </style>
+</head>
+<body class="bg-[#ffffff] text-zinc-900 antialiased font-sans">
+
+<div class="flex h-screen w-screen overflow-hidden">
+
+  <!-- ════════════════════════════════════════════════
+       UNIFIED SIDEBAR (Minimalist Monochromatic UI)
+  ════════════════════════════════════════════════ -->
+  <aside id="appSidebar" class="w-[260px] shrink-0 border-r border-zinc-200 bg-[#fafafa] flex flex-col h-full transition-[width] duration-150">
+    
+    <!-- Top Branding Box -->
+    <div class="h-14 px-4 flex items-center justify-between border-b border-zinc-100 shrink-0 bg-white">
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-mono font-bold tracking-[0.15em] text-zinc-800 sb-label">AUTOTSR // AUDIT DESK</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <!-- Collapse Sidebar Button -->
+        <button onclick="toggleSidebarCollapse()" title="Collapse sidebar" class="text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 p-1.5 rounded-none transition-all">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="0"/><path d="M9 3v18"/>
+          </svg>
+        </button>
+        <!-- Clear parse results -->
+        <button onclick="clearParseResults()" title="Clear all extraction results" class="text-zinc-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-none transition-colors sb-only-expanded">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Workspace Detail Header -->
+    <div class="px-4 py-3.5 border-b border-zinc-200/50 bg-white/40 sb-only-expanded">
+      <div class="text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-400 mb-1.5">Workspace</div>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <svg class="w-3.5 h-3.5 text-zinc-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <h1 class="text-[12px] font-semibold text-zinc-700 truncate" id="projectNameDisplay">{{ project_name.rsplit('_', 1)[0] }}</h1>
+        </div>
+        <button onclick="renameProject()" title="Rename project" class="p-1 hover:bg-zinc-200/60 rounded-none text-zinc-400 hover:text-zinc-700 transition-colors shrink-0">
+          <i data-lucide="pencil" class="w-3 h-3"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="px-4 py-2.5 shrink-0 sb-only-expanded border-b border-zinc-200/30">
+      <div class="relative">
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.3-4.3" />
+          </svg>
+        </span>
+        <input type="text" placeholder="Quick find..." oninput="filterTree(this.value)" id="sidebarSearch"
+               class="w-full h-8 pl-8 pr-11 bg-white border border-zinc-200 rounded-none text-[12px] text-zinc-800 placeholder:text-zinc-400 outline-none focus:border-zinc-400 transition-all" />
+        <kbd class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none inline-flex items-center gap-0.5 border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[9px] font-mono text-zinc-400">
+          <span>⌘</span><span>K</span>
+        </kbd>
+      </div>
+    </div>
+
+    <!-- Navigation Stream -->
+    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-4" id="sidebarMenu">
+      
+      <!-- Section: Core Data -->
+      <div class="space-y-1">
+        <div class="sb-section-label sb-only-expanded px-2 pb-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400">Documents</div>
+        
+        <!-- Transactions Tab Toggle -->
+        <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </span>
+            <span class="sb-label">Transactions</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </div>
+
+        <!-- Nested Files Sub-tree (Only visible when sidebar expanded) -->
+        <div class="sb-only-expanded pl-2 pt-1 mt-1 space-y-1 border-l border-zinc-200/50 ml-4">
+          <div class="flex items-center justify-between px-2 py-1 text-zinc-400 font-bold text-[10px] uppercase tracking-[0.08em]">
+            <span>Attached Files</span>
+            <button onclick="document.getElementById('fileInput').click()" title="Attach PDF transaction file" class="text-zinc-400 hover:text-zinc-900 p-0.5 rounded-none hover:bg-zinc-100 transition-colors">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Document list container -->
+          <div id="fileTree" class="space-y-0.5 max-h-[180px] overflow-y-auto pr-1">
+            {% if index_iis %}
+              {% for pdf in index_iis %}
+                <div class="group relative flex items-center justify-between px-2 py-1.5 cursor-pointer text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 text-[12.5px] transition-colors {% if loop.first %}bg-zinc-100 font-semibold text-zinc-900 border-l-2 border-zinc-500 pl-[6px]{% endif %}" onclick="selectFile(this, '{{ pdf }}')">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
+                  </div>
+                  <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0 ml-1">
+                    <button class="p-0.5 hover:bg-zinc-200 rounded-none text-zinc-500 hover:text-zinc-800" title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
+                      <i data-lucide="pencil" class="w-3 h-3"></i>
+                    </button>
+                    <button class="p-0.5 hover:bg-red-50 rounded-none text-zinc-500 hover:text-red-600" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="px-2 py-1.5 text-[11px] text-zinc-400 italic">No files yet</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Analytical tools -->
+      <div class="space-y-1">
+        <div class="sb-section-label sb-only-expanded px-2 pb-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400">Analysis & Insights</div>
+
+        <!-- Events & Findings -->
+        <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="0" ry="0"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <span class="sb-label">Events & Findings</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+
+        <!-- Entities -->
+        <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <span class="sb-label">Entities</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+
+        <!-- AI Assistant -->
+        <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </span>
+            <span class="sb-label">AI Assistant</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- Section: Registry Portals -->
+      <div class="space-y-1">
+        <div class="sb-section-label sb-only-expanded px-2 pb-1.5 text-[9px] font-bold uppercase tracking-[0.1em] text-zinc-400">External Portals</div>
+
+        <!-- DORIS -->
+        <div id="sidebar-doris" onclick="switchMainTab('doris')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="0" ry="0"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+                <line x1="17" y1="21" x2="7" y2="21"/>
+              </svg>
+            </span>
+            <span class="sb-label">DORIS Registry</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13l-6 6-6-6"/>
+            </svg>
+          </span>
+        </div>
+
+        <!-- NGDRS -->
+        <div id="sidebar-ngdrs" onclick="switchMainTab('ngdrs')" class="sidebar-item flex items-center justify-between px-2.5 py-2 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 cursor-pointer font-medium text-[13px] transition-all">
+          <div class="flex items-center gap-2.5 sb-row-content">
+            <span class="text-zinc-400">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                <path d="M2 12h20"/>
+              </svg>
+            </span>
+            <span class="sb-label">NGDRS Portal</span>
+          </div>
+          <span class="text-zinc-400 sb-only-expanded">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13l-6 6-6-6"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer: Parse status metadata -->
+    <div class="sb-only-expanded shrink-0 border-t border-zinc-200 bg-white px-4 py-3 text-[11px] text-zinc-500">
+      <div class="flex items-center justify-between">
+        <span class="flex items-center gap-1.5 font-medium text-zinc-600">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+          <span id="sbDocCount">{{ index_iis|length if index_iis else 0 }}</span> active document{% if not index_iis or index_iis|length != 1 %}s{% endif %}
+        </span>
+        <span id="sbParseStatus" class="font-semibold text-zinc-400">Ready</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Upload Action Form (Hidden) -->
+  <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" class="hidden">
+    <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
+  </form>
+
+  <!-- ════    <!-- Left Pane: Source Document Reader (50%) -->
+    <div id="leftPaneColumn" class="w-1/2 h-full flex flex-col border-r border-zinc-200 transition-all duration-150 shrink-0 relative">
+      <!-- Header -->
+      <div class="h-14 px-6 border-b border-zinc-200 flex items-center justify-between shrink-0 bg-zinc-50/50">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Document Reader</span>
+          <span class="text-zinc-300">|</span>
+          <span class="text-sm font-semibold text-zinc-800 truncate" id="asActiveFile">No document loaded</span>
+        </div>
+        <div class="flex items-center gap-4 shrink-0 h-full">
+          <div class="flex h-full border-r border-zinc-200 pr-2 items-center gap-1">
+            <button id="toggle-pdf-btn" onclick="toggleDocView('pdf')" class="h-full px-3 text-xs font-semibold text-zinc-900 border-b-2 border-zinc-900 transition-all">PDF</button>
+            <button id="toggle-json-btn" onclick="toggleDocView('json')" class="h-full px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-all">JSON</button>
+          </div>
+          <button onclick="triggerParse()" class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap bg-[#18181b] text-white hover:bg-black text-xs font-semibold h-8 px-4 transition-all rounded-none">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            <span>Parse</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Document Content viewport -->
+      <div class="flex-1 overflow-hidden relative">
+        <!-- PDF Panel -->
+        <div class="panel active" id="panel-pdf">
+          <div class="flex-1 bg-zinc-50" id="pdfViewer">
+            {% if index_iis %}
+              <iframe id="pdfFrame" class="w-full h-full border-0"
+                      src="/pdf/{{ project_name }}/{{ index_iis[0] }}"
+                      title="{{ index_iis[0] }}"></iframe>
+            {% else %}
+              <div class="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+                <i data-lucide="file-text" class="w-10 h-10 opacity-30"></i>
+                <p class="text-sm">Upload a PDF Transaction file to begin.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- JSON Panel -->
+        <div class="panel" id="panel-json">
+          <div class="flex-1 overflow-auto bg-white" id="jsonPanel">
+            <div id="jsonEmpty" class="flex flex-col items-center justify-center h-full p-8">
+              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+                <i data-lucide="file-text" class="w-5 h-5 text-muted-foreground"></i>
+              </div>
+              <h3 class="text-sm font-semibold mb-1">No data extracted</h3>
+              <p class="text-sm text-muted-foreground">Extract structured fields by selecting Parse on this document.</p>
+            </div>
+            <div id="jsonOutput" class="hidden p-6"></div>
+            <div id="parseLoading" class="hidden flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+              <div class="spinner"></div>
+              <p class="text-sm">Parsing...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Pane: Auditing Workspace (50%) -->
+    <div id="rightPaneColumn" class="w-1/2 h-full flex flex-col transition-all duration-150 shrink-0 relative bg-zinc-50">
+      
+      <!-- Collapse Left Column Toggle Handle -->
+      <button onclick="toggleLeftColumn()" 
+              id="col-collapse-btn" 
+              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 bg-white border border-zinc-300 w-4 h-10 flex items-center justify-center hover:bg-zinc-50 focus:outline-none"
+              title="Collapse Document Reader">
+        <svg id="collapse-arrow-svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <!-- Auditing Desk Folder Tabs -->
+      <div class="h-14 border-b border-zinc-200 flex items-center justify-between px-6 bg-zinc-50 shrink-0 select-none">
+        <div class="flex h-full gap-4 items-center">
+          <button id="desk-tab-btn-timeline" onclick="switchDeskTab('timeline')" class="h-full px-3 text-xs font-semibold text-zinc-900 border-b-2 border-zinc-900 transition-all uppercase tracking-wider">Timeline &amp; Findings</button>
+          <button id="desk-tab-btn-registry" onclick="switchDeskTab('registry')" class="h-full px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900 border-b-2 border-transparent transition-all uppercase tracking-wider">Registry Database</button>
+          <button id="desk-tab-btn-console" onclick="switchDeskTab('console')" class="h-full px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900 border-b-2 border-transparent transition-all uppercase tracking-wider">Compliance Console</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Timeline & Findings Folder -->
+      <div id="desk-tab-content-timeline" class="desk-tab-panel active flex-1 flex flex-col min-h-0 bg-white">
+        <!-- Property summary metrics & chain table -->
+        <div class="flex-1 overflow-y-auto min-h-0 divide-y divide-zinc-200">
+          <!-- Metrics header -->
+          <div class="bg-zinc-50/50 p-4 border-b border-zinc-200">
+            <div class="grid grid-cols-2 gap-4 text-xs font-mono mb-2">
+              <div class="truncate"><span class="text-zinc-400">PROP:</span> <span class="font-bold text-zinc-800" id="meta-property">No document loaded</span></div>
+              <div class="text-right truncate"><span class="text-zinc-400">OWNER:</span> <span class="font-bold text-zinc-800" id="meta-owner">—</span></div>
+            </div>
+            <div class="grid grid-cols-4 divide-x divide-zinc-200 text-[10px] font-mono text-zinc-500 pt-2 border-t border-zinc-200/50">
+              <div>EVENTS: <span class="font-bold text-zinc-800" id="meta-events-count">0</span></div>
+              <div class="pl-2">SPAN: <span class="font-bold text-zinc-800" id="meta-span">—</span></div>
+              <div class="pl-2">FIRST: <span class="font-bold text-zinc-800" id="meta-first-year">—</span></div>
+              <div class="pl-2">MORTGAGES: <span class="font-bold text-zinc-800" id="meta-mortgages-count">0</span></div>
+            </div>
+          </div>
+          <!-- Timeline list -->
+          <div id="timelineListContainer" class="min-h-[200px]">
+            <div id="timelineEmpty" class="flex flex-col items-center justify-center py-12 px-8 text-center">
+              <svg class="w-6 h-6 text-zinc-450 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="0" ry="0"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span class="text-xs text-zinc-500">Timeline not built. Select document and Parse.</span>
+            </div>
+            <div id="timelineTableContent" class="hidden"></div>
+          </div>
+          <!-- Audit exceptions list -->
+          <div class="bg-zinc-50/10">
+            <div class="px-5 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between shrink-0">
+              <span class="text-[10px] font-mono font-bold tracking-wider text-zinc-500 uppercase">Audit Exceptions &amp; Findings</span>
+            </div>
+            <div id="findingsPanelContent" class="min-h-[150px]">
+              <div id="findingsEmpty" class="flex flex-col items-center justify-center py-12 px-8 text-center">
+                <svg class="w-6 h-6 text-zinc-450 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span class="text-xs text-zinc-500 font-medium">No findings loaded.</span>
+              </div>
+              <div id="findingsListContent" class="hidden divide-y divide-zinc-200 bg-white"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Registry Database Folder -->
+      <div id="desk-tab-content-registry" class="desk-tab-panel flex-1 hidden flex-col min-h-0 bg-white divide-y divide-zinc-200 overflow-y-auto">
+        <!-- Parties Register section -->
+        <div class="flex flex-col">
+          <div class="px-5 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+            <span class="text-[10px] font-mono font-bold tracking-wider text-zinc-500 uppercase">Parties Register</span>
+          </div>
+          <div class="p-4" id="partiesContentPanel">
+            <div id="partiesEmpty" class="flex flex-col items-center justify-center py-8 text-center">
+              <svg class="w-6 h-6 text-zinc-450 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span class="text-xs text-zinc-500">No ownership parties.</span>
+            </div>
+            <div id="partiesContentList" class="hidden space-y-3"></div>
+          </div>
+        </div>
+        <!-- Mortgages & Liens section -->
+        <div class="flex flex-col">
+          <div class="px-5 py-2.5 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between">
+            <span class="text-[10px] font-mono font-bold tracking-wider text-zinc-500 uppercase">Mortgages &amp; Liens</span>
+          </div>
+          <div class="p-4" id="liensContentPanel">
+            <div id="liensEmpty" class="flex flex-col items-center justify-center py-8 text-center">
+              <svg class="w-6 h-6 text-zinc-450 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 22v-2a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span class="text-xs text-zinc-500">No registered encumbrances.</span>
+            </div>
+            <div id="liensContentList" class="hidden space-y-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Compliance Console Folder -->
+      <div id="desk-tab-content-console" class="desk-tab-panel flex-1 hidden flex-col min-h-0 bg-zinc-50/50">
+        <!-- Terminal scroll content -->
+        <div class="flex-1 overflow-y-auto p-4 font-mono text-[11.5px] leading-relaxed text-zinc-800" id="consoleScroll">
+          <div id="consoleMessages" class="space-y-4">
+            <div class="text-zinc-500 border-b border-zinc-200 pb-2 font-semibold">[SYSTEM] Compliance query console active. Ready for verification query...</div>
+          </div>
+        </div>
+        <!-- Terminal input footer bar -->
+        <div class="border-t border-zinc-200 bg-white p-3 shrink-0">
+          <!-- Parameter selectors directly inside footer -->
+          <div class="flex items-center gap-4 mb-2.5 text-[10px] font-mono text-zinc-550">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-zinc-400 uppercase">Model:</span>
+              <select id="chatModelSelect" onchange="changeModel(this.value)" class="bg-zinc-50 border border-zinc-200 text-zinc-700 px-1.5 py-0.5 outline-none focus:border-zinc-350 font-sans">
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-zinc-400 uppercase">Scope:</span>
+              <select id="chatScopeSelect" onchange="changeScope(this.value)" class="bg-zinc-50 border border-zinc-200 text-zinc-700 px-1.5 py-0.5 outline-none focus:border-zinc-350 font-sans">
+                <option value="all">General (All)</option>
+                <option value="json">JSON Fields</option>
+                <option value="events">Timeline</option>
+                <option value="findings">Findings</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2 bg-zinc-50 border border-zinc-200 px-2 py-1.5 focus-within:border-zinc-350">
+            <span class="text-zinc-400 font-mono text-xs select-none">&gt;&gt;&gt;</span>
+            <input type="text" id="chatInput" 
+                   placeholder="Query properties, chain of title, findings..."
+                   class="flex-1 bg-transparent border-0 outline-none text-xs text-zinc-800 font-mono placeholder:text-zinc-400"
+                   onkeydown="chatKeydown(event)"/>
+            <button onclick="sendChat()" class="bg-zinc-800 hover:bg-zinc-900 text-white text-[10px] font-bold px-3 py-1 uppercase font-mono tracking-wider">Run</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── Event details overlay drawer ──────────────── -->
+<div id="eventDrawerBackdrop"
+     onclick="closeEventDetail()"
+     class="fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-center justify-center">
+  <div id="eventDrawer"
+       onclick="event.stopPropagation()"
+       class="relative z-50 w-full max-w-3xl bg-background border border-border rounded-xl shadow-2xl opacity-0 scale-95 pointer-events-none transition-all duration-200 ease-out flex flex-col max-h-[82vh] mx-4">
+    <div id="eventDrawerContent" class="flex flex-col min-h-0"></div>
+  </div>
+</div>
+
+<script>
+  // ════════════════════════════════════════════════════════════
+  // UNIFIED APPLICATION ROUTING STATE & TOGGLES
+  // ════════════════════════════════════════════════════════════
+  function toggleLeftColumn() {
+    const left = document.getElementById('leftPaneColumn');
+    const right = document.getElementById('rightPaneColumn');
+    const btn = document.getElementById('col-collapse-btn');
+    const arrow = document.getElementById('collapse-arrow-svg');
+    
+    leftColCollapsed = !leftColCollapsed;
+    if (leftColCollapsed) {
+      left.classList.remove('w-1/2');
+      left.classList.add('w-0', 'invisible', 'border-r-0');
+      right.classList.remove('w-1/2');
+      right.classList.add('w-full');
+      arrow.innerHTML = `<path d="M9 5l7 7-7 7"/>`; // right arrow
+      btn.title = "Restore Document Reader";
+    } else {
+      left.classList.remove('w-0', 'invisible', 'border-r-0');
+      left.classList.add('w-1/2');
+      right.classList.remove('w-full');
+      right.classList.add('w-1/2');
+      arrow.innerHTML = `<path d="M15 19l-7-7 7-7"/>`; // left arrow
+      btn.title = "Collapse Document Reader";
+    }
+  }
+
+  function switchDeskTab(tab) {
+    const btnTimeline = document.getElementById('desk-tab-btn-timeline');
+    const btnRegistry = document.getElementById('desk-tab-btn-registry');
+    const btnConsole = document.getElementById('desk-tab-btn-console');
+    
+    const paneTimeline = document.getElementById('desk-tab-content-timeline');
+    const paneRegistry = document.getElementById('desk-tab-content-registry');
+    const paneConsole = document.getElementById('desk-tab-content-console');
+    
+    const buttons = [btnTimeline, btnRegistry, btnConsole];
+    const panels = [paneTimeline, paneRegistry, paneConsole];
+    const targetBtn = document.getElementById('desk-tab-btn-' + tab);
+    const targetPane = document.getElementById('desk-tab-content-' + tab);
+    
+    buttons.forEach(btn => {
+      if (btn) {
+        btn.className = "h-full px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900 border-b-2 border-transparent transition-all uppercase tracking-wider";
+      }
+    });
+    panels.forEach(pane => {
+      if (pane) {
+        pane.classList.remove('active');
+        pane.classList.add('hidden');
+      }
+    });
+    
+    if (targetBtn) {
+      targetBtn.className = "h-full px-3 text-xs font-semibold text-zinc-900 border-b-2 border-zinc-900 transition-all uppercase tracking-wider";
+    }
+    if (targetPane) {
+      targetPane.classList.remove('hidden');
+      targetPane.classList.add('active');
+    }
+    
+    if (tab === 'console') {
+      setTimeout(() => { const i = document.getElementById('chatInput'); if (i) i.focus(); }, 100);
+    }
+  }
+
+  function updateSidebarHighlight(activeKey) {
+    document.querySelectorAll('.sidebar-item').forEach(el => {
+      el.classList.remove('bg-white', 'font-semibold', 'text-zinc-900', 'border-l-2', 'border-zinc-900', 'pl-[8px]');
+      el.classList.add('text-zinc-600', 'font-medium', 'pl-2.5');
+    });
+
+    const targetSidebarEl = document.getElementById('sidebar-' + activeKey);
+    if (targetSidebarEl) {
+      targetSidebarEl.classList.remove('text-zinc-600', 'font-medium', 'pl-2.5');
+      targetSidebarEl.classList.add('bg-white', 'font-semibold', 'text-zinc-900', 'border-l-2', 'border-zinc-900', 'pl-[8px]');
+    }
+  }
+
+  function updateLeftTabsHeader(view) {
+    const pdfBtn = document.getElementById('toggle-pdf-btn');
+    const jsonBtn = document.getElementById('toggle-json-btn');
+    if (!pdfBtn || !jsonBtn) return;
+    
+    if (view === 'pdf') {
+      pdfBtn.className = "h-full px-3 text-xs font-semibold text-zinc-900 border-b-2 border-zinc-900 transition-all";
+      jsonBtn.className = "h-full px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-all";
+    } else {
+      jsonBtn.className = "h-full px-3 text-xs font-semibold text-zinc-900 border-b-2 border-zinc-900 transition-all";
+      pdfBtn.className = "h-full px-3 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-all";
+    }
+  }
+
+  function switchMainTab(view) {
+    if (view === 'pdf' || view === 'json') {
+      const panels = ['pdf', 'json'];
+      panels.forEach(p => {
+        const el = document.getElementById('panel-' + p);
+        if (el) {
+          if (p === view) {
+            el.classList.add('active');
+            el.classList.remove('hidden');
+          } else {
+            el.classList.remove('active');
+            el.classList.add('hidden');
+          }
+        }
+      });
+      selectedDocSubView = view;
+      updateLeftTabsHeader(view);
+      updateSidebarHighlight('transactions');
+    } else {
+      updateSidebarHighlight(view);
+
+      if (view === 'events') {
+        switchDeskTab('timeline');
+        loadEvents();
+      }
+      if (view === 'entities') {
+        switchDeskTab('registry');
+        loadEntities();
+      }
+      if (view === 'assistant') {
+        switchDeskTab('console');
+      }
+      if (view === 'doris') {
+        switchDeskTab('console');
+        appendConsoleLine("Accessing external portal: Delhi DORIS Land Records Registry...", "system");
+        appendConsoleLine("External database connector is offline (SRO Delhi API in development).", "system");
+      }
+      if (view === 'ngdrs') {
+        switchDeskTab('console');
+        appendConsoleLine("Accessing external portal: National Generic Document Registration System...", "system");
+        appendConsoleLine("External database connector is offline (SRO Delhi API in development).", "system");
+      }
+    }
+  }
+
+  function toggleDocView(subView) {
+    switchMainTab(subView);
+  }
+
+  function selectTransactionsMenu() {
+    switchMainTab('pdf');
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Document selection
+  // ─────────────────────────────────────────────────────────
+  function selectFile(el, filename) {
+    document.querySelectorAll('#fileTree > div').forEach(t => {
+      t.className = "group relative flex items-center justify-between px-2 py-1.5 cursor-pointer text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 text-[12.5px] transition-colors";
+    });
+    
+    el.className = "group relative flex items-center justify-between px-2 py-1.5 cursor-pointer text-[12.5px] transition-colors bg-zinc-100 font-semibold text-zinc-900 border-l-2 border-zinc-500 pl-[6px]";
+    selectedFile = filename;
+    
+    const activeFileEl = document.getElementById('asActiveFile');
+    if (activeFileEl) {
+      activeFileEl.textContent = filename;
+    }
+    
+    const frame = document.getElementById('pdfFrame');
+    if (frame) {
+      frame.src = '/pdf/{{ project_name }}/' + filename;
+    }
+    loadJsonForSelected(filename);
+
+    switchMainTab('pdf');
+  }
+
+  function loadJsonForSelected(filename) {
+    fetch('/result/{{ project_name }}/' + filename)
+      .then(r => r.ok ? r.json() : null)
+      .then(payload => {
+        const out   = document.getElementById('jsonOutput');
+        const empty = document.getElementById('jsonEmpty');
+
+        const notParsed = !payload
+                       || payload.exists === false
+                       || !payload.data;
+
+        if (notParsed) {
+          out.classList.add('hidden');
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          return;
+        }
+
+        let fields = payload.data;
+        if (fields && typeof fields === 'object' && fields.parsed === true && fields.data) {
+          fields = fields.data;
+        }
+
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        out.classList.remove('hidden');
+        out.innerHTML = renderJsonAsTable(fields);
+      });
+  }
+
+  function deleteFile(filename) {
+    if (!confirm('Delete ' + filename + '?')) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/delete_file/{{ project_name }}/' + encodeURIComponent(filename);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function startRename(btn, filename) {
+    const row  = btn.closest('#fileTree > div');
+    const span = row.querySelector('.tree-l2-name');
+    if (!span) return;
+
+    const baseName = filename.replace(/\.pdf$/i, '');
+
+    const input = document.createElement('input');
+    input.type  = 'text';
+    input.value = baseName;
+    input.className = 'flex-1 min-w-0 bg-transparent border-0 border-b border-ring outline-none text-[13px] font-[inherit] px-0';
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    row.onclick = null;
+
+    function commitRename() {
+      const newBase = input.value.trim();
+      if (!newBase || newBase === baseName) {
+        cancelRename();
+        return;
+      }
+      const newName = newBase.endsWith('.pdf') ? newBase : newBase + '.pdf';
+
+      fetch('/rename_file/{{ project_name }}/' + encodeURIComponent(filename), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_name: newName })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          location.reload();
+        } else {
+          alert(d.error || 'Rename failed');
+          cancelRename();
+        }
+      });
+    }
+
+    function cancelRename() {
+      const newSpan = document.createElement('span');
+      newSpan.className = 'truncate tree-l2-name';
+      newSpan.setAttribute('data-filename', filename);
+      newSpan.textContent = filename;
+      input.replaceWith(newSpan);
+      row.onclick = function() { selectFile(row, filename); };
+    }
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter')  { e.preventDefault(); commitRename(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelRename(); }
+    });
+    input.addEventListener('blur', commitRename);
+  }
+
+  function filterTree(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('#fileTree > div').forEach(wrap => {
+      const name = wrap.querySelector('.tree-l2-name');
+      if (name) wrap.style.display = name.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  function clearParseResults() {
+    if (!confirm('Clear all parse results for this project? PDFs will be kept; only extracted data will be removed.')) return;
+    fetch('/clear_results/{{ project_name }}', { method: 'POST' })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to clear parse results.');
+        }
+      })
+      .catch(() => alert('Failed to clear parse results.'));
+  }
+
+  function renameProject() {
+    const newName = prompt('Rename project:', '{{ project_name.rsplit("_", 1)[0] }}');
+    if (!newName) return;
+    fetch('/rename_project/{{ project_name }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({new_name: newName})
+    }).then(r => r.json()).then(d => {
+      if (d.new_project) window.location.href = '/workspace/' + d.new_project;
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Parsing Operation Trigger
+  // ─────────────────────────────────────────────────────────
+  function triggerParse() {
+    selectedDocSubView = 'json';
+    toggleDocView('json');
+
+    document.getElementById('jsonEmpty').classList.add('hidden');
+    document.getElementById('jsonEmpty').classList.remove('flex');
+    document.getElementById('jsonOutput').classList.add('hidden');
+    const loader = document.getElementById('parseLoading');
+    loader.classList.remove('hidden');
+    loader.classList.add('flex');
+
+    if (!selectedFile) {
+      loader.classList.add('hidden');
+      loader.classList.remove('flex');
+      alert('Select a file first.');
+      return;
+    }
+    fetch('/parse/{{ project_name }}/' + selectedFile)
+      .then(r => r.json())
+      .then(data => {
+        loader.classList.add('hidden');
+        loader.classList.remove('flex');
+        const out = document.getElementById('jsonOutput');
+        out.classList.remove('hidden');
+        out.innerHTML = renderJsonAsTable(data);
+        
+        // Refresh auditing tabs immediately
+        loadEvents();
+        loadEntities();
+      })
+      .catch(() => {
+        loader.classList.add('hidden');
+        loader.classList.remove('flex');
+        alert('Parse failed.');
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // JSON Output rendering
+  // ─────────────────────────────────────────────────────────
+  function humanLabel(key) {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // Value cleanups and table elements escape formatter
+  function formatValue(v) {
+    if (v === null || v === undefined || v === '' || v === 'null')
+      return '<span class="text-muted-foreground italic">—</span>';
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '<span class="text-muted-foreground italic">—</span>';
+      return v.map(item => `<span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium mr-1 mb-1">${escapeHtml(String(item))}</span>`).join('');
+    }
+    if (typeof v === 'object') {
+      return `<pre class="font-mono text-xs text-foreground/80 whitespace-pre-wrap">${escapeHtml(JSON.stringify(v, null, 2))}</pre>`;
+    }
+    return `<span class="text-sm text-foreground">${escapeHtml(String(v))}</span>`;
+  }
+
+  // Simple string utility function
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderJsonAsTable(payload) {
+    const obj = (payload && typeof payload === 'object' && payload.data && typeof payload.data === 'object')
+      ? payload.data
+      : payload;
+
+    if (!obj || typeof obj !== 'object') {
+      return '<div class="text-sm text-muted-foreground">No data to display.</div>';
+    }
+
+    const FIELD_ORDER = [
+      'document_type', 'txn_type', 'sub_registrar_office', 'registration_no', 'registration_year', 'doc_no',
+      'date_of_execution', 'date_of_registration',
+      'society_building_name', 'society_building_address', 'flat_no', 'plot_no', 'survey_no', 'cts_no', 'village', 'district', 'area',
+      'boundary_north', 'boundary_south', 'boundary_east', 'boundary_west',
+      'seller_names', 'seller_address', 'buyer_names',  'buyer_address',
+      'donor_name',  'donor_address', 'donee_name',  'donee_address',
+      'mortgagor_name', 'mortgagor_address', 'mortgagee_name', 'mortgagee_address',
+      'licensor_name', 'licensor_address', 'licensee_name', 'licensee_address', 'leave_license_months',
+      'transferor_pan', 'transferor_pin', 'transferee_pan', 'transferee_pin',
+      'consideration', 'deposit', 'license_fee', 'stamp_duty', 'registration_fee', 'remarks'
+    ];
+
+    const orderIndex = (key) => {
+      const i = FIELD_ORDER.indexOf(key);
+      return i === -1 ? 999 : i;
+    };
+
+    const isEmpty = (v) =>
+      v === null || v === undefined || v === '' || v === 'null' ||
+      (Array.isArray(v) && v.length === 0);
+
+    const PARTY_GROUPS = {
+      sale:     ['seller_names', 'seller_address', 'buyer_names', 'buyer_address'],
+      gift:     ['donor_name', 'donor_address', 'donee_name', 'donee_address'],
+      mortgage: ['mortgagor_name', 'mortgagor_address', 'mortgagee_name', 'mortgagee_address'],
+      license:  ['licensor_name', 'licensor_address', 'licensee_name', 'licensee_address', 'leave_license_months', 'deposit', 'license_fee'],
+    };
+
+    function relevantGroupsFor(txn) {
+      const t = (txn || '').toUpperCase();
+      if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE')) return ['sale'];
+      if (t.includes('GIFT')) return ['gift'];
+      if (t.includes('MORTGAGE') || t.includes('INTIMATION')) return ['mortgage'];
+      if (t.includes('LEAVE') || t.includes('LICENSE')) return ['license'];
+      return Object.keys(PARTY_GROUPS);
+    }
+
+    const txnType = obj.txn_type || obj.document_type;
+    const relevantGroups = new Set(relevantGroupsFor(txnType));
+    const hiddenPartyFields = new Set();
+    Object.entries(PARTY_GROUPS).forEach(([groupName, fields]) => {
+      if (!relevantGroups.has(groupName)) {
+        fields.forEach(f => hiddenPartyFields.add(f));
+      }
+    });
+
+    const entries = Object.entries(obj)
+      .filter(([k, v]) => {
+        if (!hiddenPartyFields.has(k)) return true;
+        return !isEmpty(v);
+      })
+      .sort((a, b) => {
+        const aEmpty = isEmpty(a[1]);
+        const bEmpty = isEmpty(b[1]);
+        if (aEmpty !== bEmpty) return aEmpty ? 1 : -1;
+        const ai = orderIndex(a[0]);
+        const bi = orderIndex(b[0]);
+        if (ai !== bi) return ai - bi;
+        return a[0].localeCompare(b[0]);
+      });
+
+    let html = '<div class="rounded-lg border border-border bg-card overflow-hidden">';
+    entries.forEach(([k, v], i) => {
+      const isLast = i === entries.length - 1;
+      html += `
+        <div class="grid grid-cols-[180px_1fr] gap-4 px-5 py-3 ${isLast ? '' : 'border-b border-border'}">
+          <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground self-start pt-0.5">${humanLabel(k)}</div>
+          <div class="text-sm text-foreground break-words">${formatValue(v)}</div>
+        </div>`;
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Timeline Events View
+  // ─────────────────────────────────────────────────────────
+  let _eventsStore = [];
+  let _currentOwnerName = null;
+
+  function loadEvents() {
+    fetch('/events/{{ project_name }}')
+      .then(r => r.ok ? r.json() : { events: [], chain_errors: [] })
+      .then(data => {
+        const events = data.events || [];
+        const findings = data.chain_errors || [];
+        
+        function mode(arr) {
+          const counts = {};
+          arr.filter(Boolean).forEach(v => { counts[v] = (counts[v] || 0) + 1; });
+          let best = null, bestCount = 0;
+          for (const k in counts) if (counts[k] > bestCount) { best = k; bestCount = counts[k]; }
+          return best;
+        }
+
+        const property = {
+          society: mode(events.map(e => e.society_building_name)),
+          flat:    mode(events.map(e => e.flat_no)),
+          plot:    mode(events.map(e => e.id_field === 'plot_no' ? e.id_value : null)),
+          area:    mode(events.map(e => e.area)),
+          address: mode(events.map(e => e.society_building_address)),
+        };
+
+        const sorted = [...events].sort((a, b) =>
+          (a.event_date || '').localeCompare(b.event_date || '')
+        );
+        _eventsStore = sorted;
+
+        let currentOwner = null, currentOwnerSince = null, currentOwnerDoc = null;
+        sorted.forEach(ev => {
+          const t = (ev.event_type || '').toUpperCase();
+          if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('GIFT')) {
+            const buyers = ev.buyer_names || ev.donee_name;
+            const buyer  = Array.isArray(buyers) ? buyers.join(', ') : buyers;
+            if (buyer) {
+              currentOwner = buyer;
+              currentOwnerSince = ev.event_date;
+              currentOwnerDoc = ev.event_doc_no;
+            }
+          }
+        });
+        _currentOwnerName = currentOwner;
+
+        const firstDate = sorted[0]?.event_date;
+        const lastDate  = sorted[sorted.length - 1]?.event_date;
+        function spanLabel(a, b) {
+          if (!a || !b) return '—';
+          const pa = a.split('-'), pb = b.split('-');
+          if (pa.length !== 3 || pb.length !== 3) return '—';
+          const da = new Date(+pa[2], +pa[1]-1, +pa[0]);
+          const db = new Date(+pb[2], +pb[1]-1, +pb[0]);
+          let months = (db.getFullYear() - da.getFullYear()) * 12 + (db.getMonth() - da.getMonth());
+          if (months < 0) months = 0;
+          const y = Math.floor(months / 12), m = months % 12;
+          if (y === 0) return m + 'm';
+          if (m === 0) return y + 'y';
+          return y + 'y ' + m + 'm';
+        }
+
+        // Write metrics to DOM
+        const propStr = (property.society || '—') + (property.flat ? ', Flat ' + property.flat : '');
+        document.getElementById('meta-property').textContent = propStr;
+        document.getElementById('meta-owner').textContent = currentOwner || '—';
+        document.getElementById('meta-events-count').textContent = events.length;
+        document.getElementById('meta-span').textContent = spanLabel(firstDate, lastDate);
+        document.getElementById('meta-first-year').textContent = firstDate ? firstDate.split('-')[2] : '—';
+        document.getElementById('meta-mortgages-count').textContent = data.encumbrances_total || 0;
+
+        // Render Chronological Table
+        const emptyTl = document.getElementById('timelineEmpty');
+        const contentTl = document.getElementById('timelineTableContent');
+        if (sorted.length === 0) {
+          emptyTl.classList.remove('hidden');
+          contentTl.classList.add('hidden');
+        } else {
+          emptyTl.classList.add('hidden');
+          contentTl.classList.remove('hidden');
+          
+          let tableHtml = `
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-zinc-50 border-b border-zinc-200 text-[10px] font-mono text-zinc-500 uppercase">
+                  <th class="px-4 py-2 font-bold w-12">Year</th>
+                  <th class="px-4 py-2 font-bold w-24">Type</th>
+                  <th class="px-4 py-2 font-bold">Parties</th>
+                  <th class="px-4 py-2 font-bold text-right w-24">Consideration</th>
+                  <th class="px-4 py-2 font-bold text-right w-24">Doc No</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-150">`;
+          
+          sorted.forEach((ev, idx) => {
+            const t = (ev.event_type || '').toUpperCase();
+            const year = (ev.event_date || '').split('-')[2] || '—';
+            let typeLabel = ev.event_type || '—';
+            let typeDotHtml = '';
+            
+            if (t.includes('SALE') || t.includes('AGREEMENT')) {
+              typeLabel = 'Sale Deed';
+              typeDotHtml = `<span class="inline-flex items-center gap-1.5 font-semibold text-zinc-800"><span class="w-2 h-2 bg-zinc-800"></span>${typeLabel}</span>`;
+            } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+              typeLabel = 'Mortgage';
+              typeDotHtml = `<span class="inline-flex items-center gap-1.5 font-semibold text-amber-700"><span class="w-2 h-2 bg-amber-500"></span>${typeLabel}</span>`;
+            } else if (t.includes('RELEASE')) {
+              typeLabel = 'Release';
+              typeDotHtml = `<span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700"><span class="w-2 h-2 bg-emerald-500"></span>${typeLabel}</span>`;
+            } else if (t.includes('GIFT')) {
+              typeLabel = 'Gift';
+              typeDotHtml = `<span class="inline-flex items-center gap-1.5 font-semibold text-zinc-700"><span class="w-2 h-2 bg-zinc-400"></span>${typeLabel}</span>`;
+            } else {
+              typeDotHtml = `<span class="inline-flex items-center gap-1.5 font-medium text-zinc-500"><span class="w-2 h-2 bg-zinc-300"></span>${typeLabel}</span>`;
+            }
+
+            let from = null, to = null;
+            if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE')) {
+              from = Array.isArray(ev.seller_names) ? ev.seller_names.join(', ') : ev.seller_names;
+              to   = Array.isArray(ev.buyer_names)  ? ev.buyer_names.join(', ')  : ev.buyer_names;
+            } else if (t.includes('GIFT')) {
+              from = ev.donor_name; to = ev.donee_name;
+            } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+              from = ev.mortgagor_name; to = ev.mortgagee_name;
+            } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
+              from = ev.licensor_name; to = ev.licensee_name;
+            }
+
+            const isCurrent = to && currentOwner && to === currentOwner;
+            const unresolved = ev.unresolved && (t.includes('MORTGAGE') || t.includes('INTIMATION'));
+
+            tableHtml += `
+              <tr onclick="openEventDetail(${idx})" class="hover:bg-zinc-50 cursor-pointer transition-colors group">
+                <td class="px-4 py-2.5 font-mono text-zinc-500">${year}</td>
+                <td class="px-4 py-2.5">${typeDotHtml}</td>
+                <td class="px-4 py-2.5 min-w-0">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="truncate ${from ? 'text-zinc-800' : 'text-zinc-400 italic'}" title="${from || '—'}">${from || '—'}</span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-zinc-400 shrink-0"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <span class="truncate ${to ? 'text-zinc-800' : 'text-zinc-400 italic'} ${isCurrent ? 'font-bold' : ''}" title="${to || '—'}">${to || '—'}</span>
+                    ${isCurrent ? '<span class="px-1 py-0.2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-bold shrink-0">CURRENT</span>' : ''}
+                    ${unresolved ? '<span class="px-1 py-0.2 bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-bold shrink-0">UNRESOLVED</span>' : ''}
+                  </div>
+                </td>
+                <td class="px-4 py-2.5 text-right font-mono text-zinc-750">${ev.consideration || '—'}</td>
+                <td class="px-4 py-2.5 text-right font-mono text-zinc-500 truncate">${ev.event_doc_no || '—'}</td>
+              </tr>`;
+          });
+          
+          tableHtml += `</tbody></table>`;
+          contentTl.innerHTML = tableHtml;
+        }
+
+        // Render Exceptions & Findings
+        const emptyFi = document.getElementById('findingsEmpty');
+        const contentFi = document.getElementById('findingsListContent');
+        const activeFindings = findings.filter(f => !f.dismissed);
+        const dismissedFindings = findings.filter(f => f.dismissed);
+        const totalFindings = findings.length;
+
+        if (totalFindings === 0) {
+          emptyFi.classList.remove('hidden');
+          contentFi.classList.add('hidden');
+        } else {
+          emptyFi.classList.add('hidden');
+          contentFi.classList.remove('hidden');
+          
+          let findingsHtml = '';
+          if (activeFindings.length === 0 && dismissedFindings.length > 0) {
+            findingsHtml += `<div class="px-4 py-2 bg-zinc-50 text-[10px] text-zinc-400 italic border-b border-zinc-200">All findings dismissed. Restore any below.</div>`;
+          }
+          activeFindings.forEach(err => { findingsHtml += renderFindingCard(err, false); });
+          dismissedFindings.forEach(err => { findingsHtml += renderFindingCard(err, true); });
+          
+          contentFi.innerHTML = findingsHtml;
+        }
+        
+        if (window.lucide) lucide.createIcons();
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Sidebar Sub-panel rendering logic
+  // ─────────────────────────────────────────────────────────
+  const SB_TYPE_LABELS = {
+    'SALE_DEED':              'Sale',
+    'AGREEMENT_OF_SALE':      'Agreement',
+    'GIFT_DEED':              'Gift',
+    'MORTGAGE_DEED':          'Mortgage',
+    'INTIMATION_OF_MORTGAGE': 'Mortgage',
+    'RELEASE_DEED':           'Release',
+    'DEED_OF_RELEASE':        'Release',
+    'LEAVE_AND_LICENSE':      'Licence',
+  };
+
+  function sbTypeBadge(type) {
+    const t = (type || '').toUpperCase();
+    if (t.includes('MORTGAGE') || t.includes('INTIMATION'))
+      return 'border-border bg-amber-50/60 text-amber-800';
+    if (t.includes('RELEASE'))
+      return 'border-border bg-emerald-50/60 text-emerald-800';
+    if (t.includes('GIFT'))
+      return 'border-border bg-violet-50/60 text-violet-800';
+    if (t.includes('LEAVE') || t.includes('LICENSE'))
+      return 'border-border bg-sky-50/60 text-sky-800';
+    return 'border-border bg-secondary text-secondary-foreground';
+  }
+
+  function loadSbEvents() {
+    fetch('/events/{{ project_name }}')
+      .then(r => r.ok ? r.json() : { chain_errors: [] })
+      .then(data => {
+        const findings = data.chain_errors || [];
+        const flaggedDocs = new Set(
+          findings
+            .filter(f => !f.dismissed && f.doc_no)
+            .map(f => String(f.doc_no))
+        );
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Detailed Event Overlays
+  // ─────────────────────────────────────────────────────────
+  function openEventDetail(idx) {
+    const ev = _eventsStore[idx];
+    if (!ev) return;
+
+    const t         = (ev.event_type || '').toUpperCase();
+    const typeLabel = DETAIL_TXN_LABELS[ev.event_type] || ev.event_type || '—';
+
+    let fromLabel = 'From', toLabel = 'To', fromVal = null, toVal = null;
+    if (t.includes('SALE') || t.includes('AGREEMENT')) {
+      fromLabel = 'Seller'; toLabel = 'Buyer';
+      fromVal = ev.seller_names; toVal = ev.buyer_names;
+    } else if (t.includes('GIFT')) {
+      fromLabel = 'Donor'; toLabel = 'Donee';
+      fromVal = ev.donor_name; toVal = ev.donee_name;
+    } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+      fromLabel = 'Mortgagor'; toLabel = 'Mortgagee';
+      fromVal = ev.mortgagor_name; toVal = ev.mortgagee_name;
+    } else if (t.includes('RELEASE')) {
+      fromLabel = 'Releasor'; toLabel = 'Releasee';
+      fromVal = ev.seller_names; toVal = ev.buyer_names;
+    } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
+      fromLabel = 'Licensor'; toLabel = 'Licensee';
+      fromVal = ev.licensor_name; toVal = ev.licensee_name;
+    }
+
+    const buyerName = Array.isArray(toVal) ? toVal.filter(Boolean).join(', ') : toVal;
+    const isCurrent = buyerName && _currentOwnerName && buyerName === _currentOwnerName;
+
+    const leftRows =
+      _detailRowIfPresent('Doc No',       ev.event_doc_no) +
+      _detailRowIfPresent('Executed',     ev.event_date) +
+      _detailRowIfPresent('Registered',   ev.event_reg_date) +
+      _detailRowIfPresent('Sub-Registrar',ev.sub_registrar_office);
+
+    const partyRows =
+      _detailRowIfPresent(fromLabel, fromVal) +
+      _detailRowIfPresent(toLabel,   toVal);
+
+    const moneyRows =
+      _detailRowIfPresent('Consideration', ev.consideration) +
+      _detailRowIfPresent('Stamp Duty',    ev.stamp_duty) +
+      _detailRowIfPresent('Market Value',  ev.market_value);
+
+    const plotNo = ev.id_field === 'plot_no' ? ev.id_value : (ev.plot_no || null);
+    const propRows =
+      _detailRowIfPresent('Society',  ev.society_building_name) +
+      _detailRowIfPresent('Flat No',  ev.flat_no) +
+      _detailRowIfPresent('Plot No',  plotNo) +
+      _detailRowIfPresent('Area',     ev.area) +
+      _detailRowIfPresent('Address',  ev.society_building_address) +
+      _detailRowIfPresent('Village',  ev.village) +
+      _detailRowIfPresent('District', ev.district);
+
+    const backdrop = document.getElementById('eventDrawerBackdrop');
+    const drawer   = document.getElementById('eventDrawer');
+    const body     = document.getElementById('eventDrawerContent');
+
+    body.innerHTML = `
+      <div class="flex items-start justify-between gap-4 px-6 py-5 border-b border-border shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium">${typeLabel}</span>
+            ${isCurrent ? '<span class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg> Current Owner</span>' : ''}
+          </div>
+          <div class="text-xl font-semibold tracking-tight">Doc ${ev.event_doc_no || '—'}</div>
+          <div class="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+            <span>${ev.event_date || '—'}</span>
+            ${ev.event_reg_date ? '<span class="text-border">·</span><span>Reg. ' + ev.event_reg_date + '</span>' : ''}
+          </div>
+        </div>
+        <button onclick="closeEventDetail()"
+                class="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:bg-accent transition-colors shrink-0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto min-h-0">
+        <div class="grid grid-cols-2 gap-5 p-6">
+          <div class="space-y-5">
+            ${_detailCol('Document', leftRows)}
+            ${partyRows ? _detailCol('Parties', partyRows) : ''}
+            ${moneyRows ? _detailCol('Financials', moneyRows) : ''}
+          </div>
+          <div class="space-y-5">
+            ${propRows ? _detailCol('Property', propRows) : ''}
+          </div>
+        </div>
+      </div>`;
+
+    backdrop.classList.remove('opacity-0', 'pointer-events-none');
+    backdrop.classList.add('opacity-100');
+    drawer.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+    drawer.classList.add('opacity-100', 'scale-100');
+  }
+
+  function closeEventDetail() {
+    const drawer   = document.getElementById('eventDrawer');
+    const backdrop = document.getElementById('eventDrawerBackdrop');
+    drawer.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+    drawer.classList.remove('opacity-100', 'scale-100');
+    backdrop.classList.add('opacity-0', 'pointer-events-none');
+    backdrop.classList.remove('opacity-100');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEventDetail();
+  });
+
+  const DETAIL_TXN_LABELS = {
+    'SALE_DEED': 'Sale Deed', 'AGREEMENT_OF_SALE': 'Agreement of Sale',
+    'GIFT_DEED': 'Gift Deed', 'RELEASE_DEED': 'Release Deed',
+    'DEED_OF_RELEASE': 'Deed of Release', 'MORTGAGE_DEED': 'Mortgage Deed',
+    'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
+    'LEAVE_AND_LICENSE': 'Leave & License',
+  };
+
+  function _detailRowIfPresent(label, value) {
+    if (value === undefined || value === null || value === '' ||
+        (Array.isArray(value) && value.filter(Boolean).length === 0)) return '';
+    const display = Array.isArray(value) ? value.filter(Boolean).join(', ') : String(value);
+    return `
+      <div class="flex gap-4 px-4 py-2.5 border-b border-border/60 last:border-0">
+        <div class="w-28 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground pt-0.5">${label}</div>
+        <div class="text-sm text-foreground min-w-0 break-words flex-1">${display}</div>
+      </div>`;
+  }
+
+  function _detailCol(title, rows) {
+    if (!rows) return '';
+    return `
+      <div>
+        <div class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 mb-2 px-1">${title}</div>
+        <div class="rounded-lg border border-border bg-card overflow-hidden">${rows}</div>
+      </div>`;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Entities rendering logic
+  // ─────────────────────────────────────────────────────────
+  const BASIS_LABELS = {
+    'SALE_DEED':              'Sale Deed',
+    'AGREEMENT_OF_SALE':      'Agreement of Sale',
+    'GIFT_DEED':              'Gift Deed',
+    'RELEASE_DEED':           'Release Deed',
+    'DEED_OF_RELEASE':        'Deed of Release',
+    'MORTGAGE_DEED':          'Mortgage Deed',
+    'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
+    'LEAVE_AND_LICENSE':      'Leave & License',
+  };
+  const basisLabel = (b) => BASIS_LABELS[b] || b || '—';
+
+  function Badge(variant, text) {
+    const variants = {
+      'default':     'border-transparent bg-primary text-primary-foreground',
+      'secondary':   'border-transparent bg-secondary text-secondary-foreground',
+      'outline':     'text-foreground',
+      'success':     'border-emerald-200 bg-emerald-50 text-emerald-700',
+      'warning':     'border-amber-200 bg-amber-50 text-amber-700',
+      'destructive': 'border-rose-200 bg-rose-50 text-rose-700',
+      'muted':       'border-border bg-muted text-muted-foreground',
+    };
+    return `<span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${variants[variant] || variants.outline}">${text}</span>`;
+  }
+
+  function ColumnHeader(icon, title, count) {
+    return `
+      <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-border">
+        <div class="flex items-center gap-2">
+          <i data-lucide="${icon}" class="w-4 h-4 text-muted-foreground"></i>
+          <h3 class="text-sm font-semibold tracking-tight">${title}</h3>
+        </div>
+        <span class="inline-flex items-center justify-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground tabular-nums">${count}</span>
+      </div>`;
+  }
+
+  function SubgroupLabel(text) {
+    return `<div class="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/70 mb-2 mt-4 first:mt-0">${text}</div>`;
+  }
+
+  function renderTransferPartyCard(o) {
+    const isActive    = o.status === 'active';
+    const isRoot      = !!o._isRoot;
+    const entryType   = o.entry_type || 'buyer';
+
+    let borderClass = 'border-border bg-card';
+    if (isActive && o.encumbered) borderClass = 'border-amber-200/70 bg-amber-50/30';
+    else if (isRoot)              borderClass = 'border-yellow-300/70 bg-yellow-50/40';
+
+    let statusBadge;
+    if (isActive && o.encumbered) statusBadge = Badge('warning', 'Encumbered');
+    else if (isActive)            statusBadge = Badge('success', 'Active Owner');
+    else                          statusBadge = Badge('muted', 'Former');
+
+    const rootRibbon = isRoot
+      ? `<div class="px-4 pt-3"><span class="inline-flex items-center gap-1 rounded-md border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-800"><i data-lucide="flag" class="w-3 h-3"></i>Root of Title</span></div>`
+      : '';
+
+    const areaLine = (isActive && o.area)
+      ? `<div class="text-xs text-foreground/80">${o.area}</div>`
+      : '';
+
+    let entryIcon, entryText;
+    if (entryType === 'root_seller') {
+      entryIcon = 'anchor';
+      entryText = 'Root of title · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—');
+    } else if (entryType === 'seller_only') {
+      entryIcon = 'arrow-up-right';
+      entryText = 'Named as seller · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—')
+                + (o.since_date ? ' · ' + o.since_date : '');
+    } else {
+      entryIcon = 'arrow-down-right';
+      entryText = 'Acquired ' + (o.since_date || '—') + ' · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—');
+    }
+
+    const entryLine = `
+      <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <i data-lucide="${entryIcon}" class="w-3 h-3 shrink-0"></i>
+        <span>${entryText}</span>
+      </div>`;
+
+    let exitLine = '';
+    if (!isActive && o.exited_date) {
+      let exitText;
+      if (entryType === 'root_seller') {
+        exitText = 'Exited via root deed · Doc ' + (o.exited_doc || '—') + ' · ' + o.exited_date;
+      } else if (entryType === 'seller_only') {
+        exitText = 'Exited via this deed · Doc ' + (o.exited_doc || '—') + ' · ' + o.exited_date;
+      } else {
+        exitText = 'Exited ' + o.exited_date + ' · ' + basisLabel(o.exited_via) + ' · Doc ' + (o.exited_doc || '—');
+      }
+      exitLine = `
+        <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <i data-lucide="arrow-up-right" class="w-3 h-3 shrink-0"></i>
+          <span>${exitText}</span>
+        </div>`;
+    }
+
+    const encLine = (isActive && o.encumbered && o.encumbrance_doc)
+      ? `<div class="flex items-center gap-1.5 text-xs text-amber-700 pt-1">
+           <i data-lucide="lock" class="w-3 h-3 shrink-0"></i>
+           <span>Encumbered · Mortgage Doc ${o.encumbrance_doc}</span>
+         </div>`
+      : '';
+
+    const pans = Array.isArray(o.pan) ? o.pan.filter(Boolean) : (o.pan ? [o.pan] : []);
+    const pins = Array.isArray(o.pin) ? o.pin.filter(Boolean) : (o.pin ? [o.pin] : []);
+
+    function idChips(label, arr) {
+      const inner = arr.length
+        ? arr.map(v => `<span class="font-mono text-[11px] text-foreground/80">${v}</span>`).join('<span class="text-border mx-1">·</span>')
+        : '<span class="text-[11px] text-muted-foreground/60">—</span>';
+      return `
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 w-7 shrink-0">${label}</span>
+          ${inner}
+        </div>`;
+    }
+
+    const idFooter = `
+      <div class="mt-2 pt-2 border-t border-border/60 space-y-1">
+        ${idChips('PAN', pans)}
+        ${idChips('PIN', pins)}
+      </div>`;
+
+    return `
+      <div class="rounded-lg border ${borderClass} text-card-foreground shadow-sm transition-colors">
+        ${rootRibbon}
+        <div class="flex items-center justify-between gap-3 px-4 ${isRoot ? 'pt-2' : 'pt-3'} pb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-muted-foreground shrink-0"></i>
+            <span class="text-sm font-semibold truncate ${isActive ? '' : 'text-foreground/70'}">${o.display_name || o.canonical || '—'}</span>
+          </div>
+          ${statusBadge}
+        </div>
+        <div class="px-4 pb-3 space-y-1">
+          ${areaLine}
+          ${entryLine}
+          ${exitLine}
+          ${encLine}
+          ${idFooter}
+        </div>
+      </div>`;
+  }
+
+  function renderEncumbranceCard(e) {
+    const isResolved = e.status === 'RESOLVED';
+    const headerBadge = isResolved
+      ? Badge('success', 'Released')
+      : Badge('destructive', 'Active');
+
+    const containerClass = isResolved
+      ? 'rounded-lg border border-border bg-card text-card-foreground shadow-sm'
+      : 'rounded-lg border border-amber-200/70 bg-amber-50/30 text-card-foreground shadow-sm';
+
+    let html = `
+      <div class="${containerClass}">
+        <div class="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="landmark" class="w-3.5 h-3.5 ${isResolved ? 'text-muted-foreground' : 'text-amber-700'} shrink-0"></i>
+            <span class="text-sm font-semibold truncate ${isResolved ? 'text-foreground/70' : ''}">${e.holder || 'Unknown Mortgagee'}</span>
+          </div>
+          ${headerBadge}
+        </div>
+        <div class="px-4 pb-3 space-y-1">
+          <div class="text-xs text-foreground/80">
+            <span class="text-muted-foreground">Mortgagor:</span> ${e.mortgagor || '—'}
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <i data-lucide="file-text" class="w-3 h-3"></i>
+            <span>Filed ${e.since_date || '—'} · Doc ${e.doc_no || '—'}</span>
+          </div>
+        </div>`;
+
+    if (isResolved) {
+      html += `
+        <div class="mx-4 h-[1px] bg-border"></div>
+        <div class="px-4 py-3 bg-emerald-50/40 rounded-b-lg">
+          <div class="flex items-center gap-2 mb-1">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+            <span class="text-xs font-semibold text-emerald-700">Released</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-muted-foreground pl-5">
+            <span>${e.resolved_date || '—'} · Doc ${e.resolved_doc || '—'}</span>
+          </div>
+        </div>`;
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderEmptyPlaceholder(text) {
+    return `<div class="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-10 flex flex-col items-center justify-center text-center">
+      <i data-lucide="inbox" class="w-5 h-5 text-muted-foreground/60 mb-2"></i>
+      <span class="text-xs text-muted-foreground">${text}</span>
+    </div>`;
+  }
+
+  function loadEntities() {
+    fetch('/entities/{{ project_name }}')
+      .then(r => r.ok ? r.json() : { owners: [], encumbrances: [] })
+      .then(data => {
+        const owners = data.owners || [];
+        const encumbrances = data.encumbrances || [];
+
+        const partiesEmpty = document.getElementById('partiesEmpty');
+        const partiesContent = document.getElementById('partiesContentList');
+        const liensEmpty = document.getElementById('liensEmpty');
+        const liensContent = document.getElementById('liensContentList');
+
+        // 1. Render Parties
+        const allParties = [...owners].sort((a, b) => {
+          const da = a.since_date || '';
+          const db = b.since_date || '';
+          return da.localeCompare(db);
+        });
+
+        if (allParties.length > 0) {
+          allParties[0]._isRoot = true;
+          partiesEmpty.classList.add('hidden');
+          partiesContent.classList.remove('hidden');
+          
+          let partiesHtml = '';
+          allParties.forEach(o => {
+            partiesHtml += renderTransferPartyCard(o);
+          });
+          partiesContent.innerHTML = partiesHtml;
+        } else {
+          partiesEmpty.classList.remove('hidden');
+          partiesContent.classList.add('hidden');
+        }
+
+        // 2. Render Liens
+        const activeEnc = encumbrances.filter(e => e.status !== 'RESOLVED');
+        const pastEnc   = encumbrances.filter(e => e.status === 'RESOLVED')
+          .sort((a, b) => (b.resolved_date || '').localeCompare(a.resolved_date || ''));
+
+        if (activeEnc.length > 0 || pastEnc.length > 0) {
+          liensEmpty.classList.add('hidden');
+          liensContent.classList.remove('hidden');
+          
+          let liensHtml = '';
+          if (activeEnc.length > 0) {
+            liensHtml += SubgroupLabel('Active Mortgages');
+            activeEnc.forEach(e => { liensHtml += renderEncumbranceCard(e); });
+          }
+          if (pastEnc.length > 0) {
+            liensHtml += SubgroupLabel('Released Mortgages');
+            pastEnc.forEach(e => { liensHtml += renderEncumbranceCard(e); });
+          }
+          liensContent.innerHTML = liensHtml;
+        } else {
+          liensEmpty.classList.remove('hidden');
+          liensContent.classList.add('hidden');
+        }
+
+        if (window.lucide) lucide.createIcons();
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // Errors Formatting Utility
+  // ─────────────────────────────────────────────────────────
+  function errorBadgeLabel(type) {
+    const map = {
+      'DATE_ORDER_ERROR':                'Date Order',
+      'INVALID_PAN_FORMAT':              'Invalid PAN',
+      'INVALID_PIN_FORMAT':              'Invalid PIN',
+      'PAN_TRANSFEROR_TRANSFEREE_CLASH': 'PAN Clash',
+      'PIN_TRANSFEROR_TRANSFEREE_CLASH': 'PIN Clash',
+      'UNRESOLVED_MORTGAGE':             'Unresolved Mortgage',
+      'AREA_MISMATCH':                   'Area Mismatch',
+      'SOCIETY_MISMATCH':                'Society Mismatch',
+      'ID_MISMATCH':                     'ID Mismatch',
+      'INVALID_MORTGAGOR':               'Invalid Mortgagor',
+      'UNKNOWN_MORTGAGOR':               'Unknown Mortgagor',
+      'CHAIN_ERROR':                     'Chain Error',
+      'ZERO_CONSIDERATION':              'Zero Consideration',
+      'CONSIDERATION_ANOMALY':           'Price Anomaly',
+      'NAME_SPELLING_VARIATION':         'Name Spelling',
+      'SHARED_PAN':                      'Shared PAN',
+      'SHARED_PIN':                      'Shared PIN',
+    };
+    return map[type] || 'Error';
+  }
+
+  function errorSeverity(type) {
+    const warnings = [
+      'DATE_ORDER_ERROR', 'AREA_MISMATCH', 'SOCIETY_MISMATCH',
+      'ID_MISMATCH', 'INVALID_MORTGAGOR', 'INVALID_PAN_FORMAT',
+      'INVALID_PIN_FORMAT', 'CONSIDERATION_ANOMALY', 'NAME_SPELLING_VARIATION',
+    ];
+    return warnings.includes(type) ? 'warning' : 'error';
+  }
+
+  function renderFindingCard(err, isDismissed) {
+    const label       = errorBadgeLabel(err.type);
+    const sev         = errorSeverity(err.type);
+    const expectedLbl = err.type === 'CHAIN_ERROR' ? 'Expected sellers' : 'Expected';
+    const actualLbl   = err.type === 'CHAIN_ERROR' ? 'Actual sellers'   : 'Actual';
+    const expectedVal = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
+    const actualVal   = Array.isArray(err.actual)   ? err.actual.join(', ')   : (err.actual   || '—');
+    const hasDetail   = (err.expected !== undefined && err.expected !== null) ||
+                        (err.actual   !== undefined && err.actual   !== null);
+    const fid         = err.finding_id;
+
+    const sevLabel = sev === 'error' ? 'Error' : 'Warning';
+
+    let leftBorderClass = 'border-l-4 border-zinc-400';
+    if (isDismissed) {
+      leftBorderClass = 'border-l-4 border-zinc-200 opacity-60';
+    } else if (sev === 'error') {
+      leftBorderClass = 'border-l-4 border-red-500';
+    } else if (sev === 'warning') {
+      leftBorderClass = 'border-l-4 border-amber-500';
+    }
+
+    const rowClass = isDismissed ? 'px-5 py-4 bg-zinc-50/50' : 'px-5 py-4 bg-white';
+    const dimText  = isDismissed ? 'text-zinc-400' : 'text-zinc-800';
+    const dimMsg   = isDismissed ? 'text-zinc-400 line-through' : 'text-zinc-800';
+
+    const actionBtn = isDismissed
+      ? `<button onclick="restoreFinding('${fid}')" class="inline-flex items-center gap-1 border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shrink-0 rounded-none">
+           Restore
+         </button>`
+      : `<button onclick="dismissFinding('${fid}')" class="inline-flex items-center gap-1 border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shrink-0 rounded-none">
+           Dismiss
+         </button>`;
+
+    const dismissedBadge = isDismissed
+      ? '<span class="inline-flex items-center border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-500 rounded-none">Dismissed</span>'
+      : '';
+
+    const typeBadgeCls = isDismissed
+      ? 'border-zinc-200 text-zinc-400'
+      : (sev === 'error' ? 'border-red-200 text-red-700 bg-red-50/40' : 'border-amber-200 text-amber-700 bg-amber-50/40');
+
+    return `
+      <div class="${rowClass} ${leftBorderClass} border-b border-zinc-200">
+        <div class="flex items-start justify-between gap-4 mb-2">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="inline-flex items-center border ${typeBadgeCls} px-2 py-0.5 text-xs font-bold rounded-none ${isDismissed ? 'line-through decoration-1' : ''}">${label}</span>
+            <span class="inline-flex items-center border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-500 rounded-none">${sevLabel}</span>
+            ${dismissedBadge}
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <div class="text-xs text-zinc-400 font-mono tabular-nums">${(() => {
+              const parts = [];
+              if (err.ref_doc_no && err.ref_doc_no !== err.doc_no) {
+                parts.push('Doc ' + err.ref_doc_no);
+              }
+              if (err.doc_no) {
+                parts.push('Doc ' + err.doc_no);
+              }
+              return parts.length ? parts.join(' &amp; ') : '';
+            })()}${err.event_date ? (err.doc_no || err.ref_doc_no ? ' · ' : '') + err.event_date : ''}</div>
+            ${actionBtn}
+          </div>
+        </div>
+        <p class="text-sm ${dimMsg} leading-relaxed ${hasDetail ? 'mb-3' : ''}">${err.message || ''}</p>
+        ${hasDetail ? `
+          <div class="grid grid-cols-[110px_1fr] gap-y-2 gap-x-4 text-xs pt-3 border-t border-zinc-200">
+            <div class="font-bold uppercase tracking-wider text-zinc-400">${expectedLbl}</div>
+            <div class="${dimText}">${expectedVal}</div>
+            <div class="font-bold uppercase tracking-wider text-zinc-400">${actualLbl}</div>
+            <div class="${dimText}">${actualVal}</div>
+          </div>` : ''}
+      </div>`;
+  }
+
+  function dismissFinding(fid) {
+    fetch('/dismiss_finding/{{ project_name }}/' + fid, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) loadEvents(); });
+  }
+  function restoreFinding(fid) {
+    fetch('/restore_finding/{{ project_name }}/' + fid, { method: 'POST' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) loadEvents(); });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // AI Assistant Chat operations
+  // ─────────────────────────────────────────────────────────
+  let _chatHistory = [];
+  let _chatOpen    = false;
+  let _chatBusy    = false;
+  let _chatModel   = 'gemini-2.5-flash';
+  let _chatReqStart = 0;
+  let _chatScope   = 'all';
+  let _recognition = null;
+  let _listening   = false;
+
+  const SPARK_SVG = `<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10 17.5833C10 16.5278 9.79861 15.5417 9.39583 14.625C9.00694 13.7083 8.46528 12.9097 7.77083 12.2292C7.09028 11.5347 6.29167 10.9931 5.375 10.6042C4.45833 10.2014 3.47222 10 2.41667 10C3.47222 10 4.45833 9.80556 5.375 9.41667C6.29167 9.01389 7.09028 8.47222 7.77083 7.79167C8.46528 7.09722 9.00694 6.29167 9.39583 5.375C9.79861 4.44444 10 3.45833 10 2.41667C10 3.45833 10.1944 4.44444 10.5833 5.375C10.9861 6.29167 11.5278 7.09722 12.2083 7.79167C12.9028 8.47222 13.7083 9.01389 14.625 9.41667C15.5556 9.80556 16.5417 10 17.5833 10C16.5417 10 15.5556 10.2014 14.625 10.6042C13.7083 10.9931 12.9028 11.5347 12.2083 12.2292C11.5278 12.9097 10.9861 13.7083 10.5833 14.625C10.1944 15.5417 10 16.5278 10 17.5833Z\" fill=\"url(#sparkGrad)\"/><defs><linearGradient id=\"sparkGrad\" x1=\"10\" y1=\"0\" x2=\"10\" y2=\"20\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#18181b\"/><stop offset=\"0.44\" stop-color=\"#52525b\"/><stop offset=\"0.88\" stop-color=\"#71717a\"/></linearGradient></defs></svg>`;
+
+  function turnToolbar() {
+    return `
+      <div class="turn-toolbar">
+        <button onclick="copyTurn(this)">Copy</button>
+      </div>`;
+  }
+
+  function clearConsoleLog() {
+    const box = document.getElementById('consoleMessages');
+    box.innerHTML = `
+      <div class="text-zinc-500">[SYSTEM] Console logs cleared.</div>
+      <div class="text-zinc-500">[SYSTEM] Ready for verification query...</div>`;
+  }
+
+  function chatKeydown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendChat();
+    }
+  }
+
+  function nowTime() {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    const s = String(d.getSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }
+
+  function formatConsoleBody(text) {
+    let s = escapeHtml(text);
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<span class="text-white font-bold">$1</span>');
+    s = s.replace(/`([^`]+)`/g, '<span class="bg-zinc-800 text-zinc-150 px-1 font-mono">$1</span>');
+    s = s.replace(/\n/g, '<br>  ');
+    return s;
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function appendConsoleLine(text, role, elapsed) {
+    const box = document.getElementById('consoleMessages');
+    const line = document.createElement('div');
+    
+    if (role === 'user') {
+      line.className = 'font-mono text-xs text-white font-semibold leading-relaxed';
+      line.textContent = `>>> [${nowTime()}] ${text}`;
+    } else if (role === 'system') {
+      line.className = 'font-mono text-xs text-zinc-500 leading-relaxed';
+      line.textContent = `[SYSTEM] ${text}`;
+    } else {
+      line.className = 'font-mono text-xs text-zinc-350 leading-relaxed';
+      const secs = (typeof elapsed === 'number') ? ` (${elapsed.toFixed(1)}s)` : '';
+      line.innerHTML = `<span class="text-zinc-500">[RESULT${secs}]</span> ` + formatConsoleBody(text);
+    }
+    
+    box.appendChild(line);
+    scrollConsoleToBottom();
+  }
+
+  function showConsoleTyping() {
+    const box = document.getElementById('consoleMessages');
+    const typing = document.createElement('div');
+    typing.id = 'consoleTyping';
+    typing.className = 'font-mono text-xs text-zinc-500 animate-pulse';
+    typing.textContent = '>>> [AUDITING ENGINE PROCESSING...]';
+    box.appendChild(typing);
+    scrollConsoleToBottom();
+  }
+
+  function removeConsoleTyping() {
+    const t = document.getElementById('consoleTyping');
+    if (t) t.remove();
+  }
+
+  function scrollConsoleToBottom() {
+    const sc = document.getElementById('consoleScroll');
+    if (sc) sc.scrollTop = sc.scrollHeight;
+  }
+
+  let _chatHistory = [];
+  let _chatBusy = false;
+  let _chatModel = 'gemini-2.5-flash';
+  let _chatScope = 'all';
+  let _chatReqStart = 0;
+
+  function changeModel(val) {
+    _chatModel = val;
+    appendConsoleLine(`Target model changed to: ${val}`, 'system');
+  }
+
+  function changeScope(val) {
+    _chatScope = val;
+    appendConsoleLine(`Query context filter scope set to: ${val}`, 'system');
+  }
+
+  function sendChat() {
+    if (_chatBusy) return;
+    const input = document.getElementById('chatInput');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    appendConsoleLine(text, 'user');
+    _chatHistory.push({ role: 'user', content: text });
+    input.value = '';
+
+    _chatBusy = true;
+    showConsoleTyping();
+    _chatReqStart = performance.now();
+
+    fetch('/chat/{{ project_name }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history: _chatHistory, model: _chatModel, scope: _chatScope })
+    })
+      .then(r => r.ok ? r.json() : { reply: 'Internal processing error.' })
+      .then(data => {
+        removeConsoleTyping();
+        const elapsed = (performance.now() - _chatReqStart) / 1000;
+        const reply = (data && data.reply) ? data.reply : 'No answer returned.';
+        appendConsoleLine(reply, 'assistant', elapsed);
+        _chatHistory.push({ role: 'assistant', content: reply });
+      })
+      .catch(() => { 
+        removeConsoleTyping(); 
+        appendConsoleLine('Network error — request failed.', 'system'); 
+      })
+      .finally(() => { 
+        _chatBusy = false; 
+        document.getElementById('chatInput').focus(); 
+      });
+  }
+
+
+  // ─────────────────────────────────────────────────────────
+  // Initializer logic
+  // ─────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide) lucide.createIcons();
+    if (selectedFile) {
+      loadJsonForSelected(selectedFile);
+      const activeFileEl = document.getElementById('asActiveFile');
+      if (activeFileEl) activeFileEl.textContent = selectedFile;
+    }
+    
+    switchMainTab('pdf');
+    switchDeskTab('timeline');
+    loadEvents();
+    loadEntities();
+    
+    // Highlight sidebar items
+    updateSidebarHighlight('events');
+
+    // ⌘K / Ctrl+K focuses the sidebar search
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const s = document.getElementById('sidebarSearch');
+        if (s) s.focus();
+      }
+    });
+  });
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+      for (let registration of registrations) {
+        registration.unregister().then(function (success) {
+          if (success) console.log('SW Unregistered successfully');
+        });
+      }
+    });
+    if ('caches' in window) {
+      caches.keys().then(function (names) {
+        for (let name of names) {
+          caches.delete(name);
+        }
+      });
+    }
+  });
+}
+</script>
+
+</body>
+</html>

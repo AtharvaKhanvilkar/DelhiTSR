@@ -1,0 +1,75 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "INTIMATION_OF_MORTGAGE",
+    "txn_type": "INTIMATION_OF_MORTGAGE",
+    "sub_registrar_office": "SRO V-A (Hauz Khas), New Delhi",
+    "registration_no": "7766",
+    "registration_year": "2019",
+    "doc_no": "7766/2019",
+    "date_of_execution": "20-06-2019",
+    "date_of_registration": "22-06-2019",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "flat_no": "8-A",
+    "area": "1200 sq.ft.",
+    "village": null,
+    "district": "South Delhi",
+    "boundary_north": "Outer wall facing road",
+    "boundary_south": "Rear open space / service lane",
+    "boundary_east": "Common passage / staircase",
+    "boundary_west": "Flat No. 7, Fourth Floor",
+    "property_schedule_text": "ALL THAT the residential flat being:\nFlat No. : 8-A (Eight-A)\nFloor : Fourth Floor\nPlot No. : 1A\nLocality : Hauz Khas Enclave\nDistrict : South Delhi\nCity : New Delhi\nPIN Code : 110016\nState : NCT of Delhi\nSuper Built-Up Area : 1200 sq.ft. (One Thousand Two Hundred Square Feet)\nCarpet Area : Approximately 920 sq.ft.\nBOUNDED AS FOLLOWS:\nOn the East : Common passage / staircase\nOn the West : Flat No. 7, Fourth Floor\nOn the North : Outer wall facing road\nOn the South : Rear open space / service lane\nTogether with proportionate undivided share in the land beneath the\nbuilding constructed on Plot No. 1A, Hauz Khas Enclave, New Delhi,\nand the common areas and facilities including staircases, lifts,\ncorridors, parking area, and other common amenities.",
+    "consideration": null,
+    "stamp_duty": "ALERT",
+    "registration_fee": null,
+    "market_value": null,
+    "principal_amount_figures": 5500000,
+    "principal_amount_words": "Rupees Fifty-Five Lakhs Only",
+    "principal_amount_words_numeric": 5500000,
+    "loan_account_no": null,
+    "interest_rate": "8.50% per annum",
+    "tenure": "240 months",
+    "transferor_parties": [
+      {
+        "name": "Mrs. Priya Vikram Chauhan",
+        "pan": "CJKPC2294L",
+        "pin": null,
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "HDFC Bank Limited",
+        "pan": null,
+        "pin": null,
+        "address": "Registered Office at HDFC Bank House, Senapati Bapat Marg, Lower Parel, Mumbai - 400013, and inter alia carrying on business of banking through its branch office at Hauz Khas Branch, M-21, Main Market, Hauz Khas, New Delhi - 110016"
+      }
+    ],
+    "remarks": null,
+    "_provisional": false,
+    "_needs_human_classification": false,
+    "_classification": {
+      "subtype": "mortgage_equitable",
+      "confidence": "high",
+      "reasoning": "The document is explicitly titled 'Memorandum of Deposit of Title Deeds' and describes the creation of an equitable mortgage under Section 58(f) of the Transfer of Property Act.",
+      "runners_up": [
+        "mortgage_simple"
+      ]
+    },
+    "mortgagor_name": "Mrs. Priya Vikram Chauhan",
+    "mortgagor_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "mortgagee_name": "HDFC Bank Limited",
+    "mortgagee_branch_address": "Registered Office at HDFC Bank House, Senapati Bapat Marg, Lower Parel, Mumbai - 400013, and inter alia carrying on business of banking through its branch office at Hauz Khas Branch, M-21, Main Market, Hauz Khas, New Delhi - 110016",
+    "transferor_pan": [
+      "CJKPC2294L"
+    ],
+    "transferor_pin": [],
+    "transferee_pan": [],
+    "transferee_pin": []
+  }
+}

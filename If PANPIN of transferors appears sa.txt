@@ -1,0 +1,12 @@
+If PAN/PIN of transferors appears same
+If PAN/PIN format is wrong
+If Registration date predates Execution date
+
+IF detrimental fields missing after parsing of document. 
+
+Person Entites, fuzzy matching. (Mortgagors to be shown differently in entities tab)
+Will
+Court Order
+Release deed should name the same mortgagor and mortgagee from previously registered mortgage deed correctly, else mortgage is not released.
+
+Owners are multiple but one owner sells all shares.

@@ -1,0 +1,73 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "SALE_DEED",
+    "txn_type": "SALE_DEED",
+    "sub_registrar_office": "SRO V-A (Hauz Khas), New Delhi",
+    "registration_no": "123",
+    "registration_year": "1995",
+    "doc_no": "123/1995",
+    "date_of_execution": "15-01-1995",
+    "date_of_registration": "18-01-1995",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "Plot No. 1A, Hauz Khas Enclave, within the revenue estate of Village Hauz Khas, in the area of New Delhi Municipal Council (NDMC), in the National Capital Territory of Delhi, New Delhi - 110016",
+    "flat_no": "8",
+    "area": "1200 sq.ft.",
+    "village": "Hauz Khas",
+    "district": "New Delhi",
+    "boundary_north": "Common passage / corridor",
+    "boundary_south": "Flat No. 9, belonging to another DDA allottee",
+    "boundary_east": "Open space / balcony overlooking the park",
+    "boundary_west": "Common staircase and lift shaft",
+    "property_schedule_text": "ALL THAT the residential flat being Flat No. 8, situated on the Fourth Floor, in the residential apartment building constructed on Plot No. 1A, Hauz Khas Enclave, within the revenue estate of Village Hauz Khas, in the area of New Delhi Municipal Council (NDMC), in the National Capital Territory of Delhi, New Delhi - 110016, admeasuring 1200 sq.ft. (One Thousand Two Hundred Square Feet) of super built-up area and 950 sq.ft. (Nine Hundred and Fifty Square Feet) of carpet area, and bounded as follows:\nOn the NORTH by : Common passage / corridor\nOn the SOUTH by : Flat No. 9, belonging to another DDA allottee\nOn the EAST by : Open space / balcony overlooking the park\nOn the WEST by : Common staircase and lift shaft\nTogether with the undivided proportionate share in the common areas and facilities of the building including but not limited to the staircase, lift, lobby, parking area, water supply installation, and drainage system.",
+    "consideration": 685000,
+    "stamp_duty": 41100,
+    "registration_fee": 6850,
+    "market_value": null,
+    "consideration_words": "Rupees Six Lakhs Eighty-Five Thousand Only",
+    "consideration_words_numeric": 685000,
+    "transferor_parties": [
+      {
+        "name": "DELHI DEVELOPMENT AUTHORITY",
+        "pan": null,
+        "pin": null,
+        "address": "Vikas Sadan, INA, New Delhi - 110023"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "MR. RAJESH KUMAR SHARMA",
+        "pan": "ABRPS4523K",
+        "pin": null,
+        "address": "B-47, Lajpat Nagar-II, New Delhi - 110024"
+      }
+    ],
+    "remarks": null,
+    "_provisional": false,
+    "_needs_human_classification": false,
+    "_classification": {
+      "subtype": "sale_absolute",
+      "confidence": "high",
+      "reasoning": "The document is explicitly titled 'CONVEYANCE DEED' and describes the transfer of title from the DDA to the allottee for a fixed consideration, which falls under the category of a sale/conveyance.",
+      "runners_up": []
+    },
+    "seller_names": [
+      "DELHI DEVELOPMENT AUTHORITY"
+    ],
+    "buyer_names": [
+      "MR. RAJESH KUMAR SHARMA"
+    ],
+    "seller_address": "Vikas Sadan, INA, New Delhi - 110023",
+    "buyer_address": "B-47, Lajpat Nagar-II, New Delhi - 110024",
+    "transferor_pan": [],
+    "transferor_pin": [],
+    "transferee_pan": [
+      "ABRPS4523K"
+    ],
+    "transferee_pin": []
+  }
+}

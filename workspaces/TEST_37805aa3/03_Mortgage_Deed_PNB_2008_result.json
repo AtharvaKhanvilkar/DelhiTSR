@@ -1,0 +1,73 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "MORTGAGE_DEED",
+    "txn_type": "MORTGAGE_DEED",
+    "sub_registrar_office": "SRO V-A (Hauz Khas), New Delhi",
+    "registration_no": "9234",
+    "registration_year": "2008",
+    "doc_no": "9234/2008",
+    "date_of_execution": "10-08-2008",
+    "date_of_registration": "12-08-2008",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "PLOT NO. 1A, in the layout / colony known as Hauz Khas Enclave, within the revenue estate of Village Hauz Khas, in the area of New Delhi Municipal Council (NDMC), New Delhi - 110016",
+    "flat_no": "8",
+    "area": "1200 square feet",
+    "village": "Hauz Khas",
+    "district": "New Delhi",
+    "boundary_north": "Common passage and Flat No. 7 of the same floor",
+    "boundary_south": "Outer wall facing the Hauz Khas District Park",
+    "boundary_east": "Flat No. 9 of the same floor",
+    "boundary_west": "Staircase, lift lobby and common area",
+    "property_schedule_text": "ALL THAT residential flat being FLAT NO. 8, situated on the FOURTH FLOOR of the building constructed on PLOT NO. 1A, in the layout / colony known as Hauz Khas Enclave, within the revenue estate of Village Hauz Khas, in the area of New Delhi Municipal Council (NDMC), New Delhi - 110016, admeasuring approximately 1200 (One Thousand Two Hundred) square feet of super built-up area (carpet area approximately 950 square feet), together with the right to use one covered car parking space in the stilt parking area and proportionate undivided share in the land and common areas of the building.\nBOUNDARIES OF THE SAID FLAT:\nOn the North : Common passage and Flat No. 7 of the same floor\nOn the South : Outer wall facing the Hauz Khas District Park\nOn the East : Flat No. 9 of the same floor\nOn the West : Staircase, lift lobby and common area\nBOUNDARIES OF THE PLOT:\nOn the North : 20 feet wide internal road of the Enclave\nOn the South : Plot No. 1B, Hauz Khas Enclave\nOn the East : Plot No. 2, Hauz Khas Enclave\nOn the West : 30 feet wide main approach road",
+    "consideration": "35,00,000/-",
+    "stamp_duty": "ALERT",
+    "registration_fee": "ALERT",
+    "market_value": null,
+    "principal_amount_figures": 3500000,
+    "principal_amount_words": "Rupees Thirty-Five Lakhs Only",
+    "principal_amount_words_numeric": 3500000,
+    "loan_account_no": null,
+    "interest_rate": "10.25% per annum (floating), linked to the Bank's Prime Lending Rate (BPLR) as applicable from time to time",
+    "tenure": "180 months",
+    "transferor_parties": [
+      {
+        "name": "MR. VIKRAM SINGH CHAUHAN",
+        "pan": "BKCPC8834M",
+        "pin": null,
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "AXIS BANK",
+        "pan": null,
+        "pin": null,
+        "address": "South Extension Branch, Ring Road, South Extension Part-I, New Delhi - 110049"
+      }
+    ],
+    "remarks": null,
+    "_provisional": false,
+    "_needs_human_classification": false,
+    "_classification": {
+      "subtype": "mortgage_simple",
+      "confidence": "high",
+      "reasoning": "The document title explicitly states 'MORTGAGE DEED (Simple Mortgage for Home Loan)' and the operative clause specifies a 'Simple Mortgage under Section 58(b) of the Transfer of Property Act, 1882'.",
+      "runners_up": []
+    },
+    "mortgagor_name": "MR. VIKRAM SINGH CHAUHAN",
+    "mortgagor_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "mortgagee_name": "AXIS BANK",
+    "mortgagee_branch_address": "South Extension Branch, Ring Road, South Extension Part-I, New Delhi - 110049",
+    "transferor_pan": [
+      "BKCPC8834M"
+    ],
+    "transferor_pin": [],
+    "transferee_pan": [],
+    "transferee_pin": []
+  }
+}

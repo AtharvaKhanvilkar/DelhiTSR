@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoTSR — Custom Viewer Visual Mockup</title>
+  <!-- Load Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter and JetBrains Mono for a clean, high-density UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-serif-deed {
+      font-family: 'Lora', serif;
+    }
+    .font-mono-ui {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Smooth transitions */
+    .sidebar-transition {
+      transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
+    }
+    .panel-transition {
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    /* Custom thin scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e4e4e7; /* zinc-200 */
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d4d4d8; /* zinc-300 */
+    }
+  </style>
+</head>
+<body class="bg-zinc-150 text-zinc-900 antialiased overflow-hidden select-none">
+
+  <!-- OUTER WRAPPER -->
+  <div class="flex flex-col h-screen w-screen overflow-hidden bg-zinc-100">
+
+    <!-- DISCLAIMER BAR (Reassures that the rest of the application remains unchanged) -->
+    <div class="bg-zinc-900 text-zinc-400 text-[10px] h-7 px-4 flex items-center justify-between border-b border-zinc-800 shrink-0 font-mono-ui select-none">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+        <span class="font-bold text-zinc-200">PORTAL COMPONENT MOCKUP</span>
+      </div>
+      <span class="text-[9px] text-zinc-500">Note: The main sidebar, top header, and projects panel are NOT altered. Only the PDF panel will be updated.</span>
+    </div>
+
+    <!-- MAIN COMPONENT CONTAINER -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+      <!-- VIEW toggler and Analyze simulated triggers (Matches center controls layout) -->
+      <div id="doc-view-switcher" class="absolute left-1/2 top-4 -translate-x-1/2 z-30 flex items-center gap-2">
+        <div class="flex items-center bg-white p-0.5 rounded-sm border border-zinc-300/80 shadow-sm h-7">
+          <button id="toggle-pdf-btn" onclick="toggleDocView('pdf')" class="px-3.5 py-0.5 text-[11px] font-semibold rounded-sm bg-zinc-900 text-white shadow-sm transition-all h-5.5">PDF</button>
+          <button id="toggle-json-btn" onclick="toggleDocView('json')" class="px-3.5 py-0.5 text-[11px] font-medium rounded-sm text-zinc-500 hover:text-zinc-900 transition-all h-5.5">JSON</button>
+        </div>
+        
+        <!-- Monochrome Analyze Button -->
+        <button id="switcher-analyze-btn" onclick="triggerAnalyzeMock()" class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-sm text-[11px] font-bold bg-zinc-900 hover:bg-black active:scale-[0.98] text-white h-7 px-3 border border-zinc-950 shadow-sm transition-all duration-200 transform translate-x-0 opacity-100">
+          <span id="analyzeBtnSpinner" class="hidden w-2.5 h-2.5 border border-white border-t-transparent rounded-full animate-spin"></span>
+          <svg id="analyzeBtnIcon" class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span id="analyzeBtnText">Analyze</span>
+        </button>
+      </div>
+
+      <!-- VIEW 1: CUSTOM MINIMAL PDF VIEWER -->
+      <div id="panel-pdf" class="flex-1 flex overflow-hidden w-full h-full panel-transition opacity-100">
+        
+        <!-- PDF THUMBNAILS SIDEBAR -->
+        <aside id="pdfSidebar" class="sidebar-transition w-40 shrink-0 border-r border-zinc-200 bg-white flex flex-col h-full opacity-100 z-10 select-none">
+          <div class="h-10 border-b border-zinc-100 px-3 flex items-center justify-between shrink-0">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 font-mono-ui">Pages</span>
+            <span class="text-[9px] text-zinc-400 font-mono-ui">4 Total</span>
+          </div>
+          
+          <!-- Thumbnail scroll list -->
+          <div class="flex-1 overflow-y-auto p-3.5 space-y-4">
+            <!-- Thumbnail Page 1 -->
+            <div onclick="goToPage(1)" id="thumb-1" class="group cursor-pointer flex flex-col items-center gap-1">
+              <div id="thumb-card-1" class="w-28 h-36 bg-zinc-50 border-2 border-zinc-800 shadow-sm p-2 flex flex-col justify-between overflow-hidden relative transition-all">
+                <span class="text-[5px] text-zinc-400 font-mono-ui select-none">Page 1</span>
+                <div class="space-y-1.5 mt-2 flex-1 select-none">
+                  <div class="h-[1px] bg-zinc-200 w-16"></div>
+                  <div class="h-[1px] bg-zinc-200 w-22"></div>
+                  <div class="h-[1px] bg-zinc-200 w-18"></div>
+                </div>
+                <div class="h-1 bg-zinc-200 w-10 self-end"></div>
+              </div>
+              <span id="thumb-text-1" class="text-[9px] font-semibold text-zinc-900">1</span>
+            </div>
+            
+            <!-- Thumbnail Page 2 -->
+            <div onclick="goToPage(2)" id="thumb-2" class="group cursor-pointer flex flex-col items-center gap-1">
+              <div id="thumb-card-2" class="w-28 h-36 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 shadow-sm p-2 flex flex-col justify-between overflow-hidden relative transition-all">
+                <span class="text-[5px] text-zinc-400 font-mono-ui select-none">Page 2</span>
+                <div class="space-y-1.5 mt-2 flex-1 select-none">
+                  <div class="h-[1px] bg-zinc-200 w-20"></div>
+                  <div class="h-[1px] bg-zinc-200 w-16"></div>
+                </div>
+                <div class="h-1 bg-zinc-200 w-8 self-end"></div>
+              </div>
+              <span id="thumb-text-2" class="text-[9px] font-medium text-zinc-500 group-hover:text-zinc-800">2</span>
+            </div>
+
+            <!-- Thumbnail Page 3 -->
+            <div onclick="goToPage(3)" id="thumb-3" class="group cursor-pointer flex flex-col items-center gap-1">
+              <div id="thumb-card-3" class="w-28 h-36 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 shadow-sm p-2 flex flex-col justify-between overflow-hidden relative transition-all">
+                <span class="text-[5px] text-zinc-400 font-mono-ui select-none">Page 3</span>
+                <div class="space-y-1.5 mt-2 flex-1 select-none">
+                  <div class="h-[1px] bg-zinc-200 w-18"></div>
+                  <div class="h-[1px] bg-zinc-200 w-22"></div>
+                </div>
+                <div class="h-1 bg-zinc-200 w-12 self-end"></div>
+              </div>
+              <span id="thumb-text-3" class="text-[9px] font-medium text-zinc-500 group-hover:text-zinc-800">3</span>
+            </div>
+
+            <!-- Thumbnail Page 4 -->
+            <div onclick="goToPage(4)" id="thumb-4" class="group cursor-pointer flex flex-col items-center gap-1">
+              <div id="thumb-card-4" class="w-28 h-36 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 shadow-sm p-2 flex flex-col justify-between overflow-hidden relative transition-all">
+                <span class="text-[5px] text-zinc-400 font-mono-ui select-none">Page 4</span>
+                <div class="space-y-1.5 mt-2 flex-1 select-none">
+                  <div class="h-[1px] bg-zinc-200 w-12"></div>
+                  <div class="h-[1px] bg-zinc-200 w-24"></div>
+                </div>
+                <div class="h-1 bg-zinc-200 w-6 self-end"></div>
+              </div>
+              <span id="thumb-text-4" class="text-[9px] font-medium text-zinc-500 group-hover:text-zinc-800">4</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- PDF PAGES SCROLL VIEWPORT -->
+        <div id="pagesContainer" class="flex-1 overflow-y-auto p-8 flex flex-col items-center gap-8 scroll-smooth select-text bg-zinc-100 relative">
+          
+          <!-- Subtle linear loading bar for analysis simulation -->
+          <div id="analysisProgressBar" class="hidden absolute top-0 left-0 w-full h-0.5 bg-zinc-200 overflow-hidden z-20">
+            <div class="h-full bg-zinc-800 w-1/3 animate-pulse" style="animation: pulse 1s infinite alternate;"></div>
+          </div>
+
+          <!-- MOCK PDF PAGE 1 -->
+          <div id="page-card-1" class="page-card bg-white border border-zinc-250/80 w-[620px] h-[860px] p-16 flex flex-col justify-between relative shrink-0 transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+            
+            <!-- Page Header -->
+            <div class="border-b border-zinc-100 pb-2.5 flex justify-between text-[8px] uppercase tracking-wider text-zinc-400 font-mono-ui select-none">
+              <span>Deed of Conveyance (Sale Deed)</span>
+              <span>Page 1</span>
+            </div>
+
+            <!-- Page Content -->
+            <div class="flex-1 mt-10 font-serif-deed text-[12px] leading-relaxed text-zinc-800 space-y-4">
+              <h1 class="text-center font-bold text-[14px] uppercase tracking-wide text-zinc-950 font-mono-ui border-b border-zinc-900 pb-1 w-fit mx-auto mb-6">DEED OF CONVEYANCE</h1>
+              
+              <p>
+                This DEED OF CONVEYANCE is made and executed on this 
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">10th day of June, 2026</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">execution_date</span>
+                </span>, by and between:
+              </p>
+              
+              <p class="pl-4 border-l border-zinc-300">
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">Mrs. Ananya Sharma</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">vendor_name</span>
+                </span>, widow of late Mr. Rajesh Sharma, residing at Flat No. 402, Green Park Cooperative Housing Society, 
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">Plot No. 349/350</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">plot_identity</span>
+                </span>, Sector 15, Vashi, Navi Mumbai, hereinafter referred to as the <strong>"VENDOR"</strong>.
+              </p>
+              
+              <p class="text-center font-bold text-[9px] uppercase tracking-wider text-zinc-400 my-3 font-mono-ui select-none">— AND —</p>
+              
+              <p class="pl-4 border-l border-zinc-300">
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">Mr. Rohan Verma</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">purchaser_name</span>
+                </span>, son of Mr. Prakash Verma, residing at 12A, Oak Avenue, Bandra West, Mumbai, hereinafter referred to as the <strong>"PURCHASER"</strong>.
+              </p>
+              
+              <p>
+                <strong>WHEREAS:</strong> The Vendor is the absolute and lawful owner of the residential structure situated at 
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">Flat No. 402, Green Park Cooperative Housing Society</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">property_address</span>
+                </span>, more fully described in the Schedule.
+              </p>
+              
+              <p>
+                <strong>NOW THIS DEED WITNESSETH:</strong> That in consideration of the sum of 
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">₹8,500,000/-</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">consideration_amount</span>
+                </span> paid by the Purchaser, the Vendor hereby sells, conveys, and transfers the Schedule Property.
+              </p>
+            </div>
+
+            <!-- Page Footer -->
+            <div class="border-t border-zinc-100 pt-2.5 flex justify-between text-[8px] text-zinc-400 font-mono-ui select-none">
+              <span>AutoTSR Core Viewer Layout</span>
+              <span>Plot No: 349/350</span>
+            </div>
+          </div>
+
+          <!-- MOCK PDF PAGE 2 -->
+          <div id="page-card-2" class="page-card bg-white border border-zinc-250/80 w-[620px] h-[860px] p-16 flex flex-col justify-between relative shrink-0 transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+            
+            <!-- Page Header -->
+            <div class="border-b border-zinc-100 pb-2.5 flex justify-between text-[8px] uppercase tracking-wider text-zinc-400 font-mono-ui select-none">
+              <span>Deed of Conveyance (Sale Deed)</span>
+              <span>Page 2</span>
+            </div>
+
+            <!-- Page Content -->
+            <div class="flex-1 mt-10 font-serif-deed text-[12px] leading-relaxed text-zinc-800 space-y-4">
+              <p>
+                The Vendor covenants with the Purchaser that she has good right, full power, and absolute authority to convey the Schedule Property and that it is free from all encumbrances, charges, mortgage liens, or liabilities whatsoever.
+              </p>
+              <p>
+                The Vendor further covenants that she shall clear all municipal taxes, water charges, society maintenance levies, and electricity bills up to the date of handing over actual vacant physical possession.
+              </p>
+              
+              <h2 class="font-bold text-[12px] uppercase tracking-wider text-zinc-950 font-mono-ui mt-6 mb-2">SCHEDULE OF THE PROPERTY</h2>
+              <p class="pl-4 border-l border-zinc-300">
+                All that residential apartment bearing Flat No. 402, on the 4th Floor, in the building known as "Green Park Cooperative Housing Society", constructed on land bearing 
+                <span class="relative group inline-block">
+                  <span class="highlight-field border-b border-zinc-400 font-semibold px-0.5 cursor-help transition-all">Plot No. 349 and 350</span>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] font-mono-ui py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">plot_identity</span>
+                </span>, Sector 15, Vashi, Navi Mumbai, within the registration sub-district of Thane, bounded as follows:
+              </p>
+              <ul class="list-disc list-inside pl-4 space-y-1 text-[11.5px]">
+                <li><strong>North:</strong> Open Space & Internal Society Road</li>
+                <li><strong>South:</strong> Adjacent Building (Aditya Tower)</li>
+                <li><strong>East:</strong> Plot No. 351</li>
+                <li><strong>West:</strong> Sector 15 Main Road</li>
+              </ul>
+            </div>
+
+            <!-- Page Footer -->
+            <div class="border-t border-zinc-100 pt-2.5 flex justify-between text-[8px] text-zinc-400 font-mono-ui select-none">
+              <span>AutoTSR Core Viewer Layout</span>
+              <span>Plot No: 349/350</span>
+            </div>
+          </div>
+
+          <!-- MOCK PDF PAGE 3 -->
+          <div id="page-card-3" class="page-card bg-white border border-zinc-250/80 w-[620px] h-[860px] p-16 flex flex-col justify-between relative shrink-0 transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+            
+            <!-- Page Header -->
+            <div class="border-b border-zinc-100 pb-2.5 flex justify-between text-[8px] uppercase tracking-wider text-zinc-400 font-mono-ui select-none">
+              <span>Deed of Conveyance (Sale Deed)</span>
+              <span>Page 3</span>
+            </div>
+
+            <!-- Page Content -->
+            <div class="flex-1 mt-10 font-serif-deed text-[12px] leading-relaxed text-zinc-800 space-y-5">
+              <p>
+                IN WITNESS WHEREOF, the VENDOR and the PURCHASER have signed and delivered this Deed of Conveyance on the date and year first above written.
+              </p>
+              
+              <div class="grid grid-cols-2 gap-8 pt-8">
+                <div class="space-y-10">
+                  <div>
+                    <p class="text-[10px] font-mono-ui font-bold text-zinc-400 uppercase tracking-wider">Executed by Vendor:</p>
+                    <div class="h-10 border-b border-zinc-300 w-44 flex items-end pb-0.5 font-serif text-[11px] italic text-zinc-500 select-none">Ananya Sharma</div>
+                    <p class="text-[10px] font-semibold mt-1">Mrs. Ananya Sharma (Vendor)</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-mono-ui font-bold text-zinc-400 uppercase tracking-wider">Witness 1:</p>
+                    <div class="h-8 border-b border-zinc-300 w-44 flex items-end pb-0.5 font-serif text-[11px] italic text-zinc-500 select-none">Alok Mehta</div>
+                    <p class="text-[10px] font-semibold mt-1">Mr. Alok Mehta</p>
+                    <p class="text-[9px] text-zinc-500 leading-tight">Flat 102, Blue Horizon, Sector 15, Vashi</p>
+                  </div>
+                </div>
+
+                <div class="space-y-10">
+                  <div>
+                    <p class="text-[10px] font-mono-ui font-bold text-zinc-400 uppercase tracking-wider">Executed by Purchaser:</p>
+                    <div class="h-10 border-b border-zinc-300 w-44 flex items-end pb-0.5 font-serif text-[11px] italic text-zinc-500 select-none">Rohan Verma</div>
+                    <p class="text-[10px] font-semibold mt-1">Mr. Rohan Verma (Purchaser)</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-mono-ui font-bold text-zinc-400 uppercase tracking-wider">Witness 2:</p>
+                    <div class="h-8 border-b border-zinc-300 w-44 flex items-end pb-0.5 font-serif text-[11px] italic text-zinc-500 select-none">Priya Sen</div>
+                    <p class="text-[10px] font-semibold mt-1">Ms. Priya Sen</p>
+                    <p class="text-[9px] text-zinc-500 leading-tight">45, Sea Breeze Apartments, Bandra, Mumbai</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Page Footer -->
+            <div class="border-t border-zinc-100 pt-2.5 flex justify-between text-[8px] text-zinc-400 font-mono-ui select-none">
+              <span>AutoTSR Core Viewer Layout</span>
+              <span>Plot No: 349/350</span>
+            </div>
+          </div>
+
+          <!-- MOCK PDF PAGE 4 -->
+          <div id="page-card-4" class="page-card bg-white border border-zinc-250/80 w-[620px] h-[860px] p-16 flex flex-col justify-between relative shrink-0 transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+            
+            <!-- Page Header -->
+            <div class="border-b border-zinc-100 pb-2.5 flex justify-between text-[8px] uppercase tracking-wider text-zinc-400 font-mono-ui select-none">
+              <span>Deed of Conveyance (Sale Deed)</span>
+              <span>Page 4</span>
+            </div>
+
+            <!-- Page Content -->
+            <div class="flex-1 mt-10 space-y-6">
+              <div class="border border-zinc-300 p-4 bg-zinc-50 rounded-sm space-y-3">
+                <h3 class="text-center font-bold text-[10px] uppercase font-mono-ui tracking-wider border-b border-zinc-300 pb-1.5">Office of the Sub-Registrar, Thane-5</h3>
+                
+                <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[10px] font-mono-ui">
+                  <span class="text-zinc-500">Document Serial Number:</span>
+                  <span class="relative group inline-block font-bold text-zinc-900 justify-self-end">
+                    <span class="highlight-field border-b border-zinc-450 px-0.5 cursor-help transition-all">TNE-5-4819-2026</span>
+                    <span class="absolute bottom-full right-0 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">registration_id</span>
+                  </span>
+
+                  <span class="text-zinc-500">Date of Registration:</span>
+                  <span class="font-semibold justify-self-end">12/06/2026</span>
+
+                  <span class="text-zinc-500">Market Value:</span>
+                  <span class="font-semibold justify-self-end">₹8,500,000/-</span>
+
+                  <span class="text-zinc-500">Stamp Duty Paid:</span>
+                  <span class="relative group inline-block font-bold text-zinc-900 justify-self-end">
+                    <span class="highlight-field border-b border-zinc-450 px-0.5 cursor-help transition-all">₹425,000/-</span>
+                    <span class="absolute bottom-full right-0 mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none bg-zinc-950 text-zinc-300 text-[8px] py-0.5 px-1.5 rounded-sm border border-zinc-800 shadow-sm whitespace-nowrap z-50">stamp_duty</span>
+                  </span>
+
+                  <span class="text-zinc-500">Registration Fees:</span>
+                  <span class="font-semibold justify-self-end">₹30,000/-</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-16 px-4">
+                <div class="flex flex-col items-center">
+                  <div class="w-14 h-14 border border-zinc-300 bg-zinc-100 flex items-center justify-center text-[8px] text-zinc-400 uppercase tracking-widest font-mono-ui">Barcode</div>
+                  <span class="text-[8px] text-zinc-400 font-mono-ui mt-1">#48192026</span>
+                </div>
+                
+                <div class="text-right space-y-1 font-mono-ui">
+                  <p class="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Digitally Signed By:</p>
+                  <div class="text-[10px] font-semibold text-zinc-800">Sub-Registrar, Thane-5</div>
+                  <p class="text-[8px] text-zinc-650 font-semibold">✓ Verification Completed</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Page Footer -->
+            <div class="border-t border-zinc-100 pt-2.5 flex justify-between text-[8px] text-zinc-400 font-mono-ui select-none">
+              <span>AutoTSR Core Viewer Layout</span>
+              <span>Plot No: 349/350</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FLOATING BOTTOM CONTROL TOOLBAR PILL -->
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center bg-zinc-950 border border-zinc-850 rounded shadow-md px-3.5 py-1.5 gap-3 shadow-lg text-zinc-100 select-none h-8 font-mono-ui text-[10px]">
+          
+          <!-- PDF Sidebar Toggle -->
+          <button onclick="togglePdfSidebar()" title="Toggle page thumbnails" class="text-zinc-400 hover:text-white transition-colors p-0.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="1" ry="1"/>
+              <line x1="9" y1="3" x2="9" y2="21"/>
+            </svg>
+          </button>
+
+          <div class="h-3 border-l border-zinc-800"></div>
+
+          <!-- Page Navigator -->
+          <div class="flex items-center gap-1.5">
+            <button id="btnPrevPage" onclick="goToPrevPage()" title="Previous page" class="text-zinc-400 hover:text-white transition-colors p-0.5 disabled:opacity-30 disabled:hover:text-zinc-400">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <span id="pageIndicator" class="text-[10px] tracking-wide text-zinc-300 font-medium">1 / 4</span>
+            <button id="btnNextPage" onclick="goToNextPage()" title="Next page" class="text-zinc-400 hover:text-white transition-colors p-0.5 disabled:opacity-30 disabled:hover:text-zinc-400">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="h-3 border-l border-zinc-800"></div>
+
+          <!-- Zoom Controls -->
+          <div class="flex items-center gap-1.5">
+            <button onclick="zoomOut()" title="Zoom out" class="text-zinc-400 hover:text-white transition-colors p-0.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+            <span id="zoomLevel" class="text-[10px] tracking-wide text-zinc-300 font-medium w-8 text-center">100%</span>
+            <button onclick="zoomIn()" title="Zoom in" class="text-zinc-400 hover:text-white transition-colors p-0.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="h-3 border-l border-zinc-800"></div>
+
+          <!-- Page Fit Toggle -->
+          <button onclick="toggleFitToWidth()" title="Fit to width" class="text-zinc-400 hover:text-white transition-colors p-0.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4 7 4 4 7 4"/><polyline points="20 7 20 4 17 4"/><polyline points="4 17 4 20 7 20"/><polyline points="20 17 20 20 17 20"/>
+            </svg>
+          </button>
+
+          <div class="h-3 border-l border-zinc-800"></div>
+
+          <!-- Download Action -->
+          <button onclick="downloadPdf()" title="Download PDF document" class="text-zinc-400 hover:text-white transition-colors p-0.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- VIEW 2: JSON VIEWER PANEL (Initially hidden) -->
+      <div id="panel-json" class="hidden flex-1 overflow-auto bg-zinc-950 text-zinc-350 p-6 panel-transition opacity-0 font-mono-ui text-[11px] leading-relaxed select-text">
+        <div class="max-w-2xl mx-auto space-y-4">
+          <pre><code id="jsonContent">{
+  <span class="text-zinc-500">"status"</span>: <span class="text-zinc-300">"Ready"</span>,
+  <span class="text-zinc-500">"document"</span>: <span class="text-zinc-350">"Conveyance_Deed.pdf"</span>,
+  <span class="text-zinc-500">"metadata"</span>: {
+    <span class="text-zinc-500">"execution_date"</span>: <span class="text-zinc-400">null</span>,
+    <span class="text-zinc-500">"vendor"</span>: <span class="text-zinc-400">null</span>,
+    <span class="text-zinc-500">"purchaser"</span>: <span class="text-zinc-400">null</span>,
+    <span class="text-zinc-500">"consideration_amount"</span>: <span class="text-zinc-400">null</span>,
+    <span class="text-zinc-500">"property_details"</span>: {
+      <span class="text-zinc-500">"plot_number"</span>: <span class="text-zinc-400">null</span>,
+      <span class="text-zinc-500">"apartment"</span>: <span class="text-zinc-400">null</span>
+    }
+  }
+}</code></pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INTERACTIVE MOCK ACTIONS -->
+  <script>
+    // PDF Page Sidebar Toggles
+    function togglePdfSidebar() {
+      const sidebar = document.getElementById('pdfSidebar');
+      if (sidebar.classList.contains('w-44') || sidebar.classList.contains('w-40')) {
+        sidebar.classList.remove('w-40', 'w-44', 'opacity-100');
+        sidebar.classList.add('w-0', 'opacity-0');
+      } else {
+        sidebar.classList.remove('w-0', 'opacity-0');
+        sidebar.classList.add('w-40', 'opacity-100');
+      }
+    }
+
+    // View Panel Toggle (PDF / JSON)
+    let currentView = 'pdf';
+    function toggleDocView(view) {
+      if (currentView === view) return;
+      currentView = view;
+      
+      const pdfBtn = document.getElementById('toggle-pdf-btn');
+      const jsonBtn = document.getElementById('toggle-json-btn');
+      const pdfPanel = document.getElementById('panel-pdf');
+      const jsonPanel = document.getElementById('panel-json');
+
+      if (view === 'pdf') {
+        pdfBtn.className = "px-3.5 py-0.5 text-[11px] font-semibold rounded-sm bg-zinc-900 text-white shadow-sm transition-all h-5.5";
+        jsonBtn.className = "px-3.5 py-0.5 text-[11px] font-medium rounded-sm text-zinc-500 hover:text-zinc-900 transition-all h-5.5";
+        jsonPanel.classList.add('hidden', 'opacity-0');
+        pdfPanel.classList.remove('hidden');
+        setTimeout(() => pdfPanel.classList.remove('opacity-0'), 10);
+      } else {
+        jsonBtn.className = "px-3.5 py-0.5 text-[11px] font-semibold rounded-sm bg-zinc-900 text-white shadow-sm transition-all h-5.5";
+        pdfBtn.className = "px-3.5 py-0.5 text-[11px] font-medium rounded-sm text-zinc-500 hover:text-zinc-900 transition-all h-5.5";
+        pdfPanel.classList.add('hidden', 'opacity-0');
+        jsonPanel.classList.remove('hidden');
+        setTimeout(() => jsonPanel.classList.remove('opacity-0'), 10);
+      }
+    }
+
+    // PDF Navigation & Zoom parameters
+    let currentZoom = 100;
+    let isFitToWidth = false;
+    let activePage = 1;
+    const totalPages = 4;
+    const baseWidth = 620;
+    const baseHeight = 860;
+
+    function updatePageIndicator() {
+      document.getElementById('pageIndicator').textContent = `${activePage} / ${totalPages}`;
+      document.getElementById('btnPrevPage').disabled = (activePage === 1);
+      document.getElementById('btnNextPage').disabled = (activePage === totalPages);
+      
+      // Update Thumbnail active styling
+      for (let i = 1; i <= totalPages; i++) {
+        const thumbCard = document.getElementById(`thumb-card-${i}`);
+        const thumbText = document.getElementById(`thumb-text-${i}`);
+        if (i === activePage) {
+          thumbCard.className = "w-28 h-36 bg-zinc-50 border-2 border-zinc-800 shadow-sm p-2 flex flex-col justify-between overflow-hidden relative transition-all";
+          thumbText.className = "text-[9px] font-semibold text-zinc-900";
+        } else {
+          thumbCard.className = "w-28 h-36 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 shadow-sm p-2 flex flex-col justify-between overflow-hidden relative transition-all";
+          thumbText.className = "text-[9px] font-medium text-zinc-500 group-hover:text-zinc-800";
+        }
+      }
+    }
+
+    function goToPage(pageNum) {
+      if (pageNum < 1 || pageNum > totalPages) return;
+      activePage = pageNum;
+      updatePageIndicator();
+      
+      const pageCard = document.getElementById(`page-card-${pageNum}`);
+      if (pageCard) {
+        pageCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function goToPrevPage() {
+      goToPage(activePage - 1);
+    }
+
+    function goToNextPage() {
+      goToPage(activePage + 1);
+    }
+
+    function applyZoom() {
+      const pages = document.querySelectorAll('.page-card');
+      pages.forEach(page => {
+        if (isFitToWidth) {
+          page.style.width = '100%';
+          page.style.maxWidth = '800px';
+          page.style.height = 'auto';
+          page.style.aspectRatio = `${baseWidth} / ${baseHeight}`;
+        } else {
+          page.style.width = `${baseWidth * (currentZoom / 100)}px`;
+          page.style.height = `${baseHeight * (currentZoom / 100)}px`;
+          page.style.maxWidth = 'none';
+          page.style.aspectRatio = 'auto';
+        }
+      });
+      document.getElementById('zoomLevel').textContent = isFitToWidth ? 'Fit' : `${currentZoom}%`;
+    }
+
+    function zoomIn() {
+      isFitToWidth = false;
+      if (currentZoom < 150) {
+        currentZoom += 10;
+        applyZoom();
+      }
+    }
+
+    // Zoom out
+    function zoomOut() {
+      isFitToWidth = false;
+      if (currentZoom > 50) {
+        currentZoom -= 10;
+        applyZoom();
+      }
+    }
+
+    // Fit to width
+    function toggleFitToWidth() {
+      isFitToWidth = !isFitToWidth;
+      applyZoom();
+    }
+
+    function downloadPdf() {
+      alert("Downloading document.");
+    }
+
+    // Scroll sync with Intersection Observer
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('pagesContainer');
+      const pages = document.querySelectorAll('.page-card');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const pageNum = parseInt(entry.target.id.replace('page-card-', ''));
+            if (pageNum && pageNum !== activePage) {
+              activePage = pageNum;
+              updatePageIndicator();
+            }
+          }
+        });
+      }, {
+        root: container,
+        threshold: 0.45
+      });
+      
+      pages.forEach(page => observer.observe(page));
+      updatePageIndicator();
+      applyZoom();
+    });
+
+    // SIMULATED ANALYZE SEQUENCE (No childish scan line, immediate loading transition)
+    let isAnalyzed = false;
+    function triggerAnalyzeMock() {
+      if (isAnalyzed) return;
+      
+      const btn = document.getElementById('switcher-analyze-btn');
+      const spinner = document.getElementById('analyzeBtnSpinner');
+      const icon = document.getElementById('analyzeBtnIcon');
+      const text = document.getElementById('analyzeBtnText');
+      const progress = document.getElementById('analysisProgressBar');
+      
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      icon.classList.add('hidden');
+      text.textContent = "Analyzing...";
+      
+      // Show thin, professional linear progress bar
+      progress.classList.remove('hidden');
+
+      setTimeout(() => {
+        isAnalyzed = true;
+        
+        // Hide loader & linear bar
+        spinner.classList.add('hidden');
+        progress.classList.add('hidden');
+        
+        // Hide the Analyze button (analyzed document doesn't need it)
+        btn.classList.add('opacity-0', 'translate-x-2');
+        setTimeout(() => btn.classList.add('hidden'), 200);
+
+        // Highlight parsed fields in a subtle, high-end monochrome way (thin solid gray underline)
+        const highlights = document.querySelectorAll('.highlight-field');
+        highlights.forEach(el => {
+          el.className = "highlight-field bg-zinc-50 border-b-2 border-zinc-900 text-zinc-950 font-semibold px-0.5 cursor-help transition-all";
+        });
+
+        // Populate JSON view with the extracted values
+        const jsonContent = document.getElementById('jsonContent');
+        jsonContent.innerHTML = `{
+  <span class="text-zinc-500">"status"</span>: <span class="text-zinc-300">"Ready"</span>,
+  <span class="text-zinc-500">"document"</span>: <span class="text-zinc-350">"Conveyance_Deed.pdf"</span>,
+  <span class="text-zinc-500">"metadata"</span>: {
+    <span class="text-zinc-500">"execution_date"</span>: <span class="text-zinc-300">"2026-06-10"</span>,
+    <span class="text-zinc-500">"vendor"</span>: <span class="text-zinc-300">"Mrs. Ananya Sharma"</span>,
+    <span class="text-zinc-500">"purchaser"</span>: <span class="text-zinc-300">"Mr. Rohan Verma"</span>,
+    <span class="text-zinc-500">"consideration_amount"</span>: <span class="text-zinc-300">"8,500,000"</span>,
+    <span class="text-zinc-500">"registration_details"</span>: {
+      <span class="text-zinc-500">"doc_number"</span>: <span class="text-zinc-300">"TNE-5-4819-2026"</span>,
+      <span class="text-zinc-500">"stamp_duty"</span>: <span class="text-zinc-300">"425,000"</span>
+    },
+    <span class="text-zinc-500">"property_details"</span>: {
+      <span class="text-zinc-500">"plot_number"</span>: <span class="text-zinc-300">"349/350"</span>,
+      <span class="text-zinc-500">"apartment"</span>: <span class="text-zinc-300">"Flat No. 402, Green Park Cooperative Housing Society"</span>
+    }
+  }
+}`;
+
+      }, 800);
+    }
+  </script>
+</body>
+</html>

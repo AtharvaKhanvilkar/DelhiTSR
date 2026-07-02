@@ -32,16 +32,26 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // ❌ IGNORE NON-WEB REQUESTS (THIS FIXES YOUR ERROR)
+  // ❌ IGNORE NON-WEB REQUESTS
   if (!request.url.startsWith('http')) return;
 
-  // ❌ NEVER CACHE API CALLS
+  // ❌ BYPASS SERVICE WORKER FOR ALL NON-GET REQUESTS (e.g. POST chat, edit, delete, clear)
+  if (request.method !== 'GET') {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // ❌ NEVER CACHE DYNAMIC API CALLS OR DOC PAYLOADS
+  const url = request.url;
   if (
-    request.url.includes('/events') ||
-    request.url.includes('/parse') ||
-    request.url.includes('/result') ||
-    request.url.includes('/delete') ||
-    request.url.includes('/workspace')
+    url.includes('/events') ||
+    url.includes('/entities') ||
+    url.includes('/skeleton') ||
+    url.includes('/errors') ||
+    url.includes('/parse') ||
+    url.includes('/result') ||
+    url.includes('/pdf') ||
+    url.includes('/workspace')
   ) {
     event.respondWith(fetch(request));
     return;

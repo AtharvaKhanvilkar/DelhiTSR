@@ -1,0 +1,72 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "LEAVE_AND_LICENSE",
+    "txn_type": "LEAVE_AND_LICENSE",
+    "sub_registrar_office": "SRO V-A (Hauz Khas), New Delhi",
+    "registration_no": "4455",
+    "registration_year": "2022",
+    "doc_no": "4455/2022",
+    "date_of_execution": "01-04-2022",
+    "date_of_registration": "05-04-2022",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016",
+    "flat_no": "8",
+    "area": "1200 sq.ft",
+    "village": "Hauz Khas",
+    "district": "New Delhi",
+    "boundary_north": "By flat of another owner on the same floor",
+    "boundary_south": "By outer wall facing the main road of Hauz Khas Enclave",
+    "boundary_east": "By common passage / staircase",
+    "boundary_west": "By outer wall abutting neighbouring plot",
+    "property_schedule_text": "All that residential flat being Flat No. 8, situated on the Fourth Floor of the building standing on Plot No. 1A, Hauz Khas Enclave, within the limits of the New Delhi Municipal Council (NDMC) / South Delhi Municipal Corporation, in the Revenue Estate of Village Hauz Khas, Tehsil Hauz Khas, New Delhi \u2013 110016, admeasuring approximately 1200 sq.ft. (One Thousand Two Hundred Square Feet) (super built-up area), and more particularly described as under:\nBOUNDED AS FOLLOWS:\nOn the East : By common passage / staircase\nOn the West : By outer wall abutting neighbouring plot\nOn the North : By flat of another owner on the same floor\nOn the South : By outer wall facing the main road of Hauz Khas Enclave\nOn the Top : By Fifth Floor slab / terrace\nOn the Bottom : By Third Floor flat slab\nTogether with the proportionate undivided share in the land underneath the building, common areas, staircases, lifts, and open spaces as applicable, and the right to one covered car parking space in the basement / stilt area of the building.",
+    "consideration": null,
+    "stamp_duty": "ALERT",
+    "registration_fee": null,
+    "market_value": null,
+    "deposit": 200000,
+    "license_fee": 35000,
+    "leave_license_months": 11,
+    "transferor_parties": [
+      {
+        "name": "MRS. PRIYA VIKRAM CHAUHAN",
+        "pan": "CJKPC2294L",
+        "pin": null,
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "MR. ARJUN MEHTA",
+        "pan": "DRMPM7741Q",
+        "pin": null,
+        "address": "15-B, Safdarjung Development Area, New Delhi \u2013 110016"
+      }
+    ],
+    "remarks": null,
+    "_provisional": false,
+    "_needs_human_classification": false,
+    "_classification": {
+      "subtype": "leave_license",
+      "confidence": "high",
+      "reasoning": "The document is explicitly titled 'LEAVE AND LICENSE AGREEMENT' and the recitals confirm the intention to grant a revocable license under Section 52 of the Indian Easements Act.",
+      "runners_up": []
+    },
+    "licensor_name": "MRS. PRIYA VIKRAM CHAUHAN",
+    "licensor_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016",
+    "licensee_name": "MR. ARJUN MEHTA",
+    "licensee_address": "15-B, Safdarjung Development Area, New Delhi \u2013 110016",
+    "transferor_pan": [
+      "CJKPC2294L"
+    ],
+    "transferor_pin": [],
+    "transferee_pan": [
+      "DRMPM7741Q"
+    ],
+    "transferee_pin": []
+  }
+}

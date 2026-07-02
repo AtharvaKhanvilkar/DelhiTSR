@@ -1,0 +1,75 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "SALE_DEED",
+    "txn_type": "SALE_DEED",
+    "sub_registrar_office": "SRO V-A (Hauz Khas), New Delhi",
+    "registration_no": "5847",
+    "registration_year": "2005",
+    "doc_no": "5847/2005",
+    "date_of_execution": "22-03-2005",
+    "date_of_registration": "25-03-2005",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "Plot No. 1A, Hauz Khas Enclave, within the revenue estate of Village Hauz Khas, in the area of New Delhi Municipal Council (NDMC), in the National Capital Territory of Delhi, New Delhi - 110016",
+    "flat_no": "8",
+    "area": "1200 sq.ft.",
+    "village": "Hauz Khas",
+    "district": "New Delhi",
+    "boundary_north": "Common passage / corridor",
+    "boundary_south": "Flat No. 9, belonging to another allottee",
+    "boundary_east": "Open space / balcony overlooking the park",
+    "boundary_west": "Common staircase and lift shaft",
+    "property_schedule_text": "ALL THAT the residential flat being Flat No. 8, situated on the Fourth Floor, in the residential apartment building constructed on Plot No. 1A, Hauz Khas Enclave, within the revenue estate of Village Hauz Khas, in the area of New Delhi Municipal Council (NDMC), in the National Capital Territory of Delhi, New Delhi - 110016, admeasuring 1200 sq.ft. (One Thousand Two Hundred Square Feet) of super built-up area and 950 sq.ft. (Nine Hundred and Fifty Square Feet) of carpet area, and bounded as follows:\nOn the NORTH by : Common passage / corridor\nOn the SOUTH by : Flat No. 9, belonging to another allottee\nOn the EAST by : Open space / balcony overlooking the park\nOn the WEST by : Common staircase and lift shaft\nTogether with the undivided proportionate share in the common areas and facilities of the building including but not limited to the staircase, lift, lobby, parking area, water supply installation, and drainage system, and subject to the leasehold tenure of 99 years from the date of original DDA allotment.",
+    "consideration": 4250000,
+    "stamp_duty": 255000,
+    "registration_fee": 42500,
+    "market_value": 4250000,
+    "consideration_words": "Rupees Forty-Two Lakhs Fifty Thousand Only",
+    "consideration_words_numeric": 4250000,
+    "transferor_parties": [
+      {
+        "name": "MR. RAJESH KUMAR SHARMA",
+        "pan": "ABRPS4523K",
+        "pin": null,
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "MR. VIKRAM SINGH CHAUHAN",
+        "pan": "BKCPC8834M",
+        "pin": null,
+        "address": "C-12, Vasant Vihar, New Delhi - 110057"
+      }
+    ],
+    "remarks": null,
+    "_provisional": false,
+    "_needs_human_classification": false,
+    "_classification": {
+      "subtype": "sale_absolute",
+      "confidence": "high",
+      "reasoning": "The document is explicitly titled 'SALE DEED' and details the absolute transfer of property ownership for a total consideration of Rs. 42,50,000.",
+      "runners_up": []
+    },
+    "seller_names": [
+      "MR. RAJESH KUMAR SHARMA"
+    ],
+    "buyer_names": [
+      "MR. VIKRAM SINGH CHAUHAN"
+    ],
+    "seller_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "buyer_address": "C-12, Vasant Vihar, New Delhi - 110057",
+    "transferor_pan": [
+      "ABRPS4523K"
+    ],
+    "transferor_pin": [],
+    "transferee_pan": [
+      "BKCPC8834M"
+    ],
+    "transferee_pin": []
+  }
+}

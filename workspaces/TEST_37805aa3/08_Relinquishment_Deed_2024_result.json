@@ -1,0 +1,79 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "DEED_OF_RELEASE",
+    "txn_type": "DEED_OF_RELEASE",
+    "sub_registrar_office": "SRO II-B (Janakpuri), New Delhi",
+    "registration_no": "891",
+    "registration_year": "2024",
+    "doc_no": "891/2024",
+    "date_of_execution": "10-01-2024",
+    "date_of_registration": "15-01-2024",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016",
+    "flat_no": "8",
+    "area": "1200 sq.ft.",
+    "village": "Hauz Khas",
+    "district": "South Delhi",
+    "boundary_north": "By flat belonging to another owner on the same floor",
+    "boundary_south": "By outer wall facing the main road of Hauz Khas Enclave",
+    "boundary_east": "By common passage / staircase of the building",
+    "boundary_west": "By outer wall abutting neighbouring plot",
+    "property_schedule_text": "All that residential flat being Flat No. 8, situated on the Fourth Floor of the building standing on Plot No. 1A, Hauz Khas Enclave, within the limits of the New Delhi Municipal Council (NDMC) / South Delhi Municipal Corporation, falling in the Revenue Estate of Village Hauz Khas, Tehsil Hauz Khas, District South Delhi, New Delhi \u2013 110016, admeasuring approximately 1200 sq.ft. (One Thousand Two Hundred Square Feet) (super built-up area), and more particularly described as under:\nBOUNDED AS FOLLOWS:\nOn the East : By common passage / staircase of the building\nOn the West : By outer wall abutting neighbouring plot\nOn the North : By flat belonging to another owner on the same floor\nOn the South : By outer wall facing the main road of Hauz Khas Enclave\nOn the Top : By Fifth Floor slab / terrace above\nOn the Bottom : By Third Floor flat slab below\nTogether with the proportionate undivided share in the land underneath the building, common areas, staircase, lifts, and open spaces as per the applicable share, and together with the right to one covered car parking space in the basement / stilt area of the building.",
+    "consideration": 0,
+    "stamp_duty": "ALERT",
+    "registration_fee": null,
+    "market_value": null,
+    "transferor_parties": [
+      {
+        "name": "Mr. Vikram Singh Chauhan",
+        "pan": "BKCPC8834M",
+        "pin": "110016",
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "Mrs. Priya Vikram Chauhan",
+        "pan": "CJKPC2294L",
+        "pin": "110016",
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016"
+      }
+    ],
+    "remarks": null,
+    "_provisional": false,
+    "_needs_human_classification": false,
+    "_classification": {
+      "subtype": "release_family",
+      "confidence": "high",
+      "reasoning": "The document is explicitly titled as a Deed of Relinquishment executed by a family member to relinquish potential claims in favor of another family member to settle ownership.",
+      "runners_up": [
+        "release_settlement"
+      ]
+    },
+    "seller_names": [
+      "Mr. Vikram Singh Chauhan"
+    ],
+    "buyer_names": [
+      "Mrs. Priya Vikram Chauhan"
+    ],
+    "seller_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016",
+    "buyer_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi \u2013 110016",
+    "transferor_pan": [
+      "BKCPC8834M"
+    ],
+    "transferor_pin": [
+      "110016"
+    ],
+    "transferee_pan": [
+      "CJKPC2294L"
+    ],
+    "transferee_pin": [
+      "110016"
+    ]
+  }
+}

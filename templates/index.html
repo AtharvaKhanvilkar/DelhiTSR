@@ -396,21 +396,20 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-          console.log('SW registered:', reg.scope);
-
-          if (reg.waiting) {
-            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          for (let registration of registrations) {
+            registration.unregister().then(function (success) {
+              if (success) console.log('SW Unregistered successfully');
+            });
           }
-
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('SW took control — reloading');
-            window.location.reload();
+        });
+        if ('caches' in window) {
+          caches.keys().then(function (names) {
+            for (let name of names) {
+              caches.delete(name);
+            }
           });
-        } catch (err) {
-          console.log('SW failed:', err);
         }
       });
     }
