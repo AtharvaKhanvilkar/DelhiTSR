@@ -1761,10 +1761,10 @@
           </div>
 
           <!-- Indented Document List -->
-          <div class="sb-only-expanded border-l border-zinc-300 ml-[14.5px] pl-[10px] space-y-0.5 max-h-[280px] overflow-y-auto pr-1" id="fileTree">
+          <div class="sb-only-expanded border-l border-zinc-300 ml-[14.5px] space-y-0.5 max-h-[280px] overflow-y-auto pr-1" id="fileTree">
             {% if index_iis %}
               {% for pdf in index_iis %}
-                <div class="group relative flex items-center justify-between pl-3 pr-2 py-1 rounded cursor-pointer text-zinc-800 hover:bg-zinc-100/70 hover:text-zinc-955 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" 
+                <div class="group relative flex items-center justify-between pl-[14px] pr-2 py-1 rounded cursor-pointer text-zinc-805 hover:bg-zinc-100/70 hover:text-zinc-955 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" 
                      onclick="selectFile(this, '{{ pdf }}')" 
                      data-file-row="{{ pdf }}" 
                      data-parse-status="unknown">
