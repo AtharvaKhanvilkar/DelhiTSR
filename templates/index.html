@@ -1,419 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#ffffff">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AutoTSR</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='TR-logo 1.png') }}">
-  <meta name="theme-color" content="#ffffff"> 
+  
+  <!-- Load React 18 and ReactDOM 18 UMD packages -->
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
 
-  <style>
-    /* Reset & Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body, html {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #f4f4f4;
-      color: #111111;
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+  <!-- Load Babel Standalone for on-the-fly TSX compilation -->
+  <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
 
-    /* Entire Page Container */
-    .viewport-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      z-index: 1;
-    }
-
-    /* Navigation Header */
-    header {
-      width: 100%;
-      height: 72px;
-      padding: 0 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #f4f4f4;
-      z-index: 100;
-      position: relative;
-    }
-
-    /* Logo Group */
-    .logo-container {
-      display: flex;
-      align-items: center;
-      text-decoration: none;
-      color: #111111;
-    }
-    .logo-svg {
-      width: 18px;
-      height: 18px;
-      margin-right: 10px;
-      color: #111111;
-    }
-    .logo-text {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.4px;
-    }
-
-    /* Center Navigation Menu */
-    .nav-menu {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-    }
-    .nav-link {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      color: #111111;
-      text-transform: uppercase;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      transition: opacity 0.15s ease;
-    }
-    .nav-link:hover {
-      opacity: 0.7;
-    }
-    .chevron {
-      display: inline-block;
-      width: 5px;
-      height: 5px;
-      border-right: 1.5px solid #111111;
-      border-bottom: 1.5px solid #111111;
-      transform: rotate(45deg);
-      margin-left: 6px;
-      margin-bottom: 3px;
-    }
-
-    /* Right Action Bar */
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .nav-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #111111;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #e52e2e;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.8); }
-    }
-
-    /* Signature Pill Button with Red Accent Indicator */
-    .bequant-btn {
-      display: inline-flex;
-      align-items: center;
-      background-color: #0b0b0b;
-      color: #ffffff;
-      border-radius: 3px;
-      text-decoration: none;
-      overflow: hidden;
-      height: 34px;
-      transition: background-color 0.2s ease;
-      border: none;
-      cursor: pointer;
-    }
-    .bequant-btn:hover {
-      background-color: #222222;
-    }
-    .btn-text {
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      padding: 0 16px;
-      text-transform: uppercase;
-    }
-    .btn-divider {
-      width: 1px;
-      height: 100%;
-      background-color: #222222;
-    }
-    .btn-indicator {
-      width: 34px;
-      height: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #0c0c0c;
-    }
-    .red-accent {
-      width: 8px;
-      height: 8px;
-      background-color: #e52e2e;
-      border-radius: 1px;
-    }
-
-    /* Background Columns Section */
-    .bg-columns-container {
-      position: absolute;
-      top: 72px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      align-items: flex-end;
-      z-index: 1;
-      pointer-events: none;
-    }
-    .bg-col {
-      width: 14.285%;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      pointer-events: auto;
-    }
-
-    .col-1 { height: 35%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-left: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-    .col-2 { height: 45%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-    .col-3 { height: 72%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-    .col-4 { height: 86%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-    .col-5 { height: 86%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-    .col-6 { height: 86%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-    .col-7 { height: 55%; border-top: 1px solid rgba(0, 0, 0, 0.07); border-right: 1px solid rgba(0, 0, 0, 0.07); }
-
-    .col-5-divider {
-      position: absolute;
-      bottom: 35%;
-      left: 0;
-      right: 0;
-      border-top: 1px solid rgba(0, 0, 0, 0.07);
-    }
-
-    /* Floating CTA in Column 1 */
-    .cta-container {
-      padding: 24px;
-      width: 100%;
-    }
-    .cta-container .bequant-btn {
-      width: auto;
-      height: 38px;
-    }
-    .cta-container .btn-text {
-      font-size: 10px;
-    }
-    .cta-container .btn-indicator {
-      width: 38px;
-      height: 38px;
-    }
-
-    /* Paragraph Text in Column 2 */
-    .desc-text {
-      padding: 24px;
-      font-size: 11px;
-      line-height: 1.5;
-      color: #666666;
-      font-weight: 400;
-      letter-spacing: -0.1px;
-    }
-
-    /* Centered Hero Headline */
-    .hero-center {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      z-index: 10;
-      width: 100%;
-      max-width: 900px;
-      padding: 0 40px;
-      pointer-events: none;
-    }
-    .main-headline {
-      font-size: 68px;
-      font-weight: 500;
-      line-height: 1.1;
-      letter-spacing: -2.2px;
-      color: #1a1a1a;
-    }
-
-    /* Version badge */
-    .version-badge {
-      display: inline-block;
-      margin-top: 16px;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: #999999;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 1100px) {
-      .main-headline {
-        font-size: 52px;
-        letter-spacing: -1.5px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      header {
-        padding: 0 20px;
-      }
-      .nav-menu {
-        display: none;
-      }
-      .main-headline {
-        font-size: 38px;
-        letter-spacing: -1px;
-      }
-      .bg-col {
-        border-top: none !important;
-        border-right: none !important;
-        border-left: none !important;
-      }
-      .col-5-divider {
-        display: none;
-      }
-      .desc-text {
-        font-size: 10px;
-        padding: 12px;
-      }
-      .cta-container {
-        padding: 12px;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="viewport-wrapper">
-
-    <!-- Navigation Header -->
-    <header>
-      <a href="/" class="logo-container">
-        <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-          <line x1="5" y1="18" x2="10" y2="6" />
-          <line x1="10" y1="18" x2="15" y2="6" />
-          <line x1="15" y1="18" x2="20" y2="6" />
-        </svg>
-        <span class="logo-text">TSR Engine</span>
-      </a>
-
-      <nav class="nav-menu">
-        <a href="/product" class="nav-link">Product <span class="chevron"></span></a>
-        <a href="/projects" class="nav-link">Projects</a>
-        <a href="#contact" class="nav-link">Contact</a>
-      </nav>
-
-      <div class="header-right">
-        <a href="/projects" class="bequant-btn">
-          <span class="btn-text">Open App</span>
-          <span class="btn-divider"></span>
-          <span class="btn-indicator">
-            <span class="red-accent"></span>
-          </span>
-        </a>
-      </div>
-    </header>
-
-    <!-- Main Typography Focus Area -->
-    <div class="hero-center">
-      <h1 class="main-headline">
-        Automated title search<br>
-        reports for property<br>
-        due diligence.
-      </h1>
-      <span class="version-badge">TSR Engine · v0.1 Alpha</span>
-    </div>
-
-    <!-- Background Columns -->
-    <div class="bg-columns-container">
-
-      <!-- Col 1 with CTA Button -->
-      <div class="bg-col col-1">
-        <div class="cta-container">
-          <a href="/projects" class="bequant-btn">
-            <span class="btn-text">Open Workspace</span>
-            <span class="btn-divider"></span>
-            <span class="btn-indicator">
-              <span class="red-accent"></span>
-            </span>
-          </a>
-        </div>
-      </div>
-
-      <!-- Col 2 with Text Details -->
-      <div class="bg-col col-2">
-        <p class="desc-text">
-          Automated extraction and reconciliation of property documents for Delhi property transactions. For internal analyst use only.
-        </p>
-      </div>
-
-      <div class="bg-col col-3"></div>
-      <div class="bg-col col-4"></div>
-
-      <!-- Col 5 with horizontal division lines -->
-      <div class="bg-col col-5">
-        <div class="col-5-divider"></div>
-      </div>
-
-      <div class="bg-col col-6"></div>
-      <div class="bg-col col-7"></div>
-
-    </div>
-
-  </div>
-
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.getRegistrations().then(function (registrations) {
-          for (let registration of registrations) {
-            registration.unregister().then(function (success) {
-              if (success) console.log('SW Unregistered successfully');
-            });
-          }
-        });
-        if ('caches' in window) {
-          caches.keys().then(function (names) {
-            for (let name of names) {
-              caches.delete(name);
-            }
-          });
-        }
-      });
+    tailwind.config = {
+      darkMode: 'class'
     }
   </script>
 
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+  
+  <div id="root"></div>
+
+  <script>
+    // Shim required global CommonJS variables (exports, module, require)
+    // to support Babel Standalone's module output execution in the browser.
+    window.exports = {};
+    window.module = { exports: window.exports };
+    var exports = window.exports;
+
+    window.require = function(moduleName) {
+      if (moduleName === 'react') {
+        return window.React;
+      }
+      if (moduleName === 'react-dom/client') {
+        return {
+          createRoot: (container) => {
+            const root = ReactDOM.createRoot(container);
+            return {
+              render: (element) => root.render(element)
+            };
+          }
+        };
+      }
+      if (moduleName === '@radix-ui/react-slot') {
+        // Lightweight Radix Slot replacement
+        return {
+          Slot: React.forwardRef(({ children, ...props }, ref) => {
+            if (React.isValidElement(children)) {
+              return React.cloneElement(children, {
+                ...props,
+                ref,
+                className: [props.className, children.props.className].filter(Boolean).join(' ')
+              });
+            }
+            return children;
+          })
+        };
+      }
+      if (moduleName === '@/lib/utils') {
+        // Basic classnames join helper (Radix slot merging)
+        return {
+          cn: (...inputs) => inputs.filter(Boolean).join(' ')
+        };
+      }
+      throw new Error('Module ' + moduleName + ' not shimmed.');
+    };
+  </script>
+
+  <!-- Raw component code stored in plain text to compile manually. EXACTLY AS SENT - ZERO EDITS. -->
+  <script type="text/plain" id="tsx-code">import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cn } from "@/lib/utils";
+
+type Color =
+  | "default"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "red"
+  | "orange"
+  | "yellow"
+  | "green"
+  | "teal"
+  | "cyan"
+  | "indigo"
+  | "violet"
+  | "rose"
+  | "amber"
+  | "lime"
+  | "sky"
+  | "slate"
+  | "gray"
+  | "zinc"
+  | "neutral"
+  | "stone"
+  | "fuchsia"
+  | "emerald";
+
+type SizeVariant = "sm" | "default" | "lg";
+
+export interface PopButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  color?: Color;
+  size?: SizeVariant;
+  children: React.ReactNode;
+  asChild?: boolean;
+}
+
+const PopButton = React.forwardRef<HTMLButtonElement, PopButtonProps>(
+  (
+    { className, color = "default", size = "default", children, asChild = false, ...props },
+    ref,
+  ) => {
+    const Comp = asChild ? Slot : "button";
+
+    const baseClasses =
+      "font-pop inline-flex select-none transition-all items-center justify-center whitespace-nowrap rounded-xl ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground active:border-b-2 active:scale-y-95 border-x-2 border-t-2 border-b-4 origin-bottom";
+
+    const colors: Record<Color, string> = {
+      default:
+        "bg-white hover:bg-gray-50 border-neutral-300 text-neutral-900 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:border-neutral-600 dark:text-neutral-100",
+      blue: "bg-blue-500 hover:bg-blue-600 border-blue-800 text-white",
+      purple: "bg-purple-500 hover:bg-purple-600 border-purple-800 text-white",
+      pink: "bg-pink-500 hover:bg-pink-600 border-pink-800 text-white",
+      red: "bg-red-500 hover:bg-red-600 border-red-800 text-white",
+      orange: "bg-orange-500 hover:bg-orange-600 border-orange-800 text-white",
+      yellow: "bg-yellow-500 hover:bg-yellow-600 border-yellow-800 text-white",
+      green: "bg-green-500 hover:bg-green-600 border-green-800 text-white",
+      teal: "bg-teal-500 hover:bg-teal-600 border-teal-800 text-white",
+      cyan: "bg-cyan-500 hover:bg-cyan-600 border-cyan-800 text-white",
+      indigo: "bg-indigo-500 hover:bg-indigo-600 border-indigo-800 text-white",
+      violet: "bg-violet-500 hover:bg-violet-600 border-violet-800 text-white",
+      rose: "bg-rose-500 hover:bg-rose-600 border-rose-800 text-white",
+      amber: "bg-amber-500 hover:bg-amber-600 border-amber-800 text-white",
+      lime: "bg-lime-500 hover:bg-lime-600 border-lime-800 text-white",
+      sky: "bg-sky-500 hover:bg-sky-600 border-sky-800 text-white",
+      slate: "bg-slate-500 hover:bg-slate-600 border-slate-800 text-white",
+      gray: "bg-gray-500 hover:bg-gray-600 border-gray-800 text-white",
+      zinc: "bg-zinc-500 hover:bg-zinc-600 border-zinc-800 text-white",
+      neutral:
+        "bg-neutral-500 hover:bg-neutral-600 border-neutral-800 text-white",
+      stone: "bg-stone-500 hover:bg-stone-600 border-stone-800 text-white",
+      fuchsia:
+        "bg-fuchsia-500 hover:bg-fuchsia-600 border-fuchsia-800 text-white",
+      emerald:
+        "bg-emerald-500 hover:bg-emerald-600 border-emerald-800 text-white",
+    };
+
+    const sizes = {
+      sm: "h-9 px-2 py-1 text-sm",
+      default: "h-10 px-4 py-2",
+      lg: "h-14 px-8 py-3 text-lg",
+    };
+
+    return (
+      <Comp
+        ref={ref}
+        className={cn(
+          baseClasses,
+          colors[color],
+          sizes[size],
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </Comp>
+    );
+  },
+);
+
+PopButton.displayName = "PopButton";
+
+export { PopButton };</script>
+
+  <script>
+    // Compile and run the TSX component manually
+    try {
+      const tsxCode = document.getElementById('tsx-code').textContent;
+      
+      // Append the mount code in memory to prevent script block scope isolation issues
+      const mountCode = `
+        import { createRoot } from "react-dom/client";
+        
+        const App = () => {
+          return (
+            <div className="flex items-center justify-center">
+              <PopButton size="sm" asChild>
+                <a href="/projects">
+                  Go to Projects
+                </a>
+              </PopButton>
+            </div>
+          );
+        };
+
+        const container = document.getElementById("root");
+        const root = createRoot(container);
+        root.render(<App />);
+      `;
+
+      const fullCode = tsxCode + "\n" + mountCode;
+
+      const compiled = Babel.transform(fullCode, {
+        filename: 'app.tsx',
+        presets: [
+          'typescript',
+          ['react', { runtime: 'classic' }]
+        ],
+        plugins: ['transform-modules-commonjs']
+      }).code;
+      
+      const script = document.createElement('script');
+      script.text = compiled;
+      document.body.appendChild(script);
+    } catch (e) {
+      console.error('Babel compilation failed:', e);
+      document.body.innerHTML = `
+        <div class="p-6 max-w-xl mx-auto mt-20 bg-red-50 border border-red-200 rounded-lg text-red-800 font-sans">
+          <h3 class="text-sm font-bold uppercase tracking-wider">Compilation Error</h3>
+          <pre class="mt-2 text-xs font-mono whitespace-pre-wrap">${e.toString()}</pre>
+        </div>`;
+    }
+  </script>
 </body>
 </html>

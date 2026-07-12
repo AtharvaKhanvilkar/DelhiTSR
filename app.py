@@ -465,6 +465,11 @@ def _match_release_to_mortgage(enc, d2):
 def home():
     return render_template("index.html")
 
+# Proposed modal designs draft preview
+@app.route("/proposed-modal-draft")
+def proposed_modal_draft():
+    return render_template("proposed_modal_draft.html")
+
 # Projects list
 @app.route("/projects")
 def projects():
@@ -1239,7 +1244,7 @@ def _extract_signatory(party_name, doc_text):
     
     # 1. Look for represented by pattern
     repr_pattern = re.compile(
-        r'represented\s+(?:herein\s+)?by\s+(?:Shri|Mr\.|Mr|Mrs\.|Mrs|Ms\.|Ms)?\s*([A-Z][A-Z\.\s]+),?\s*([A-Za-z0-9\s\-\(\)\/\.,]+?)(?:,|\n|duly|vide|OF THE)',
+        r'represented\s+(?:herein\s+)?by\s+(?:its\s+)?(?:duly\s+)?(?:authorized\s+)?(?:officer|director|partner|representative|attorney|signatory)?\s*(?:Shri|Mr\.|Mr|Mrs\.|Mrs|Ms\.|Ms)?\s*([A-Z][a-zA-Z\.\s]+),?\s*([A-Za-z0-9\s\-\(\)\/\.,]+?)(?:,|\n|duly|vide|OF THE)',
         re.IGNORECASE
     )
     for m in repr_pattern.finditer(doc_text):
@@ -1361,6 +1366,20 @@ def _extract_extended_metadata(party_name, doc_text):
     return meta
 
 
+def _is_govt_authority(name):
+    if not name:
+        return False
+    name_lower = name.lower()
+    gov_kws = [
+        "dda", "delhi development", "mcd", "municipal corporation", "l&do", 
+        "land & development", "president of india", "delhi administration", 
+        "ndmc", "dsiidc", "hudco", "rehabilitation", "evacuee property", 
+        "development authority", "housing board", "improvement trust",
+        "ministry of", "government of", "govt of"
+    ]
+    return any(kw in name_lower for kw in gov_kws)
+
+
 def _build_events_and_errors(project_path):
     """
     Core logic: build events, entities, and all errors from result files.
@@ -1419,6 +1438,17 @@ def _build_events_and_errors(project_path):
                             "value": val,
                             "rect_doc": data.get("doc_no")
                         })
+
+    # Pre-load text for all PDF documents for signatory & metadata extraction
+    pdf_text_lookup = {}
+    for rf, data in results:
+        source_pdf = rf.replace("_result.json", ".pdf")
+        pdf_path = os.path.join(project_path, source_pdf)
+        if os.path.exists(pdf_path):
+            try:
+                pdf_text_lookup[source_pdf] = extract_text_from_PDF(pdf_path)
+            except Exception:
+                pass
 
     # Track current owners (dict of canonical keys to share percentages)
     current_owners = {}
@@ -1579,13 +1609,13 @@ def _build_events_and_errors(project_path):
                 
                 if doc_sro_norm not in allowed_sro_norms:
                     errors.append({
-                        "severity": "WARNING",
-                        "type": "METADATA_SRO_MISMATCH",
+                        "severity": "ERROR",
+                        "type": "VOID_DEED_WRONG_SRO",
                         "doc_no": data.get("doc_no"),
                         "event_date": data.get("date_of_execution"),
                         "source": source,
-                        "message": f"SRO mismatch: Document SRO '{doc_sro or 'Not stated'}' does not cover locality '{meta_locality}' (Expected any of: {', '.join(allowed_sros)}).",
-                        "expected": f"Any SRO for {meta_locality}",
+                        "message": f"SRO jurisdiction mismatch: Registered at '{doc_sro or 'Not stated'}' for property in '{meta_locality}'. Under Section 28 of the Registration Act, 1908, this presents a potential title risk.",
+                        "expected": f"Any SRO for {meta_locality} (e.g. {', '.join(allowed_sros)})",
                         "actual": doc_sro or "Not stated"
                     })
             elif meta_sro:
@@ -1599,6 +1629,60 @@ def _build_events_and_errors(project_path):
                         "message": f"SRO mismatch: Project SRO code '{meta_sro}' does not match document SRO '{doc_sro or 'Not stated'}'.",
                         "expected": meta_sro,
                         "actual": doc_sro or "Not stated"
+                    })
+
+            # Delhi property law consideration validations
+            if "SALE" in txn or "AGREEMENT" in txn:
+                price = data.get("consideration")
+                if price is None or price == "" or (isinstance(price, (int, float)) and price == 0):
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "MISSING_SALE_CONSIDERATION",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Sale Consideration is missing or specified as zero. Under Section 54 of the Transfer of Property Act 1882, a sale deed without price/consideration is invalid.",
+                        "expected": "Valid monetary consideration",
+                        "actual": "Missing or Zero"
+                    })
+            elif "LEAVE" in txn or "LICENSE" in txn:
+                fee = data.get("license_fee")
+                if fee is None or fee == "" or (isinstance(fee, (int, float)) and fee == 0):
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "MISSING_RENTAL_CONSIDERATION",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Monthly Rental Consideration (License Fee) is missing or specified as zero. Leave and license agreements must specify the license fee/rent.",
+                        "expected": "Valid monthly license fee",
+                        "actual": "Missing or Zero"
+                    })
+            elif "MORTGAGE" in txn or "INTIMATION" in txn:
+                principal = data.get("principal_amount_figures")
+                if principal is None or principal == "" or (isinstance(principal, (int, float)) and principal == 0):
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "MISSING_MORTGAGE_VALUE",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Principal loan amount is missing or specified as zero. Under Section 58 of the Transfer of Property Act 1882, a mortgage must secure a principal debt amount.",
+                        "expected": "Valid principal loan amount",
+                        "actual": "Missing or Zero"
+                    })
+            elif "GIFT" in txn:
+                price = data.get("consideration")
+                if price is not None and price != "" and (isinstance(price, (int, float)) and price > 0):
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "GIFT_DEED_WITH_CONSIDERATION",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Gift Deed specifies a monetary consideration of ₹{price}. Under Section 122 of the Transfer of Property Act 1882, a gift must be made voluntarily and without consideration. Specifying consideration invalidates the gift deed.",
+                        "expected": "Zero Consideration (Voluntary Transfer)",
+                        "actual": f"₹{price}"
                     })
 
             # 3. MCD or DDA category
@@ -2225,6 +2309,8 @@ def _build_events_and_errors(project_path):
             "stamp_duty":        data.get("stamp_duty"),
             "market_value":      data.get("market_value"),
             "plot_no":           data.get("plot_no"),
+            "transferor_parties": data.get("transferor_parties") or [],
+            "transferee_parties": data.get("transferee_parties") or [],
         }
 
         # Only attach society/flat info for flats
@@ -2289,6 +2375,27 @@ def _build_events_and_errors(project_path):
         elif "LEAVE" in txn or "LICENSE" in txn:
             event["licensor_name"] = data.get("licensor_name")
             event["licensee_name"] = data.get("licensee_name")
+            event["license_fee"] = data.get("license_fee")
+            event["deposit"] = data.get("deposit")
+            event["leave_license_months"] = data.get("leave_license_months")
+
+        # Extract signatory for the event if it involves an institution/company
+        txt = pdf_text_lookup.get(source)
+        event["authorized_signatory"] = None
+        if txt:
+            all_parties = []
+            for key in ["seller_names", "buyer_names", "donor_name", "donee_name", "licensor_name", "licensee_name", "mortgagor_name", "mortgagee_name", "releasor_names", "releasee_names"]:
+                val = event.get(key)
+                if val:
+                    if isinstance(val, list):
+                        all_parties.extend(val)
+                    else:
+                        all_parties.append(val)
+            for p_name in all_parties:
+                sig = _extract_signatory(p_name, txt)
+                if sig:
+                    event["authorized_signatory"] = sig
+                    break
 
         events.append(event)
 
@@ -2331,12 +2438,13 @@ def _build_events_and_errors(project_path):
                             continue
                         key = _canonical_name(name)
                         _pan, _pin = _person_ids(data, "transferor", name)
+                        basis_val = "GOVERNMENT_ALLOTMENT" if _is_govt_authority(name) else "PRIOR_OWNERSHIP"
                         claimants[key] = {
                             "display_name": name,
                             "role":         "owner",
-                            "since_doc":    data.get("doc_no"),
-                            "since_date":   data.get("date_of_execution"),
-                            "basis":        txn,
+                            "since_doc":    None,
+                            "since_date":   None,
+                            "basis":        basis_val,
                             "area":         area,
                             "status":       "active",
                             "encumbered":   False,
@@ -2375,6 +2483,7 @@ def _build_events_and_errors(project_path):
                             claimants[key]["exited_doc"]  = data.get("doc_no")
                             claimants[key]["exited_date"] = data.get("date_of_execution")
                             claimants[key]["exited_via"]  = txn
+                            claimants[key]["exited_to"]   = transferees
 
                     first_ownership_set = True
 
@@ -2436,20 +2545,20 @@ def _build_events_and_errors(project_path):
                                 exit_doc = former.get("exited_doc") or former.get("since_doc") or "unknown doc"
                                 exit_date = former.get("exited_date") or former.get("since_date") or "unknown date"
                                 msg_parts.append(
-                                    f"Transferor '{name}' is executing this deed ({txn}), but holds a 0% share on record (previously exited entire interest via '{exit_via}' (Doc {exit_doc}) on {exit_date})."
+                                    f"Transferor '{name}' holds 0% share on record (exited interest via {exit_via} Doc {exit_doc} on {exit_date})."
                                 )
                             else:
                                 msg_parts.append(
-                                    f"Transferor '{name}' is executing this deed ({txn}), but has no prior record of acquisition or ownership in this chain of title."
+                                    f"Transferor '{name}' has no prior record of ownership in this chain of title."
                                 )
-
+ 
                         errors.append({
                             "severity":   "ERROR",
                             "type":       "CHAIN_BREAK",
                             "doc_no":     data.get("doc_no"),
                             "event_date": data.get("date_of_execution"),
                             "source":     source,
-                            "message":    "Ownership chain discrepancy: " + " ".join(msg_parts),
+                            "message":    " ".join(msg_parts),
                             "expected":   list(current_owners.keys()),
                             "actual":     [_canonical_name(n) for n in transferors if n]
                         })
@@ -2460,17 +2569,19 @@ def _build_events_and_errors(project_path):
                             key = _canonical_name(name)
                             if key not in claimants:
                                 _pan, _pin = _person_ids(data, "transferor", name)
+                                basis_val = "GOVERNMENT_ALLOTMENT" if _is_govt_authority(name) else "PRIOR_OWNERSHIP"
                                 claimants[key] = {
                                     "display_name": name,
                                     "role":         "owner",
-                                    "since_doc":    data.get("doc_no"),
-                                    "since_date":   data.get("date_of_execution"),
-                                    "basis":        txn,
+                                    "since_doc":    None,
+                                    "since_date":   None,
+                                    "basis":        basis_val,
                                     "area":         area,
                                     "status":       "transferred_out",
                                     "exited_doc":   data.get("doc_no"),
                                     "exited_date":  data.get("date_of_execution"),
                                     "exited_via":   txn,
+                                    "exited_to":    transferees,
                                     "encumbered":   False,
                                     "entry_type":   "seller_only",
                                     "pan":          _pan,
@@ -2484,6 +2595,7 @@ def _build_events_and_errors(project_path):
                                 claimants[key]["exited_doc"]  = data.get("doc_no")
                                 claimants[key]["exited_date"] = data.get("date_of_execution")
                                 claimants[key]["exited_via"]  = txn
+                                claimants[key]["exited_to"]   = transferees
 
                         valid_transferees = [n for n in transferees if n]
                         share_per_transferee = 1.0 / len(valid_transferees) if valid_transferees else 1.0
@@ -2522,6 +2634,7 @@ def _build_events_and_errors(project_path):
                                         claimants[key]["exited_doc"]  = data.get("doc_no")
                                         claimants[key]["exited_date"] = data.get("date_of_execution")
                                         claimants[key]["exited_via"]  = txn
+                                        claimants[key]["exited_to"]   = transferees
                                         
                         valid_transferees = [n for n in transferees if n]
                         share_per_transferee = sold_share / len(valid_transferees) if valid_transferees else sold_share
@@ -2691,6 +2804,8 @@ def _build_events_and_errors(project_path):
                     "type":       d2.get("release_type") or "full",
                     "source":     source2
                 })
+                best_enc["resolved_doc"] = rel_doc_no
+                best_enc["resolved_date"] = d2.get("date_of_execution")
                 
                 errors.append({
                     "severity":   best_severity,
@@ -2974,20 +3089,11 @@ def _build_events_and_errors(project_path):
         })
 
     # ── Post-processing: extract authorized signatories and extended metadata ──
-    pdf_text_lookup = {}
-    for rf, data in results:
-        source_pdf = rf.replace("_result.json", ".pdf")
-        pdf_path = os.path.join(project_path, source_pdf)
-        if os.path.exists(pdf_path):
-            try:
-                pdf_text_lookup[source_pdf] = extract_text_from_PDF(pdf_path)
-            except Exception:
-                pass
 
     for key, c in claimants.items():
         c["authorized_signatory"] = None
         c["extended_metadata"] = {}
-        doc_no_val = c.get("since_doc")
+        doc_no_val = c.get("since_doc") or c.get("exited_doc")
         if doc_no_val:
             for rf, data in results:
                 if str(data.get("doc_no")) == str(doc_no_val):
@@ -3063,74 +3169,73 @@ def _build_events_and_errors(project_path):
             err["message"] = f"Significant Property Area Discrepancy: The document cites an area of {actual_str}, which differs significantly from the expected share value of {expected_str} in the chain of title."
             
         elif etype == "AREA_MISMATCH_MILD":
-            err["message"] = f"Minor Property Area Variance: The document cites an area of {actual_str}, showing a slight deviation from the expected share value of {expected_str}."
+            err["message"] = f"Area deviation: Document cites {actual_str}, showing a slight variance from the expected share value of {expected_str}."
             
         elif etype == "SOCIETY_MISMATCH":
-            err["message"] = f"Society / Building Name Mismatch: The document lists the building/society as '{actual_str}', which does not match the project's registered building name '{expected_str}'."
+            err["message"] = f"Building name mismatch: Document lists '{actual_str}' instead of project building '{expected_str}'."
             
         elif etype == "ID_MISMATCH":
-            err["message"] = f"Plot/CTS/Survey Number Mismatch: The property identifier '{actual_str}' in this document does not match the expected project identifier '{expected_str}'."
+            err["message"] = f"Property identifier mismatch: Document lists '{actual_str}' instead of project identifier '{expected_str}'."
             
         elif etype == "DATE_ORDER_DEVIATION":
-            err["message"] = f"Chronological Sequence Discrepancy: This document (executed on {err.get('event_date')}) is dated prior to its predecessor Document {ref_doc_no}. This constitutes a backwards execution sequence in the chain of title."
+            err["message"] = f"Date order deviation: Executed on {err.get('event_date')}, which is prior to predecessor Doc {ref_doc_no}."
             
         elif etype == "GPA_POST_2011_INVALID":
-            err["message"] = f"Unregistered Power of Attorney: The Power of Attorney (GPA) used for this transfer was executed after the critical 11-10-2011 threshold. Under the Supreme Court's Suraj Lamp ruling, unregistered GPAs executed after this date are invalid for effecting title transfers."
+            err["message"] = f"Unregistered GPA: Power of Attorney was executed after 11-10-2011. Under the Suraj Lamp ruling, unregistered GPAs post-2011 present a title transfer risk."
             
         elif etype == "MISSING_GPA_AUTHORIZATION":
-            err["message"] = f"Inadequate Power of Attorney Covenants: The underlying Power of Attorney does not contain explicit covenants authorizing the attorney to sell, transfer, or alienate the property."
+            err["message"] = f"Missing sale covenants: Power of Attorney does not explicitly authorize the attorney to sell or transfer the property."
             
         elif etype == "INVALID_PAN_FORMAT":
-            err["message"] = f"PAN Format Invalid: The extracted Permanent Account Number (PAN) '{actual_str}' does not conform to the standard alphanumeric format (e.g. 5 letters, 4 digits, 1 letter)."
+            err["message"] = f"Invalid PAN format: Extracted PAN '{actual_str}' does not match standard 10-character format."
             
         elif etype == "INVALID_PIN_FORMAT":
-            err["message"] = f"PIN Code Format Invalid: The extracted postal PIN code '{actual_str}' is invalid. It must be exactly a 6-digit numeric code."
+            err["message"] = f"Invalid PIN format: Extracted PIN '{actual_str}' must be a 6-digit numeric code."
             
         elif etype == "PAN_TRANSFEROR_TRANSFEREE_CLASH":
-            err["message"] = f"Identity Clash (PAN): The same Permanent Account Number (PAN) '{actual_str}' is listed for both the transferor and transferee. This suggests a potential identity mismatch or family self-transfer error."
+            err["message"] = f"PAN clash: Same PAN '{actual_str}' is listed for both the transferor and transferee."
             
         elif etype == "PIN_TRANSFEROR_TRANSFEREE_CLASH":
-            err["message"] = f"Postal Code Clash (PIN): The same postal PIN code '{actual_str}' is listed for both transacting parties, indicating they share the same residential pin code."
+            err["message"] = f"PIN clash: Same PIN code '{actual_str}' is listed for both transacting parties."
             
         elif etype == "ZERO_CONSIDERATION":
-            err["message"] = "Zero Consideration Value: This sale/conveyance deed is registered with a consideration value of zero, which is irregular for commercial title transfers."
+            err["message"] = "Zero consideration: Sale/conveyance deed is registered with a consideration value of zero."
             
         elif etype == "CONSIDERATION_ANOMALY":
-            err["message"] = f"Transaction Price Anomaly: The consideration amount ({actual_str}) is significantly lower than the declared registry market value ({expected_str}). This constitutes a potential under-valuation discrepancy."
+            err["message"] = f"Price deviation: Consideration ({actual_str}) is lower than the declared market value ({expected_str})."
             
         elif etype == "CHAIN_BREAK":
-            if "Ownership chain discrepancy:" not in err["message"] and "Ownership Chain Break:" not in err["message"]:
-                err["message"] = "Ownership Chain Break: " + err["message"]
-                
+            pass
+            
         elif etype == "UNRESOLVED_MORTGAGE":
-            err["message"] = f"Unresolved Mortgage Encumbrance: An outstanding mortgage charge registered under Doc {doc_no} remains active. No corresponding release deed, satisfaction of charge, or discharge of mortgage was identified in the subsequent title chain."
+            err["message"] = f"Unresolved mortgage: Outstanding charge under Doc {doc_no} remains active on record with no corresponding discharge or release deed identified."
             
         elif etype == "PARTIALLY_RELEASED":
-            err["message"] = f"Outstanding Loan Balance on Mortgage: Mortgage Doc {doc_no} has only been partially discharged. A remaining principal balance of {actual_str} remains outstanding on record relative to the registered principal of {expected_str}."
+            err["message"] = f"Outstanding loan balance: Mortgage Doc {doc_no} remains partially discharged. A principal balance of {actual_str} remains outstanding relative to the original loan of {expected_str}."
             
         elif etype == "RELEASE_OVERFLOW":
-            err["message"] = f"Release Amount Overflow Discrepancy: This release/discharge deed attempts to release {actual_str}, which exceeds the active outstanding mortgage balance of {expected_str}."
+            err["message"] = f"Release overflow: Release amount of {actual_str} exceeds the active outstanding mortgage balance of {expected_str}."
             
         elif etype == "LENDER_MISMATCH":
-            err["message"] = f"Lender Mismatch on Discharge: The release deed is executed by '{actual_str}', which does not match the original mortgage holder bank '{expected_str}'."
+            err["message"] = f"Lender mismatch: Release deed is executed by '{actual_str}' instead of original lender bank '{expected_str}'."
             
         elif etype == "RELEASE_PARTY_MISMATCH":
-            err["message"] = f"Party Mismatch on Discharge: The parties releasing/receiving rights in this discharge deed do not match the original mortgagors or mortgagees of Doc {ref_doc_no}."
-
+            err["message"] = f"Release party mismatch: Transacting parties do not match the original mortgagors/mortgagees of Doc {ref_doc_no}."
+            
         elif etype == "RELEASE_ORPHAN":
-            err["message"] = "Orphaned Release Deed: This discharge/release deed could not be matched or linked to any active registered mortgage in the historical title chain."
-
+            err["message"] = "Unlinked release deed: Discharge deed could not be matched to any active registered mortgage in the title chain."
+            
         elif etype == "RELEASE_AMBIGUOUS":
-            err["message"] = "Ambiguous Mortgage Release Linkage: Multiple active mortgages match the registry details in this release deed, creating an ambiguous chain link."
-
+            err["message"] = "Ambiguous release link: Multiple active mortgages match registry details, creating an ambiguous link."
+            
         elif etype == "AMOUNT_WORDS_FIGURES_MISMATCH":
-            err["message"] = f"Financial Discrepancy (Words vs. Figures): The financial amount written in words ({expected_str}) does not match the numeric figures ({actual_str}) stated in the document text."
+            err["message"] = f"Words vs figures mismatch: The amount written in words ({expected_str}) does not match the numeric figures ({actual_str})."
             
         elif etype == "UNREGULARIZED_GPA_CHAIN":
-            err["message"] = f"Unregularized Title Chain (GPA): The ownership chain ends with a Power of Attorney (held by {actual_str}) rather than a registered Sale Deed or DDA Conveyance Deed. A banking institution will likely reject a loan until the title is regularized."
+            err["message"] = f"Unregularized title: Chain ends with a GPA held by {actual_str} rather than a registered Sale Deed or allotment conveyance."
 
         elif etype == "MISSING_CRITICAL_FIELDS":
-            err["message"] = f"Undocumented Transaction Metadata: The following mandatory registry/metadata fields could not be verified in this document: {actual_str.replace('Missing fields: ', '')}. Please verify the original deed execution."
+            err["message"] = f"Missing metadata: Mandatory fields could not be verified: {actual_str.replace('Missing fields: ', '')}."
 
     # ── Consolidate all MISSING_CRITICAL_FIELDS warnings into a single universal finding ──
     missing_fields_errors = [e for e in errors if e.get("type") == "MISSING_CRITICAL_FIELDS"]
@@ -3145,7 +3250,7 @@ def _build_events_and_errors(project_path):
             missing_str = m_err.get("actual", "").replace("Missing fields: ", "")
             docs_details.append(f"{doc_str}: Missing {missing_str}")
         
-        consolidated_msg = "Undocumented Transaction Metadata: The following mandatory registry/metadata parameters are missing across multiple documents:\n" + "\n".join([f"- {d}" for d in docs_details])
+        consolidated_msg = "Missing metadata: Mandatory parameters are missing across multiple documents:\n" + "\n".join([f"- {d}" for d in docs_details])
         
         errors.append({
             "severity":   "WARNING",
@@ -3157,6 +3262,16 @@ def _build_events_and_errors(project_path):
             "expected":   "All registry parameters fully verified",
             "actual":     docs_details
         })
+
+    # Inject computed outstanding balance and releases back into mortgage events
+    for enc in encumbrances:
+        doc_no = enc.get("doc_no")
+        if doc_no:
+            for ev in events:
+                if str(ev.get("event_doc_no")) == str(doc_no) and "MORTGAGE" in (ev.get("event_type") or "").upper():
+                    ev["releases"] = enc.get("releases") or []
+                    ev["status"] = enc.get("status")
+                    ev["principal_amount"] = enc.get("principal_amount") or 0.0
 
     return events, entities, errors, unresolved_mortgages
 

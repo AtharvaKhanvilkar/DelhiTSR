@@ -1383,6 +1383,140 @@
     .ui-anim-btn.generating .ui-anim-txt-2 {
       opacity: 1 !important;
     }
+
+    /* ───────────────────────────────────────────────────────── */
+    /* Redesigned Entities Tab Custom Styles */
+    /* ───────────────────────────────────────────────────────── */
+
+    /* Summary Dashboard KPI Grid */
+    .entities-summary-dashboard {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .entities-summary-dashboard {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    .summary-glass-card {
+      background-color: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease-in-out;
+    }
+    .summary-glass-card:hover {
+      border-color: #d4d4d8;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Card Status Border Accents */
+    .card-active-owner {
+      border-left: 4px solid #10b981 !important;
+    }
+    .card-former-owner {
+      border-left: 4px solid #d4d4d8 !important;
+    }
+    .card-active-mortgage {
+      border-left: 4px solid #f43f5e !important;
+    }
+    .card-released-mortgage {
+      border-left: 4px solid #e4e4e7 !important;
+    }
+
+    /* Collapsible Trigger Button & Content Wrapper */
+    .collapsible-trigger-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #52525b;
+      background-color: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+    }
+    .collapsible-trigger-btn:hover {
+      background-color: #e4e4e7;
+      color: #18181b;
+    }
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease-out;
+    }
+    .collapsible-content.expanded {
+      max-height: 1000px;
+    }
+
+    /* Copy-to-clipboard Tooltip Pill */
+    .copy-pill-container {
+      position: relative;
+      display: inline-block;
+    }
+    .copy-pill {
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #18181b;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-in-out;
+      white-space: nowrap;
+      z-index: 10;
+    }
+    .copy-pill.show {
+      opacity: 1;
+    }
+
+    /* Chain of Title Timeline/Stepper */
+    .timeline-steps {
+      position: relative;
+      border-left: 2px solid #e4e4e7;
+      margin-left: 0.75rem;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .timeline-step {
+      position: relative;
+    }
+    .timeline-node {
+      position: absolute;
+      left: -21px;
+      top: 1.25rem;
+      width: 20px;
+      height: 20px;
+      background-color: #ffffff;
+      border: 2px solid #e4e4e7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+    .timeline-step.active .timeline-node {
+      border-color: #10b981;
+      background-color: #ecfdf5;
+    }
+    .timeline-step.root .timeline-node {
+      border-color: #f59e0b;
+      background-color: #fef3c7;
+    }
 </style>
 
 </head>
@@ -1414,18 +1548,8 @@
 
       <div class="h-4 border-l border-zinc-300"></div>
 
-      <!-- App Logo -->
-
       <div class="flex items-center gap-2">
-
-        <div class="w-5 h-5 rounded bg-zinc-900 flex items-center justify-center border border-zinc-200">
-
-          <img src="{{ url_for('static', filename='TR-logo 1.png') }}" class="w-3.5 h-3.5 object-contain" alt=""/>
-
-        </div>
-
         <span class="text-[12px] font-mono font-bold tracking-tight text-zinc-950 uppercase">AutoTSR</span>
-
       </div>
 
     </div>
@@ -1617,196 +1741,56 @@
 
     <aside id="appSidebar" class="relative w-[260px] shrink-0 border-r border-zinc-300 bg-white flex flex-col h-full">
 
-      <!-- Sidebar Header Row (Interior Collapse Button) -->
-      <div class="sidebar-header flex items-center justify-end px-3 select-none border-b border-zinc-200 h-10 shrink-0">
-        <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
-                class="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-zinc-50 text-zinc-650 hover:text-zinc-955 transition-all cursor-pointer shadow-sm">
-          <svg class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-      </div>
-
-      
-
-      <!-- Navigation Stream -->
-
-      <div class="flex-1 overflow-y-auto px-2 py-3 space-y-3" id="sidebarMenu">
-
-        
-
-        <!-- Section: Core Data -->
-
-        <div class="space-y-0.5">
-
-          <div class="sb-section-label sb-only-expanded px-2 pb-1 text-[11px] font-bold uppercase tracking-[0.1em] text-zinc-900 flex items-center gap-1.5">
-
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="opacity-95 text-zinc-800"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-
-            Documents
-
-          </div>
-
-        
-
-        <!-- Transactions Tab Toggle -->
-
-        <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-805 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
-
-          <div class="flex items-center gap-2 sb-row-content">
-
-            <span class="text-zinc-700">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-
-                <polyline points="14 2 14 8 20 8"/>
-
-              </svg>
-
-            </span>
-
-            <span class="sb-label">Transactions</span>
-
-          </div>
-
-          <span class="text-zinc-500 sb-only-expanded">
-
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-              <path d="M6 9l6 6 6-6" />
-
-            </svg>
-
-          </span>
-
-        </div>
-
-
-
-        <!-- Nested Files Sub-tree (Only visible when sidebar expanded) -->
-
-        <div class="sb-only-expanded pt-0 mt-0 space-y-0.5 border-l border-zinc-300 ml-[14.5px]">
-
-          <div class="relative flex items-center justify-between pl-6 py-1 text-zinc-805 font-semibold text-[10px] uppercase tracking-[0.05em] group/deeds">
-
-            <!-- horizontal line connector -->
-
-            <div class="absolute left-0 top-1/2 w-[21px] border-t border-zinc-300 -translate-y-1/2"></div>
-
-            <div class="flex items-center gap-1.5">
-
-              <svg class="w-3 h-3 text-zinc-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-
-              </svg>
-
-              <span>Conveyance Deeds</span>
-
+        <!-- Attachments Category and File List -->
+        <div class="space-y-1">
+          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-805 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
+            <div class="flex items-center gap-2 sb-row-content">
+              <span class="text-zinc-700">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </span>
+              <span class="sb-label">Attachments</span>
             </div>
-
-            <button onclick="document.getElementById('fileInput').click()" title="Attach PDF transaction file" class="text-zinc-700 hover:text-zinc-950 p-1 rounded hover:bg-zinc-200/60 transition-all shrink-0">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-
+            <button onclick="event.stopPropagation(); document.getElementById('fileInput').click()" title="Attach PDF file" class="text-zinc-500 hover:text-zinc-850 p-1 rounded hover:bg-zinc-200/60 transition-all shrink-0 sb-only-expanded">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
-
                 <line x1="5" y1="12" x2="19" y2="12"></line>
-
               </svg>
-
             </button>
-
           </div>
 
-          
-
-          <!-- Indented sub-tree container connecting Conveyance Deeds to its child documents -->
-
-          <div class="border-l border-zinc-300 ml-[30px] mb-1">
-
-            <!-- Document list container -->
-
-            <div id="fileTree" class="space-y-0.5 max-h-[160px] overflow-y-auto pr-1">
-
-              {% if index_iis %}
-
-                {% for pdf in index_iis %}
-
-                  <div class="group relative flex items-center justify-between pl-[18px] pr-2 py-1 rounded cursor-pointer text-zinc-800 hover:bg-zinc-100/70 hover:text-zinc-950 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" 
-
-                       onclick="selectFile(this, '{{ pdf }}')" 
-
-                       data-file-row="{{ pdf }}" 
-
-                       data-parse-status="unknown">
-
-                    <!-- horizontal line connector -->
-
-                    <div class="absolute left-0 top-1/2 w-[14px] border-t border-zinc-300 -translate-y-1/2"></div>
-
-                    <div class="flex items-center gap-1.5 min-w-0 flex-1">
-
-                      <svg class="w-3 h-3 text-zinc-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-
-                        <polyline points="14 2 14 8 20 8"/>
-
-                      </svg>
-
-                      <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
-
-                    </div>
-
-                    <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0 ml-1">
-
-                      <button class="p-0.5 hover:bg-zinc-200 rounded text-zinc-600 hover:text-zinc-900" title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
-
-                        <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
-
-                      </button>
-
-                      <button class="p-0.5 hover:bg-red-50 rounded text-zinc-600 hover:text-red-600" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
-
-                        <i data-lucide="x" class="w-3 h-3"></i>
-
-                      </button>
-
-                    </div>
-
+          <!-- Indented Document List -->
+          <div class="sb-only-expanded border-l border-zinc-300 ml-[14.5px] pl-[10px] space-y-0.5 max-h-[280px] overflow-y-auto pr-1" id="fileTree">
+            {% if index_iis %}
+              {% for pdf in index_iis %}
+                <div class="group relative flex items-center justify-between pl-3 pr-2 py-1 rounded cursor-pointer text-zinc-800 hover:bg-zinc-100/70 hover:text-zinc-955 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" 
+                     onclick="selectFile(this, '{{ pdf }}')" 
+                     data-file-row="{{ pdf }}" 
+                     data-parse-status="unknown">
+                  <!-- horizontal line connector -->
+                  <div class="absolute left-0 top-[12px] w-[10px] border-t border-zinc-300"></div>
+                  <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                    <svg class="w-3 h-3 text-zinc-650 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
                   </div>
-
-                {% endfor %}
-
-              {% else %}
-
-                <div class="px-2 py-1 text-[10px] text-zinc-500 italic">No files yet</div>
-
-              {% endif %}
-
-            </div>
-
+                  <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0 ml-1">
+                    <button class="p-0.5 hover:bg-zinc-200 rounded text-zinc-600 hover:text-zinc-900" title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
+                      <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
+                    </button>
+                    <button class="p-0.5 hover:bg-red-50 rounded text-zinc-650 hover:text-red-600" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
+                      <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="pl-3 py-1 text-[10px] text-zinc-500 italic">No files yet</div>
+            {% endif %}
           </div>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- Section: Analytical tools -->
-
-      <div class="space-y-0.5">
-
-        <div class="sb-section-label sb-only-expanded px-2 pb-1 text-[11px] font-bold uppercase tracking-[0.1em] text-zinc-900 flex items-center gap-1.5">
-
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="opacity-95 text-zinc-800"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-
-          Analysis & Insights
-
         </div>
 
 
@@ -1923,21 +1907,7 @@
 
         </div>
 
-      </div>
 
-
-
-      <!-- Section: Registry Portals -->
-
-      <div class="space-y-0.5">
-
-        <div class="sb-section-label sb-only-expanded px-2 pb-1 text-[11px] font-bold uppercase tracking-[0.1em] text-zinc-900 flex items-center gap-1.5">
-
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="opacity-95 text-zinc-800"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-
-          External Portals
-
-        </div>
 
 
 
@@ -2014,8 +1984,6 @@
             </svg>
 
         </div>
-
-      </div>
 
     </div>
 
@@ -2122,171 +2090,8 @@
 
 
             <!-- CUSTOM MINIMAL PDF VIEW -->
-
             <div id="pdfViewer-custom" class="hidden w-full h-full flex overflow-hidden relative">
-
-              <!-- PDF page thumbnails sidebar -->
-
-              <aside id="pdfCustomSidebar" class="sidebar-transition w-40 shrink-0 border-r border-zinc-200 bg-white flex flex-col h-full opacity-100 z-10 select-none">
-
-                <div class="h-10 border-b border-zinc-100 px-3 flex items-center justify-between shrink-0">
-
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 font-sans">Pages</span>
-
-                  <span id="pdfCustomTotalPages" class="text-[9px] text-zinc-400 font-sans">0 Total</span>
-
-                </div>
-
-                <!-- Thumbnail items list -->
-
-                <div id="pdfCustomThumbnails" class="flex-1 overflow-y-auto p-3.5 space-y-4">
-
-                  <!-- Generated dynamically in JS -->
-
-                </div>
-
-              </aside>
-
-
-
-              <!-- PDF Pages Viewport -->
-
-              <div id="pdfCustomPagesContainer" class="flex-1 overflow-y-auto p-8 flex flex-col items-center gap-8 scroll-smooth select-text bg-zinc-100 relative">
-
-                <!-- Page cards rendered dynamically in JS -->
-
-              </div>
-
-
-
-              <!-- FLOATING BOTTOM CONTROL TOOLBAR PILL -->
-
-              <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center bg-zinc-950 border border-zinc-850 rounded shadow-md px-3.5 py-1.5 gap-3 shadow-lg text-zinc-150 select-none h-8 font-sans text-[10px]">
-
-                
-
-                <!-- PDF Sidebar Toggle -->
-
-                <button onclick="togglePdfCustomSidebar()" title="Toggle page thumbnails" class="text-zinc-400 hover:text-white transition-colors p-0.5">
-
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                    <rect x="3" y="3" width="18" height="18" rx="1" ry="1"/>
-
-                    <line x1="9" y1="3" x2="9" y2="21"/>
-
-                  </svg>
-
-                </button>
-
-
-
-                <div class="h-3 border-l border-zinc-800"></div>
-
-
-
-                <!-- Page Navigator -->
-
-                <div class="flex items-center gap-1.5">
-
-                  <button id="btnPrevPage" onclick="pdfCustomPrevPage()" title="Previous page" class="text-zinc-400 hover:text-white transition-colors p-0.5 disabled:opacity-30 disabled:hover:text-zinc-400">
-
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                      <polyline points="15 18 9 12 15 6"/>
-
-                    </svg>
-
-                  </button>
-
-                  <span id="pdfCustomPageIndicator" class="text-[10px] tracking-wide text-zinc-300 font-medium">1 / 1</span>
-
-                  <button id="btnNextPage" onclick="pdfCustomNextPage()" title="Next page" class="text-zinc-400 hover:text-white transition-colors p-0.5 disabled:opacity-30 disabled:hover:text-zinc-400">
-
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                      <polyline points="9 18 15 12 9 6"/>
-
-                    </svg>
-
-                  </button>
-
-                </div>
-
-
-
-                <div class="h-3 border-l border-zinc-800"></div>
-
-
-
-                <!-- Zoom Controls -->
-
-                <div class="flex items-center gap-1.5">
-
-                  <button onclick="pdfCustomZoomOut()" title="Zoom out" class="text-zinc-400 hover:text-white transition-colors p-0.5">
-
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                      <line x1="5" y1="12" x2="19" y2="12"/>
-
-                    </svg>
-
-                  </button>
-
-                  <span id="pdfCustomZoomLevel" class="text-[10px] tracking-wide text-zinc-300 font-medium w-8 text-center">100%</span>
-
-                  <button onclick="pdfCustomZoomIn()" title="Zoom in" class="text-zinc-400 hover:text-white transition-colors p-0.5">
-
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-
-                    </svg>
-
-                  </button>
-
-                </div>
-
-
-
-                <div class="h-3 border-l border-zinc-800"></div>
-
-
-
-                <!-- Page Fit Toggle -->
-
-                <button onclick="togglePdfCustomFitToWidth()" title="Fit to width" class="text-zinc-450 hover:text-white transition-colors p-0.5">
-
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                    <polyline points="4 7 4 4 7 4"/><polyline points="20 7 20 4 17 4"/><polyline points="4 17 4 20 7 20"/><polyline points="20 17 20 20 17 20"/>
-
-                  </svg>
-
-                </button>
-
-
-
-                <div class="h-3 border-l border-zinc-800"></div>
-
-
-
-                <!-- Download Action -->
-
-                <button onclick="downloadPdfCustom()" title="Download PDF document" class="text-zinc-450 hover:text-white transition-colors p-0.5">
-
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-
-                  </svg>
-
-                </button>
-
-
-
-              </div>
-
+              <div id="pdf-viewer-root" class="w-full h-full"></div>
             </div>
 
           {% else %}
@@ -2654,7 +2459,7 @@
 
        onclick="event.stopPropagation()"
 
-       class="relative z-50 w-full max-w-3xl bg-background border border-border rounded-xl shadow-2xl opacity-0 scale-[0.97] translate-y-2 pointer-events-none transition-all duration-250 ease-out flex flex-col max-h-[82vh] mx-4">
+       class="relative z-50 w-full max-w-3xl bg-background border border-border rounded-lg shadow-2xl opacity-0 scale-[0.97] translate-y-2 pointer-events-none transition-all duration-250 ease-out flex flex-col max-h-[82vh] mx-4">
 
     <div id="eventDrawerContent" class="flex flex-col min-h-0"></div>
 
@@ -2729,7 +2534,7 @@
 
   // ════════════════════════════════════════════════════════════
 
-  const CONFIG_USE_CUSTOM_PDF_VIEWER = true;
+  const CONFIG_USE_CUSTOM_PDF_VIEWER = false;
 
   if (typeof pdfjsLib !== 'undefined') {
 
@@ -4567,12 +4372,17 @@
 
           let considerationText = '—';
           if (t.includes('SALE') || t.includes('AGREEMENT')) {
-            considerationText = ev.consideration || '—';
+            const amt = Number(ev.consideration);
+            if (amt) {
+              considerationText = '₹' + amt.toLocaleString('en-IN');
+            } else {
+              considerationText = ev.consideration || '—';
+            }
           } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
             const principal = ev.principal_amount;
             const rate = ev.interest_rate;
             if (principal) {
-              let formattedAmt = '₹ ' + Number(principal).toLocaleString('en-IN');
+              let formattedAmt = '₹' + Number(principal).toLocaleString('en-IN');
               if (rate) {
                 const pctMatch = String(rate).match(/(\d+(?:\.\d+)?\s*%)/);
                 if (pctMatch) {
@@ -4584,12 +4394,37 @@
               considerationText = formattedAmt;
             }
           } else if (t.includes('RELEASE')) {
-            const relAmt = ev.released_amount;
-            if (relAmt) {
-              considerationText = '₹ ' + Number(relAmt).toLocaleString('en-IN') + ' (released)';
+            const relAmt = ev.released_amount || ev.consideration;
+            const relAmtNum = Number(relAmt);
+            if (relAmtNum > 0) {
+              considerationText = '₹' + relAmtNum.toLocaleString('en-IN') + ' (released)';
+            } else {
+              considerationText = 'No Consideration';
+            }
+          } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
+            const rent = Number(ev.license_fee);
+            const dep = Number(ev.deposit);
+            if (rent && dep) {
+              considerationText = '₹' + rent.toLocaleString('en-IN') + '/mo (₹' + dep.toLocaleString('en-IN') + ' dep)';
+            } else if (rent) {
+              considerationText = '₹' + rent.toLocaleString('en-IN') + '/mo';
+            } else if (dep) {
+              considerationText = '₹' + dep.toLocaleString('en-IN') + ' dep';
+            } else {
+              considerationText = '—';
+            }
+          } else if (t.includes('GIFT')) {
+            const giftAmt = Number(ev.consideration) || 0;
+            if (giftAmt > 0) {
+              considerationText = `<span class="inline-flex items-center gap-1 text-red-600 font-semibold" title="Warning: Gift deed cannot have consideration under Sec 122 of TPA">
+                <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                ₹${giftAmt.toLocaleString('en-IN')}
+              </span>`;
+            } else {
+              considerationText = 'NA';
             }
           }
-          const isValued = considerationText !== '—';
+          const isValued = considerationText !== '—' && considerationText !== 'NA';
 
           html += `
 
@@ -4772,195 +4607,388 @@
   // ─────────────────────────────────────────────────────────
 
   function openEventDetail(idx) {
-
     const ev = _eventsStore[idx];
-
     if (!ev) return;
 
+    const backdrop = document.getElementById('eventDrawerBackdrop');
+    const drawer   = document.getElementById('eventDrawer');
+    const body     = document.getElementById('eventDrawerContent');
+    if (!backdrop || !drawer || !body) return;
 
-
-    const t         = (ev.event_type || '').toUpperCase();
-
+    const t = (ev.event_type || '').toUpperCase();
     const typeLabel = DETAIL_TXN_LABELS[ev.event_type] || ev.event_type || '—';
 
+    // 1. Emoji Selection (True Apple Emojis from GitHub iamcal/emoji-data Repo)
+    const EMOJI_MAP = {
+      'SALE_DEED': '1f4b0.png',
+      'AGREEMENT_OF_SALE': '1f4b0.png',
+      'GIFT_DEED': '1f381.png',
+      'RELEASE_DEED': '1f513.png',
+      'DEED_OF_RELEASE': '1f513.png',
+      'MORTGAGE_DEED': '1f3e6.png',
+      'INTIMATION_OF_MORTGAGE': '1f3e6.png',
+      'LEAVE_AND_LICENSE': '1f511.png'
+    };
+    const emojiFile = EMOJI_MAP[ev.event_type] || '1f4dd.png';
+    const emojiHtml = `<img src="https://cdn.jsdelivr.net/gh/iamcal/emoji-data@master/img-apple-64/${emojiFile}" class="w-8 h-8 select-none shrink-0" alt="${typeLabel}">`;
 
-
-    let fromLabel = 'From', toLabel = 'To', fromVal = null, toVal = null;
-
+    // 2. Determine party labels and values
+    let fromLabel = 'Seller', toLabel = 'Buyer', fromVal = null, toVal = null;
     if (t.includes('SALE') || t.includes('AGREEMENT')) {
-
       fromLabel = 'Seller'; toLabel = 'Buyer';
-
       fromVal = ev.seller_names; toVal = ev.buyer_names;
-
     } else if (t.includes('GIFT')) {
-
       fromLabel = 'Donor'; toLabel = 'Donee';
-
       fromVal = ev.donor_name; toVal = ev.donee_name;
-
     } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
-
       fromLabel = 'Mortgagor'; toLabel = 'Mortgagee';
-
       fromVal = ev.mortgagor_name; toVal = ev.mortgagee_name;
-
     } else if (t.includes('RELEASE')) {
-
       fromLabel = 'Releasor'; toLabel = 'Releasee';
-
-      fromVal = ev.seller_names; toVal = ev.buyer_names;
-
+      fromVal = ev.releasor_names || ev.seller_names; toVal = ev.releasee_names || ev.buyer_names;
     } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
-
       fromLabel = 'Licensor'; toLabel = 'Licensee';
-
       fromVal = ev.licensor_name; toVal = ev.licensee_name;
-
     }
 
+    const fromName = Array.isArray(fromVal) ? fromVal.filter(Boolean).join(', ') : (fromVal || '—');
+    const toName = Array.isArray(toVal) ? toVal.filter(Boolean).join(', ') : (toVal || '—');
 
+    // 3. Dynamic bank logo for mortgages
+    let bankLogoHtml = '';
+    if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+      const lenderName = toName;
+      const getBankLogoSvg = function(bankName) {
+        const name = (bankName || '').toUpperCase();
+        let slug = '';
+        if (name.includes('PNB') || name.includes('PUNJAB NATIONAL')) {
+          slug = 'pnb';
+        } else if (name.includes('AXIS')) {
+          slug = 'axis';
+        } else if (name.includes('HDFC')) {
+          slug = 'hdfc';
+        } else if (name.includes('ICICI')) {
+          slug = 'icici';
+        } else if (name.includes('SBI') || name.includes('STATE BANK')) {
+          slug = 'sbi';
+        }
 
-    const buyerName = Array.isArray(toVal) ? toVal.filter(Boolean).join(', ') : toVal;
+        if (slug) {
+          return `<img src="https://cdn.jsdelivr.net/gh/auraveni/global-bank-logos/assets/bank/indian-bank/${slug}.svg" class="w-5 h-5 shrink-0 object-contain" alt="${bankName}">`;
+        }
+        return `<svg class="w-4 h-4 shrink-0 text-zinc-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="21" x2="21" y2="21"></line>
+          <rect x="5" y="10" width="14" height="11"></rect>
+          <path d="M12 2L2 7h20L12 2z"></path>
+          <path d="M9 21V11h6v10"></path>
+        </svg>`;
+      };
+      bankLogoHtml = getBankLogoSvg(lenderName);
+    }
 
-    const isCurrent = buyerName && _currentOwnerName && buyerName === _currentOwnerName;
+    // 4. Surfacing Authorized Signatories (Dynamic lookup from store)
+    let authSignatory = ev.authorized_signatory || null;
+    let involvesInstitutionOrCompany = false;
+    const checkNameForInst = (n) => {
+      const nm = (n || '').toUpperCase();
+      return nm.includes('BANK') || nm.includes('AUTHORITY') || nm.includes('CORPORATION') || nm.includes('LIMITED') || nm.includes('LTD') || nm.includes('PVT') || nm.includes('DEVELOPMENT') || nm.includes('BOARD') || nm.includes('MCD') || nm.includes('DDA') || nm.includes('L&DO');
+    };
+    if (checkNameForInst(fromName) || checkNameForInst(toName)) {
+      involvesInstitutionOrCompany = true;
+    }
+    
+    if (window._entitiesOwners) {
+      for (const o of window._entitiesOwners) {
+        if ((String(o.since_doc) === String(ev.event_doc_no) || String(o.exited_doc) === String(ev.event_doc_no)) && o.authorized_signatory) {
+          authSignatory = o.authorized_signatory;
+          break;
+        }
+      }
+    }
+    if (!authSignatory && window._entitiesEncumbrances) {
+      const enc = window._entitiesEncumbrances.find(e => String(e.doc_no) === String(ev.event_doc_no));
+      if (enc && enc.authorized_signatory) {
+        authSignatory = enc.authorized_signatory;
+      }
+    }
 
+    // 5. Dynamic Primary Metric Card
+    let primaryMetricHtml = '';
+    if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+      const principal = Number(ev.principal_amount) || 0;
+      const releases = ev.releases || [];
+      const totalReleased = releases.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+      const outstanding = Math.max(0, principal - totalReleased);
+      const pctReleased = principal > 0 ? Math.round((totalReleased / principal) * 100) : 0;
+      const rateText = ev.interest_rate ? `Rate: @ ${ev.interest_rate}` : 'Floating Rate';
 
+      primaryMetricHtml = `
+        <div class="space-y-2.5 pb-4 border-b border-zinc-100">
+          <div class="flex justify-between items-baseline">
+            <div>
+              <span class="text-xs text-zinc-505">Outstanding Balance</span>
+              <div class="text-lg font-semibold tracking-tight text-zinc-950 mt-0.5">₹${outstanding.toLocaleString('en-IN')}</div>
+            </div>
+            <div class="text-right text-[11px] text-zinc-500">
+              Original Principal: ₹${principal.toLocaleString('en-IN')}
+            </div>
+          </div>
+          <div class="space-y-1">
+            <div class="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden border border-zinc-200/50">
+              <div class="bg-zinc-900 h-full rounded-full" style="width: ${pctReleased}%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-zinc-500">
+              <span>${pctReleased}% Discharged (Released ₹${totalReleased.toLocaleString('en-IN')})</span>
+              <span>${rateText}</span>
+            </div>
+          </div>
+        </div>`;
+    } else if (t.includes('SALE') || t.includes('AGREEMENT')) {
+      const price = Number(ev.consideration) || 0;
+      const stampVal = Number(ev.stamp_duty) || 0;
+      primaryMetricHtml = `
+        <div class="grid grid-cols-2 gap-4 pb-5 border-b border-zinc-100">
+          <div>
+            <span class="text-xs text-zinc-505">Consideration Amount</span>
+            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${price > 0 ? '₹' + price.toLocaleString('en-IN') : '—'}</div>
+          </div>
+          <div>
+            <span class="text-xs text-zinc-505">Stamp Duty Paid</span>
+            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${stampVal > 0 ? '₹' + stampVal.toLocaleString('en-IN') : 'Verified'}</div>
+          </div>
+        </div>`;
+    } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
+      const fee = ev.license_fee;
+      const dep = ev.deposit;
+      const feeText = (fee !== undefined && fee !== null && fee !== '') ? `₹${Number(fee).toLocaleString('en-IN')}/mo` : null;
+      const depText = (dep !== undefined && dep !== null && dep !== '') ? `₹${Number(dep).toLocaleString('en-IN')}` : null;
+      
+      let amountDisplayHtml = '';
+      if (feeText && depText) {
+        amountDisplayHtml = `
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-xs text-zinc-505">Monthly Rental</span>
+              <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${feeText}</div>
+            </div>
+            <div>
+              <span class="text-xs text-zinc-505">Security Deposit</span>
+              <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${depText}</div>
+            </div>
+          </div>`;
+      } else if (feeText) {
+        amountDisplayHtml = `
+          <div>
+            <span class="text-xs text-zinc-505">Monthly Rental</span>
+            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${feeText}</div>
+          </div>`;
+      } else if (depText) {
+        amountDisplayHtml = `
+          <div>
+            <span class="text-xs text-zinc-505">Security Deposit</span>
+            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${depText}</div>
+          </div>`;
+      } else {
+        amountDisplayHtml = `
+          <div>
+            <span class="text-xs text-zinc-505">Monthly Rental</span>
+            <div class="text-lg font-semibold tracking-tight text-red-650 mt-0.5">Missing in Agreement</div>
+          </div>`;
+      }
 
-    const leftRows =
+      primaryMetricHtml = `
+        <div class="pb-4 border-b border-zinc-100">
+          ${amountDisplayHtml}
+        </div>`;
+    } else if (t.includes('RELEASE')) {
+      const relAmt = Number(ev.released_amount) || 0;
+      primaryMetricHtml = `
+        <div class="pb-4 border-b border-zinc-100">
+          <span class="text-xs text-zinc-550">Relinquished Interest / Amount</span>
+          <div class="text-lg font-semibold text-zinc-955 mt-0.5">${relAmt > 0 ? '₹' + relAmt.toLocaleString('en-IN') : 'Share Released'}</div>
+        </div>`;
+    } else if (t.includes('GIFT')) {
+      primaryMetricHtml = `
+        <div class="pb-4 border-b border-zinc-100">
+          <span class="text-xs text-zinc-550">Voluntary Transfer</span>
+          <div class="text-lg font-semibold text-zinc-955 mt-0.5">Gift Deed</div>
+        </div>`;
+    }
 
-      _detailRowIfPresent('Doc No',       ev.event_doc_no) +
+    // 6. Documents and Property details
+    const plotNo = ev.id_field === 'plot_no' ? ev.id_value : (ev.plot_no || '—');
+    const flatNo = ev.flat_no || '—';
+    const subRegistrar = ev.sub_registrar_office || '—';
+    const execDate = ev.event_date || '—';
+    const regDate = ev.event_reg_date || '—';
+    
+    let sourceLinkHtml = '—';
+    if (ev.source_file) {
+      const basename = ev.source_file.split(/[\\/]/).pop();
+      sourceLinkHtml = `<a href="/pdf/{{ project_name }}/${encodeURIComponent(basename)}" target="_blank" class="inline-flex items-center gap-1 text-zinc-505 hover:text-zinc-900 underline underline-offset-4 font-medium">
+        <i data-lucide="file-text" class="w-3 h-3 text-zinc-400"></i>
+        <span>${basename}</span>
+      </a>`;
+    }
 
-      _detailRowIfPresent('Executed',     ev.event_date) +
+    const registryTableHtml = `
+      <div class="space-y-3">
+        <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Registry</h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-zinc-500">Sub-Registrar</span>
+            <span class="font-medium text-zinc-955">${subRegistrar}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-500">Executed Date</span>
+            <span class="font-medium text-zinc-955">${execDate}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-550">Registered Date</span>
+            <span class="font-medium text-zinc-955">${regDate || '—'}</span>
+          </div>
+        </div>
+      </div>`;
 
-      _detailRowIfPresent('Registered',   ev.event_reg_date) +
+    const propertyTableHtml = `
+      <div class="space-y-3">
+        <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Property</h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-zinc-550">Flat No / Plot No</span>
+            <span class="font-medium text-zinc-955">Flat ${flatNo} / Plot ${plotNo}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-550">Stated Area</span>
+            <span class="font-semibold text-zinc-955">${ev.area || '—'}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-500">Village / District</span>
+            <span class="font-medium text-zinc-955">${ev.village || '—'}, ${ev.district || '—'}</span>
+          </div>
+        </div>
+      </div>`;
 
-      _detailRowIfPresent('Sub-Registrar',ev.sub_registrar_office);
+    // 7. Mortgage release history timeline section
+    let releaseHistoryHtml = '';
+    if ((t.includes('MORTGAGE') || t.includes('INTIMATION')) && ev.releases && ev.releases.length > 0) {
+      let releasesList = '';
+      ev.releases.forEach(r => {
+        const typeLabel = r.type === 'full' ? 'Full Release' : 'Partial Release';
+        releasesList += `
+          <div class="flex justify-between items-start py-1 border-b border-zinc-100 last:border-0">
+            <div>
+              <div class="font-medium text-zinc-900">Doc ${r.doc_no || '—'}</div>
+              <div class="text-[10px] text-zinc-500">Date: ${r.date || '—'} · ${typeLabel}</div>
+            </div>
+            <span class="font-semibold text-zinc-955">₹${Number(r.amount).toLocaleString('en-IN')}</span>
+          </div>`;
+      });
+      releaseHistoryHtml = `
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Release History</h3>
+          <div class="space-y-1.5 text-xs max-h-[120px] overflow-y-auto pr-1">
+            ${releasesList}
+          </div>
+        </div>`;
+    }
 
+    // 7.5 PAN Lookup Helpers
+    const getPartyPan = (partyName, partyList) => {
+      if (!partyList || !partyName) return null;
+      const cleanTarget = partyName.toUpperCase().replace(/\s+/g, '').replace(/^(MR\.|MRS\.|MS\.|SHRI\s+)/, '');
+      const match = partyList.find(p => {
+        const cleanPName = (p.name || '').toUpperCase().replace(/\s+/g, '').replace(/^(MR\.|MRS\.|MS\.|SHRI\s+)/, '');
+        return cleanPName === cleanTarget || cleanPName.includes(cleanTarget) || cleanTarget.includes(cleanPName);
+      });
+      return match ? match.pan : null;
+    };
+    const fromPan = getPartyPan(fromName, ev.transferor_parties) || '—';
+    const toPan = getPartyPan(toName, ev.transferee_parties) || '—';
 
-
-    const partyRows =
-
-      _detailRowIfPresent(fromLabel, fromVal) +
-
-      _detailRowIfPresent(toLabel,   toVal);
-
-
-
-    const moneyRows =
-
-      _detailRowIfPresent('Consideration', ev.consideration) +
-
-      _detailRowIfPresent('Stamp Duty',    ev.stamp_duty) +
-
-      _detailRowIfPresent('Market Value',  ev.market_value);
-
-
-
-    const plotNo = ev.id_field === 'plot_no' ? ev.id_value : (ev.plot_no || null);
-
-    const propRows =
-
-      _detailRowIfPresent('Society',  ev.society_building_name) +
-
-      _detailRowIfPresent('Flat No',  ev.flat_no) +
-
-      _detailRowIfPresent('Plot No',  plotNo) +
-
-      _detailRowIfPresent('Area',     ev.area) +
-
-      _detailRowIfPresent('Address',  ev.society_building_address) +
-
-      _detailRowIfPresent('Village',  ev.village) +
-
-      _detailRowIfPresent('District', ev.district);
-
-
-
-    const backdrop = document.getElementById('eventDrawerBackdrop');
-
-    const drawer   = document.getElementById('eventDrawer');
-
-    const body     = document.getElementById('eventDrawerContent');
-
-
+    // 8. Dynamic Signatory section (surfaced if involvesInstitutionOrCompany or found)
+    let signatoryHtml = '';
+    if (authSignatory || involvesInstitutionOrCompany) {
+      const sigName = authSignatory && authSignatory.name ? authSignatory.name : 'Stated Signatory';
+      const sigDesig = authSignatory && authSignatory.designation ? ` (${authSignatory.designation})` : '';
+      signatoryHtml = `
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1.5 text-zinc-550 font-medium">
+            <i data-lucide="signature" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
+            <span>Authorized Signatory</span>
+          </div>
+          <span class="font-semibold text-zinc-950">${sigName}<span class="text-[10px] text-zinc-500 font-normal">${sigDesig}</span></span>
+        </div>`;
+    }
 
     body.innerHTML = `
-
-      <div class="flex items-start justify-between gap-4 px-6 py-5 border-b border-border shrink-0">
-
-        <div class="min-w-0">
-
-          <div class="flex items-center gap-2 flex-wrap mb-2">
-
-            <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium">${typeLabel}</span>
-
-            ${isCurrent ? '<span class="inline-flex items-center gap-1.5 rounded border border-zinc-300 bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-800"><svg width="12" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 17h18l-2-9-4 4-3-7-3 7-4-4-2 9zm0 2h18v2H3v-2z"/></svg> Current owner</span>' : ''}
-
-          </div>
-
-          <div class="text-xl font-semibold tracking-tight">Doc ${ev.event_doc_no || '—'}</div>
-
-          <div class="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-
-            <span>${ev.event_date || '—'}</span>
-
-            ${ev.event_reg_date ? '<span class="text-border">·</span><span>Reg. ' + ev.event_reg_date + '</span>' : ''}
-
-          </div>
-
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-6 border-b border-zinc-100">
+        <div class="space-y-1">
+          <h2 class="text-lg font-bold tracking-tight text-zinc-900">${typeLabel}</h2>
+          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <span class="font-semibold text-zinc-700">Doc ${ev.event_doc_no || '—'}</span>
+            <span class="text-zinc-300">•</span>
+            <span>Source:</span>
+            ${sourceLinkHtml}
+          </p>
         </div>
-
-        <button onclick="closeEventDetail()"
-
-                class="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:bg-accent transition-colors shrink-0">
-
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-
-        </button>
-
+        
+        <!-- Top Right Corner Emoji + Close Button -->
+        <div class="flex items-center gap-3">
+          ${emojiHtml}
+          <button onclick="closeEventDetail()" class="text-zinc-400 hover:text-zinc-900 p-1 hover:bg-zinc-50 rounded transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
       </div>
 
+      <!-- Modal Body -->
+      <div class="p-6 space-y-6">
+        
+        <!-- Primary Metric Row -->
+        ${primaryMetricHtml}
 
-
-      <div class="flex-1 overflow-y-auto min-h-0">
-
-        <div class="grid grid-cols-2 gap-5 p-6">
-
-          <div class="space-y-5">
-
-            ${_detailCol('Document', leftRows)}
-
-            ${partyRows ? _detailCol('Parties', partyRows) : ''}
-
-            ${moneyRows ? _detailCol('Financials', moneyRows) : ''}
-
+        <!-- Parties Section -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-550 block uppercase">${fromLabel}</span>
+              <span class="text-xs font-semibold text-zinc-955 block">${fromName}</span>
+              <span class="font-mono text-[9px] text-zinc-500 block">PAN: ${fromPan}</span>
+            </div>
+            
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-550 block uppercase">${toLabel}</span>
+              <div class="flex items-center gap-1.5">
+                ${bankLogoHtml}
+                <span class="text-xs font-semibold text-zinc-955 block">${toName}</span>
+              </div>
+              <span class="font-mono text-[9px] text-zinc-500 block">PAN: ${toPan}</span>
+            </div>
           </div>
-
-          <div class="space-y-5">
-
-            ${propRows ? _detailCol('Property', propRows) : ''}
-
-          </div>
-
         </div>
+
+        <!-- Registry & Property Grids -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          ${registryTableHtml}
+          ${releaseHistoryHtml ? releaseHistoryHtml : propertyTableHtml}
+        </div>
+
+        <!-- Footnote Signatory -->
+        ${signatoryHtml}
 
       </div>`;
 
-
-
+    // Show modal
     backdrop.classList.remove('opacity-0', 'pointer-events-none');
-
     backdrop.classList.add('opacity-100');
-
     drawer.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-
     drawer.classList.add('opacity-100', 'scale-100');
 
+    if (window.lucide) lucide.createIcons();
   }
-
-
-
   function closeEventDetail() {
 
     const drawer   = document.getElementById('eventDrawer');
@@ -4975,6 +5003,37 @@
 
     backdrop.classList.remove('opacity-100');
 
+  }
+
+  function toggleCardCollapsible(id) {
+    const content = document.getElementById(`content-${id}`);
+    const icon = document.getElementById(`icon-${id}`);
+    if (content) {
+      const isExpanded = content.classList.contains('expanded');
+      if (isExpanded) {
+        content.classList.remove('expanded');
+        content.style.maxHeight = '0';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      } else {
+        content.classList.add('expanded');
+        content.style.maxHeight = content.scrollHeight + 'px';
+        if (icon) icon.style.transform = 'rotate(90deg)';
+      }
+    }
+  }
+
+  function copyToClipboard(text, pillId) {
+    navigator.clipboard.writeText(text).then(() => {
+      const pill = document.getElementById(pillId);
+      if (pill) {
+        pill.classList.add('show');
+        setTimeout(() => {
+          pill.classList.remove('show');
+        }, 1500);
+      }
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
   }
 
 
@@ -5050,26 +5109,54 @@
   // ─────────────────────────────────────────────────────────
 
   const BASIS_LABELS = {
-
     'SALE_DEED':              'Sale Deed',
-
     'AGREEMENT_OF_SALE':      'Agreement of Sale',
-
     'GIFT_DEED':              'Gift Deed',
-
     'RELEASE_DEED':           'Release Deed',
-
     'DEED_OF_RELEASE':        'Deed of Release',
-
     'MORTGAGE_DEED':          'Mortgage Deed',
-
     'INTIMATION_OF_MORTGAGE': 'Intimation of Mortgage',
-
     'LEAVE_AND_LICENSE':      'Leave & License',
-
+    'GOVERNMENT_ALLOTMENT':   'Government Allotment',
+    'CONVEYANCE_DEED':        'Conveyance Deed',
+    'DDA_CONVEYANCE':         'DDA Conveyance Deed',
   };
 
-  const basisLabel = (b) => BASIS_LABELS[b] || b || '—';
+  const basisLabel = (b) => {
+    if (!b) return '—';
+    if (BASIS_LABELS[b]) return BASIS_LABELS[b];
+    return b.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  function formatPartyName(name) {
+    if (!name) return '—';
+    const nameUpper = name.toUpperCase().trim();
+    const institutions = {
+      'DELHI DEVELOPMENT AUTHORITY': 'Delhi Development Authority',
+      'DDA': 'DDA',
+      'PUNJAB NATIONAL BANK': 'Punjab National Bank',
+      'PNB': 'PNB',
+      'HDFC BANK LIMITED': 'HDFC Bank Limited',
+      'HDFC': 'HDFC',
+      'AXIS BANK': 'Axis Bank',
+      'ICICI BANK': 'ICICI Bank',
+      'STATE BANK OF INDIA': 'State Bank of India',
+      'SBI': 'SBI',
+    };
+    if (institutions[nameUpper]) {
+      return institutions[nameUpper];
+    }
+    return name.toLowerCase().replace(/\b([a-z])/g, function(letter) {
+      return letter.toUpperCase();
+    }).replace(/\b(And|Of|The|Or)\b/gi, function(word) {
+      return word.toLowerCase();
+    }).replace(/\b(P\.k\.)/g, 'P.K.')
+      .replace(/\b(P\.d\.)/g, 'P.D.')
+      .replace(/\b(S\.k\.)/g, 'S.K.')
+      .replace(/\b(Pan|Pin)\b/g, function(word) {
+        return word.toUpperCase();
+      });
+  }
 
 
 
@@ -5130,308 +5217,330 @@
 
 
   function renderTransferPartyCard(o) {
-
     const isActive    = o.status === 'active';
+    const isRoot      = o.entry_type === 'root_seller';
 
-    const isRoot      = !!o._isRoot;
+    const accentClass = isActive ? 'card-active-owner' : 'card-former-owner';
 
-    const entryType   = o.entry_type || 'buyer';
-
-
-
-    let borderClass = 'border-border bg-card';
-
-    if (isActive && o.encumbered) borderClass = 'border-amber-200/70 bg-amber-50/30';
-
-    else if (isRoot)              borderClass = 'border-yellow-300/70 bg-yellow-50/40';
-
-
-
-    let statusBadge;
-
-    if (isActive && o.encumbered) statusBadge = Badge('warning', 'Encumbered');
-
-    else if (isActive)            statusBadge = Badge('success', 'Active Owner');
-
-    else                          statusBadge = Badge('muted', 'Former');
-
-
+    let statusBadge = '';
+    if (isActive) {
+      statusBadge = o.encumbered 
+        ? '<span class="inline-flex items-center rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-800">Encumbered</span>' 
+        : '<span class="inline-flex items-center rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">Active Owner</span>';
+    } else {
+      statusBadge = '<span class="inline-flex items-center rounded bg-zinc-50 border border-zinc-200 px-2 py-0.5 text-xs font-semibold text-zinc-600">Former Owner</span>';
+    }
 
     const rootRibbon = isRoot
-
-      ? `<div class="px-4 pt-3"><span class="inline-flex items-center gap-1 rounded-md border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-yellow-800"><i data-lucide="flag" class="w-3 h-3"></i>Root of Title</span></div>`
-
+      ? `<div class="px-4 pt-3"><span class="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800"><i data-lucide="flag" class="w-3 h-3 text-amber-600"></i>Root of Title</span></div>`
       : '';
 
+    const basisText = basisLabel(o.basis);
+    const entryDoc = o.since_doc ? 'Doc ' + o.since_doc : '—';
+    const entryDate = o.since_date || '—';
+    const exitDoc = o.exited_doc ? 'Doc ' + o.exited_doc : '—';
+    const exitDate = o.exited_date || '—';
+    const exitViaText = o.exited_via ? basisLabel(o.exited_via) : '—';
+    const areaText = o.area || '—';
 
+    const acqDocAndType = (o.since_doc && o.since_doc !== '—') ? `${basisText} (${entryDoc})` : basisText;
+    const transferDocAndType = (o.exited_doc && o.exited_doc !== '—') ? `${exitViaText} (${exitDoc})` : exitViaText;
+    const exitedToText = Array.isArray(o.exited_to) 
+      ? o.exited_to.filter(Boolean).map(formatPartyName).join(', ') 
+      : (o.exited_to ? formatPartyName(o.exited_to) : '—');
 
-    const areaLine = (isActive && o.area)
-
-      ? `<div class="text-xs text-foreground/80">${o.area}</div>`
-
-      : '';
-
-
-
-    let entryIcon, entryText;
-
-    if (entryType === 'root_seller') {
-
-      entryIcon = 'anchor';
-
-      entryText = 'Root of title · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—');
-
-    } else if (entryType === 'seller_only') {
-
-      entryIcon = 'arrow-up-right';
-
-      entryText = 'Named as seller · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—')
-
-                + (o.since_date ? ' · ' + o.since_date : '');
-
-    } else {
-
-      entryIcon = 'arrow-down-right';
-
-      entryText = 'Acquired ' + (o.since_date || '—') + ' · ' + basisLabel(o.basis) + ' · Doc ' + (o.since_doc || '—');
-
-    }
-
-
-
-    const entryLine = `
-
-      <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-
-        <i data-lucide="${entryIcon}" class="w-3 h-3 shrink-0"></i>
-
-        <span>${entryText}</span>
-
+    const detailsGrid = `
+      <div class="grid grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Acquisition Doc & Type</span>
+          <span class="font-semibold text-zinc-800">${acqDocAndType}</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Acquisition Date</span>
+          <span class="font-semibold text-zinc-800">${entryDate}</span>
+        </div>
+        ${!isActive ? `
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Transfer Doc & Type</span>
+          <span class="font-semibold text-zinc-800">${transferDocAndType}</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Transfer Date</span>
+          <span class="font-semibold text-zinc-800">${exitDate}</span>
+        </div>` : ''}
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Stated Area</span>
+          <span class="font-semibold text-zinc-800">${areaText}</span>
+        </div>
+        ${!isActive ? `
+        <div class="col-span-2">
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Transferred To</span>
+          <span class="font-semibold text-zinc-800">${exitedToText}</span>
+        </div>` : ''}
       </div>`;
 
-
-
-    let exitLine = '';
-
-    if (!isActive && o.exited_date) {
-
-      let exitText;
-
-      if (entryType === 'root_seller') {
-
-        exitText = 'Exited via root deed · Doc ' + (o.exited_doc || '—') + ' · ' + o.exited_date;
-
-      } else if (entryType === 'seller_only') {
-
-        exitText = 'Exited via this deed · Doc ' + (o.exited_doc || '—') + ' · ' + o.exited_date;
-
-      } else {
-
-        exitText = 'Exited ' + o.exited_date + ' · ' + basisLabel(o.exited_via) + ' · Doc ' + (o.exited_doc || '—');
-
+    // Collapsible Extended Attributes (Dropdown)
+    let extMetadataLine = '';
+    if (o.extended_metadata && Object.keys(o.extended_metadata).length > 0) {
+      let metaItems = '';
+      let hasValidValue = false;
+      for (const [key, value] of Object.entries(o.extended_metadata)) {
+        if (value) {
+          hasValidValue = true;
+          const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          metaItems += `
+            <div class="flex justify-between items-baseline gap-4 py-1 text-xs border-b border-zinc-200/50 last:border-0">
+              <span class="text-zinc-500 font-semibold uppercase tracking-wider text-[9px]">${displayKey}</span>
+              <span class="font-semibold text-zinc-800 text-right">${value}</span>
+            </div>`;
+        }
       }
-
-      exitLine = `
-
-        <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-
-          <i data-lucide="arrow-up-right" class="w-3 h-3 shrink-0"></i>
-
-          <span>${exitText}</span>
-
-        </div>`;
-
+      if (hasValidValue) {
+        const collId = `ext-${o.canonical}-${Math.random().toString(36).substr(2, 5)}`;
+        extMetadataLine = `
+          <div class="mt-2.5 pt-1.5 border-t border-zinc-100">
+            <button class="collapsible-trigger-btn" onclick="toggleCardCollapsible('${collId}')">
+              <span>Extended Attributes</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 transition-transform duration-200" id="icon-${collId}"></i>
+            </button>
+            <div class="collapsible-content" id="content-${collId}">
+              <div class="mt-2 bg-zinc-50 rounded-lg p-2.5 border border-zinc-200/60 space-y-1">
+                ${metaItems}
+              </div>
+            </div>
+          </div>`;
+      }
     }
 
+    // Authorized Signatory
+    let sigLine = '';
+    if (o.authorized_signatory && o.authorized_signatory.name) {
+      const desig = o.authorized_signatory.designation ? ` (${o.authorized_signatory.designation})` : '';
+      sigLine = `
+        <div class="mt-2 pt-2 border-t border-zinc-100 flex items-start gap-1.5 text-xs text-zinc-500">
+          <i data-lucide="signature" class="w-3.5 h-3.5 text-zinc-400 mt-0.5 shrink-0"></i>
+          <div>
+            <span class="text-zinc-500 font-semibold uppercase tracking-wider text-[9px] block">Authorized Signatory</span>
+            <span class="font-semibold text-zinc-800">${formatPartyName(o.authorized_signatory.name)}</span><span class="text-[10px] text-zinc-500">${desig}</span>
+          </div>
+        </div>`;
+    }
 
-
-    const encLine = (isActive && o.encumbered && o.encumbrance_doc)
-
-      ? `<div class="flex items-center gap-1.5 text-xs text-amber-700 pt-1">
-
-           <i data-lucide="lock" class="w-3 h-3 shrink-0"></i>
-
-           <span>Encumbered · Mortgage Doc ${o.encumbrance_doc}</span>
-
-         </div>`
-
-      : '';
-
-
-
+    // Identifiers Copy Pills
     const pans = Array.isArray(o.pan) ? o.pan.filter(Boolean) : (o.pan ? [o.pan] : []);
-
     const pins = Array.isArray(o.pin) ? o.pin.filter(Boolean) : (o.pin ? [o.pin] : []);
-
-
-
-    function idChips(label, arr) {
-
-      const inner = arr.length
-
-        ? arr.map(v => `<span class="font-mono text-[11px] text-foreground/80">${v}</span>`).join('<span class="text-border mx-1">·</span>')
-
-        : '<span class="text-[11px] text-muted-foreground/60">—</span>';
-
-      return `
-
-        <div class="flex items-center gap-1.5">
-
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 w-7 shrink-0">${label}</span>
-
-          ${inner}
-
+    let idLine = '';
+    if (pans.length > 0 || pins.length > 0) {
+      let pills = '';
+      pans.forEach(p => {
+        pills += `
+          <div class="copy-pill-container">
+            <span class="font-mono bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded text-[10px] font-semibold text-zinc-700 cursor-pointer flex items-center gap-1 hover:bg-zinc-150 transition-colors" onclick="copyToClipboard('${p}', 'pill-pan-${o.canonical}')">
+              PAN: ${p} <i data-lucide="copy" class="w-2.5 h-2.5 text-zinc-450"></i>
+            </span>
+            <span class="copy-pill" id="pill-pan-${o.canonical}">Copied!</span>
+          </div>`;
+      });
+      pins.forEach(p => {
+        pills += `
+          <div class="copy-pill-container">
+            <span class="font-mono bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded text-[10px] font-semibold text-zinc-700 cursor-pointer flex items-center gap-1 hover:bg-zinc-150 transition-colors" onclick="copyToClipboard('${p}', 'pill-pin-${o.canonical}')">
+              PIN: ${p} <i data-lucide="copy" class="w-2.5 h-2.5 text-zinc-450"></i>
+            </span>
+            <span class="copy-pill" id="pill-pin-${o.canonical}">Copied!</span>
+          </div>`;
+      });
+      idLine = `
+        <div class="mt-2.5 pt-2 border-t border-zinc-100">
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block mb-1">Identifiers</span>
+          <div class="flex flex-wrap gap-1.5">${pills}</div>
         </div>`;
-
     }
-
-
-
-    const idFooter = `
-
-      <div class="mt-2 pt-2 border-t border-border/60 space-y-1">
-
-        ${idChips('PAN', pans)}
-
-        ${idChips('PIN', pins)}
-
-      </div>`;
-
-
 
     return `
-
-      <div class="rounded-lg border ${borderClass} text-card-foreground shadow-sm transition-colors">
-
+      <div class="rounded-xl border border-zinc-200 ${accentClass} text-card-foreground hover:border-zinc-350 hover:shadow transition-all duration-200">
         ${rootRibbon}
-
-        <div class="flex items-center justify-between gap-3 px-4 ${isRoot ? 'pt-2' : 'pt-3'} pb-2">
-
+        <div class="flex items-center justify-between gap-3 px-4 pt-4 pb-2.5">
           <div class="flex items-center gap-2 min-w-0">
-
-            <i data-lucide="user" class="w-3.5 h-3.5 text-muted-foreground shrink-0"></i>
-
-            <span class="text-sm font-semibold truncate ${isActive ? '' : 'text-foreground/70'}">${formatBankNamesHtml(o.display_name || o.canonical || '—')}</span>
-
+            <i data-lucide="user" class="w-4 h-4 text-zinc-500 shrink-0"></i>
+            <span class="font-bold text-zinc-900 truncate text-xs leading-none">${formatPartyName(o.display_name)}</span>
           </div>
-
           ${statusBadge}
-
         </div>
-
-        <div class="px-4 pb-3 space-y-1">
-
-          ${areaLine}
-
-          ${entryLine}
-
-          ${exitLine}
-
-          ${encLine}
-
-          ${idFooter}
-
+        
+        <div class="px-4 pb-4 space-y-2.5">
+          ${detailsGrid}
+          ${sigLine}
+          ${extMetadataLine}
+          ${idLine}
         </div>
-
       </div>`;
-
   }
-
-
 
   function renderEncumbranceCard(e) {
+    const isActive    = e.status !== 'RESOLVED';
+    const accentClass = isActive ? 'card-active-mortgage' : 'card-released-mortgage';
 
-    const isResolved = e.status === 'RESOLVED';
-
-    const headerBadge = isResolved
-
-      ? Badge('success', 'Released')
-
-      : Badge('destructive', 'Active');
-
-
-
-    const containerClass = isResolved
-
-      ? 'rounded-lg border border-border bg-card text-card-foreground shadow-sm'
-
-      : 'rounded-lg border border-amber-200/70 bg-amber-50/30 text-card-foreground shadow-sm';
-
-
-
-    let html = `
-
-      <div class="${containerClass}">
-
-        <div class="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
-
-          <div class="flex items-center gap-2 min-w-0">
-
-            <i data-lucide="landmark" class="w-3.5 h-3.5 ${isResolved ? 'text-muted-foreground' : 'text-amber-700'} shrink-0"></i>
-
-            <span class="text-sm font-semibold truncate ${isResolved ? 'text-foreground/70' : ''}">${formatBankNamesHtml(e.holder || 'Unknown Mortgagee')}</span>
-
-          </div>
-
-          ${headerBadge}
-
-        </div>
-
-        <div class="px-4 pb-3 space-y-1">
-
-          <div class="text-xs text-foreground/80">
-
-            <span class="text-muted-foreground">Mortgagor:</span> ${formatBankNamesHtml(e.mortgagor || '—')}
-
-          </div>
-
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-
-            <i data-lucide="file-text" class="w-3 h-3"></i>
-
-            <span>Filed ${e.since_date || '—'} · Doc ${e.doc_no || '—'}</span>
-
-          </div>
-
-        </div>`;
-
-
-
-    if (isResolved) {
-
-      html += `
-
-        <div class="mx-4 h-[1px] bg-border"></div>
-
-        <div class="px-4 py-3 bg-emerald-50/40 rounded-b-lg">
-
-          <div class="flex items-center gap-2 mb-1">
-
-            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
-
-            <span class="text-xs font-semibold text-emerald-700">Released</span>
-
-          </div>
-
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground pl-5">
-
-            <span>${e.resolved_date || '—'} · Doc ${e.resolved_doc || '—'}</span>
-
-          </div>
-
-        </div>`;
-
+    let statusBadge = '';
+    if (isActive) {
+      statusBadge = e.status === 'PARTIALLY_RELEASED'
+        ? '<span class="inline-flex items-center rounded bg-amber-50 border border-amber-250 px-2 py-0.5 text-xs font-semibold text-amber-800">Partially Released</span>'
+        : '<span class="inline-flex items-center rounded bg-red-50 border border-red-250 px-2 py-0.5 text-xs font-semibold text-red-800">Active Mortgage</span>';
+    } else {
+      statusBadge = '<span class="inline-flex items-center rounded bg-emerald-50 border border-emerald-250 px-2 py-0.5 text-xs font-semibold text-emerald-800">Released Mortgage</span>';
     }
 
+    const principal = Number(e.principal_amount) || 0;
+    const releases = e.releases || [];
+    const totalReleased = releases.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    const outstanding = Math.max(0, principal - totalReleased);
+    const pctReleased = principal > 0 ? Math.round((totalReleased / principal) * 100) : 0;
 
+    let balanceLine = '';
+    if (isActive && principal > 0) {
+      balanceLine = `
+        <div class="mt-2 bg-zinc-50 border border-zinc-200 rounded-lg p-2.5 space-y-1.5">
+          <div class="flex justify-between items-baseline text-xs">
+            <span class="text-zinc-600 font-semibold uppercase tracking-wider text-[9px]">Outstanding Balance</span>
+            <span class="font-bold text-zinc-900">₹${outstanding.toLocaleString('en-IN')}</span>
+          </div>
+          <div class="space-y-1">
+            <div class="w-full bg-zinc-200 rounded-full h-1 overflow-hidden">
+              <div class="bg-zinc-800 h-full rounded-full" style="width: ${pctReleased}%"></div>
+            </div>
+            <div class="flex justify-between text-[9px] text-zinc-600 font-semibold">
+              <span>${pctReleased}% Discharged (Released ₹${totalReleased.toLocaleString('en-IN')})</span>
+              <span>Original: ₹${principal.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>`;
+    } else if (totalReleased > 0 && outstanding === 0) {
+      balanceLine = `
+        <div class="mt-2 p-2.5 rounded-lg bg-emerald-50/50 border border-emerald-200/50 flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+            <span class="text-[9px] font-semibold text-emerald-800 uppercase tracking-wider">Fully Discharged</span>
+          </div>
+          <span class="text-xs font-bold text-emerald-950">₹${principal.toLocaleString('en-IN')} Released</span>
+        </div>`;
+    }
 
-    html += '</div>';
+    const detailsGrid = `
+      <div class="grid grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Mortgagor</span>
+          <span class="font-semibold text-zinc-800">${formatPartyName(e.mortgagor) || '—'}</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Registration Date</span>
+          <span class="font-semibold text-zinc-800">${e.since_date || '—'}</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Filing Document</span>
+          <span class="font-semibold text-zinc-800">Doc ${e.doc_no || '—'} (SRO: ${e.sro || '—'})</span>
+        </div>
+        <div>
+          <span class="text-[9px] font-semibold text-zinc-500 uppercase tracking-wider block">Loan Details</span>
+          <span class="font-semibold text-zinc-800 leading-tight">₹${principal.toLocaleString('en-IN')}</span>
+        </div>
+      </div>`;
 
-    return html;
+    // Collapsible Release History
+    let releasesHtml = '';
+    if (releases.length > 0) {
+      const collId = `releases-${e.doc_no || 'doc'}-${Math.random().toString(36).substr(2, 5)}`;
+      let releaseItems = '';
+      releases.forEach(r => {
+        const typeLabel = r.type === 'full' ? 'Full Release' : 'Partial Release';
+        releaseItems += `
+          <div class="text-[11px] text-slate-800 flex items-start gap-2 bg-zinc-55 p-2 rounded border border-zinc-200/50 animate-enter">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-650 mt-0.5 shrink-0"></i>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-baseline gap-2">
+                <span class="font-bold text-slate-900">Doc ${r.doc_no || '—'}</span>
+                <span class="text-slate-955 font-extrabold">₹${Number(r.amount).toLocaleString('en-IN')}</span>
+              </div>
+              <div class="text-[10px] text-zinc-500 flex justify-between mt-0.5">
+                <span>Date: ${r.date || '—'}</span>
+                <span class="font-semibold text-zinc-650">${typeLabel}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+      releasesHtml = `
+        <div class="mt-2.5 pt-1.5 border-t border-zinc-100">
+          <button class="collapsible-trigger-btn" onclick="toggleCardCollapsible('${collId}')">
+            <span>Release History (${releases.length})</span>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5 transition-transform duration-200" id="icon-${collId}"></i>
+          </button>
+          <div class="collapsible-content" id="content-${collId}">
+            <div class="mt-2 space-y-1.5">
+              ${releaseItems}
+            </div>
+          </div>
+        </div>`;
+    }
 
+    // Signatory
+    let sigLine = '';
+    if (e.authorized_signatory && e.authorized_signatory.name) {
+      const desig = e.authorized_signatory.designation ? ` (${e.authorized_signatory.designation})` : '';
+      sigLine = `
+        <div class="mt-2 pt-2 border-t border-zinc-100 flex items-start gap-1.5 text-xs text-zinc-550">
+          <i data-lucide="signature" class="w-3.5 h-3.5 text-zinc-450 mt-0.5 shrink-0"></i>
+          <div>
+            <span class="text-zinc-505 font-semibold uppercase tracking-wider text-[9px] block">Authorized Signatory</span>
+            <span class="font-semibold text-zinc-800">${formatPartyName(e.authorized_signatory.name)}</span><span class="text-[10px] text-zinc-500">${desig}</span>
+          </div>
+        </div>`;
+    }
+
+    // Get bank logo representation (from GitHub auraveni/global-bank-logos Repo)
+    const getBankLogoSvg = function(bankName) {
+      const name = (bankName || '').toUpperCase();
+      let slug = '';
+      if (name.includes('PNB') || name.includes('PUNJAB NATIONAL')) {
+        slug = 'pnb';
+      } else if (name.includes('AXIS')) {
+        slug = 'axis';
+      } else if (name.includes('HDFC')) {
+        slug = 'hdfc';
+      } else if (name.includes('ICICI')) {
+        slug = 'icici';
+      } else if (name.includes('SBI') || name.includes('STATE BANK')) {
+        slug = 'sbi';
+      }
+
+      if (slug) {
+        return `<img src="https://cdn.jsdelivr.net/gh/auraveni/global-bank-logos/assets/bank/indian-bank/${slug}.svg" class="w-5 h-5 shrink-0 object-contain" alt="${bankName}">`;
+      }
+      return `<svg class="w-4 h-4 shrink-0 text-zinc-955" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="21" x2="21" y2="21"></line>
+        <rect x="5" y="10" width="14" height="11"></rect>
+        <path d="M12 2L2 7h20L12 2z"></path>
+        <path d="M9 21V11h6v10"></path>
+      </svg>`;
+    };
+    const logoHtml = getBankLogoSvg(e.holder);
+
+    return `
+      <div class="rounded-xl border border-zinc-200 ${accentClass} text-card-foreground hover:border-zinc-350 hover:shadow transition-all duration-200">
+        <div class="flex items-center justify-between gap-3 px-4 pt-4 pb-2.5">
+          <div class="flex items-center gap-2 min-w-0">
+            ${logoHtml}
+            <span class="font-bold text-zinc-900 truncate text-xs leading-none">${formatPartyName(e.holder)}</span>
+          </div>
+          ${statusBadge}
+        </div>
+        
+        <div class="px-4 pb-4 space-y-2.5">
+          ${detailsGrid}
+          ${balanceLine}
+          ${sigLine}
+          ${releasesHtml}
+        </div>
+      </div>`;
   }
-
-
 
   function renderEmptyPlaceholder(text) {
 
@@ -5487,14 +5596,20 @@
 
 
 
+        const parseDateToYMD = (dStr) => {
+          if (!dStr) return '';
+          const parts = dStr.split('-');
+          if (parts.length === 3) {
+            if (parts[0].length === 4) return dStr;
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+          }
+          return dStr;
+        };
+
         const allParties = [...owners].sort((a, b) => {
-
-          const da = a.since_date || '';
-
-          const db = b.since_date || '';
-
+          const da = parseDateToYMD(a.since_date || '');
+          const db = parseDateToYMD(b.since_date || '');
           return da.localeCompare(db);
-
         });
 
 
@@ -5600,75 +5715,61 @@
   // ─────────────────────────────────────────────────────────
 
   function errorBadgeLabel(type) {
-
     const map = {
-
-      'DATE_ORDER_ERROR':                'Date Order',
-
-      'INVALID_PAN_FORMAT':              'Invalid PAN',
-
-      'INVALID_PIN_FORMAT':              'Invalid PIN',
-
-      'PAN_TRANSFEROR_TRANSFEREE_CLASH': 'PAN Clash',
-
-      'PIN_TRANSFEROR_TRANSFEREE_CLASH': 'PIN Clash',
-
-      'UNRESOLVED_MORTGAGE':             'Unresolved Mortgage',
-
-      'AREA_MISMATCH':                   'Area Mismatch',
-
-      'SOCIETY_MISMATCH':                'Society Mismatch',
-
-      'ID_MISMATCH':                     'ID Mismatch',
-
-      'INVALID_MORTGAGOR':               'Invalid Mortgagor',
-
-      'UNKNOWN_MORTGAGOR':               'Unknown Mortgagor',
-
-      'CHAIN_ERROR':                     'Chain Error',
-
-      'ZERO_CONSIDERATION':              'Zero Consideration',
-
-      'CONSIDERATION_ANOMALY':           'Price Anomaly',
-
-      'NAME_SPELLING_VARIATION':         'Name Spelling',
-
-      'SHARED_PAN':                      'Shared PAN',
-
-      'SHARED_PIN':                      'Shared PIN',
-
+      'DATE_ORDER_ERROR':                'Date Order Out of Sequence',
+      'DATE_ORDER_DEVIATION':            'Execution Date Deviation',
+      'INVALID_PAN_FORMAT':              'Invalid PAN Format',
+      'INVALID_PIN_FORMAT':              'Invalid PIN Format',
+      'PAN_TRANSFEROR_TRANSFEREE_CLASH': 'Seller-Buyer PAN Conflict',
+      'PIN_TRANSFEROR_TRANSFEREE_CLASH': 'Seller-Buyer PIN Conflict',
+      'UNRESOLVED_MORTGAGE':             'Unresolved Mortgage Encumbrance',
+      'AREA_MISMATCH':                   'Stated Area Mismatch',
+      'AREA_MISMATCH_MILD':              'Minor Area Deviation',
+      'SOCIETY_MISMATCH':                'Society Name Mismatch',
+      'ID_MISMATCH':                     'Identity Document Mismatch',
+      'INVALID_MORTGAGOR':               'Invalid Mortgagor Signatory',
+      'UNKNOWN_MORTGAGOR':               'Unknown Mortgagor Entity',
+      'CHAIN_ERROR':                     'Ownership Chain Discrepancy',
+      'CHAIN_BREAK':                     'Ownership Chain Break',
+      'ZERO_CONSIDERATION':              'Zero Consideration Value',
+      'CONSIDERATION_ANOMALY':           'Price Deviation Anomaly',
+      'NAME_SPELLING_VARIATION':         'Name Spelling Deviation',
+      'SHARED_PAN':                      'Shared PAN Identification',
+      'SHARED_PIN':                      'Shared PIN Identification',
       'METADATA_LOCALITY_MISMATCH':      'Locality Mismatch',
-
-      'METADATA_SRO_MISMATCH':           'SRO Mismatch',
-
-      'METADATA_AUTHORITY_MISMATCH':     'Authority Mismatch',
-
-      'METADATA_LAND_USE_MISMATCH':      'Land Use Mismatch',
-
-      'METADATA_FLAT_MISMATCH':          'Flat Mismatch',
-
-      'METADATA_FLOOR_MISMATCH':         'Floor Mismatch',
-
+      'METADATA_SRO_MISMATCH':           'SRO Code Mismatch',
+      'VOID_DEED_WRONG_SRO':             'SRO Jurisdiction Discrepancy',
+      'MISSING_SALE_CONSIDERATION':      'Missing Sale Price',
+      'MISSING_RENTAL_CONSIDERATION':    'Missing Rental Fee',
+      'MISSING_MORTGAGE_VALUE':          'Missing Loan Amount',
+      'GIFT_DEED_WITH_CONSIDERATION':    'Gift with Consideration',
+      'METADATA_AUTHORITY_MISMATCH':     'Allotting Authority Mismatch',
+      'METADATA_LAND_USE_MISMATCH':      'Land Use Type Mismatch',
+      'METADATA_FLAT_MISMATCH':          'Flat Number Mismatch',
+      'METADATA_FLOOR_MISMATCH':         'Floor Level Mismatch',
       'METADATA_PROPERTY_ID_MISMATCH':   'Property ID Mismatch',
-
-      'METADATA_UPIC_MISMATCH':          'UPIC Mismatch',
-
-      'METADATA_ADDRESS_MISMATCH':       'Address Mismatch',
-
-      'PROPERTY_NOT_IN_DELHI':           'Outside Delhi',
-
-      'GPA_POST_2011_INVALID':           'Invalid GPA (Post-2011)',
-
-      'UNREGULARIZED_GPA_CHAIN':         'Unregularized GPA',
-
+      'METADATA_UPIC_MISMATCH':          'UPIC Number Mismatch',
+      'METADATA_ADDRESS_MISMATCH':       'Address Discrepancy',
+      'PROPERTY_NOT_IN_DELHI':           'Outside Delhi Jurisdiction',
+      'GPA_POST_2011_INVALID':           'Invalid Post-2011 GPA',
+      'UNREGULARIZED_GPA_CHAIN':         'Unregularized GPA Conveyance',
       'MISSING_GPA_AUTHORIZATION':       'Missing GPA Authorization',
-
       'MISSING_CRITICAL_FIELDS':         'Missing Fields',
-
+      'AMOUNT_WORDS_FIGURES_MISMATCH':   'Words vs Figures Value Clash',
+      'RECTIFICATION_APPLIED':           'Rectified Discrepancy',
+      'RELEASE_ORPHAN':                  'Unlinked Release Deed',
+      'RELEASE_AMBIGUOUS':               'Ambiguous Release Deed',
+      'RELEASE_PARTY_MISMATCH':          'Release Party Mismatch',
+      'RELEASE_AMOUNT_MISMATCH':         'Release Amount Mismatch',
+      'RELEASE_OVERFLOW':                'Release Amount Overflow',
+      'LENDER_MISMATCH':                 'Lender Bank Mismatch'
     };
 
-    return map[type] || 'Finding';
+    if (type && type.startsWith('NAME_DEVIATION_')) {
+      return 'Party Name Deviation';
+    }
 
+    return map[type] || type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
   }
 
 

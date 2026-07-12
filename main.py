@@ -21,19 +21,34 @@ client = genai.Client(api_key=_API_KEY)
 
 
 def extract_text_from_PDF(file_path):
-    """Read PDF and return all text."""
+    """Read PDF and return all text. (Includes transparent disk cache for fast reloading)"""
+    cache_path = file_path + ".txt"
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception:
+            pass
+
     text = ""
     with pdfplumber.open(file_path) as pdf:
         for page in pdf.pages:
             page_text = page.extract_text()
             if page_text:
                 text += page_text + "\n"
+
+    try:
+        with open(cache_path, "w", encoding="utf-8") as f:
+            f.write(text)
+    except Exception:
+        pass
+
     return text
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DEED CLASSIFICATION TAXONOMY
-# Single source of truth for what deed sub-types AutoTSR recognizes.
+# Single source of truth for what deed sub-types UNISON recognizes.
 # Synonyms cover the regional/legacy variants we've seen in Indian deeds.
 # ─────────────────────────────────────────────────────────────────────────────
 DEED_SUBTYPES = {
@@ -479,7 +494,7 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
         )
 
     system_instruction = (
-        "You are AutoTSR Assistant, a careful title-search analyst helping a "
+        "You are UNISON Assistant, a careful title-search analyst helping a "
         "professional reviewer understand ONE specific property. You are given "
         "structured data extracted from that property's documents: per-document "
         "fields, the chronological events, the entity ledger (owners and their "

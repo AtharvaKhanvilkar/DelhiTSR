@@ -1,6 +1,6 @@
 {
-  "name": "AutoTSR",
-  "short_name": "AutoTSR",
+  "name": "UNISON",
+  "short_name": "UNISON",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0B0B0B",
@@ -8,7 +8,7 @@
   "orientation": "portrait",
   "icons": [
   {
-    "src": "/static/TR-logo 1.png",
+    "src": "/static/unison-logo.png",
     "sizes": "512x512",
     "type": "image/png"
   }
