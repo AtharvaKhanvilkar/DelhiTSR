@@ -1741,6 +1741,19 @@
 
     <aside id="appSidebar" class="relative w-[260px] shrink-0 border-r border-zinc-300 bg-white flex flex-col h-full">
 
+      <!-- Sidebar Header Row (Interior Collapse Button) -->
+      <div class="sidebar-header flex items-center justify-end px-3 select-none border-b border-zinc-200 h-10 shrink-0">
+        <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
+                class="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-zinc-50 text-zinc-650 hover:text-zinc-955 transition-all cursor-pointer shadow-sm">
+          <svg class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation Stream -->
+      <div class="flex-1 overflow-y-auto px-2 py-3 space-y-3" id="sidebarMenu">
+
         <!-- Attachments Category and File List -->
         <div class="space-y-1">
           <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-805 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
@@ -1986,6 +1999,8 @@
         </div>
 
     </div>
+
+      </div> <!-- end sidebarMenu -->
 
 
 
