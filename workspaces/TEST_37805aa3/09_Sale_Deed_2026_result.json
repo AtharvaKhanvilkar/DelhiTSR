@@ -1,0 +1,58 @@
+{
+  "parsed": true,
+  "data": {
+    "document_type": "SALE_DEED",
+    "txn_type": "SALE_DEED",
+    "sub_registrar_office": "SRO V-A (Hauz Khas), New Delhi",
+    "registration_no": "5847",
+    "registration_year": "2026",
+    "doc_no": "5847/2026",
+    "date_of_execution": "15-01-2026",
+    "date_of_registration": "18-01-2026",
+    "survey_no": null,
+    "plot_no": "1A",
+    "cts_no": null,
+    "khasra_no": null,
+    "society_building_name": null,
+    "society_building_address": "Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "flat_no": "8",
+    "area": "1200 square feet",
+    "property_type": "dda_flat",
+    "village": "Hauz Khas",
+    "district": "New Delhi",
+    "boundary_north": "Common passage and Flat No. 7",
+    "boundary_south": "Outer wall facing Hauz Khas District Park",
+    "boundary_east": "Flat No. 9",
+    "boundary_west": "Staircase and lift lobby",
+    "consideration": 11000000,
+    "stamp_duty": 550000,
+    "registration_fee": 110000,
+    "market_value": 11000000,
+    "buyer_gender": "female",
+    "construction_year": 2026,
+    "seller_names": [
+      "MR. VIKRAM SINGH CHAUHAN"
+    ],
+    "buyer_names": [
+      "MRS. NEHA SHARMA"
+    ],
+    "seller_address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "buyer_address": "Flat No. 10, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016",
+    "transferor_parties": [
+      {
+        "name": "MR. VIKRAM SINGH CHAUHAN",
+        "pan": "BKCPC8834M",
+        "pin": null,
+        "address": "Flat No. 8, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016"
+      }
+    ],
+    "transferee_parties": [
+      {
+        "name": "MRS. NEHA SHARMA",
+        "pan": "DLKPS9921B",
+        "pin": null,
+        "address": "Flat No. 10, Fourth Floor, Plot No. 1A, Hauz Khas Enclave, New Delhi - 110016"
+      }
+    ]
+  }
+}

@@ -242,13 +242,15 @@
 
     /* Tab content visibility with fade-in and subtle lift animation */
 
-    .panel              { display: none !important; height: 100%; opacity: 0; }
+    .panel              { display: none !important; height: 100%; min-height: 0; overflow: hidden; opacity: 0; }
 
     .panel.active       { 
 
       display: flex !important; 
 
       flex-direction: column; 
+
+      min-height: 0;
 
       animation: panelFadeIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 
@@ -383,6 +385,11 @@
     #appSidebar.sb-collapsed .sb-row-content { justify-content: center; width: 100%; }
 
     #appSidebar.sb-collapsed .sb-section-label { display: none; }
+
+    #appSidebar.sb-collapsed #sidebarCollapseBtn,
+    #appSidebar.sb-collapsed .sidebar-header a {
+      justify-content: center;
+    }
 
     /* ── External portal links — always blue, animated underline on hover ── */
     #sidebar-doris .sb-label,
@@ -909,7 +916,7 @@
       display: inline-flex;
     }
     .type-badge:hover {
-      transform: scale(1.045);
+      transform: scale(1.045) rotate(-2deg);
     }
 
     /* #6 — Crown glow on hovered timeline row */
@@ -951,16 +958,14 @@
       transform: rotate(180deg);
     }
     #appSidebar .sidebar-header {
-      height: 40px;
       border-bottom: 1px solid #e4e4e7;
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 0 12px;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
     }
     #appSidebar.sb-collapsed .sidebar-header {
-      justify-content: center;
-      padding: 0;
+      padding: 8px 4px;
     }
 
     /* Modal */
@@ -1525,7 +1530,354 @@
 
 
 
-<div class="flex flex-col h-screen w-screen overflow-hidden bg-white">
+<div class="flex h-screen w-screen overflow-hidden bg-white">
+<aside id="appSidebar" class="relative w-[260px] shrink-0 border-r border-zinc-300 bg-white flex flex-col h-full">
+
+      <!-- Sidebar Header Row (Interior Collapse Button) -->
+      <div class="sidebar-header flex flex-col gap-2 p-2 select-none border-b border-zinc-200 shrink-0">
+        <!-- Back to Projects Button -->
+        <a href="/projects" class="flex w-full items-center justify-between px-2.5 py-1.5 text-[11px] font-medium text-zinc-650 hover:text-zinc-950 hover:bg-zinc-100 border border-zinc-200 rounded transition-all duration-200 select-none shadow-sm shrink-0">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"/>
+              <path d="M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="sb-only-expanded">Back to Projects</span>
+          </div>
+        </a>
+
+        <!-- Collapse Sidebar Button -->
+        <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
+                class="flex w-full items-center justify-between px-2.5 py-1.5 text-[11px] font-medium text-zinc-650 hover:text-zinc-955 hover:bg-zinc-100 border border-zinc-200 rounded transition-all duration-200 select-none shadow-sm shrink-0">
+          <span class="sb-only-expanded text-[11px] font-medium text-zinc-650">Collapse Sidebar</span>
+          <svg class="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-900 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation Stream -->
+      <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1.5" id="sidebarMenu">
+
+        <!-- Attachments Category and File List -->
+        <div class="space-y-1">
+          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-805 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
+            <div class="flex items-center gap-2 sb-row-content">
+              <span class="text-zinc-700">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </span>
+              <span class="sb-label">Attachments</span>
+            </div>
+            <button onclick="event.stopPropagation(); document.getElementById('fileInput').click()" title="Attach PDF file" class="text-zinc-500 hover:text-zinc-850 p-1 rounded hover:bg-zinc-200/60 transition-all shrink-0 sb-only-expanded">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Indented Document List -->
+          <div class="sb-only-expanded ml-[14.5px] space-y-0.5 max-h-[280px] overflow-y-auto pr-1" id="fileTree">
+            {% if index_iis %}
+              {% for pdf in index_iis %}
+                <div class="group relative flex items-center justify-between pl-[14px] pr-2 py-1 rounded cursor-pointer text-zinc-805 hover:bg-zinc-100/70 hover:text-zinc-955 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" 
+                     onclick="selectFile(this, '{{ pdf }}')" 
+                     data-file-row="{{ pdf }}" 
+                     data-parse-status="unknown">
+                  <!-- vertical line connector -->
+                  <div class="absolute left-0 top-0 {% if loop.last %}h-[12px]{% else %}bottom-0{% endif %} border-l border-zinc-300"></div>
+                  <!-- horizontal line connector -->
+                  <div class="absolute left-0 top-[12px] w-[10px] border-t border-zinc-300"></div>
+                  <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                    <svg class="w-3 h-3 text-zinc-650 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
+                  </div>
+                  <div class="relative shrink-0 ml-1">
+                    <button class="p-1 hover:bg-zinc-200 rounded text-zinc-600 hover:text-zinc-900 flex items-center justify-center transition-colors" 
+                            onclick="event.stopPropagation(); toggleDocDropdown(this, '{{ pdf }}')"
+                            title="Options">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="5" r="1.5"/>
+                        <circle cx="12" cy="12" r="1.5"/>
+                        <circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="pl-3 py-1 text-[10px] text-zinc-500 italic">No files yet</div>
+            {% endif %}
+          </div>
+        </div>
+
+
+
+        <!-- Events & Findings -->
+
+        <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
+
+          <div class="flex items-center gap-2 sb-row-content">
+
+            <span class="text-zinc-700">
+
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+
+                <line x1="16" y1="2" x2="16" y2="6"/>
+
+                <line x1="8" y1="2" x2="8" y2="6"/>
+
+                <line x1="3" y1="10" x2="21" y2="10"/>
+
+              </svg>
+
+            </span>
+
+            <span class="sb-label">Events & Findings</span>
+
+          </div>
+
+          <span class="text-zinc-500 sb-only-expanded">
+
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <path d="M9 18l6-6-6-6" />
+
+            </svg>
+
+          </span>
+
+        </div>
+
+
+
+        <!-- Entities -->
+
+        <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
+
+          <div class="flex items-center gap-2 sb-row-content">
+
+            <span class="text-zinc-700">
+
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+
+                <circle cx="9" cy="7" r="4"/>
+
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+
+              </svg>
+
+            </span>
+
+            <span class="sb-label">Entities</span>
+
+          </div>
+
+          <span class="text-zinc-500 sb-only-expanded">
+
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <path d="M9 18l6-6-6-6" />
+
+            </svg>
+
+          </span>
+
+        </div>
+
+
+
+        <!-- AI Assistant -->
+
+        <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
+
+          <div class="flex items-center gap-2 sb-row-content">
+
+            <span class="text-zinc-700">
+
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+
+              </svg>
+
+            </span>
+
+            <span class="sb-label">AI Assistant</span>
+
+          </div>
+
+          <span class="text-zinc-500 sb-only-expanded">
+
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <path d="M9 18l6-6-6-6" />
+
+            </svg>
+
+          </span>
+
+        </div>
+
+
+
+
+
+        <!-- Audit Report -->
+        <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
+          <div class="flex items-center gap-2 sb-row-content">
+            <span class="text-zinc-700">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </span>
+            <span class="sb-label">Audit Report</span>
+          </div>
+          <span class="text-zinc-500 sb-only-expanded">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </div>
+
+        <!-- DORIS -->
+
+        <div id="sidebar-doris" onclick="switchMainTab('doris')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-700 hover:text-blue-700 cursor-pointer font-medium text-[12px] transition-all group/link">
+
+          <div class="flex items-center gap-2 sb-row-content">
+
+            <span class="text-zinc-650 group-hover/link:text-blue-500">
+
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+
+                <line x1="2" y1="10" x2="22" y2="10"/>
+
+                <line x1="12" y1="17" x2="12" y2="21"/>
+
+                <line x1="17" y1="21" x2="7" y2="21"/>
+
+              </svg>
+
+            </span>
+
+            <span class="sb-label">DORIS Registry</span>
+
+          </div>
+
+          <span class="text-zinc-500 group-hover/link:text-blue-500 sb-only-expanded">
+
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>
+
+            </svg>
+
+          </span>
+
+        </div>
+
+
+
+        <!-- NGDRS -->
+
+        <div id="sidebar-ngdrs" onclick="switchMainTab('ngdrs')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-700 hover:text-blue-700 cursor-pointer font-medium text-[12px] transition-all group/link">
+
+          <div class="flex items-center gap-2 sb-row-content">
+
+            <span class="text-zinc-650 group-hover/link:text-blue-500">
+
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <circle cx="12" cy="12" r="10"/>
+
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+
+                <path d="M2 12h20"/>
+
+              </svg>
+
+            </span>
+
+            <span class="sb-label">NGDRS Portal</span>
+
+          </div>
+
+          <div class="text-zinc-500 group-hover/link:text-blue-500 sb-only-expanded">
+
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+              <path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>
+
+            </svg>
+
+        </div>
+
+    </div>
+
+      </div> <!-- end sidebarMenu -->
+
+
+
+    <!-- Footer: User profile info -->
+    <div class="shrink-0 border-t border-zinc-200 bg-white p-3">
+      <!-- Hidden status hooks to prevent JS errors if referenced elsewhere -->
+      <div style="display: none;">
+        <span id="sbDocCount">{{ index_iis|length if index_iis else 0 }}</span>
+        <span id="sbParseStatus">Ready</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Initials Avatar (always visible) -->
+        <div class="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-[11px] font-bold text-zinc-800 shrink-0 select-none"
+             title="{{ current_user.email }}">
+          {{ current_user.email[0].upper() if current_user.email else 'U' }}
+        </div>
+
+        <!-- User Details (hidden when collapsed) -->
+        <div class="flex-1 min-w-0 sb-only-expanded flex items-center justify-between gap-2">
+          <div class="flex flex-col min-w-0">
+            <span class="text-[11.5px] font-semibold text-zinc-900 truncate" title="{{ current_user.email }}">
+              {{ current_user.email.split('@')[0] }}
+            </span>
+            <span class="text-[9.5px] text-zinc-500 truncate" title="{{ current_user.email }}">
+              {{ current_user.email }}
+            </span>
+          </div>
+
+          <!-- Muted Logout button -->
+          <a href="/logout" class="p-1.5 rounded-md hover:bg-red-50 hover:text-red-600 text-zinc-500 transition-colors flex items-center justify-center shrink-0" title="Logout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+<form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" class="hidden">
+
+    <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
+
+  </form>
+  <div class="flex-1 flex flex-col h-full overflow-hidden">
 
 
 
@@ -1533,31 +1885,21 @@
 
   <header class="relative h-12 border-b border-zinc-300 bg-white flex items-center justify-between px-4 shrink-0 z-40 select-none">
 
-    <!-- Left Section: Branding -->
-
+    <!-- Left Section: Branding / Breadcrumbs -->
     <div class="flex items-center gap-4">
-
-      <!-- Back to Projects Button -->
-      <a href="/projects" class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-zinc-650 hover:text-zinc-950 hover:bg-zinc-105 border border-zinc-200 rounded transition-all duration-200 select-none shadow-sm shrink-0">
-        <svg class="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5"/>
-          <path d="M12 19l-7-7 7-7"/>
+      <div class="flex items-center gap-1.5 text-[12px] text-zinc-500 font-medium">
+        <span class="font-bold text-zinc-900" id="topbar-project-name">{{ project_name.rsplit('_', 1)[0] }}</span>
+        <svg class="w-3 h-3 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
         </svg>
-        <span>Back to Projects</span>
-      </a>
-
-      <div class="h-4 border-l border-zinc-300"></div>
-
-      <div class="flex items-center gap-2">
-        <span class="text-[12px] font-mono font-bold tracking-tight text-zinc-950 uppercase">AutoTSR</span>
+        <span class="text-zinc-600 font-semibold" id="topbar-tab-name">Events & Findings</span>
       </div>
-
     </div>
 
 
 
-    <!-- Centered Section: Project Identity Dropdown Pill -->
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-text z-50">
+    <!-- Centered Section: Project Identity Dropdown Pill (HIDDEN) -->
+    <div style="display: none !important;" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-text z-50">
       
       <!-- Clickable Header Pill -->
       <div id="projectIdentityPill" onclick="togglePropertyDropdown(event)" 
@@ -1567,13 +1909,13 @@
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
         </svg>
 
-        <span class="text-[12px] font-bold text-zinc-950 truncate max-w-[150px] sm:max-w-[200px]" id="projectNameDisplay" title="{{ project_name.rsplit('_', 1)[0] }}">
+        <span class="text-[12px] font-bold text-zinc-955 truncate max-w-[150px] sm:max-w-[200px]" id="projectNameDisplay" title="{{ project_name.rsplit('_', 1)[0] }}">
           {{ project_name.rsplit('_', 1)[0] }}
         </span>
 
         {% if locality %}
           <div class="h-3.5 border-l border-zinc-300 mx-0.5"></div>
-          <span class="text-[10px] font-semibold text-zinc-650 tracking-wide uppercase flex items-center gap-1 shrink-0">
+          <span class="text-[10px] font-semibold text-zinc-655 tracking-wide uppercase flex items-center gap-1 shrink-0">
             <span>{{ locality }}</span>
             {% if sro %}
               <span class="text-zinc-400">|</span>
@@ -1594,7 +1936,7 @@
             <span class="text-sm font-bold text-zinc-900 truncate" id="dropdownProjectName">{{ project_name.rsplit('_', 1)[0] }}</span>
           </div>
           <button onclick="openEditModal(); event.stopPropagation();" title="Edit project details" 
-                  class="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-500 hover:text-zinc-900 transition-colors">
+                  class="p-1.5 hover:bg-zinc-100 rounded-md text-zinc-505 hover:text-zinc-900 transition-colors">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 20h9"/>
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -1653,7 +1995,7 @@
             {% endif %}
             <!-- Other ID -->
             {% if id_type and id_value %}
-            <div class="flex items-center justify-between font-mono text-[11px] bg-zinc-50 border border-zinc-150 px-2.5 py-1.5 rounded-md text-zinc-800">
+            <div class="flex items-center justify-between font-mono text-[11px] bg-zinc-50 border border-zinc-150 px-2.5 py-1.5 rounded-md text-zinc-805">
               <span class="font-semibold uppercase text-[10px] text-zinc-550">{{ id_type.replace('_', ' ') }}:</span>
               <span>{{ id_value }}</span>
             </div>
@@ -1699,25 +2041,7 @@
 
       </button>
 
-      <!-- Clear Extraction Results -->
 
-      <button onclick="clearParseResults()" class="inline-flex items-center gap-1.5 rounded border border-zinc-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 hover:bg-red-50 hover:text-red-750 hover:border-red-200 transition-colors">
-
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-
-          <polyline points="3 6 5 6 21 6"/>
-
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-
-          <line x1="10" y1="11" x2="10" y2="17"/>
-
-          <line x1="14" y1="11" x2="14" y2="17"/>
-
-        </svg>
-
-        <span>Clear Results</span>
-
-      </button>
 
 
 
@@ -1729,7 +2053,7 @@
 
   <!-- INNER LAYOUT WRAPPER (Sidebar + Main Content) -->
 
-  <div class="flex-1 flex overflow-hidden">
+  
 
 
 
@@ -1739,302 +2063,13 @@
 
     ════════════════════════════════════════════════ -->
 
-    <aside id="appSidebar" class="relative w-[260px] shrink-0 border-r border-zinc-300 bg-white flex flex-col h-full">
-
-      <!-- Sidebar Header Row (Interior Collapse Button) -->
-      <div class="sidebar-header flex items-center justify-end px-3 select-none border-b border-zinc-200 h-10 shrink-0">
-        <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
-                class="flex h-7 w-7 items-center justify-center rounded border border-zinc-200 bg-zinc-50 text-zinc-650 hover:text-zinc-955 transition-all cursor-pointer shadow-sm">
-          <svg class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Navigation Stream -->
-      <div class="flex-1 overflow-y-auto px-2 py-3 space-y-3" id="sidebarMenu">
-
-        <!-- Attachments Category and File List -->
-        <div class="space-y-1">
-          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-805 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
-            <div class="flex items-center gap-2 sb-row-content">
-              <span class="text-zinc-700">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                </svg>
-              </span>
-              <span class="sb-label">Attachments</span>
-            </div>
-            <button onclick="event.stopPropagation(); document.getElementById('fileInput').click()" title="Attach PDF file" class="text-zinc-500 hover:text-zinc-850 p-1 rounded hover:bg-zinc-200/60 transition-all shrink-0 sb-only-expanded">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Indented Document List -->
-          <div class="sb-only-expanded border-l border-zinc-300 ml-[14.5px] space-y-0.5 max-h-[280px] overflow-y-auto pr-1" id="fileTree">
-            {% if index_iis %}
-              {% for pdf in index_iis %}
-                <div class="group relative flex items-center justify-between pl-[14px] pr-2 py-1 rounded cursor-pointer text-zinc-805 hover:bg-zinc-100/70 hover:text-zinc-955 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/50 font-semibold text-zinc-900{% endif %}" 
-                     onclick="selectFile(this, '{{ pdf }}')" 
-                     data-file-row="{{ pdf }}" 
-                     data-parse-status="unknown">
-                  <!-- horizontal line connector -->
-                  <div class="absolute left-0 top-[12px] w-[10px] border-t border-zinc-300"></div>
-                  <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                    <svg class="w-3 h-3 text-zinc-650 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
-                  </div>
-                  <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0 ml-1">
-                    <button class="p-0.5 hover:bg-zinc-200 rounded text-zinc-600 hover:text-zinc-900" title="Rename" onclick="event.stopPropagation(); startRename(this, '{{ pdf }}')">
-                      <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
-                    </button>
-                    <button class="p-0.5 hover:bg-red-50 rounded text-zinc-650 hover:text-red-600" title="Delete" onclick="event.stopPropagation(); deleteFile('{{ pdf }}')">
-                      <i data-lucide="x" class="w-3 h-3"></i>
-                    </button>
-                  </div>
-                </div>
-              {% endfor %}
-            {% else %}
-              <div class="pl-3 py-1 text-[10px] text-zinc-500 italic">No files yet</div>
-            {% endif %}
-          </div>
-        </div>
-
-
-
-        <!-- Events & Findings -->
-
-        <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
-
-          <div class="flex items-center gap-2 sb-row-content">
-
-            <span class="text-zinc-700">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-
-                <line x1="16" y1="2" x2="16" y2="6"/>
-
-                <line x1="8" y1="2" x2="8" y2="6"/>
-
-                <line x1="3" y1="10" x2="21" y2="10"/>
-
-              </svg>
-
-            </span>
-
-            <span class="sb-label">Events & Findings</span>
-
-          </div>
-
-          <span class="text-zinc-500 sb-only-expanded">
-
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-              <path d="M9 18l6-6-6-6" />
-
-            </svg>
-
-          </span>
-
-        </div>
-
-
-
-        <!-- Entities -->
-
-        <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
-
-          <div class="flex items-center gap-2 sb-row-content">
-
-            <span class="text-zinc-700">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-
-                <circle cx="9" cy="7" r="4"/>
-
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-
-              </svg>
-
-            </span>
-
-            <span class="sb-label">Entities</span>
-
-          </div>
-
-          <span class="text-zinc-500 sb-only-expanded">
-
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-              <path d="M9 18l6-6-6-6" />
-
-            </svg>
-
-          </span>
-
-        </div>
-
-
-
-        <!-- AI Assistant -->
-
-        <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all">
-
-          <div class="flex items-center gap-2 sb-row-content">
-
-            <span class="text-zinc-700">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-
-              </svg>
-
-            </span>
-
-            <span class="sb-label">AI Assistant</span>
-
-          </div>
-
-          <span class="text-zinc-500 sb-only-expanded">
-
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-              <path d="M9 18l6-6-6-6" />
-
-            </svg>
-
-          </span>
-
-        </div>
-
-
-
-
-
-        <!-- DORIS -->
-
-        <div id="sidebar-doris" onclick="switchMainTab('doris')" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-700 hover:text-blue-700 cursor-pointer font-medium text-[12px] transition-all group/link">
-
-          <div class="flex items-center gap-2 sb-row-content">
-
-            <span class="text-zinc-650 group-hover/link:text-blue-500">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-
-                <line x1="2" y1="10" x2="22" y2="10"/>
-
-                <line x1="12" y1="17" x2="12" y2="21"/>
-
-                <line x1="17" y1="21" x2="7" y2="21"/>
-
-              </svg>
-
-            </span>
-
-            <span class="sb-label">DORIS Registry</span>
-
-          </div>
-
-          <span class="text-zinc-500 group-hover/link:text-blue-500 sb-only-expanded">
-
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-              <path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>
-
-            </svg>
-
-          </span>
-
-        </div>
-
-
-
-        <!-- NGDRS -->
-
-        <div id="sidebar-ngdrs" onclick="switchMainTab('ngdrs')" class="sidebar-item flex items-center justify-between px-2 py-1.5 text-zinc-700 hover:text-blue-700 cursor-pointer font-medium text-[12px] transition-all group/link">
-
-          <div class="flex items-center gap-2 sb-row-content">
-
-            <span class="text-zinc-650 group-hover/link:text-blue-500">
-
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-                <circle cx="12" cy="12" r="10"/>
-
-                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-
-                <path d="M2 12h20"/>
-
-              </svg>
-
-            </span>
-
-            <span class="sb-label">NGDRS Portal</span>
-
-          </div>
-
-          <span class="text-zinc-500 group-hover/link:text-blue-500 sb-only-expanded">
-
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-
-              <path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>
-
-            </svg>
-
-        </div>
-
-    </div>
-
-      </div> <!-- end sidebarMenu -->
-
-
-
-    <!-- Footer: Parse status metadata -->
-
-    <div class="sb-only-expanded shrink-0 border-t border-zinc-200 bg-white px-3 py-2 text-[10px] text-zinc-500">
-
-      <div class="flex items-center justify-between">
-
-        <span class="flex items-center gap-1 font-medium text-zinc-600">
-
-          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
-
-          <span id="sbDocCount">{{ index_iis|length if index_iis else 0 }}</span> active document{% if not index_iis or index_iis|length != 1 %}s{% endif %}
-
-        </span>
-
-        <span id="sbParseStatus" class="font-semibold text-zinc-400">Ready</span>
-
-      </div>
-
-    </div>
-
-  </aside>
+    
 
 
 
   <!-- Upload Action Form (Hidden) -->
 
-  <form id="uploadForm" action="/workspace/{{ project_name }}" method="POST" enctype="multipart/form-data" class="hidden">
-
-    <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
-
-  </form>
+  
 
 
 
@@ -2044,7 +2079,7 @@
 
   ════════════════════════════════════════════════ -->
 
-  <main class="flex-1 flex flex-col min-w-0 bg-[#ffffff] relative">
+  <main class="flex-1 flex flex-col min-w-0 bg-[#ffffff] relative h-full overflow-hidden">
 
 
 
@@ -2128,10 +2163,14 @@
 
 
       <!-- JSON Panel -->
+      <div class="panel flex flex-col h-full overflow-hidden" id="panel-json">
+        <!-- Header Toolbar -->
+        <div class="border-b border-zinc-200 bg-zinc-50/50 px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Document Extracted Metadata</span>
+          <span id="jsonSaveStatus" class="hidden text-xs font-semibold text-zinc-550 italic">Changes saved</span>
+        </div>
 
-      <div class="panel" id="panel-json">
-
-        <div class="flex-1 overflow-auto bg-white" id="jsonPanel">
+        <div class="flex-1 overflow-y-auto bg-white min-h-0" id="jsonPanel">
 
           <div id="jsonEmpty" class="flex flex-col items-center justify-center h-full p-8">
 
@@ -2167,7 +2206,7 @@
 
       <div class="panel" id="panel-events">
 
-        <div class="flex-1 overflow-auto" id="eventsPanel">
+        <div class="flex-1 overflow-y-auto min-h-0" id="eventsPanel">
 
           <div id="eventsEmpty" class="flex flex-col items-center justify-center h-full p-8">
 
@@ -2195,7 +2234,7 @@
 
       <div class="panel" id="panel-entities">
 
-        <div class="flex-1 overflow-auto" id="entitiesPanel">
+        <div class="flex-1 overflow-y-auto min-h-0" id="entitiesPanel">
 
           <div id="entitiesEmpty" class="flex flex-col items-center justify-center h-full p-8">
 
@@ -2398,6 +2437,13 @@
 
 
 
+      <!-- TSR Report Panel -->
+      <div class="panel" id="panel-report">
+        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
+          <!-- Let the page be blank for now -->
+        </div>
+      </div>
+
       <!-- Placeholder Panel for DORIS -->
 
       <div class="panel" id="panel-doris">
@@ -2566,6 +2612,8 @@
   let selectedFile = "{{ index_iis[0] if index_iis else '' }}";
 
   let currentParsedData = null;    // Stored parsed key-value payload
+
+  let currentFilePayload = null;   // Stored parsed envelope containing data and original_data
 
 
 
@@ -3141,17 +3189,26 @@
     }
 
     if (view === 'entities') {
-
       loadEntities();
-
     }
 
     if (view === 'assistant') {
-
       if (_chatHistory.length === 0) renderChatGreeting();
-
       setTimeout(() => { const i = document.getElementById('chatInput'); if (i) i.focus(); }, 100);
+    }
 
+    // 6. Update topbar breadcrumb tab name
+    const topbarTabName = document.getElementById('topbar-tab-name');
+    if (topbarTabName) {
+      let displayName = 'Events & Findings';
+      if (activeKey === 'events') displayName = 'Events & Findings';
+      else if (activeKey === 'entities') displayName = 'Chain & Entities';
+      else if (activeKey === 'assistant') displayName = 'AI Assistant';
+      else if (activeKey === 'report') displayName = 'Audit Report';
+      else if (activeKey === 'doris') displayName = 'DORIS Registry';
+      else if (activeKey === 'ngdrs') displayName = 'NGDRS Portal';
+      else if (activeKey === 'transactions') displayName = 'Document Viewer';
+      topbarTabName.textContent = displayName;
     }
 
   }
@@ -3351,6 +3408,7 @@
         if (notParsed) {
 
           currentParsedData = null;
+          currentFilePayload = null;
 
           if (CONFIG_USE_CUSTOM_PDF_VIEWER) {
 
@@ -3370,13 +3428,9 @@
 
 
 
-        let fields = payload.data;
+        currentFilePayload = payload.data;
 
-        if (fields && typeof fields === 'object' && fields.parsed === true && fields.data) {
-
-          fields = fields.data;
-
-        }
+        let fields = currentFilePayload.data;
 
         currentParsedData = fields;
 
@@ -3691,41 +3745,12 @@
 
         loader.classList.remove('flex');
 
-        const out = document.getElementById('jsonOutput');
-
-        out.classList.remove('hidden');
-
-        out.innerHTML = renderJsonAsTable(data);
-
-
-
-        // Update the file's tooltip status attribute
-
-        const row = document.querySelector(`div[data-file-row="${selectedFile}"]`);
-
-        if (row) {
-
-          row.setAttribute('data-parse-status', 'parsed');
-
+        if (data.error) {
+          alert('Parse error: ' + data.error);
+          return;
         }
 
-
-
-        let fields = data;
-
-        if (fields && typeof fields === 'object' && fields.parsed === true && fields.data) {
-
-          fields = fields.data;
-
-        }
-
-        currentParsedData = fields;
-
-        if (CONFIG_USE_CUSTOM_PDF_VIEWER) {
-
-          pdfCustomRedrawHighlights();
-
-        }
+        loadJsonForSelected(selectedFile);
 
       })
 
@@ -3806,169 +3831,327 @@
 
 
   function renderJsonAsTable(payload) {
-
     const obj = (payload && typeof payload === 'object' && payload.data && typeof payload.data === 'object')
-
       ? payload.data
-
       : payload;
 
-
-
     if (!obj || typeof obj !== 'object') {
-
       return '<div class="text-sm text-muted-foreground">No data to display.</div>';
-
     }
-
-
 
     const FIELD_ORDER = [
-
       'document_type', 'txn_type', 'sub_registrar_office', 'registration_no', 'registration_year', 'doc_no',
-
       'date_of_execution', 'date_of_registration',
-
       'society_building_name', 'society_building_address', 'flat_no', 'plot_no', 'survey_no', 'cts_no', 'village', 'district', 'area',
-
       'boundary_north', 'boundary_south', 'boundary_east', 'boundary_west',
-
       'seller_names', 'seller_address', 'buyer_names',  'buyer_address',
-
       'donor_name',  'donor_address', 'donee_name',  'donee_address',
-
       'mortgagor_name', 'mortgagor_address', 'mortgagee_name', 'mortgagee_address',
-
       'licensor_name', 'licensor_address', 'licensee_name', 'licensee_address', 'leave_license_months',
-
       'transferor_pan', 'transferor_pin', 'transferee_pan', 'transferee_pin',
-
       'consideration', 'deposit', 'license_fee', 'stamp_duty', 'registration_fee', 'remarks'
-
     ];
 
-
-
     const orderIndex = (key) => {
-
       const i = FIELD_ORDER.indexOf(key);
-
       return i === -1 ? 999 : i;
-
     };
-
-
 
     const isEmpty = (v) =>
-
       v === null || v === undefined || v === '' || v === 'null' ||
-
       (Array.isArray(v) && v.length === 0);
 
-
-
     const PARTY_GROUPS = {
-
       sale:     ['seller_names', 'seller_address', 'buyer_names', 'buyer_address'],
-
       gift:     ['donor_name', 'donor_address', 'donee_name', 'donee_address'],
-
       mortgage: ['mortgagor_name', 'mortgagor_address', 'mortgagee_name', 'mortgagee_address'],
-
       license:  ['licensor_name', 'licensor_address', 'licensee_name', 'licensee_address', 'leave_license_months', 'deposit', 'license_fee'],
-
     };
 
-
-
     function relevantGroupsFor(txn) {
-
       const t = (txn || '').toUpperCase();
-
       if (t.includes('SALE') || t.includes('AGREEMENT') || t.includes('RELEASE')) return ['sale'];
-
       if (t.includes('GIFT')) return ['gift'];
-
       if (t.includes('MORTGAGE') || t.includes('INTIMATION')) return ['mortgage'];
-
       if (t.includes('LEAVE') || t.includes('LICENSE')) return ['license'];
-
       return Object.keys(PARTY_GROUPS);
-
     }
 
-
-
     const txnType = obj.txn_type || obj.document_type;
-
     const relevantGroups = new Set(relevantGroupsFor(txnType));
-
     const hiddenPartyFields = new Set();
-
     Object.entries(PARTY_GROUPS).forEach(([groupName, fields]) => {
-
       if (!relevantGroups.has(groupName)) {
-
         fields.forEach(f => hiddenPartyFields.add(f));
-
       }
-
     });
 
-
-
     const entries = Object.entries(obj)
-
       .filter(([k, v]) => {
-
         if (!hiddenPartyFields.has(k)) return true;
-
         return !isEmpty(v);
-
       })
-
       .sort((a, b) => {
-
         const aEmpty = isEmpty(a[1]);
-
         const bEmpty = isEmpty(b[1]);
-
         if (aEmpty !== bEmpty) return aEmpty ? 1 : -1;
-
         const ai = orderIndex(a[0]);
-
         const bi = orderIndex(b[0]);
-
         if (ai !== bi) return ai - bi;
-
         return a[0].localeCompare(b[0]);
-
       });
 
-
-
-    let html = '<div class="rounded-lg border border-border bg-card overflow-hidden">';
+    let html = '<div class="grid grid-cols-2 gap-x-6 gap-y-4 p-5 bg-white rounded-lg border border-zinc-200">';
 
     entries.forEach(([k, v], i) => {
+      // Determine if edited compared to original
+      let isEdited = false;
+      if (currentFilePayload && currentFilePayload.original_data) {
+        const currentValStr = JSON.stringify(v);
+        const originalValStr = JSON.stringify(currentFilePayload.original_data[k]);
+        isEdited = currentValStr !== originalValStr;
+      }
 
-      const isLast = i === entries.length - 1;
+      // Check if value is array
+      const isArr = Array.isArray(v);
+      let displayVal = '';
+      if (isArr) {
+        displayVal = v.map(item => typeof item === 'object' ? (item.name || JSON.stringify(item)) : item).join(', ');
+      } else {
+        displayVal = v !== null && v !== undefined ? String(v) : '';
+      }
+
+      const useTextarea = k === 'property_schedule_text' || k === 'society_building_address' || k === 'remarks' || displayVal.length > 80;
+      const colClass = useTextarea ? 'col-span-2' : 'col-span-1';
 
       html += `
+        <div class="${colClass} flex flex-col gap-1.5 group">
+          <div class="flex items-center justify-between select-none">
+            <span class="text-[10.5px] font-bold uppercase tracking-wider text-zinc-400 group-hover:text-zinc-500 transition-colors">${humanLabel(k)}</span>
+            
+            <!-- Badges & Revert button -->
+            <div class="flex items-center gap-1.5">
+              <span id="badge-${k}" class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 select-none ${isEdited ? '' : 'hidden'}">Edited</span>
+              <button id="revert-${k}" onclick="revertField('${k}')" class="text-[9.5px] text-zinc-400 hover:text-zinc-950 font-bold hover:underline ${isEdited ? '' : 'hidden'}">Revert</button>
+            </div>
+          </div>
 
-        <div class="grid grid-cols-[180px_1fr] gap-4 px-5 py-3 ${isLast ? '' : 'border-b border-border'}">
-
-          <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground self-start pt-0.5">${humanLabel(k)}</div>
-
-          <div class="text-sm text-foreground break-words">${formatValue(v)}</div>
-
+          <div class="text-sm text-foreground break-words w-full">
+            ${useTextarea 
+              ? `<textarea id="input-${k}" oninput="handleFieldChange('${k}', this.value, ${isArr})"
+                           rows="3"
+                           class="w-full text-xs border border-zinc-200 rounded-md px-3 py-2 focus:border-zinc-800 focus:ring-1 focus:ring-zinc-800 bg-white font-sans text-zinc-800 focus:outline-none transition-shadow resize-y leading-relaxed">${escapeHtml(displayVal)}</textarea>`
+              : `<input type="text" id="input-${k}" value="${escapeHtml(displayVal)}" oninput="handleFieldChange('${k}', this.value, ${isArr})"
+                        class="w-full h-9 text-xs border border-zinc-200 rounded-md px-3 focus:border-zinc-800 focus:ring-1 focus:ring-zinc-800 bg-white font-sans text-zinc-800 focus:outline-none transition-shadow">`
+            }
+          </div>
         </div>`;
-
     });
 
     html += '</div>';
-
     return html;
+  }
 
+  // ── JSON Form Edits & Revert Handlers ──
+  let autoSaveTimeout = null;
+  function handleFieldChange(key, value, isArray) {
+    if (!currentFilePayload) return;
+
+    if (isArray) {
+      currentFilePayload.data[key] = value.split(',').map(s => s.trim()).filter(Boolean);
+    } else {
+      currentFilePayload.data[key] = value;
+    }
+
+    const badge = document.getElementById(`badge-${key}`);
+    const revertBtn = document.getElementById(`revert-${key}`);
+    
+    const currentValStr = JSON.stringify(currentFilePayload.data[key]);
+    const originalValStr = JSON.stringify(currentFilePayload.original_data[key]);
+    const isEdited = currentValStr !== originalValStr;
+
+    if (badge) {
+      if (isEdited) badge.classList.remove('hidden');
+      else badge.classList.add('hidden');
+    }
+    if (revertBtn) {
+      if (isEdited) revertBtn.classList.remove('hidden');
+      else revertBtn.classList.add('hidden');
+    }
+
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+      saveUpdatedPayload();
+    }, 1000);
+  }
+
+  function revertField(key) {
+    if (!currentFilePayload) return;
+
+    currentFilePayload.data[key] = JSON.parse(JSON.stringify(currentFilePayload.original_data[key]));
+
+    const input = document.getElementById(`input-${key}`);
+    if (input) {
+      if (Array.isArray(currentFilePayload.data[key])) {
+        input.value = currentFilePayload.data[key].map(item => typeof item === 'object' ? (item.name || JSON.stringify(item)) : item).join(', ');
+      } else {
+        input.value = currentFilePayload.data[key] || '';
+      }
+    }
+
+    const badge = document.getElementById(`badge-${key}`);
+    const revertBtn = document.getElementById(`revert-${key}`);
+    if (badge) badge.classList.add('hidden');
+    if (revertBtn) revertBtn.classList.add('hidden');
+
+    saveUpdatedPayload();
+  }
+
+  function saveUpdatedPayload() {
+    if (!currentFilePayload || !selectedFile) return;
+
+    const saveIndicator = document.getElementById('jsonSaveStatus');
+    if (saveIndicator) {
+      saveIndicator.textContent = 'Saving changes...';
+      saveIndicator.classList.remove('hidden');
+    }
+
+    fetch(`/save_result/{{ project_name }}/${encodeURIComponent(selectedFile)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentFilePayload)
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        if (saveIndicator) {
+          saveIndicator.textContent = 'Changes saved';
+          setTimeout(() => {
+            if (saveIndicator.textContent === 'Changes saved') {
+              saveIndicator.classList.add('hidden');
+            }
+          }, 2000);
+        }
+      } else {
+        if (saveIndicator) {
+          saveIndicator.textContent = 'Failed to save';
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Error saving edits:', err);
+      if (saveIndicator) {
+        saveIndicator.textContent = 'Connection error';
+      }
+    });
+  }
+
+  // ── Attachment Three Dots Dropdown Actions ──
+  let activeMenuDoc = null;
+
+  function toggleDocDropdown(btn, filename) {
+    const menu = document.getElementById('docOptionsMenu');
+    if (!menu) return;
+
+    if (activeMenuDoc === filename && !menu.classList.contains('hidden')) {
+      menu.classList.add('hidden');
+      return;
+    }
+
+    activeMenuDoc = filename;
+
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+    menu.style.left = (rect.left + window.scrollX - 100) + 'px';
+
+    const downloadLink = document.getElementById('downloadDocLink');
+    if (downloadLink) {
+      downloadLink.href = `/pdf/{{ project_name }}/${encodeURIComponent(filename)}`;
+      downloadLink.setAttribute('download', filename);
+    }
+
+    menu.classList.remove('hidden');
+
+    function closeMenu(e) {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.add('hidden');
+        document.removeEventListener('click', closeMenu);
+      }
+    }
+    setTimeout(() => {
+      document.addEventListener('click', closeMenu);
+    }, 10);
+  }
+
+  function triggerReanalyze() {
+    if (!activeMenuDoc) return;
+    const filename = activeMenuDoc;
+    document.getElementById('docOptionsMenu').classList.add('hidden');
+
+    const row = document.querySelector(`div[data-file-row="${filename}"]`);
+    if (row) {
+      selectFile(row, filename);
+    }
+    triggerParse();
+  }
+
+  function triggerReplace() {
+    if (!activeMenuDoc) return;
+    document.getElementById('docOptionsMenu').classList.add('hidden');
+    document.getElementById('replaceFileInput').click();
+  }
+
+  function commitReplaceFile() {
+    const fileInput = document.getElementById('replaceFileInput');
+    if (!fileInput || fileInput.files.length === 0 || !activeMenuDoc) return;
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('replacement_file', file);
+
+    const filename = activeMenuDoc;
+    fileInput.value = '';
+
+    const loader = document.getElementById('parseLoading');
+    if (loader) {
+      loader.classList.remove('hidden');
+      loader.classList.add('flex');
+    }
+
+    fetch(`/replace_file/{{ project_name }}/${encodeURIComponent(filename)}`, {
+      method: 'POST',
+      body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.ok) {
+        const row = document.querySelector(`div[data-file-row="${filename}"]`);
+        if (row) {
+          selectFile(row, filename);
+        }
+        triggerParse();
+      } else {
+        alert('Failed to replace file: ' + (res.error || 'Unknown error'));
+        if (loader) {
+          loader.classList.add('hidden');
+          loader.classList.remove('flex');
+        }
+      }
+    })
+    .catch(err => {
+      alert('Error replacing file: ' + err);
+      if (loader) {
+        loader.classList.add('hidden');
+        loader.classList.remove('flex');
+      }
+    });
+  }
+
+  function triggerDelete() {
+    if (!activeMenuDoc) return;
+    const filename = activeMenuDoc;
+    document.getElementById('docOptionsMenu').classList.add('hidden');
+    deleteFile(filename);
   }
 
 
@@ -4221,7 +4404,7 @@
 
               </div>
 
-              <div onclick="openEncumbrancesModal()" class="px-6 py-4 stat-box-enter cursor-pointer hover:bg-muted/30 transition-colors" style="animation-delay: 60ms" title="Click to view encumbrance summary ledger">
+              <div class="px-6 py-4 stat-box-enter" style="animation-delay: 60ms">
 
                 <div class="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Encumbrances</div>
 
@@ -4691,7 +4874,7 @@
         if (slug) {
           return `<img src="https://cdn.jsdelivr.net/gh/auraveni/global-bank-logos/assets/bank/indian-bank/${slug}.svg" class="w-5 h-5 shrink-0 object-contain" alt="${bankName}">`;
         }
-        return `<svg class="w-4 h-4 shrink-0 text-zinc-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        return `<svg class="w-4 h-4 shrink-0 text-zinc-955" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="21" x2="21" y2="21"></line>
           <rect x="5" y="10" width="14" height="11"></rect>
           <path d="M12 2L2 7h20L12 2z"></path>
@@ -4728,6 +4911,85 @@
     }
 
     // 5. Dynamic Primary Metric Card
+    const price = Math.round(Number(ev.consideration) || Number(ev.released_amount) || Number(ev.principal_amount) || (Number(ev.license_fee) * 12) || 0);
+    const stampVal = Math.round(Number(ev.stamp_duty) || 0);
+    const circleVal = Math.round(Number(ev.circle_value) || 0);
+    const areaSqm = Number(ev.area_sqm) || 0;
+    const expectedSd = Math.round(Number(ev.expected_stamp_duty) || 0);
+    const expectedReg = Math.round(Number(ev.expected_registration_fee) || 0);
+    const regPaid = Math.round(Number(ev.registration_fee) || 0);
+
+    let circleRateTableHtml = '';
+    if (expectedSd > 0) {
+      const priceStatus = circleVal > 0 
+        ? (price < circleVal ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Undervalued</span>' : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Compliant</span>')
+        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-50 text-zinc-650 border border-zinc-200 shadow-sm">Exempt</span>';
+
+      const sdStatus = stampVal < expectedSd 
+        ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Shortfall</span>' 
+        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Paid</span>';
+
+      const regStatus = regPaid < expectedReg 
+        ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Shortfall</span>' 
+        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Paid</span>';
+
+      let circleRequiredText = '';
+      if (circleVal > 0) {
+        circleRequiredText = `₹${circleVal.toLocaleString('en-IN')}`;
+      } else {
+        let label = 'Exempt';
+        if (t.includes('MORTGAGE') || t.includes('INTIMATION')) label = 'Exempt (Mortgage)';
+        else if (t.includes('LEAVE') || t.includes('LICENSE')) label = 'Exempt (Lease)';
+        else if (t.includes('RELEASE')) label = 'Exempt (Release)';
+        else if (t.includes('RECONVEYANCE')) label = 'Exempt (Reconveyance)';
+        else label = 'Exempt (Pre-2007)';
+        circleRequiredText = `<span class="text-zinc-500 font-medium">${label}</span>`;
+      }
+
+      const circleValRowHtml = circleVal > 0
+        ? `Property Value (Area: ${areaSqm} sqm)`
+        : 'Property Value (Circle Rate)';
+
+      const baseValuationText = price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—';
+
+      circleRateTableHtml = `
+        <div class="mt-5 pt-4 border-t border-zinc-150 space-y-2 select-text">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-900">Delhi Tax & Circle Rate Audit</span>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-zinc-200 text-zinc-800 font-bold text-[11px]">
+                  <th class="pb-2 font-bold text-zinc-900">Financial Item</th>
+                  <th class="pb-2 text-right font-bold text-zinc-900">Actual Paid</th>
+                  <th class="pb-2 text-right font-bold text-zinc-900">Required</th>
+                  <th class="pb-2 text-right font-bold text-zinc-900">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-100 text-zinc-900 text-xs">
+                <tr>
+                  <td class="py-2.5 font-medium text-zinc-800">${circleValRowHtml}</td>
+                  <td class="py-2.5 text-right font-semibold text-zinc-950">${baseValuationText}</td>
+                  <td class="py-2.5 text-right font-semibold text-zinc-950">${circleRequiredText}</td>
+                  <td class="py-2.5 text-right">${priceStatus}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-medium text-zinc-800">Stamp Duty</td>
+                  <td class="py-2.5 text-right font-semibold text-zinc-950">₹${stampVal.toLocaleString('en-IN')}</td>
+                  <td class="py-2.5 text-right font-semibold text-zinc-950">₹${expectedSd.toLocaleString('en-IN')}</td>
+                  <td class="py-2.5 text-right">${sdStatus}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 font-medium text-zinc-800">Registration Fee</td>
+                  <td class="py-2.5 text-right font-semibold text-zinc-950">₹${regPaid.toLocaleString('en-IN')}</td>
+                  <td class="py-2.5 text-right font-semibold text-zinc-950">₹${expectedReg.toLocaleString('en-IN')}</td>
+                  <td class="py-2.5 text-right">${regStatus}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+
     let primaryMetricHtml = '';
     if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
       const principal = Number(ev.principal_amount) || 0;
@@ -4741,10 +5003,10 @@
         <div class="space-y-2.5 pb-4 border-b border-zinc-100">
           <div class="flex justify-between items-baseline">
             <div>
-              <span class="text-xs text-zinc-505">Outstanding Balance</span>
+              <span class="text-xs text-zinc-550 font-medium">Outstanding Balance</span>
               <div class="text-lg font-semibold tracking-tight text-zinc-950 mt-0.5">₹${outstanding.toLocaleString('en-IN')}</div>
             </div>
-            <div class="text-right text-[11px] text-zinc-500">
+            <div class="text-right text-[11px] text-zinc-500 font-medium">
               Original Principal: ₹${principal.toLocaleString('en-IN')}
             </div>
           </div>
@@ -4752,25 +5014,27 @@
             <div class="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden border border-zinc-200/50">
               <div class="bg-zinc-900 h-full rounded-full" style="width: ${pctReleased}%"></div>
             </div>
-            <div class="flex justify-between text-[10px] text-zinc-500">
+            <div class="flex justify-between text-[10px] text-zinc-500 font-medium">
               <span>${pctReleased}% Discharged (Released ₹${totalReleased.toLocaleString('en-IN')})</span>
               <span>${rateText}</span>
             </div>
           </div>
+          ${circleRateTableHtml}
         </div>`;
     } else if (t.includes('SALE') || t.includes('AGREEMENT')) {
-      const price = Number(ev.consideration) || 0;
-      const stampVal = Number(ev.stamp_duty) || 0;
       primaryMetricHtml = `
-        <div class="grid grid-cols-2 gap-4 pb-5 border-b border-zinc-100">
-          <div>
-            <span class="text-xs text-zinc-505">Consideration Amount</span>
-            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${price > 0 ? '₹' + price.toLocaleString('en-IN') : '—'}</div>
+        <div class="pb-5 border-b border-zinc-100">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-xs text-zinc-550 font-medium">Consideration Amount</span>
+              <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${price > 0 ? '₹' + price.toLocaleString('en-IN') : '—'}</div>
+            </div>
+            <div>
+              <span class="text-xs text-zinc-550 font-medium">Stamp Duty Paid</span>
+              <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${stampVal > 0 ? '₹' + stampVal.toLocaleString('en-IN') : 'Verified'}</div>
+            </div>
           </div>
-          <div>
-            <span class="text-xs text-zinc-505">Stamp Duty Paid</span>
-            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${stampVal > 0 ? '₹' + stampVal.toLocaleString('en-IN') : 'Verified'}</div>
-          </div>
+          ${circleRateTableHtml}
         </div>`;
     } else if (t.includes('LEAVE') || t.includes('LICENSE')) {
       const fee = ev.license_fee;
@@ -4783,30 +5047,30 @@
         amountDisplayHtml = `
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <span class="text-xs text-zinc-505">Monthly Rental</span>
+              <span class="text-xs text-zinc-550 font-medium">Monthly Rental</span>
               <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${feeText}</div>
             </div>
             <div>
-              <span class="text-xs text-zinc-505">Security Deposit</span>
+              <span class="text-xs text-zinc-550 font-medium">Security Deposit</span>
               <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${depText}</div>
             </div>
           </div>`;
       } else if (feeText) {
         amountDisplayHtml = `
           <div>
-            <span class="text-xs text-zinc-505">Monthly Rental</span>
+            <span class="text-xs text-zinc-550 font-medium">Monthly Rental</span>
             <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${feeText}</div>
           </div>`;
       } else if (depText) {
         amountDisplayHtml = `
           <div>
-            <span class="text-xs text-zinc-505">Security Deposit</span>
+            <span class="text-xs text-zinc-550 font-medium">Security Deposit</span>
             <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">${depText}</div>
           </div>`;
       } else {
         amountDisplayHtml = `
           <div>
-            <span class="text-xs text-zinc-505">Monthly Rental</span>
+            <span class="text-xs text-zinc-550 font-medium">Monthly Rental</span>
             <div class="text-lg font-semibold tracking-tight text-red-650 mt-0.5">Missing in Agreement</div>
           </div>`;
       }
@@ -4814,19 +5078,22 @@
       primaryMetricHtml = `
         <div class="pb-4 border-b border-zinc-100">
           ${amountDisplayHtml}
+          ${circleRateTableHtml}
         </div>`;
     } else if (t.includes('RELEASE')) {
       const relAmt = Number(ev.released_amount) || 0;
       primaryMetricHtml = `
         <div class="pb-4 border-b border-zinc-100">
-          <span class="text-xs text-zinc-550">Relinquished Interest / Amount</span>
+          <span class="text-xs text-zinc-550 font-medium">Relinquished Interest / Amount</span>
           <div class="text-lg font-semibold text-zinc-955 mt-0.5">${relAmt > 0 ? '₹' + relAmt.toLocaleString('en-IN') : 'Share Released'}</div>
+          ${circleRateTableHtml}
         </div>`;
     } else if (t.includes('GIFT')) {
       primaryMetricHtml = `
         <div class="pb-4 border-b border-zinc-100">
-          <span class="text-xs text-zinc-550">Voluntary Transfer</span>
+          <span class="text-xs text-zinc-550 font-medium">Voluntary Transfer</span>
           <div class="text-lg font-semibold text-zinc-955 mt-0.5">Gift Deed</div>
+          ${circleRateTableHtml}
         </div>`;
     }
 
@@ -5737,7 +6004,8 @@
       'INVALID_PIN_FORMAT':              'Invalid PIN Format',
       'PAN_TRANSFEROR_TRANSFEREE_CLASH': 'Seller-Buyer PAN Conflict',
       'PIN_TRANSFEROR_TRANSFEREE_CLASH': 'Seller-Buyer PIN Conflict',
-      'UNRESOLVED_MORTGAGE':             'Unresolved Mortgage Encumbrance',
+      'UNRESOLVED_MORTGAGE':             'Active Mortgage Charge',
+      'PARTIAL_RELEASE':                 'Partial Discharge of Mortgage',
       'AREA_MISMATCH':                   'Stated Area Mismatch',
       'AREA_MISMATCH_MILD':              'Minor Area Deviation',
       'SOCIETY_MISMATCH':                'Society Name Mismatch',
@@ -5745,15 +6013,15 @@
       'INVALID_MORTGAGOR':               'Invalid Mortgagor Signatory',
       'UNKNOWN_MORTGAGOR':               'Unknown Mortgagor Entity',
       'CHAIN_ERROR':                     'Ownership Chain Discrepancy',
-      'CHAIN_BREAK':                     'Ownership Chain Break',
+      'CHAIN_BREAK':                     'Chain of Title Discontinuity',
       'ZERO_CONSIDERATION':              'Zero Consideration Value',
       'CONSIDERATION_ANOMALY':           'Price Deviation Anomaly',
       'NAME_SPELLING_VARIATION':         'Name Spelling Deviation',
       'SHARED_PAN':                      'Shared PAN Identification',
       'SHARED_PIN':                      'Shared PIN Identification',
-      'METADATA_LOCALITY_MISMATCH':      'Locality Mismatch',
+      'METADATA_LOCALITY_MISMATCH':      'Locality Description Conflict',
       'METADATA_SRO_MISMATCH':           'SRO Code Mismatch',
-      'VOID_DEED_WRONG_SRO':             'SRO Jurisdiction Discrepancy',
+      'VOID_DEED_WRONG_SRO':             'SRO Jurisdiction Misalignment',
       'MISSING_SALE_CONSIDERATION':      'Missing Sale Price',
       'MISSING_RENTAL_CONSIDERATION':    'Missing Rental Fee',
       'MISSING_MORTGAGE_VALUE':          'Missing Loan Amount',
@@ -5765,19 +6033,25 @@
       'METADATA_PROPERTY_ID_MISMATCH':   'Property ID Mismatch',
       'METADATA_UPIC_MISMATCH':          'UPIC Number Mismatch',
       'METADATA_ADDRESS_MISMATCH':       'Address Discrepancy',
-      'PROPERTY_NOT_IN_DELHI':           'Outside Delhi Jurisdiction',
-      'GPA_POST_2011_INVALID':           'Invalid Post-2011 GPA',
+      'PROPERTY_NOT_IN_DELHI':           'Property Out of Delhi Territory',
+      'PROPERTY_TYPE_MISMATCH':          'Property Type Conflict',
+      'GPA_POST_2011_INVALID':           'GPA Post-2011 Non-Conveyance',
       'UNREGULARIZED_GPA_CHAIN':         'Unregularized GPA Conveyance',
       'MISSING_GPA_AUTHORIZATION':       'Missing GPA Authorization',
-      'MISSING_CRITICAL_FIELDS':         'Missing Fields',
+      'MISSING_CRITICAL_FIELDS':         'Incomplete Document Records',
+      'UNDER_CIRCLE_RATE_VALUATION':     'Undervalued Consideration',
+      'INSUFFICIENT_STAMP_DUTY':         'Stamp Duty Deficit',
+      'INSUFFICIENT_REGISTRATION_FEE':   'Registration Fee Deficit',
       'AMOUNT_WORDS_FIGURES_MISMATCH':   'Words vs Figures Value Clash',
       'RECTIFICATION_APPLIED':           'Rectified Discrepancy',
-      'RELEASE_ORPHAN':                  'Unlinked Release Deed',
-      'RELEASE_AMBIGUOUS':               'Ambiguous Release Deed',
-      'RELEASE_PARTY_MISMATCH':          'Release Party Mismatch',
-      'RELEASE_AMOUNT_MISMATCH':         'Release Amount Mismatch',
-      'RELEASE_OVERFLOW':                'Release Amount Overflow',
-      'LENDER_MISMATCH':                 'Lender Bank Mismatch'
+      'RELEASE_ORPHAN':                  'Unlinked Discharge Instrument',
+      'RELEASE_AMBIGUOUS':               'Ambiguous Release Instrument',
+      'RELEASE_PARTY_MISMATCH':          'Discharge Party Discrepancy',
+      'RELEASE_AMOUNT_MISMATCH':         'Discharge Valuation Conflict',
+      'RELEASE_OVERFLOW':                'Discharge Amount Overflow',
+      'LENDER_MISMATCH':                 'Lender Bank Mismatch',
+      'RELEASE_LINK':                    'Linked Release Deed',
+      'RELEASE_LINK_A':                  'Linked Release Deed'
     };
 
     if (type && type.startsWith('NAME_DEVIATION_')) {
@@ -5832,9 +6106,9 @@
       if (aIsMissing !== bIsMissing) {
         return aIsMissing ? 1 : -1;
       }
-      const severityOrder = { 'ERROR': 1, 'WARNING': 2, 'INFO': 3 };
-      const aSev = severityOrder[a.severity] || 99;
-      const bSev = severityOrder[b.severity] || 99;
+      const severityOrder = { 'voidance': 1, 'dispute': 2, 'liability': 3, 'conflict': 4, 'informational': 5 };
+      const aSev = severityOrder[errorSeverity(a.type, a.severity)] || 99;
+      const bSev = severityOrder[errorSeverity(b.type, b.severity)] || 99;
       if (aSev !== bSev) return aSev - bSev;
       return (a.event_date || '').localeCompare(b.event_date || '');
     });
@@ -5893,17 +6167,33 @@
   function errorSeverity(type, severity) {
     if (severity) {
       const s = severity.toLowerCase();
-      if (s === 'info') return 'info';
-      if (s === 'warning') return 'warning';
-      return 'error';
+      if (s === 'info' || s === 'note') return 'informational';
+      if (s === 'warning') return 'liability';
     }
-    const warnings = [
-      'DATE_ORDER_ERROR', 'AREA_MISMATCH', 'SOCIETY_MISMATCH',
-      'ID_MISMATCH', 'INVALID_MORTGAGOR', 'INVALID_PAN_FORMAT',
-      'INVALID_PIN_FORMAT', 'CONSIDERATION_ANOMALY', 'NAME_SPELLING_VARIATION',
-      'UNREGULARIZED_GPA_CHAIN'
+
+    const voidances = [
+      'VOID_DEED_WRONG_SRO', 'GPA_POST_2011_INVALID'
     ];
-    return warnings.includes(type) ? 'warning' : 'error';
+    if (voidances.includes(type)) return 'voidance';
+
+    const disputes = [
+      'CHAIN_BREAK', 'CHAIN_ERROR', 'GPA_POST_2011_INVALID',
+      'UNREGULARIZED_GPA_CHAIN', 'MISSING_GPA_AUTHORIZATION'
+    ];
+    if (disputes.includes(type)) return 'dispute';
+
+    const liabilities = [
+      'UNRESOLVED_MORTGAGE', 'PARTIAL_RELEASE', 'UNDER_CIRCLE_RATE_VALUATION',
+      'INSUFFICIENT_STAMP_DUTY', 'INSUFFICIENT_REGISTRATION_FEE'
+    ];
+    if (liabilities.includes(type)) return 'liability';
+
+    const informational = [
+      'RELEASE_LINK', 'RELEASE_LINK_A'
+    ];
+    if (informational.includes(type)) return 'informational';
+
+    return 'conflict';
   }
 
   function renderFindingCard(err, isDismissed) {
@@ -5928,9 +6218,15 @@
 
 
 
-    let sevLabel = 'Error';
-    if (sev === 'warning') sevLabel = 'Warning';
-    else if (sev === 'info') sevLabel = 'Info';
+    let sevLabel = 'Documentation Conflict';
+    if (sev === 'voidance') sevLabel = 'Voidance Hazard';
+    else if (sev === 'dispute') sevLabel = 'Ownership Dispute Risk';
+    else if (sev === 'liability') sevLabel = 'Financial Liability';
+    else if (sev === 'informational') sevLabel = 'Informational Log';
+
+    const sevBadgeCls = isDismissed 
+      ? 'border-zinc-200 bg-zinc-50 text-zinc-400 line-through' 
+      : 'border-zinc-200 bg-white text-zinc-700';
 
 
 
@@ -5970,14 +6266,6 @@
 
 
 
-    const typeBadgeCls = isDismissed
-
-      ? 'border-border text-muted-foreground'
-
-      : (sev === 'error' ? 'border-border text-foreground' : 'border-border text-muted-foreground');
-
-
-
     return `
 
       <div class="${rowClass}">
@@ -5986,9 +6274,9 @@
 
           <div class="flex items-center gap-2.5 flex-wrap">
 
-            <span class="inline-flex items-center rounded-md border ${typeBadgeCls} bg-background px-2 py-0.5 text-xs font-semibold ${isDismissed ? 'line-through decoration-1' : ''}">${label}</span>
+            <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-800 ${isDismissed ? 'line-through decoration-1 text-zinc-400' : ''}">${label}</span>
 
-            <span class="inline-flex items-center rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">${sevLabel}</span>
+            <span class="inline-flex items-center rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs font-semibold">${sevLabel}</span>
 
             ${dismissedBadge}
 
@@ -8127,6 +8415,7 @@ if ('serviceWorker' in navigator) {
         Mandates configure automated circle rate audits and mutation checks.
       </p>
     </div>
+  </div>
   <!-- ── ENCUMBRANCE LEDGER MODAL ── -->
   <div class="modal-overlay" id="encumbrancesModal" onclick="handleEditOverlayClick(event, 'encumbrancesModal')">
     <div class="modal-box !rounded-2xl p-6 space-y-6 w-full max-w-[600px] relative select-none">
@@ -8166,6 +8455,30 @@ if ('serviceWorker' in navigator) {
   <div id="pdfCustomTooltip" class="hidden opacity-0"></div>
 
 
+
+  <!-- Floating Dropdown Menu for Attachment Options -->
+  <div id="docOptionsMenu" class="hidden fixed bg-white border border-zinc-200 rounded-lg shadow-lg py-1 z-[9999] w-[130px] text-left">
+    <button onclick="triggerReanalyze()" class="w-full text-left px-3 py-1.5 text-[11px] text-zinc-700 hover:bg-zinc-100 flex items-center gap-2 transition-colors">
+      <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+      Reanalyze
+    </button>
+    <button onclick="triggerReplace()" class="w-full text-left px-3 py-1.5 text-[11px] text-zinc-700 hover:bg-zinc-100 flex items-center gap-2 transition-colors">
+      <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Replace
+    </button>
+    <a id="downloadDocLink" href="#" download class="w-full text-left px-3 py-1.5 text-[11px] text-zinc-700 hover:bg-zinc-100 flex items-center gap-2 transition-colors">
+      <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </a>
+    <div class="border-t border-zinc-100 my-0.5"></div>
+    <button onclick="triggerDelete()" class="w-full text-left px-3 py-1.5 text-[11px] text-red-650 hover:bg-red-50 flex items-center gap-2 transition-colors">
+      <svg class="w-3.5 h-3.5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Delete
+    </button>
+  </div>
+
+  <!-- Hidden Input for Replacing Files -->
+  <input type="file" id="replaceFileInput" accept=".pdf" class="hidden" onchange="commitReplaceFile()"/>
 
 </body>
 

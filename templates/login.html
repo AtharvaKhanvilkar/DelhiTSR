@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Sign In - AutoTSR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      letter-spacing: -0.01em;
+    }
+  </style>
+</head>
+<body class="bg-white text-zinc-900 flex flex-col justify-between min-h-screen p-6 md:p-12 select-none">
+  
+  <!-- Empty top spacer -->
+  <div></div>
+
+  <!-- Main Login Card Container -->
+  <div class="w-full max-w-[360px] mx-auto flex flex-col items-center">
+    
+    <!-- Stylized Ribbon Logo (Mobbin style) -->
+    <div class="mb-6 text-zinc-900">
+      <svg class="w-12 h-8" viewBox="0 0 58 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 32L12 0H22L10 32H18L30 0H40L28 32H36L48 0H58L46 32H0Z" />
+      </svg>
+    </div>
+
+    <!-- Headers -->
+    <h1 class="text-[28px] font-bold tracking-tight text-zinc-900 text-center mb-2 leading-tight">Create your free account</h1>
+    <p class="text-[13px] text-zinc-500 text-center mb-6 leading-relaxed max-w-[320px]">
+      Create your free account to search or filter through 400,000+ screens. No credit card required.
+    </p>
+
+    <!-- Error/Flash Messaging -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="w-full mb-6 p-4 text-xs font-semibold text-red-700 bg-red-50 border border-red-200/60 rounded-[14px] text-center leading-normal">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Google OAuth Button -->
+    <a href="/login/google" 
+       class="w-full h-11 flex items-center justify-center gap-2.5 border border-zinc-200 rounded-full hover:bg-zinc-50 transition-all active:scale-[0.98] text-[13.5px] font-semibold text-zinc-800 shadow-sm mb-4">
+      <!-- Google Color Logo Icon -->
+      <svg style="width: 17px; height: 17px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+      </svg>
+      <span>Continue with Google</span>
+    </a>
+
+    <!-- Divider -->
+    <div class="w-full flex items-center justify-between mb-4">
+      <div class="h-px bg-zinc-200 flex-1"></div>
+      <span class="text-[12px] text-zinc-400 px-3">or</span>
+      <div class="h-px bg-zinc-200 flex-1"></div>
+    </div>
+
+    <!-- Email Form -->
+    <form action="/login" method="POST" class="w-full space-y-3">
+      <div>
+        <!-- Input corner radius styled at exactly 14px to match Mobbin -->
+        <input type="email" id="email" name="email" required
+               class="w-full h-11 px-4 border border-zinc-300 rounded-[14px] focus:ring-2 focus:ring-black focus:border-black outline-none transition-all text-[13.5px] placeholder-zinc-400 bg-white"
+               placeholder="darrell.denlinger@gmail.com">
+      </div>
+
+      <button type="submit"
+              class="w-full h-11 bg-black hover:bg-zinc-900 text-white font-semibold rounded-full transition-all text-[13.5px] shadow-sm active:scale-[0.98]">
+        Continue
+      </button>
+    </form>
+
+    <!-- Terms Disclaimer -->
+    <p class="text-[10px] text-zinc-400 text-center leading-relaxed mt-3.5 max-w-[320px]">
+      By continuing, you agree to Mobbin's 
+      <a href="#" class="underline hover:text-zinc-600">Terms of Service</a> and 
+      <a href="#" class="underline hover:text-zinc-600">Privacy Policy</a>.
+    </p>
+
+    <!-- Toggle Link -->
+    <div class="mt-8 text-center">
+      <a href="/register" class="text-sm text-zinc-500 hover:text-zinc-900 font-medium transition-all">
+        Already have an account? <span class="text-zinc-900 font-semibold underline">Log in</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Footer Logos Section -->
+  <div class="w-full max-w-[480px] mx-auto mt-12 flex flex-col items-center">
+    <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Trusted by teams at</span>
+    <div class="flex items-center justify-center gap-6 flex-wrap opacity-60">
+      
+      <!-- Headspace -->
+      <div class="flex items-center gap-1.5 text-zinc-800 font-semibold text-[13px] tracking-tight">
+        <span class="w-3.5 h-3.5 rounded-full bg-zinc-800"></span>
+        <span>headspace</span>
+      </div>
+
+      <!-- Airbnb -->
+      <div class="flex items-center gap-1.5 text-zinc-800 font-semibold text-[13px] tracking-tight">
+        <svg class="w-3.5 h-3.5 text-zinc-800" viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 1c2 0 3.5.7 4.6 2l8.8 14.5c.8 1.4.9 3 .3 4.4a6 6 0 0 1-5.1 3.1h-4.4c-1.5 0-2.8-.7-3.7-2a4.4 4.4 0 0 0-7 0c-.9 1.3-2.2 2-3.7 2H6.4a6 6 0 0 1-5.1-3.1c-.6-1.4-.5-3 .3-4.4L10.4 3C11.5 1.7 13 1 16 1zm0 3c-1.8 0-2.6.4-3.3 1.2L3.9 19.7a3 3 0 0 0-.2 2.7c.3.7 1 1.2 1.9 1.2h4.4c.5 0 .9-.2 1.2-.6a7.4 7.4 0 0 1 11.6 0c.3.4.7.6 1.2.6h4.4c.9 0 1.6-.5 1.9-1.2.3-.8.2-1.9-.2-2.7L22.6 5.2C21.9 4.4 21 4 19.3 4H16z" />
+        </svg>
+        <span>airbnb</span>
+      </div>
+
+      <!-- Revolut -->
+      <div class="text-zinc-800 font-black text-[13px] tracking-tighter">Revolut</div>
+
+      <!-- Duolingo -->
+      <div class="text-zinc-800 font-bold text-[13px] tracking-tight lowercase">duolingo</div>
+
+    </div>
+  </div>
+
+</body>
+</html>

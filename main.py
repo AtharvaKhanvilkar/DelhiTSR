@@ -202,6 +202,37 @@ def get_category_from_subtype(subtype):
     return "generic"
 
 
+def classify_locality_category(address, locality):
+    prompt = f"""You are an expert on Delhi property registration law and circle rate categories.
+The Government of Delhi divides all residential colonies and villages into 8 categories (A to H).
+
+Reference Guidelines:
+- Category A (Premium): Vasant Vihar, Golf Links, Jor Bagh, Maharani Bagh, Panchsheel Park, Friends Colony, Shanti Niketan, Sunder Nagar, West End, Anand Niketan, Chanakyapuri.
+- Category B (Very High): Hauz Khas, Hauz Khas Enclave, Defence Colony, Greater Kailash I/II/III/IV, Safdarjung Enclave, Gulmohar Park, Green Park, South Extension, Anand Lok, Nizamuddin East.
+- Category C (High): Lajpat Nagar, Karol Bagh, Patel Nagar, Alaknanda, Kalkaji, Chittaranjan Park (CR Park), Malviya Nagar, East of Kailash, Vasant Kunj, Munirka.
+- Category D (Moderate): Dwarka, Rohini, Daryaganj, Pitampura, Laxmi Nagar, Shalimar Bagh, Paschim Vihar, Janakpuri, Hari Nagar, Kirti Nagar, Mayur Vihar.
+- Category E (Low-Moderate): Chandni Chowk, Dilshad Garden, Hauz Qazi, Geeta Colony, Pahar Ganj.
+- Category F (Low): Anand Vihar, Nand Nagri, Majnu ka Tila, Yamuna Vihar, Nehru Place.
+- Category G (Very Low): Ambedkar Nagar, Jahangirpuri, Sultanpuri, Dakshinpuri, Sangam Vihar.
+- Category H (Rural): Sultanpur Majra, rural agricultural lands.
+
+Given the property address: "{address}" and locality: "{locality}"
+Classify it into the correct category. Return ONLY the category letter ("A", "B", "C", "D", "E", "F", "G", "H") or "null".
+Do not write any explanation or markdown. Return exactly one character.
+"""
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        cat = response.text.strip().upper()
+        if len(cat) == 1 and cat in "ABCDEFGH":
+            return cat
+    except Exception as e:
+        print("Error during specialized locality classification:", e)
+    return None
+
+
 def parse_index_ii(file_path, forced_subtype=None):
     document_text = extract_text_from_PDF(file_path)
 
@@ -307,6 +338,9 @@ PROPERTY IDENTITY & DESCRIPTION
 - society_building_address        (ALWAYS FULL ADDRESS, exactly as written)
 - flat_no                         (ONLY the flat number, e.g. "6" — not floor or building)
 - area                            (include unit: sq.mt or sq.ft)
+- property_type                   (must be one of: "dda_flat", "private_flat", "plot" or null. DDA/Cooperative/CGHS flat is "dda_flat", a builder flat or private apartment is "private_flat", open land plot is "plot")
+- buyer_gender                    (must be one of: "male", "female", "joint" or null. If all buyers/transferees are female, "female". If all are male, "male". If a mix of male and female, "joint")
+- construction_year               (year of completion of the building or construction year mentioned, integer or null)
 - village
 - district
 - boundary_north
@@ -387,6 +421,14 @@ DOCUMENT:
         ACT_data["_provisional"]                = False
         ACT_data["_needs_human_classification"] = False
         ACT_data["_classification"]             = classification
+
+        # Call specialized locality classifier
+        addr = ACT_data.get("society_building_address") or ""
+        loc = ACT_data.get("society_building_name") or ""
+        if addr or loc:
+            category_char = classify_locality_category(addr, loc)
+            if category_char:
+                ACT_data["locality_category"] = category_char
 
         # Normalize document_type and txn_type based on the classification
         if category == "sale":
@@ -503,18 +545,17 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
         "STRICT RULES:\n"
         "1. For ANY question about THIS property — owners, dates, prices, chain, "
         "findings, encumbrances, parties, documents — answer ONLY from the data "
-        "provided below. Never invent, assume, or infer facts that are not present. "
-        "If the data does not contain the answer, say plainly: 'That information "
-        "isn't in the parsed documents.' Do not guess.\n"
-        "2. You MAY answer general definitional questions (e.g. 'what is an "
+        "provided below. Never invent, assume facts that are not present. "
+    
+        "2. You MUST answer general definitional questions (e.g. 'what is an "
         "encumbrance?', 'what does a release deed do?') from general legal knowledge "
         "— but when you do, make clear it is a general explanation, not a fact about "
         "this property.\n"
         "3. Never give legal advice or opinions on validity beyond what the findings "
-        "state. You surface and explain what the data shows; the reviewer judges.\n"
-        "4. Be concise and precise. Use the actual names, doc numbers, and dates from "
+        "state. But you are allowed to have an opinion and present it as long as you clearly state it's not final.\n"
+        "4. Be clear and natural not ROBOTIC and dry. Use the actual names, doc numbers, and dates from "
         "the data. When referring to a finding, explain what it means in plain terms.\n"
-        "5. If asked to summarise, base the summary strictly on the data."
+        "5. If asked to summarise, base the summary on the data."
         + scope_clause +
         "\n\n=== PROPERTY DATA (your entire factual world for this property) ===\n"
         + context_json +

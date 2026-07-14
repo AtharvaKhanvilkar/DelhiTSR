@@ -2,10 +2,112 @@ import uuid
 import os
 import json
 import shutil
-from flask import Flask, render_template, request, redirect
+import re
+import random
+import datetime
+import smtplib
+from email.mime.text import MIMEText
+from flask import Flask, render_template, request, redirect, url_for, flash, abort, session
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from main import extract_text_from_PDF
+from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['REMEMBER_COOKIE_DURATION'] = datetime.timedelta(days=365)
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+
+db = SQLAlchemy(app)
+
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+# Database Models
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    projects = db.relationship('Project', backref='owner', lazy=True)
+
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_name = db.Column(db.String(150), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class UserOTP(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), nullable=False)
+    otp_code = db.Column(db.String(6), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+def send_otp_email(email, otp_code):
+    smtp_server = os.environ.get("SMTP_SERVER")
+    smtp_port = os.environ.get("SMTP_PORT")
+    smtp_username = os.environ.get("SMTP_USERNAME")
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    sender_email = os.environ.get("SENDER_EMAIL")
+
+    subject = f"Your AutoTSR Verification Code: {otp_code}"
+    body = f"Hello,\n\nYour One-Time Password (OTP) for AutoTSR is: {otp_code}\n\nThis code will expire in 5 minutes.\n\nRegards,\nAutoTSR Team"
+
+    if smtp_server and smtp_port and smtp_username and smtp_password and sender_email:
+        try:
+            msg = MIMEText(body)
+            msg['Subject'] = subject
+            msg['From'] = sender_email
+            msg['To'] = email
+
+            with smtplib.SMTP(smtp_server, int(smtp_port)) as server:
+                server.starttls()
+                server.login(smtp_username, smtp_password)
+                server.sendmail(sender_email, [email], msg.as_string())
+            print(f"[SMTP] Successfully sent OTP to {email}")
+            return True
+        except Exception as e:
+            print(f"[SMTP ERROR] Failed to send email via SMTP: {e}")
+            
+    print(f"\n==========================================")
+    print(f"[DEVELOPER MODE] OTP for {email} is: {otp_code}")
+    print(f"==========================================\n")
+    return False
+
+def migrate_existing_projects(user_id):
+    if os.path.exists(PROJECT_FOLDER):
+        for item in os.listdir(PROJECT_FOLDER):
+            item_path = os.path.join(PROJECT_FOLDER, item)
+            if os.path.isdir(item_path):
+                existing = Project.query.filter_by(project_name=item).first()
+                if not existing:
+                    proj = Project(project_name=item, user_id=user_id)
+                    db.session.add(proj)
+        db.session.commit()
+
+def check_project_owner(project_name):
+    if not current_user.is_authenticated:
+        return False
+    proj = Project.query.filter_by(project_name=project_name, user_id=current_user.id).first()
+    return proj is not None
+
+with app.app_context():
+    inspector = db.inspect(db.engine)
+    if 'user' in inspector.get_table_names():
+        columns = [c['name'] for c in inspector.get_columns('user')]
+        if 'password_hash' in columns:
+            db.drop_all()
+            print("Dropped old database tables to migrate to passwordless schema.")
+    db.create_all()
 
 # Folders
 UPLOAD_FOLDER = "uploads"
@@ -460,10 +562,261 @@ def _match_release_to_mortgage(enc, d2):
             
     return None, None, None, 0, False, False, False, False
 
+def generate_and_send_otp(email):
+    # Delete old OTPs for this email
+    UserOTP.query.filter_by(email=email).delete()
+    
+    # Generate 6-digit code
+    code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    
+    # Create OTP record (expires in 5 minutes)
+    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    otp = UserOTP(email=email, otp_code=code, expires_at=expires)
+    db.session.add(otp)
+    db.session.commit()
+    
+    # Send email
+    send_otp_email(email, code)
+
+# Auth Routes
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("projects"))
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        if not email:
+            flash("Email address is required.")
+            return render_template("login.html")
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            flash("Email address is not registered. Please sign up first.")
+            return render_template("login.html")
+            
+        generate_and_send_otp(email)
+        return redirect(url_for("verify", email=email, purpose="login"))
+    return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("projects"))
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        if not email:
+            flash("Email address is required.")
+            return render_template("register.html")
+            
+        # Whitelist verification
+        whitelist_path = "allowed_emails.txt"
+        is_authorized = False
+        if os.path.exists(whitelist_path):
+            with open(whitelist_path, "r", encoding="utf-8") as f:
+                allowed = [line.strip().lower() for line in f if line.strip()]
+            if email.lower() in allowed:
+                is_authorized = True
+        
+        if not is_authorized:
+            flash("This email address is not authorized for the alpha preview. Please contact the administrator.")
+            return render_template("register.html")
+            
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash("Email already registered. Please sign in instead.")
+            return render_template("register.html")
+            
+        generate_and_send_otp(email)
+        return redirect(url_for("verify", email=email, purpose="register"))
+    return render_template("register.html")
+
+@app.route("/verify/<email>/<purpose>", methods=["GET", "POST"])
+def verify(email, purpose):
+    if current_user.is_authenticated:
+        return redirect(url_for("projects"))
+        
+    if request.method == "POST":
+        otp_code = request.form.get("otp_code", "").strip()
+        if not otp_code:
+            flash("OTP code is required.")
+            return render_template("verify.html", email=email, purpose=purpose)
+            
+        # Validate OTP
+        now = datetime.datetime.utcnow()
+        record = UserOTP.query.filter_by(email=email, otp_code=otp_code).first()
+        if not record or record.expires_at < now:
+            flash("Invalid or expired verification code.")
+            return render_template("verify.html", email=email, purpose=purpose)
+            
+        # Clear OTP from database
+        db.session.delete(record)
+        db.session.commit()
+        
+        if purpose == "register":
+            existing_user = User.query.filter_by(email=email).first()
+            if not existing_user:
+                is_first = User.query.count() == 0
+                new_user = User(email=email)
+                db.session.add(new_user)
+                db.session.commit()
+                
+                if is_first:
+                    migrate_existing_projects(new_user.id)
+                login_user(new_user, remember=True)
+            else:
+                login_user(existing_user, remember=True)
+        else: # login
+            user = User.query.filter_by(email=email).first()
+            if user:
+                login_user(user, remember=True)
+            else:
+                flash("Login failed. Account not found.")
+                return redirect(url_for("login"))
+                
+        return redirect(url_for("projects"))
+        
+    return render_template("verify.html", email=email, purpose=purpose)
+
+@app.route("/login/google")
+def login_google():
+    client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+    
+    if not client_id or not client_secret:
+        return redirect(url_for("google_mock"))
+        
+    redirect_uri = url_for("google_callback", _external=True)
+    state = uuid.uuid4().hex
+    
+    authorization_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={redirect_uri}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile&"
+        f"state={state}"
+    )
+    return redirect(authorization_url)
+
+@app.route("/login/google/callback")
+def google_callback():
+    code = request.args.get("code")
+    if not code:
+        flash("Google authentication failed: no authorization code returned.")
+        return redirect(url_for("login"))
+        
+    client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    client_secret = os.environ.get("GOOGLE_CLIENT_SECRET")
+    redirect_uri = url_for("google_callback", _external=True)
+    
+    import requests
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
+        "grant_type": "authorization_code"
+    }
+    
+    try:
+        r = requests.post(token_url, data=data)
+        if r.status_code != 200:
+            app.logger.error(f"[GOOGLE OAUTH ERROR RESPONSE] Status: {r.status_code}, Body: {r.text}")
+        r.raise_for_status()
+        token_data = r.json()
+        
+        access_token = token_data.get("access_token")
+        userinfo_url = "https://www.googleapis.com/oauth2/v3/userinfo"
+        headers = {"Authorization": f"Bearer {access_token}"}
+        user_r = requests.get(userinfo_url, headers=headers)
+        user_r.raise_for_status()
+        userinfo = user_r.json()
+        email = userinfo.get("email")
+        
+        if not email:
+            flash("Could not retrieve email from Google.")
+            return redirect(url_for("login"))
+            
+        whitelist_path = "allowed_emails.txt"
+        is_authorized = False
+        if os.path.exists(whitelist_path):
+            with open(whitelist_path, "r", encoding="utf-8") as f:
+                allowed = [line.strip().lower() for line in f if line.strip()]
+            if email.lower() in allowed:
+                is_authorized = True
+        
+        if not is_authorized:
+            flash("This email address is not authorized for the alpha preview. Please contact the administrator.")
+            return redirect(url_for("login"))
+            
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            is_first = User.query.count() == 0
+            user = User(email=email)
+            db.session.add(user)
+            db.session.commit()
+            if is_first:
+                migrate_existing_projects(user.id)
+                
+        login_user(user, remember=True)
+        return redirect(url_for("projects"))
+        
+    except Exception as e:
+        flash(f"Google Sign-In failed: {e}")
+        return redirect(url_for("login"))
+
+@app.route("/login/google/mock", methods=["GET", "POST"])
+def google_mock():
+    allowed = []
+    whitelist_path = "allowed_emails.txt"
+    if os.path.exists(whitelist_path):
+        with open(whitelist_path, "r", encoding="utf-8") as f:
+            allowed = [line.strip() for line in f if line.strip()]
+    return render_template("google_mock.html", allowed_emails=allowed)
+
+@app.route("/login/google/mock/callback", methods=["POST"])
+def google_mock_callback():
+    email = request.form.get("email", "").strip()
+    if not email:
+        flash("Email is required for simulation.")
+        return redirect(url_for("google_mock"))
+        
+    whitelist_path = "allowed_emails.txt"
+    is_authorized = False
+    if os.path.exists(whitelist_path):
+        with open(whitelist_path, "r", encoding="utf-8") as f:
+            allowed = [line.strip().lower() for line in f if line.strip()]
+        if email.lower() in allowed:
+            is_authorized = True
+            
+    if not is_authorized:
+        flash("This email address is not authorized for the alpha preview.")
+        return redirect(url_for("google_mock"))
+        
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        is_first = User.query.count() == 0
+        user = User(email=email)
+        db.session.add(user)
+        db.session.commit()
+        if is_first:
+            migrate_existing_projects(user.id)
+            
+    login_user(user, remember=True)
+    return redirect(url_for("projects"))
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
 # Home page
 @app.route("/")
 def home():
-    return render_template("index.html")
+    if current_user.is_authenticated:
+        return redirect(url_for("projects"))
+    return redirect(url_for("login"))
 
 # Proposed modal designs draft preview
 @app.route("/proposed-modal-draft")
@@ -472,54 +825,64 @@ def proposed_modal_draft():
 
 # Projects list
 @app.route("/projects")
+@login_required
 def projects():
+    user_projects = [p.project_name for p in Project.query.filter_by(user_id=current_user.id).all()]
     projects_list = []
-    for folder in os.listdir(PROJECT_FOLDER):
-        id_info_path = os.path.join(PROJECT_FOLDER, folder, "id_info.json")
-        id_type = None
-        id_value = None
-        locality = None
-        sro = None
-        category = None
-        land_use = None
-        flat_no = None
-        floor_no = None
-        address = None
-        search_period = None
-        mcd_upic = None
-        if os.path.exists(id_info_path):
-            with open(id_info_path) as f:
-                info = json.load(f)
-                id_type = info.get("id_type")
-                id_value = info.get("id_value")
-                locality = info.get("locality")
-                sro = info.get("sro")
-                category = info.get("category")
-                land_use = info.get("land_use")
-                flat_no = info.get("flat_no")
-                floor_no = info.get("floor_no")
-                address = info.get("address")
-                search_period = info.get("search_period")
-                mcd_upic = info.get("mcd_upic")
-        projects_list.append({
-            "folder": folder,
-            "name": folder.rsplit("_", 1)[0],
-            "id_type": id_type,
-            "id_value": id_value,
-            "locality": locality,
-            "sro": sro,
-            "category": category,
-            "land_use": land_use,
-            "flat_no": flat_no,
-            "floor_no": floor_no,
-            "address": address,
-            "search_period": search_period,
-            "mcd_upic": mcd_upic
-        })
+    if os.path.exists(PROJECT_FOLDER):
+        for folder in os.listdir(PROJECT_FOLDER):
+            if folder not in user_projects:
+                continue
+            id_info_path = os.path.join(PROJECT_FOLDER, folder, "id_info.json")
+            id_type = None
+            id_value = None
+            locality = None
+            sro = None
+            category = None
+            land_use = None
+            flat_no = None
+            floor_no = None
+            address = None
+            search_period = None
+            mcd_upic = None
+            if os.path.exists(id_info_path):
+                with open(id_info_path) as f:
+                    info = json.load(f)
+                    id_type = info.get("id_type")
+                    id_value = info.get("id_value")
+                    locality = info.get("locality")
+                    sro = info.get("sro")
+                    category = info.get("category")
+                    land_use = info.get("land_use")
+                    flat_no = info.get("flat_no")
+                    floor_no = info.get("floor_no")
+                    address = info.get("address")
+                    search_period = info.get("search_period")
+                    mcd_upic = info.get("mcd_upic")
+            # Count PDF files in this project folder
+            project_path = os.path.join(PROJECT_FOLDER, folder)
+            doc_count = len([f for f in os.listdir(project_path) if f.lower().endswith(".pdf")]) if os.path.isdir(project_path) else 0
+            projects_list.append({
+                "folder": folder,
+                "name": folder.rsplit("_", 1)[0],
+                "id_type": id_type,
+                "id_value": id_value,
+                "locality": locality,
+                "sro": sro,
+                "category": category,
+                "land_use": land_use,
+                "flat_no": flat_no,
+                "floor_no": floor_no,
+                "address": address,
+                "search_period": search_period,
+                "mcd_upic": mcd_upic,
+                "doc_count": doc_count
+            })
     return render_template("projects.html", projects=projects_list)
 
 # Create new project
 @app.route("/create_project", methods=["POST"])
+@login_required
 def create_project():
     project_name = request.form.get("project_name", "").strip()
     locality = request.form.get("locality", "").strip()
@@ -528,23 +891,27 @@ def create_project():
     land_use = request.form.get("land_use", "").strip()
     flat_no = request.form.get("flat_no", "").strip()
     floor_no = request.form.get("floor_no", "").strip()
-    id_type = request.form.get("id_type", "").strip()
-    id_value = request.form.get("id_value", "").strip()
     address = request.form.get("address", "").strip()
     search_period = request.form.get("search_period", "").strip()
     mcd_upic = request.form.get("mcd_upic", "").strip()
-    confirm = request.form.get("confirm")
-
-    # Only project_name and confirm are strictly required to start a project metadata file
-    if not project_name or not confirm:
-        return redirect("/projects")
-
-    project_id = str(uuid.uuid4())[:8]
-    folder_name = f"{project_name}_{project_id}"
+    id_type = request.form.get("id_type", "").strip()
+    id_value = request.form.get("id_value", "").strip()
+    property_type = request.form.get("property_type", "").strip()
+    buyer_gender = request.form.get("buyer_gender", "").strip()
+    construction_year = request.form.get("construction_year", "").strip()
+    
+    if not project_name:
+        return redirect(url_for("projects"))
+        
+    safe_name = "".join([c if c.isalnum() or c in ("-", "_") else "_" for c in project_name])
+    uid = uuid.uuid4().hex[:8]
+    folder_name = f"{safe_name}_{uid}"
+    
     project_path = os.path.join(PROJECT_FOLDER, folder_name)
     os.makedirs(project_path, exist_ok=True)
-
-    with open(os.path.join(project_path, "id_info.json"), "w") as f:
+    
+    id_info_path = os.path.join(project_path, "id_info.json")
+    with open(id_info_path, "w") as f:
         json.dump({
             "id_type": id_type,
             "id_value": id_value,
@@ -556,22 +923,40 @@ def create_project():
             "floor_no": floor_no,
             "address": address,
             "search_period": search_period,
-            "mcd_upic": mcd_upic
+            "mcd_upic": mcd_upic,
+            "property_type": property_type,
+            "buyer_gender": buyer_gender,
+            "construction_year": construction_year
         }, f)
-
-    return redirect("/projects")
-
+        
+    proj = Project(project_name=folder_name, user_id=current_user.id)
+    db.session.add(proj)
+    db.session.commit()
+    
+    return redirect(f"/workspace/{folder_name}")
 # Delete project
 @app.route("/delete_project/<project_name>", methods=["POST"])
+@login_required
 def delete_project(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     if os.path.exists(project_path):
         shutil.rmtree(project_path)
-    return redirect("/projects")
+    
+    proj = Project.query.filter_by(project_name=project_name, user_id=current_user.id).first()
+    if proj:
+        db.session.delete(proj)
+        db.session.commit()
+        
+    return redirect(url_for("projects"))
 
 # Workspace page
 @app.route("/workspace/<project_name>", methods=["GET", "POST"])
+@login_required
 def workspace(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     os.makedirs(project_path, exist_ok=True)
 
@@ -652,7 +1037,10 @@ def workspace(project_name):
 
 # Skeleton workspace page (Playground UI layout)
 @app.route("/skeleton/<project_name>", methods=["GET"])
+@login_required
 def workspace_skeleton(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     os.makedirs(project_path, exist_ok=True)
     index_iis = [f for f in os.listdir(project_path) if f.lower().endswith(".pdf")]
@@ -668,6 +1056,9 @@ def workspace_skeleton(project_name):
     address = None
     search_period = None
     mcd_upic = None
+    property_type = None
+    buyer_gender = None
+    construction_year = None
     id_info_path = os.path.join(project_path, "id_info.json")
     if os.path.exists(id_info_path):
         with open(id_info_path) as f:
@@ -683,6 +1074,9 @@ def workspace_skeleton(project_name):
             address = info.get("address")
             search_period = info.get("search_period")
             mcd_upic = info.get("mcd_upic")
+            property_type = info.get("property_type")
+            buyer_gender = info.get("buyer_gender")
+            construction_year = info.get("construction_year")
 
     return render_template(
         "workspace_skeleton.html",
@@ -698,13 +1092,19 @@ def workspace_skeleton(project_name):
         floor_no=floor_no,
         address=address,
         search_period=search_period,
-        mcd_upic=mcd_upic
+        mcd_upic=mcd_upic,
+        property_type=property_type,
+        buyer_gender=buyer_gender,
+        construction_year=construction_year
     )
 
 
 # Parse a PDF
 @app.route("/parse/<project_name>/<path:filename>")
+@login_required
 def parse(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     from main import parse_index_ii
     project_path = os.path.join(PROJECT_FOLDER, project_name)
@@ -737,7 +1137,10 @@ def parse(project_name, filename):
 
 
 @app.route("/classify/<project_name>/<path:filename>", methods=["POST"])
+@login_required
 def classify_file(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
     """
     Reviewer-confirmed classification for a provisional document.
     Body: {"subtype": "<one of DEED_SUBTYPES keys>"}.
@@ -783,9 +1186,108 @@ def classify_file(project_name, filename):
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+# Replace an attached PDF file
+@app.route("/replace_file/<project_name>/<path:filename>", methods=["POST"])
+@login_required
+def replace_file(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    uploaded_file = request.files.get("replacement_file")
+    if not uploaded_file:
+        return jsonify({"ok": False, "error": "No file uploaded"}), 400
+        
+    old_pdf_path = os.path.join(project_path, filename)
+    old_result_path = os.path.splitext(old_pdf_path)[0] + "_result.json"
+    
+    try:
+        if os.path.exists(old_pdf_path):
+            os.remove(old_pdf_path)
+        if os.path.exists(old_result_path):
+            os.remove(old_result_path)
+    except OSError as e:
+        return jsonify({"ok": False, "error": f"Failed to delete old files: {e}"}), 500
+        
+    try:
+        uploaded_file.save(old_pdf_path)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# Save updated parse result for a file
+@app.route("/save_result/<project_name>/<path:filename>", methods=["POST"])
+@login_required
+def save_result(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
+    
+    payload = request.get_json()
+    if not payload:
+        return jsonify({"ok": False, "error": "No JSON payload provided"}), 400
+        
+    result_filename = os.path.splitext(filename)[0] + "_result.json"
+    result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
+    
+    try:
+        with open(result_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# Save project settings
+@app.route("/save_settings/<project_name>", methods=["POST"])
+@login_required
+def save_settings(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
+        
+    payload = request.get_json()
+    if not payload:
+        return jsonify({"ok": False, "error": "No JSON payload provided"}), 400
+        
+    info_path = os.path.join(PROJECT_FOLDER, project_name, "id_info.json")
+    if not os.path.exists(info_path):
+        return jsonify({"ok": False, "error": "Project metadata not found"}), 404
+        
+    try:
+        with open(info_path, "r", encoding="utf-8") as f:
+            meta = json.load(f)
+    except Exception as e:
+        meta = {}
+
+    # Update settings dictionary
+    meta["settings"] = payload
+    
+    # Also synchronize flat-level keys if overridden
+    if "property_type" in payload:
+        p_type = payload["property_type"]
+        if "dda" in p_type or "society" in p_type or "cghs" in p_type:
+            meta["category"] = "dda"
+        elif "plot" in p_type or "land" in p_type:
+            meta["category"] = "plot"
+        else:
+            meta["category"] = "flat"
+            
+    if "land_use" in payload:
+        meta["land_use"] = payload["land_use"]
+
+    try:
+        with open(info_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # Rename a file within a project
 @app.route("/rename_file/<project_name>/<path:filename>", methods=["POST"])
+@login_required
 def rename_file(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     from urllib.parse import unquote
     filename = unquote(filename)
@@ -822,7 +1324,10 @@ def rename_file(project_name, filename):
 
 # Delete a file from a project
 @app.route("/delete_file/<project_name>/<path:filename>", methods=["POST"])
+@login_required
 def delete_file(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
     from urllib.parse import unquote
     filename = unquote(filename)
     file_path = os.path.join(PROJECT_FOLDER, project_name, filename)
@@ -838,8 +1343,11 @@ def delete_file(project_name, filename):
 
 # Edit project
 @app.route("/edit_project", methods=["POST"])
+@login_required
 def edit_project():
     folder = request.form.get("folder", "").strip()
+    if not check_project_owner(folder):
+        abort(403)
     new_name = request.form.get("project_name", "").strip()
     locality = request.form.get("locality", "").strip()
     sro = request.form.get("sro", "").strip()
@@ -852,9 +1360,12 @@ def edit_project():
     address = request.form.get("address", "").strip()
     search_period = request.form.get("search_period", "").strip()
     mcd_upic = request.form.get("mcd_upic", "").strip()
+    property_type = request.form.get("property_type", "").strip()
+    buyer_gender = request.form.get("buyer_gender", "").strip()
+    construction_year = request.form.get("construction_year", "").strip()
 
     if not folder or not new_name:
-        return redirect("/projects")
+        return redirect(url_for("projects"))
 
     old_path = os.path.join(PROJECT_FOLDER, folder)
 
@@ -870,6 +1381,11 @@ def edit_project():
     if os.path.exists(old_path) and old_path != new_path:
         try:
             os.rename(old_path, new_path)
+            # Update database record
+            proj = Project.query.filter_by(project_name=folder, user_id=current_user.id).first()
+            if proj:
+                proj.project_name = new_folder
+                db.session.commit()
         except Exception:
             new_path = old_path
             new_folder = folder
@@ -898,7 +1414,10 @@ def edit_project():
         "floor_no": floor_no,
         "address": address,
         "search_period": search_period,
-        "mcd_upic": mcd_upic
+        "mcd_upic": mcd_upic,
+        "property_type": property_type,
+        "buyer_gender": buyer_gender,
+        "construction_year": construction_year
     })
 
     with open(id_info_path, "w") as f:
@@ -909,7 +1428,10 @@ def edit_project():
 
 # Serve PDF file for viewer
 @app.route("/pdf/<project_name>/<path:filename>")
+@login_required
 def serve_pdf(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import send_from_directory
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     return send_from_directory(project_path, filename)
@@ -917,7 +1439,10 @@ def serve_pdf(project_name, filename):
 
 # Load saved parse result for a file
 @app.route("/result/<project_name>/<path:filename>")
+@login_required
 def load_result(project_name, filename):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     result_filename = os.path.splitext(filename)[0] + "_result.json"
     result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
@@ -925,6 +1450,15 @@ def load_result(project_name, filename):
         return jsonify({"exists": False})
     with open(result_path) as f:
         data = json.load(f)
+
+    # Standardize result data and initialize original_data
+    if isinstance(data, dict):
+        import copy
+        if "data" in data:
+            if "original_data" not in data:
+                data["original_data"] = copy.deepcopy(data["data"])
+        else:
+            data = {"parsed": True, "data": data, "original_data": copy.deepcopy(data)}
 
     # Inject dynamic signatory information by scanning the pdf text if available
     try:
@@ -1631,6 +2165,222 @@ def _build_events_and_errors(project_path):
                         "actual": doc_sro or "Not stated"
                     })
 
+            # Calculate circle rate value and expected stamp duty / registration fee
+            circle_val = 0.0
+            area_sqm_val = 0.0
+            expected_sd_val = 0.0
+            expected_reg_val = 0.0
+            
+            doc_area = data.get("area")
+            price = data.get("consideration")
+            
+            if "SALE" in txn or "AGREEMENT" in txn or "GIFT" in txn:
+                meta_locality = meta.get("locality", "").strip()
+                p_type = data.get("property_type") or meta.get("property_type") or "private_flat"
+                const_year = data.get("construction_year") or meta.get("construction_year")
+                
+                # Parse execution year
+                reg_year = None
+                exec_date = data.get("date_of_execution")
+                usage_type = data.get("usage_type") or data.get("land_use") or meta.get("land_use")
+                locality_category = data.get("locality_category")
+                if exec_date and "-" in exec_date:
+                    parts = exec_date.split("-")
+                    if len(parts) == 3 and len(parts[2]) == 4:
+                        reg_year = parts[2]
+                        
+                circle_val, area_sqm_val = calculate_circle_rate_value(
+                    meta_locality, doc_area, p_type, const_year, reg_year, usage_type, locality_category
+                )
+                
+                # Check for property classification mismatch between reviewer meta and document
+                meta_cat = (meta.get("category") or "").strip().lower()
+                doc_p_type = (data.get("property_type") or "").strip().lower()
+                if doc_p_type and meta_cat:
+                    is_meta_dda = "dda" in meta_cat or "society" in meta_cat or "cghs" in meta_cat
+                    is_doc_dda = "dda" in doc_p_type or "society" in doc_p_type or "cghs" in doc_p_type
+                    is_meta_plot = "plot" in meta_cat or "land" in meta_cat
+                    is_doc_plot = "plot" in doc_p_type or "land" in doc_p_type
+                    
+                    mismatch = False
+                    if is_meta_dda != is_doc_dda:
+                        mismatch = True
+                    elif is_meta_plot != is_doc_plot:
+                        mismatch = True
+                        
+                    if mismatch:
+                        meta_label = "DDA/Society Flat" if is_meta_dda else ("Land Plot" if is_meta_plot else "Private Builder Flat")
+                        doc_label = "DDA/Society Flat" if is_doc_dda else ("Land Plot" if is_doc_plot else "Private Builder Flat")
+                        
+                        msg = f"Property Type Conflict: Reviewer classified property as '{meta_label}', but the document extraction suggests it is a '{doc_label}'."
+                        if is_meta_dda and not is_doc_dda:
+                            msg += " This presents a stamp duty under-valuation risk as private builder flats carry higher circle rates."
+                        else:
+                            msg += " This may result in incorrect circle rate valuation."
+                            
+                        errors.append({
+                            "severity": "WARNING",
+                            "type": "PROPERTY_TYPE_MISMATCH",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": msg,
+                            "expected": meta_label,
+                            "actual": doc_label
+                        })
+                
+                # Valuation basis is the higher of consideration or circle rate value
+                if circle_val > 0.0:
+                    actual_price = price if isinstance(price, (int, float)) else 0.0
+                    valuation_basis = max(actual_price, circle_val)
+                    
+                    # Calculate expected stamp duty based on gender
+                    gender = (data.get("buyer_gender") or meta.get("buyer_gender") or "").strip().lower()
+                    
+                    if not gender:
+                        # Attempt to infer gender from transferee/buyer names
+                        transferee_names = []
+                        if data.get("buyer_names"):
+                            transferee_names.extend(data.get("buyer_names"))
+                        if data.get("donee_name"):
+                            transferee_names.append(data.get("donee_name"))
+                        for p in data.get("transferee_parties") or []:
+                            if p.get("name"):
+                                transferee_names.append(p.get("name"))
+                                
+                        inferred_gender = None
+                        for name in transferee_names:
+                            name_lower = name.lower()
+                            if any(p in name_lower for p in ["mrs.", "smt.", "miss.", "कुमारी", "श्रीमती"]):
+                                inferred_gender = "female"
+                                break
+                            elif any(p in name_lower for p in ["mr.", "shri.", "sh.", "श्री"]):
+                                inferred_gender = "male"
+                                
+                        active_gender = inferred_gender or "male"
+                    else:
+                        active_gender = gender
+                        
+                    # Get historical stamp duty rate
+                    sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
+                        
+                    expected_sd_val = valuation_basis * sd_rate
+                    expected_reg_val = valuation_basis * 0.01
+                    
+                    # Add validation errors/warnings:
+                    actual_sd = data.get("stamp_duty")
+                    actual_sd_val = actual_sd if isinstance(actual_sd, (int, float)) else 0.0
+                    actual_reg = data.get("registration_fee")
+                    actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
+                    
+                    # 1. Under Circle Rate Valuation check
+                    if "SALE" in txn and actual_price > 0 and actual_price < circle_val:
+                        errors.append({
+                            "severity": "ERROR",
+                            "type": "UNDER_CIRCLE_RATE_VALUATION",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": f"Critical Error: Declared consideration (₹{int(round(actual_price)):,}) is lower than government circle rate valuation (₹{int(round(circle_val)):,}). This presents a legal undervaluation risk under Section 47-A.",
+                            "expected": f"₹{int(round(circle_val)):,}",
+                            "actual": f"₹{int(round(actual_price)):,}"
+                        })
+                        
+                    # 2. Insufficient Stamp Duty check
+                    if actual_sd_val > 0 and actual_sd_val < expected_sd_val:
+                        errors.append({
+                            "severity": "ERROR",
+                            "type": "INSUFFICIENT_STAMP_DUTY",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": f"Critical Error: Stamp duty paid (₹{int(round(actual_sd_val)):,}) is lower than the expected rate of {sd_rate*100}% on the valuation basis (₹{int(round(expected_sd_val)):,}).",
+                            "expected": f"₹{int(round(expected_sd_val)):,} ({sd_rate*100}%)",
+                            "actual": f"₹{int(round(actual_sd_val)):,}"
+                        })
+                        
+                    # 3. Insufficient Registration Fee check
+                    if actual_reg_val > 0 and actual_reg_val < expected_reg_val:
+                        errors.append({
+                            "severity": "ERROR",
+                            "type": "INSUFFICIENT_REGISTRATION_FEE",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": f"Critical Error: Registration fee paid (₹{int(round(actual_reg_val)):,}) is lower than the expected 1% rate (₹{int(round(expected_reg_val)):,}).",
+                            "expected": f"₹{int(round(expected_reg_val)):,}",
+                            "actual": f"₹{int(round(actual_reg_val)):,}"
+                        })
+                else:
+                    # Pre-2007 or exempt document: check stamp duty using declared price as basis
+                    actual_price = price if isinstance(price, (int, float)) else 0.0
+                    valuation_basis = actual_price
+                    if valuation_basis > 0.0:
+                        gender = (data.get("buyer_gender") or meta.get("buyer_gender") or "").strip().lower()
+                        
+                        if not gender:
+                            # Attempt to infer gender from transferee/buyer names
+                            transferee_names = []
+                            if data.get("buyer_names"):
+                                transferee_names.extend(data.get("buyer_names"))
+                            if data.get("donee_name"):
+                                transferee_names.append(data.get("donee_name"))
+                            for p in data.get("transferee_parties") or []:
+                                if p.get("name"):
+                                    transferee_names.append(p.get("name"))
+                                    
+                            inferred_gender = None
+                            for name in transferee_names:
+                                name_lower = name.lower()
+                                if any(p in name_lower for p in ["mrs.", "smt.", "miss.", "कुमारी", "श्रीमती"]):
+                                    inferred_gender = "female"
+                                    break
+                                elif any(p in name_lower for p in ["mr.", "shri.", "sh.", "श्री"]):
+                                    inferred_gender = "male"
+                                    
+                            active_gender = inferred_gender or "male"
+                        else:
+                            active_gender = gender
+                            
+                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
+                        expected_sd_val = valuation_basis * sd_rate
+                        expected_reg_val = valuation_basis * 0.01
+            elif "MORTGAGE" in txn or "INTIMATION" in txn:
+                principal = data.get("principal_amount_figures") or data.get("principal_amount") or data.get("consideration")
+                if isinstance(principal, (int, float)) and principal > 0:
+                    rate = 0.005 if "INTIMATION" in txn or "DEPOSIT" in txn else 0.02
+                    expected_sd_val = principal * rate
+                    expected_reg_val = principal * 0.01
+            elif "LEAVE" in txn or "LICENSE" in txn or "LEASE" in txn:
+                fee = data.get("license_fee") or data.get("rent")
+                if isinstance(fee, (int, float)) and fee > 0:
+                    annual_rent = fee * 12
+                    expected_sd_val = annual_rent * 0.02
+                    expected_reg_val = annual_rent * 0.01
+            elif "RELEASE" in txn or "RELINQUISHMENT" in txn:
+                # Check if it is a mortgage release
+                cls_info = data.get("_classification") or {}
+                sub_type_l = (cls_info.get("subtype") or "").lower()
+                is_mortgage_release = "mortgage" in sub_type_l or "reconveyance" in sub_type_l or "discharge" in sub_type_l
+                
+                if is_mortgage_release:
+                    expected_sd_val = 500.0
+                    expected_reg_val = 100.0
+                else:
+                    rel_amt = data.get("released_amount") or data.get("released_amount_figures") or data.get("consideration")
+                    if isinstance(rel_amt, (int, float)) and rel_amt > 0:
+                        expected_sd_val = rel_amt * 0.02
+                        expected_reg_val = rel_amt * 0.01
+            elif "RECONVEYANCE" in txn:
+                expected_sd_val = 500.0
+                expected_reg_val = 100.0
+            
+            # Save these in data dictionary (rounded to nearest integer)
+            data["circle_value"] = int(round(circle_val))
+            data["area_sqm"] = round(area_sqm_val, 2)
+            data["expected_stamp_duty"] = int(round(expected_sd_val))
+            data["expected_registration_fee"] = int(round(expected_reg_val))
+            
             # Delhi property law consideration validations
             if "SALE" in txn or "AGREEMENT" in txn:
                 price = data.get("consideration")
@@ -2307,8 +3057,13 @@ def _build_events_and_errors(project_path):
             "village":           data.get("village"),
             "district":          data.get("district"),
             "stamp_duty":        data.get("stamp_duty"),
+            "registration_fee":  data.get("registration_fee"),
             "market_value":      data.get("market_value"),
             "plot_no":           data.get("plot_no"),
+            "circle_value":      data.get("circle_value", 0.0),
+            "area_sqm":          data.get("area_sqm", 0.0),
+            "expected_stamp_duty": data.get("expected_stamp_duty", 0.0),
+            "expected_registration_fee": data.get("expected_registration_fee", 0.0),
             "transferor_parties": data.get("transferor_parties") or [],
             "transferee_parties": data.get("transferee_parties") or [],
         }
@@ -2956,8 +3711,8 @@ def _build_events_and_errors(project_path):
                 "event_date": enc["since_date"],
                 "source": enc["source_file"],
                 "message": f"Mortgage {enc['doc_no']} is fully resolved and discharged via linked release deed (explicit full release confirmed).",
-                "expected": f"₹{principal:,.2f}",
-                "actual": f"₹{total_released:,.2f}"
+                "expected": f"₹{int(round(principal)):,}",
+                "actual": f"₹{int(round(total_released)):,}"
             })
         else:
             diff = total_released - principal
@@ -2973,9 +3728,9 @@ def _build_events_and_errors(project_path):
                     "doc_no": enc["doc_no"],
                     "event_date": enc["since_date"],
                     "source": enc["source_file"],
-                    "message": f"Mortgage {enc['doc_no']} is fully resolved. Linked release amounts sum to principal (₹{total_released:,.2f}).",
-                    "expected": f"₹{principal:,.2f}",
-                    "actual": f"₹{total_released:,.2f}"
+                    "message": f"Mortgage {enc['doc_no']} is fully resolved. Linked release amounts sum to principal (₹{int(round(total_released)):,}).",
+                    "expected": f"₹{int(round(principal)):,}",
+                    "actual": f"₹{int(round(total_released)):,}"
                 })
             elif diff < -0.01:
                 enc["status"] = "PARTIALLY_RELEASED"
@@ -2987,9 +3742,9 @@ def _build_events_and_errors(project_path):
                     "doc_no": enc["doc_no"],
                     "event_date": enc["since_date"],
                     "source": enc["source_file"],
-                    "message": f"Mortgage {enc['doc_no']} is only partially discharged. A remaining balance shortfall of ₹{shortfall:,.2f} exists relative to the registered principal amount.",
-                    "expected": f"₹{principal:,.2f}",
-                    "actual": f"₹{total_released:,.2f}"
+                    "message": f"Mortgage {enc['doc_no']} is only partially discharged. A remaining balance shortfall of ₹{int(round(shortfall)):,} exists relative to the registered principal amount.",
+                    "expected": f"₹{int(round(principal)):,}",
+                    "actual": f"₹{int(round(total_released)):,}"
                 })
             else:
                 enc["status"] = "RELEASE_OVERFLOW"
@@ -3001,9 +3756,9 @@ def _build_events_and_errors(project_path):
                     "doc_no": enc["doc_no"],
                     "event_date": enc["since_date"],
                     "source": enc["source_file"],
-                    "message": f"Discharge value overflow on Mortgage {enc['doc_no']}. Linked release deeds sum to ₹{total_released:,.2f}, which exceeds the registered principal of ₹{principal:,.2f} by ₹{overflow:,.2f}.",
-                    "expected": f"₹{principal:,.2f}",
-                    "actual": f"₹{total_released:,.2f}"
+                    "message": f"Discharge value overflow on Mortgage {enc['doc_no']}. Linked release deeds sum to ₹{int(round(total_released)):,}, which exceeds the registered principal of ₹{int(round(principal)):,} by ₹{int(round(overflow)):,}.",
+                    "expected": f"₹{int(round(principal)):,}",
+                    "actual": f"₹{int(round(total_released)):,}"
                 })
 
     # ── Cross-party identity check: same PAN/PIN on DIFFERENT people ──
@@ -3279,7 +4034,10 @@ def _build_events_and_errors(project_path):
 # Build events for a project
 # Clear all parse results for a project (does NOT delete PDFs)
 @app.route("/clear_results/<project_name>", methods=["POST"])
+@login_required
 def clear_results(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     if not os.path.isdir(project_path):
@@ -3340,7 +4098,10 @@ def _save_dismissals(project_name, ids):
 
 
 @app.route("/events/<project_name>")
+@login_required
 def get_events(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
@@ -3390,7 +4151,10 @@ def get_events(project_name):
 
 # Dismiss a finding (reviewer has verified it as a non-issue)
 @app.route("/dismiss_finding/<project_name>/<finding_id>", methods=["POST"])
+@login_required
 def dismiss_finding(project_name, finding_id):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     ids = _load_dismissals(project_name)
     ids.add(finding_id)
@@ -3400,7 +4164,10 @@ def dismiss_finding(project_name, finding_id):
 
 # Restore a previously dismissed finding (full reviewer control)
 @app.route("/restore_finding/<project_name>/<finding_id>", methods=["POST"])
+@login_required
 def restore_finding(project_name, finding_id):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     ids = _load_dismissals(project_name)
     ids.discard(finding_id)
@@ -3410,7 +4177,10 @@ def restore_finding(project_name, finding_id):
 
 # Build errors for a project
 @app.route("/errors/<project_name>")
+@login_required
 def get_errors(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
@@ -3419,7 +4189,10 @@ def get_errors(project_name):
 
 # Build entities for a project
 @app.route("/entities/<project_name>")
+@login_required
 def get_entities(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     project_path = os.path.join(PROJECT_FOLDER, project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
@@ -3428,7 +4201,10 @@ def get_entities(project_name):
 
 # ── AI Assistant chat endpoint ──────────────────────────────────────────────
 @app.route("/chat/<project_name>", methods=["POST"])
+@login_required
 def chat(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
     from flask import jsonify
     from main import chat_about_property
 

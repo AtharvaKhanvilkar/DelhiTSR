@@ -3,8 +3,8 @@
   "short_name": "UNISON",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0B0B0B",
-  "theme_color": "black",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "orientation": "portrait",
   "icons": [
   {
