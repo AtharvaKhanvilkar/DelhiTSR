@@ -953,6 +953,80 @@
       background-color: #3b82f6;
     }
 
+    /* ── Typeahead / Searchable Dropdown Styles ── */
+    .doris-typeahead {
+      position: relative;
+    }
+    .doris-typeahead-chevron {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a1a1aa;
+      pointer-events: none;
+      transition: transform 0.15s ease;
+    }
+    .doris-typeahead.open .doris-typeahead-chevron {
+      transform: translateY(-50%) rotate(180deg);
+    }
+    .doris-typeahead-list {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      z-index: 50;
+      max-height: 220px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #e4e4e7;
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+      list-style: none;
+      padding: 4px;
+      margin: 0;
+    }
+    .doris-typeahead-list.hidden {
+      display: none;
+    }
+    .doris-typeahead-item {
+      padding: 5px 10px;
+      font-size: 11px;
+      color: #3f3f46;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.1s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .doris-typeahead-item:hover,
+    .doris-typeahead-item.active {
+      background: #f4f4f5;
+      color: #18181b;
+    }
+    .doris-typeahead-item.selected {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 600;
+    }
+    .doris-typeahead-empty {
+      padding: 8px 10px;
+      font-size: 11px;
+      color: #a1a1aa;
+      text-align: center;
+      font-style: italic;
+    }
+    .doris-typeahead-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .doris-typeahead-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .doris-typeahead-list::-webkit-scrollbar-thumb {
+      background: #d4d4d8;
+      border-radius: 10px;
+    }
+
     /* Sidebar collapse toggle icon rotation */
     #appSidebar.sb-collapsed #sidebarCollapseIcon {
       transform: rotate(180deg);
@@ -2416,28 +2490,43 @@
                   Run
 
                   <span class="run-sho            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <!-- SRO Dropdown -->
+              <!-- SRO Typeahead -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Sub-Registrar Office (SRO)</label>
-                <select id="doris-sro" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
-                  <option value="0">--Select SRO Office--</option>
-                </select>
+                <div class="doris-typeahead" id="doris-sro-wrapper">
+                  <input type="text" id="doris-sro-input" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all pr-7" placeholder="Search SRO..." autocomplete="off">
+                  <input type="hidden" id="doris-sro" value="0">
+                  <span class="doris-typeahead-chevron">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                  <ul id="doris-sro-list" class="doris-typeahead-list hidden"></ul>
+                </div>
               </div>
 
-              <!-- Locality Dropdown -->
+              <!-- Locality Typeahead -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Locality</label>
-                <select id="doris-locality" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all" disabled>
-                  <option value="0">--Select Locality--</option>
-                </select>
+                <div class="doris-typeahead" id="doris-locality-wrapper">
+                  <input type="text" id="doris-locality-input" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select SRO first" autocomplete="off" disabled>
+                  <input type="hidden" id="doris-locality" value="0">
+                  <span class="doris-typeahead-chevron">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                  <ul id="doris-locality-list" class="doris-typeahead-list hidden"></ul>
+                </div>
               </div>
 
-              <!-- Registration Year Dropdown -->
+              <!-- Registration Year Typeahead -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Year</label>
-                <select id="doris-year" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all" disabled>
-                  <option value="0">--Select Registration Year--</option>
-                </select>
+                <div class="doris-typeahead" id="doris-year-wrapper">
+                  <input type="text" id="doris-year-input" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select Locality first" autocomplete="off" disabled>
+                  <input type="hidden" id="doris-year" value="0">
+                  <span class="doris-typeahead-chevron">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+                  </span>
+                  <ul id="doris-year-list" class="doris-typeahead-list hidden"></ul>
+                </div>
               </div>
 
               <!-- Registration No. -->
@@ -2540,11 +2629,12 @@
                   <table class="w-full text-left text-[11px] border-collapse table-fixed">
                     <thead>
                       <tr class="border-b border-zinc-200 text-zinc-500 font-medium">
-                        <th class="py-2 px-3 w-[12%]">Reg. No.</th>
-                        <th class="py-2 px-3 w-[12%]">Date</th>
-                        <th class="py-2 px-3 w-[28%]">Parties</th>
-                        <th class="py-2 px-3 w-[15%]">Deed Type</th>
-                        <th class="py-2 px-3 w-[33%]">Property Address</th>
+                        <th class="py-2 px-3 w-[10%]">Reg. No.</th>
+                        <th class="py-2 px-3 w-[10%]">Date</th>
+                        <th class="py-2 px-3 w-[18%]">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></th>
+                        <th class="py-2 px-3 w-[18%]">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></th>
+                        <th class="py-2 px-3 w-[14%]">Deed Type</th>
+                        <th class="py-2 px-3 w-[30%]">Property Address</th>
                       </tr>
                     </thead>
                     <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">
@@ -8255,11 +8345,198 @@
   // ── DORIS INTEGRATION MODULE ──
   let dorisSessionActive = false;
 
+  // ── Typeahead Engine ──
+  // Stores the options arrays so typeahead can filter them
+  const _dorisTypeaheadData = { sro: [], locality: [], year: [] };
+
+  /**
+   * Initialize a typeahead on a text input.
+   * @param {string} inputId   - ID of the visible text input
+   * @param {string} hiddenId  - ID of the hidden input that stores the selected value
+   * @param {string} listId    - ID of the <ul> dropdown list
+   * @param {string} wrapperId - ID of the wrapper div
+   * @param {Array}  options   - Array of {id, name} objects
+   * @param {Function} onSelect - Callback fired when user selects an option
+   */
+  function initTypeahead(inputId, hiddenId, listId, wrapperId, options, onSelect) {
+    const input = document.getElementById(inputId);
+    const hidden = document.getElementById(hiddenId);
+    const list = document.getElementById(listId);
+    const wrapper = document.getElementById(wrapperId);
+    if (!input || !hidden || !list || !wrapper) return;
+
+    let activeIdx = -1;
+    let filtered = [...options];
+
+    function render(items) {
+      list.innerHTML = '';
+      if (items.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'doris-typeahead-empty';
+        li.textContent = 'No matches found';
+        list.appendChild(li);
+        return;
+      }
+      items.forEach((opt, idx) => {
+        const li = document.createElement('li');
+        li.className = 'doris-typeahead-item' + (idx === activeIdx ? ' active' : '') + (hidden.value === String(opt.id) ? ' selected' : '');
+        li.textContent = opt.name;
+        li.dataset.value = opt.id;
+        li.addEventListener('mousedown', (e) => {
+          e.preventDefault(); // prevent blur
+          selectOption(opt);
+        });
+        li.addEventListener('mouseenter', () => {
+          activeIdx = idx;
+          highlightActive();
+        });
+        list.appendChild(li);
+      });
+    }
+
+    function highlightActive() {
+      const items = list.querySelectorAll('.doris-typeahead-item');
+      items.forEach((el, i) => {
+        el.classList.toggle('active', i === activeIdx);
+      });
+      // Scroll active item into view
+      if (activeIdx >= 0 && items[activeIdx]) {
+        items[activeIdx].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function openList() {
+      list.classList.remove('hidden');
+      wrapper.classList.add('open');
+    }
+
+    function closeList() {
+      list.classList.add('hidden');
+      wrapper.classList.remove('open');
+      activeIdx = -1;
+    }
+
+    function selectOption(opt) {
+      input.value = opt.name;
+      hidden.value = String(opt.id);
+      closeList();
+      // Fire the onSelect callback
+      if (typeof onSelect === 'function') onSelect(opt);
+    }
+
+    function filterOptions(query) {
+      const q = query.toLowerCase().trim();
+      if (!q) {
+        filtered = [...options];
+      } else {
+        filtered = options.filter(o => o.name.toLowerCase().includes(q));
+      }
+      activeIdx = -1;
+      render(filtered);
+    }
+
+    // Event: focus → show full list
+    input.addEventListener('focus', () => {
+      filterOptions(input.value);
+      openList();
+    });
+
+    // Event: input → filter
+    input.addEventListener('input', () => {
+      // If user types, clear the hidden value (deselect)
+      hidden.value = '0';
+      filterOptions(input.value);
+      openList();
+    });
+
+    // Event: blur → close (slight delay for mousedown to register)
+    input.addEventListener('blur', () => {
+      setTimeout(() => {
+        // If the text doesn't match any option exactly, try to snap to best match
+        if (hidden.value === '0' && input.value.trim()) {
+          const q = input.value.toLowerCase().trim();
+          const exact = options.find(o => o.name.toLowerCase() === q);
+          if (exact) {
+            selectOption(exact);
+          } else {
+            // Find closest substring match
+            const best = options.find(o => o.name.toLowerCase().includes(q));
+            if (best) {
+              selectOption(best);
+            } else {
+              input.value = '';
+              hidden.value = '0';
+            }
+          }
+        }
+        closeList();
+      }, 150);
+    });
+
+    // Event: keyboard navigation
+    input.addEventListener('keydown', (e) => {
+      if (list.classList.contains('hidden')) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          filterOptions(input.value);
+          openList();
+          e.preventDefault();
+          return;
+        }
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIdx = Math.min(activeIdx + 1, filtered.length - 1);
+        highlightActive();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIdx = Math.max(activeIdx - 1, 0);
+        highlightActive();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIdx >= 0 && activeIdx < filtered.length) {
+          selectOption(filtered[activeIdx]);
+        }
+      } else if (e.key === 'Escape') {
+        closeList();
+        input.blur();
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        closeList();
+      }
+    });
+
+    return {
+      reset: (placeholder) => {
+        input.value = '';
+        hidden.value = '0';
+        if (placeholder) input.placeholder = placeholder;
+        closeList();
+      },
+      setOptions: (newOptions) => {
+        options = newOptions;
+        filtered = [...newOptions];
+      }
+    };
+  }
+
+  // Store typeahead controllers so we can reset them
+  let _sroTypeahead = null;
+  let _locTypeahead = null;
+  let _yearTypeahead = null;
+
   function initDoris() {
-    // 1. Reset Form state to completely empty/blank (as requested, no pre-fill)
-    const sroSel = document.getElementById('doris-sro');
-    const locSel = document.getElementById('doris-locality');
-    const yrSel = document.getElementById('doris-year');
+    // 1. Reset Form state
+    const sroInput = document.getElementById('doris-sro-input');
+    const locInput = document.getElementById('doris-locality-input');
+    const yrInput = document.getElementById('doris-year-input');
+    const sroHidden = document.getElementById('doris-sro');
+    const locHidden = document.getElementById('doris-locality');
+    const yrHidden = document.getElementById('doris-year');
     const addrInput = document.getElementById('doris-address');
     const fpInput = document.getElementById('doris-first-party');
     const spInput = document.getElementById('doris-second-party');
@@ -8267,12 +8544,15 @@
     const capInput = document.getElementById('doris-captcha-input');
     const valMsg = document.getElementById('doris-validation-msg');
     
-    sroSel.innerHTML = '<option value="0">--Select SRO Office--</option>';
-    locSel.innerHTML = '<option value="0">--Select Locality--</option>';
-    yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
+    // Reset all inputs
+    sroInput.value = ''; sroHidden.value = '0';
+    locInput.value = ''; locHidden.value = '0';
+    yrInput.value = ''; yrHidden.value = '0';
     
-    locSel.disabled = true;
-    yrSel.disabled = true;
+    locInput.disabled = true;
+    locInput.placeholder = 'Select SRO first';
+    yrInput.disabled = true;
+    yrInput.placeholder = 'Select Locality first';
     
     addrInput.value = '';
     fpInput.value = '';
@@ -8294,12 +8574,13 @@
       .then(res => res.json())
       .then(data => {
         if (data.ok && data.sro_list) {
-          data.sro_list.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = s.name;
-            sroSel.appendChild(opt);
+          _dorisTypeaheadData.sro = data.sro_list.map(s => ({id: s.id, name: s.name}));
+          
+          _sroTypeahead = initTypeahead('doris-sro-input', 'doris-sro', 'doris-sro-list', 'doris-sro-wrapper', _dorisTypeaheadData.sro, (opt) => {
+            // SRO selected → cascade to locality
+            onSroSelected(opt.id);
           });
+          
           dorisSessionActive = true;
         } else {
           showDorisError('Failed to load SROs', data.error || 'Server session failed to initialize');
@@ -8328,16 +8609,20 @@
     showDorisState('error');
   }
 
-  // Setup Event Listeners for cascading dropdowns
-  document.getElementById('doris-sro').addEventListener('change', function() {
-    const sroVal = this.value;
-    const locSel = document.getElementById('doris-locality');
-    const yrSel = document.getElementById('doris-year');
+  // ── Cascade: SRO selected → load localities ──
+  function onSroSelected(sroVal) {
+    const locInput = document.getElementById('doris-locality-input');
+    const locHidden = document.getElementById('doris-locality');
+    const yrInput = document.getElementById('doris-year-input');
+    const yrHidden = document.getElementById('doris-year');
     
-    locSel.innerHTML = '<option value="0">--Select Locality--</option>';
-    locSel.disabled = true;
-    yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
-    yrSel.disabled = true;
+    // Reset locality and year
+    locInput.value = ''; locHidden.value = '0';
+    yrInput.value = ''; yrHidden.value = '0';
+    locInput.disabled = true;
+    locInput.placeholder = 'Loading localities...';
+    yrInput.disabled = true;
+    yrInput.placeholder = 'Select Locality first';
     
     document.getElementById('doris-captcha-img').classList.add('hidden');
     document.getElementById('doris-captcha-placeholder').classList.remove('hidden');
@@ -8347,7 +8632,7 @@
     
     showDorisState('empty');
     
-    if (sroVal === '0') return;
+    if (sroVal === '0' || sroVal === 0) return;
     
     // Fetch Localities
     fetch(`/api/doris/select/${projectName}`, {
@@ -8358,28 +8643,37 @@
     .then(res => res.json())
     .then(data => {
       if (data.ok && data.locality_list) {
-        data.locality_list.forEach(l => {
-          const opt = document.createElement('option');
-          opt.value = l.id;
-          opt.textContent = l.name;
-          locSel.appendChild(opt);
+        _dorisTypeaheadData.locality = data.locality_list.map(l => ({id: l.id, name: l.name}));
+        
+        locInput.disabled = false;
+        locInput.placeholder = 'Search locality...';
+        
+        _locTypeahead = initTypeahead('doris-locality-input', 'doris-locality', 'doris-locality-list', 'doris-locality-wrapper', _dorisTypeaheadData.locality, (opt) => {
+          // Locality selected → cascade to years + captcha
+          onLocalitySelected(sroVal, opt.id);
         });
-        locSel.disabled = false;
       } else {
         showDorisError('Locality Load Failed', data.error || 'Failed to fetch locality records');
       }
     })
     .catch(() => showDorisError('Connection Error', 'Failed to retrieve locality listings'));
-  });
+  }
+
+  // ── Cascade: Locality selected → load years + captcha ──
+  function onLocalitySelected(sroVal, locVal) {
+    loadCaptchaAndYears(sroVal, locVal, false);
+  }
 
   function loadCaptchaAndYears(sroVal, locVal, refreshOnly = false) {
-    const yrSel = document.getElementById('doris-year');
+    const yrInput = document.getElementById('doris-year-input');
+    const yrHidden = document.getElementById('doris-year');
     const capImg = document.getElementById('doris-captcha-img');
     const capInput = document.getElementById('doris-captcha-input');
     
     if (!refreshOnly) {
-      yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
-      yrSel.disabled = true;
+      yrInput.value = ''; yrHidden.value = '0';
+      yrInput.disabled = true;
+      yrInput.placeholder = 'Loading years...';
     }
     capInput.value = '';
     
@@ -8393,13 +8687,14 @@
     .then(data => {
       if (data.ok) {
         if (!refreshOnly && data.reg_years) {
-          data.reg_years.forEach(y => {
-            const opt = document.createElement('option');
-            opt.value = y;
-            opt.textContent = y;
-            yrSel.appendChild(opt);
+          _dorisTypeaheadData.year = data.reg_years.map(y => ({id: y, name: String(y)}));
+          
+          yrInput.disabled = false;
+          yrInput.placeholder = 'Search year...';
+          
+          _yearTypeahead = initTypeahead('doris-year-input', 'doris-year', 'doris-year-list', 'doris-year-wrapper', _dorisTypeaheadData.year, (opt) => {
+            // Year selected — no further cascade needed
           });
-          yrSel.disabled = false;
         }
         if (data.captcha_image_base64) {
           capImg.src = data.captcha_image_base64;
@@ -8415,13 +8710,6 @@
     .catch(() => showDorisError('Connection Error', 'Failed to retrieve verification options'));
   }
 
-  document.getElementById('doris-locality').addEventListener('change', function() {
-    const sroVal = document.getElementById('doris-sro').value;
-    const locVal = this.value;
-    if (locVal === '0') return;
-    loadCaptchaAndYears(sroVal, locVal, false);
-  });
-
   document.getElementById('doris-captcha-refresh').addEventListener('click', function() {
     const sroVal = document.getElementById('doris-sro').value;
     const locVal = document.getElementById('doris-locality').value;
@@ -8430,6 +8718,7 @@
     }
   });
 
+  // ── Search Button ──
   document.getElementById('doris-search-btn').addEventListener('click', function() {
     const sroVal = document.getElementById('doris-sro').value;
     const locVal = document.getElementById('doris-locality').value;
@@ -8485,8 +8774,10 @@
             <td class="py-2.5 px-3 font-medium text-zinc-900">${rec.reg_no}</td>
             <td class="py-2.5 px-3 text-zinc-500 whitespace-nowrap">${rec.reg_date}</td>
             <td class="py-2.5 px-3">
-              <div class="font-medium text-zinc-800 text-left">${rec.first_party}</div>
-              <div class="text-[10px] text-zinc-400 text-left">to ${rec.second_party}</div>
+              <div class="font-semibold text-zinc-800 text-[11px] uppercase leading-tight">${rec.first_party || '—'}</div>
+            </td>
+            <td class="py-2.5 px-3">
+              <div class="font-medium text-blue-700 text-[11px] uppercase leading-tight">${rec.second_party || '—'}</div>
             </td>
             <td class="py-2.5 px-3 text-zinc-500">${rec.deed_type}</td>
             <td class="py-2.5 px-3 text-zinc-500 max-w-xs truncate" title="${rec.property_address}">${rec.property_address}</td>
