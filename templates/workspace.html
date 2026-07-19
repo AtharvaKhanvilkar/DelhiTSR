@@ -2574,10 +2574,9 @@
                       <tr class="border-b border-zinc-200 text-zinc-500 font-medium">
                         <th class="py-2 px-3 w-[12%]">Reg. No.</th>
                         <th class="py-2 px-3 w-[12%]">Date</th>
-                        <th class="py-2 px-3 w-[26%]">Parties</th>
-                        <th class="py-2 px-3 w-[14%]">Deed Type</th>
-                        <th class="py-2 px-3 w-[28%]">Property Address</th>
-                        <th class="py-2 px-3 w-[8%] text-right">Actions</th>
+                        <th class="py-2 px-3 w-[28%]">Parties</th>
+                        <th class="py-2 px-3 w-[15%]">Deed Type</th>
+                        <th class="py-2 px-3 w-[33%]">Property Address</th>
                       </tr>
                     </thead>
                     <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">
@@ -8507,19 +8506,8 @@
             </td>
             <td class="py-2.5 px-3 text-zinc-500">${rec.deed_type}</td>
             <td class="py-2.5 px-3 text-zinc-500 max-w-xs truncate" title="${rec.property_address}">${rec.property_address}</td>
-            <td class="py-2.5 px-3 text-right">
-              <button type="button" class="px-2.5 py-1 text-[11px] font-semibold text-zinc-900 border border-zinc-200 hover:bg-zinc-100 rounded transition-all import-rec-btn" data-idx="${idx}">Import</button>
-            </td>
           `;
           tbody.appendChild(tr);
-        });
-        
-        tbody.querySelectorAll('.import-rec-btn').forEach(btn => {
-          btn.addEventListener('click', function() {
-            const rIdx = parseInt(this.getAttribute('data-idx'));
-            const selectedRec = data.records[rIdx];
-            importDorisRecord(this, selectedRec);
-          });
         });
         
         showDorisState('results');

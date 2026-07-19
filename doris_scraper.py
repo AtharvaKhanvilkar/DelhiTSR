@@ -217,89 +217,131 @@ class DorisScraperSession:
             if alert_match:
                 return {"ok": False, "error": alert_match.group(1).strip()}
 
-            tables = soup.find_all("table")
-            records = []
-            
-            for table in tables:
-                rows = table.find_all("tr")
-                if not rows:
-                    continue
-                
-                header_text = "".join([th.text for th in rows[0].find_all(["th", "td"])]).lower()
-                if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text:
-                    headers = [th.text.strip() for th in rows[0].find_all(["th", "td"])]
-                    
-                    for r_idx in range(1, len(rows)):
-                        # Look only at direct tds to avoid flattening nested tables
-                        cols = rows[r_idx].find_all("td", recursive=False)
-                        if len(cols) < 3:
-                            continue
-                        
-                        reg_no = ""
-                        reg_date = ""
-                        first_party = ""
-                        second_party = ""
-                        addr_text = ""
-                        deed_type = "Deed"
-                        
-                        if len(cols) == 11:
-                            reg_no = cols[0].text.strip()
-                            reg_date = cols[1].text.strip()
-                            first_party = cols[2].text.strip()
-                            second_party = cols[4].text.strip()
-                            addr_text = cols[6].text.strip()
-                            deed_type = cols[9].text.strip()
-                        elif len(cols) == 8:
-                            reg_no = cols[0].text.strip()
-                            reg_date = cols[1].text.strip()
-                            first_party = cols[2].text.strip()
-                            second_party = cols[3].text.strip()
-                            addr_text = cols[4].text.strip()
-                            deed_type = cols[6].text.strip()
-                        else:
-                            # Direct index mapping fallback
-                            reg_no = cols[0].text.strip()
-                            reg_date = cols[1].text.strip()
-                            first_party = cols[2].text.strip()
-                            if len(cols) > 4:
+            def parse_rows(soup_obj):
+                parsed = []
+                tables = soup_obj.find_all("table")
+                for table in tables:
+                    rows = table.find_all("tr")
+                    if not rows:
+                        continue
+                    header_text = "".join([th.text for th in rows[0].find_all(["th", "td"])]).lower()
+                    if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text:
+                        for r_idx in range(1, len(rows)):
+                            # Look only at direct tds to avoid flattening nested tables
+                            cols = rows[r_idx].find_all("td", recursive=False)
+                            if len(cols) < 3:
+                                continue
+                            
+                            reg_no = ""
+                            reg_date = ""
+                            first_party = ""
+                            second_party = ""
+                            addr_text = ""
+                            deed_type = "Deed"
+                            
+                            if len(cols) == 11:
+                                reg_no = cols[0].text.strip()
+                                reg_date = cols[1].text.strip()
+                                first_party = cols[2].text.strip()
+                                second_party = cols[4].text.strip()
+                                addr_text = cols[6].text.strip()
+                                deed_type = cols[9].text.strip()
+                            elif len(cols) == 8:
+                                reg_no = cols[0].text.strip()
+                                reg_date = cols[1].text.strip()
+                                first_party = cols[2].text.strip()
                                 second_party = cols[3].text.strip()
                                 addr_text = cols[4].text.strip()
-                            if len(cols) > 6:
                                 deed_type = cols[6].text.strip()
+                            else:
+                                # Direct index mapping fallback
+                                reg_no = cols[0].text.strip()
+                                reg_date = cols[1].text.strip()
+                                first_party = cols[2].text.strip()
+                                if len(cols) > 4:
+                                    second_party = cols[3].text.strip()
+                                    addr_text = cols[4].text.strip()
+                                if len(cols) > 6:
+                                    deed_type = cols[6].text.strip()
+                            
+                            # Clean deed_type if it is comma-separated (e.g. SALE,SALE WITHIN MC AREA)
+                            if "," in deed_type:
+                                deed_type = deed_type.split(",")[0].strip()
+                            
+                            # Fallback for historical registration details in address block if main details are empty
+                            if not reg_no or not reg_date:
+                                match = re.search(r"Reg\.?No.*?\s+(\d+)\s*([14])?\s*([\d]{2}[\-/][\d]{2}[\-/][\d]{4})\s+([A-Za-z_ \-]+)\s+(\d+)", addr_text, re.IGNORECASE)
+                                if match:
+                                    reg_val = match.group(1)
+                                    if match.group(2):
+                                        reg_no = reg_val
+                                    else:
+                                        reg_no = reg_val[:-1] if len(reg_val) > 1 else reg_val
+                                    reg_date = match.group(3)
+                                    deed_type = match.group(4).strip()
+                                    if "," in deed_type:
+                                        deed_type = deed_type.split(",")[0].strip()
+                            
+                            # Strip nested table or historical lines from the property address text
+                            clean_addr = addr_text
+                            for marker in ["Reg.No", "Property History", "Reg.Date", "SR_Office"]:
+                                lbl_idx = clean_addr.find(marker)
+                                if lbl_idx != -1:
+                                    clean_addr = clean_addr[:lbl_idx].strip()
+                            
+                            parsed.append({
+                                "reg_no": reg_no,
+                                "reg_date": reg_date,
+                                "first_party": first_party,
+                                "second_party": second_party,
+                                "property_address": clean_addr,
+                                "deed_type": deed_type
+                            })
+                return parsed
+
+            records = parse_rows(soup)
+            
+            # Find pagination page count from page links (Page$2, Page$3, etc.)
+            max_page = 1
+            for link in soup.find_all("a", href=True):
+                m = re.search(r"Page\$(\d+)", link["href"])
+                if m:
+                    page_num = int(m.group(1))
+                    if page_num > max_page:
+                        max_page = page_num
                         
-                        # Clean deed_type if it is comma-separated (e.g. SALE,SALE WITHIN MC AREA)
-                        if "," in deed_type:
-                            deed_type = deed_type.split(",")[0].strip()
-                        
-                        # Fallback for historical registration details in address block if main details are empty
-                        if not reg_no or not reg_date:
-                            match = re.search(r"Reg\.?No.*?\s+(\d+)\s*([14])?\s*([\d]{2}[\-/][\d]{2}[\-/][\d]{4})\s+([A-Za-z_ \-]+)\s+(\d+)", addr_text, re.IGNORECASE)
-                            if match:
-                                reg_val = match.group(1)
-                                if match.group(2):
-                                    reg_no = reg_val
-                                else:
-                                    reg_no = reg_val[:-1] if len(reg_val) > 1 else reg_val
-                                reg_date = match.group(3)
-                                deed_type = match.group(4).strip()
-                                if "," in deed_type:
-                                    deed_type = deed_type.split(",")[0].strip()
-                        
-                        # Strip nested table or historical lines from the property address text
-                        clean_addr = addr_text
-                        for marker in ["Reg.No", "Property History", "Reg.Date", "SR_Office"]:
-                            lbl_idx = clean_addr.find(marker)
-                            if lbl_idx != -1:
-                                clean_addr = clean_addr[:lbl_idx].strip()
-                        
-                        records.append({
-                            "reg_no": reg_no,
-                            "reg_date": reg_date,
-                            "first_party": first_party,
-                            "second_party": second_party,
-                            "property_address": clean_addr,
-                            "deed_type": deed_type
-                        })
+            # Loop through subsequent pages and fetch records
+            if max_page > 1:
+                for page_num in range(2, max_page + 1):
+                    page_payload = {
+                        "ctl00$ContentPlaceHolder1$ToolkitScriptManager2_HiddenField": "",
+                        "__EVENTTARGET": "ctl00$ContentPlaceHolder1$gv_search",
+                        "__EVENTARGUMENT": f"Page${page_num}",
+                        "__VIEWSTATE": self.viewstate,
+                        "__VIEWSTATEGENERATOR": self.viewstate_generator,
+                        "__VIEWSTATEENCRYPTED": "",
+                        "__EVENTVALIDATION": self.eventvalidation,
+                        "ctl00$ContentPlaceHolder1$ddl_sro_s": sro_val,
+                        "ctl00$ContentPlaceHolder1$ddl_loc_s": loc_val,
+                        "ctl00$ContentPlaceHolder1$ddl_year_s": year_val,
+                        "ctl00$ContentPlaceHolder1$txtkhasra": params.get("property_address", ""),
+                        "ctl00$ContentPlaceHolder1$ddl_deed_s": "0",
+                        "ctl00$ContentPlaceHolder1$ddl_s_deed_s": "0",
+                        "ctl00$ContentPlaceHolder1$txt_regno_s": params.get("reg_no", ""),
+                        "ctl00$ContentPlaceHolder1$txt_first_s": params.get("first_party", ""),
+                        "ctl00$ContentPlaceHolder1$txt_second_s": params.get("second_party", ""),
+                        "ctl00$ContentPlaceHolder1$txtcaptcha_s": captcha_text,
+                        "ctl00$ContentPlaceHolder1$txtrandomno": self.randomno,
+                        "ctl00$ContentPlaceHolder1$csrftoken": self.csrftoken
+                    }
+                    try:
+                        r_page = self.session.post(self.base_url, data=page_payload, headers=self.headers, timeout=45)
+                        self._extract_tokens(r_page.text)
+                        soup_page = BeautifulSoup(r_page.text, "html.parser")
+                        records.extend(parse_rows(soup_page))
+                    except Exception as e:
+                        # Log error but don't crash if we have previous pages' results
+                        print(f"Warning: Failed to fetch search results page {page_num}: {e}")
             
             if not records:
                 page_text_lower = soup.text.lower()
