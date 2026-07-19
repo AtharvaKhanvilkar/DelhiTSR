@@ -301,6 +301,16 @@ class DorisScraperSession:
                             "deed_type": deed_type
                         })
             
+            if not records:
+                page_text_lower = soup.text.lower()
+                if "no record" in page_text_lower or "no transaction" in page_text_lower:
+                    return {"ok": True, "records": []}
+                else:
+                    return {
+                        "ok": False,
+                        "error": "Registry session expired or CAPTCHA verification failed. Please refresh the page and try again."
+                    }
+            
             return {"ok": True, "records": records}
         except Exception as e:
             return {"ok": False, "error": str(e)}
