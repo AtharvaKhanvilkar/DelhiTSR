@@ -2447,16 +2447,16 @@
       <!-- Placeholder Panel for DORIS -->
 
       <div class="panel" id="panel-doris">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full bg-white p-6 overflow-y-auto">
+        <div class="flex flex-col space-y-6 h-full bg-white p-6 overflow-y-auto">
           
-          <!-- Left side: Form parameters -->
-          <div class="lg:col-span-4 flex flex-col space-y-4 border-r border-zinc-100 pr-6">
+          <!-- Top: Form parameters -->
+          <div class="flex flex-col space-y-4 border-b border-zinc-100 pb-6">
             <div>
               <h3 class="text-sm font-semibold text-zinc-800">DORIS Verification</h3>
               <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data with official Delhi government registry entries.</p>
             </div>
             
-            <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- SRO Dropdown -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Sub-Registrar Office (SRO)</label>
@@ -2480,23 +2480,13 @@
                   <option value="0">--Select Registration Year--</option>
                 </select>
               </div>
+            </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <!-- Property Address / Khasra -->
-              <div>
+              <div class="md:col-span-2">
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Property Address / Khasra No.</label>
                 <input type="text" id="doris-address" placeholder="e.g. Road Name/Street No./Khasra" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
-              </div>
-
-              <!-- Party Names -->
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-[11px] font-medium text-zinc-500 mb-1">First Party Name</label>
-                  <input type="text" id="doris-first-party" placeholder="First party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
-                </div>
-                <div>
-                  <label class="block text-[11px] font-medium text-zinc-500 mb-1">Second Party Name</label>
-                  <input type="text" id="doris-second-party" placeholder="Second party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
-                </div>
               </div>
 
               <!-- Registration No. -->
@@ -2506,29 +2496,38 @@
               </div>
 
               <!-- CAPTCHA Section -->
-              <div id="doris-captcha-container" class="hidden border border-zinc-200 bg-zinc-50/50 rounded-md p-3 space-y-3">
-                <label class="block text-[11px] font-medium text-zinc-500">Security Verification</label>
-                <div class="flex items-center space-x-3">
-                  <div class="bg-white border border-zinc-200 rounded p-1">
-                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-8 w-auto">
+              <div id="doris-captcha-container" class="hidden border border-zinc-200 bg-zinc-50/50 rounded-md p-2 flex items-center justify-between h-[38px] mt-[18px]">
+                <div class="flex items-center space-x-2">
+                  <div class="bg-white border border-zinc-200 rounded p-0.5">
+                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-6 w-auto">
                   </div>
-                  <button type="button" id="doris-captcha-refresh" class="text-[11px] font-semibold text-zinc-600 hover:text-black transition-all">Refresh Code</button>
+                  <button type="button" id="doris-captcha-refresh" class="text-[10px] font-semibold text-zinc-500 hover:text-black transition-all">Refresh</button>
                 </div>
-                <div>
-                  <input type="text" id="doris-captcha-input" placeholder="Enter security code" class="w-full bg-white border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 transition-all text-uppercase">
-                </div>
+                <input type="text" id="doris-captcha-input" placeholder="Code" class="w-20 bg-white border border-zinc-200 text-zinc-800 rounded-md py-1 px-2 text-xs focus:outline-none focus:border-zinc-400 transition-all text-uppercase">
               </div>
             </div>
 
-            <!-- Search Action -->
-            <div class="pt-2">
-              <button type="button" id="doris-search-btn" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-md py-2 text-xs transition-all shadow-sm">Query Government Registry</button>
-              <p id="doris-validation-msg" class="text-[11px] text-red-500 mt-1.5 hidden"></p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <!-- Party Names -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">First Party Name</label>
+                <input type="text" id="doris-first-party" placeholder="First party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+              </div>
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Second Party Name</label>
+                <input type="text" id="doris-second-party" placeholder="Second party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+              </div>
+
+              <!-- Search Action -->
+              <div>
+                <button type="button" id="doris-search-btn" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-md py-2 text-xs transition-all shadow-sm">Query Government Registry</button>
+                <p id="doris-validation-msg" class="text-[11px] text-red-500 mt-1 hidden"></p>
+              </div>
             </div>
           </div>
 
-          <!-- Right side: Scraped Registry Results -->
-          <div class="lg:col-span-8 flex flex-col space-y-4">
+          <!-- Bottom: Scraped Registry Results -->
+          <div class="flex flex-col space-y-4 flex-grow">
             <div>
               <h3 class="text-sm font-semibold text-zinc-800">Scraped Registry Entries</h3>
               <p class="text-xs text-zinc-500 mt-0.5">Matched records directly retrieved from the government databases.</p>
