@@ -228,57 +228,74 @@ class DorisScraperSession:
                 header_text = "".join([th.text for th in rows[0].find_all(["th", "td"])]).lower()
                 if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text:
                     headers = [th.text.strip() for th in rows[0].find_all(["th", "td"])]
-                    
-                    first_party_idx = None
-                    second_party_idx = None
-                    addr_idx = None
-                    
-                    for idx, h in enumerate(headers):
-                        h_lower = h.lower()
-                        if "first" in h_lower or "party_i" in h_lower or "party i" in h_lower:
-                            first_party_idx = idx
-                        elif "second" in h_lower or "party_ii" in h_lower or "party ii" in h_lower:
-                            second_party_idx = idx
-                        elif "address" in h_lower or "property" in h_lower or "desc" in h_lower:
-                            addr_idx = idx
-                    
-                    if first_party_idx is None:
-                        first_party_idx = 0
-                    if addr_idx is None:
-                        addr_idx = 1
-                    if second_party_idx is None:
-                        second_party_idx = 2
+                    with open("scratch/debug_search.log", "w", encoding="utf-8") as f:
+                        f.write(f"Headers: {headers}\n")
+                        for r_idx in range(1, len(rows)):
+                            c_list = [c.text.strip() for c in rows[r_idx].find_all("td")]
+                            f.write(f"Row {r_idx} cols (len={len(c_list)}): {c_list}\n")
                     
                     for r_idx in range(1, len(rows)):
-                        cols = rows[r_idx].find_all("td")
-                        # Some rows might be footers, ignore them if they have fewer columns
-                        if len(cols) < max(first_party_idx, second_party_idx, addr_idx) + 1:
+                        # Look only at direct tds to avoid flattening nested tables
+                        cols = rows[r_idx].find_all("td", recursive=False)
+                        if len(cols) < 3:
                             continue
-                        
-                        first_party = cols[first_party_idx].text.strip()
-                        second_party = cols[second_party_idx].text.strip()
-                        addr_text = cols[addr_idx].text.strip()
                         
                         reg_no = ""
                         reg_date = ""
+                        first_party = ""
+                        second_party = ""
+                        addr_text = ""
                         deed_type = "Deed"
                         
-                        # Regex matching for Reg.No Details inside the address block
-                        match = re.search(r"Reg\.?No.*?\s+(\d+)\s*([14])?\s*([\d]{2}[\-/][\d]{2}[\-/][\d]{4})\s+([A-Za-z_ \-]+)\s+(\d+)", addr_text, re.IGNORECASE)
-                        if match:
-                            reg_val = match.group(1)
-                            if match.group(2):
-                                reg_no = reg_val
-                            else:
-                                reg_no = reg_val[:-1] if len(reg_val) > 1 else reg_val
-                            reg_date = match.group(3)
-                            deed_type = match.group(4).strip()
+                        if len(cols) == 11:
+                            reg_no = cols[0].text.strip()
+                            reg_date = cols[1].text.strip()
+                            first_party = cols[2].text.strip()
+                            second_party = cols[4].text.strip()
+                            addr_text = cols[6].text.strip()
+                            deed_type = cols[9].text.strip()
+                        elif len(cols) == 8:
+                            reg_no = cols[0].text.strip()
+                            reg_date = cols[1].text.strip()
+                            first_party = cols[2].text.strip()
+                            second_party = cols[3].text.strip()
+                            addr_text = cols[4].text.strip()
+                            deed_type = cols[6].text.strip()
+                        else:
+                            # Direct index mapping fallback
+                            reg_no = cols[0].text.strip()
+                            reg_date = cols[1].text.strip()
+                            first_party = cols[2].text.strip()
+                            if len(cols) > 4:
+                                second_party = cols[3].text.strip()
+                                addr_text = cols[4].text.strip()
+                            if len(cols) > 6:
+                                deed_type = cols[6].text.strip()
                         
-                        # Strip off the Reg.No line from the property address text
+                        # Clean deed_type if it is comma-separated (e.g. SALE,SALE WITHIN MC AREA)
+                        if "," in deed_type:
+                            deed_type = deed_type.split(",")[0].strip()
+                        
+                        # Fallback for historical registration details in address block if main details are empty
+                        if not reg_no or not reg_date:
+                            match = re.search(r"Reg\.?No.*?\s+(\d+)\s*([14])?\s*([\d]{2}[\-/][\d]{2}[\-/][\d]{4})\s+([A-Za-z_ \-]+)\s+(\d+)", addr_text, re.IGNORECASE)
+                            if match:
+                                reg_val = match.group(1)
+                                if match.group(2):
+                                    reg_no = reg_val
+                                else:
+                                    reg_no = reg_val[:-1] if len(reg_val) > 1 else reg_val
+                                reg_date = match.group(3)
+                                deed_type = match.group(4).strip()
+                                if "," in deed_type:
+                                    deed_type = deed_type.split(",")[0].strip()
+                        
+                        # Strip nested table or historical lines from the property address text
                         clean_addr = addr_text
-                        lbl_idx = clean_addr.find("Reg.No")
-                        if lbl_idx != -1:
-                            clean_addr = clean_addr[:lbl_idx].strip()
+                        for marker in ["Reg.No", "Property History", "Reg.Date", "SR_Office"]:
+                            lbl_idx = clean_addr.find(marker)
+                            if lbl_idx != -1:
+                                clean_addr = clean_addr[:lbl_idx].strip()
                         
                         records.append({
                             "reg_no": reg_no,
