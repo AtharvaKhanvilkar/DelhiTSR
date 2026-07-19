@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TSR Engine - Proposed Modal Designs Draft</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="bg-zinc-50 text-zinc-955 min-h-screen p-8 flex flex-col items-center">
+
+  <div class="w-full max-w-xl mb-8 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-zinc-200">
+      <div>
+        <h1 class="text-sm font-semibold tracking-tight text-zinc-950">Document Detail View</h1>
+        <p class="text-xs text-zinc-500 mt-0.5">Shadcn-styled transaction summaries with Apple Emojis and Bank Logos.</p>
+      </div>
+      <div class="text-[10px] font-mono text-zinc-500 bg-white border border-zinc-200 rounded px-2 py-0.5 shadow-sm">
+        specification: shadcn/ui
+      </div>
+    </div>
+
+    <!-- Shadcn Tab Switcher component -->
+    <div class="inline-flex h-9 items-center justify-center rounded-lg bg-zinc-100 p-1 text-zinc-500 w-full select-none">
+      <button onclick="switchTab('sale')" class="tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all bg-white text-zinc-955 shadow-sm" id="btn-sale">
+        Sale Deed
+      </button>
+      <button onclick="switchTab('mortgage')" class="tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all text-zinc-600 hover:text-zinc-955" id="btn-mortgage">
+        Mortgage
+      </button>
+      <button onclick="switchTab('gift')" class="tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all text-zinc-600 hover:text-zinc-955" id="btn-gift">
+        Gift Deed
+      </button>
+      <button onclick="switchTab('release')" class="tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all text-zinc-600 hover:text-zinc-955" id="btn-release">
+        Release
+      </button>
+      <button onclick="switchTab('lease')" class="tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all text-zinc-600 hover:text-zinc-955" id="btn-lease">
+        Lease
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Modal Wrapper Simulator (Shadcn Card Styles) -->
+  <div class="w-full max-w-xl flex justify-center items-center">
+    
+    <!-- ── 1. SALE DEED MODAL PREVIEW ── -->
+    <div id="modal-sale" class="modal-card bg-white border border-zinc-200 rounded-lg shadow-sm w-full overflow-hidden block">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between p-6 border-b border-zinc-100">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold tracking-tight text-zinc-950">Doc 5847/2005</h2>
+            <span class="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-900 bg-zinc-50">Sale Deed</span>
+          </div>
+          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <span>Executed 22-03-2005</span>
+            <span class="text-zinc-300">•</span>
+            <a href="#" class="inline-flex items-center gap-1 text-zinc-500 hover:text-zinc-900 underline underline-offset-4 font-medium">
+              <i data-lucide="file-text" class="w-3 h-3"></i>
+              <span>02_Sale_Deed_2005.pdf</span>
+            </a>
+          </p>
+        </div>
+        
+        <!-- Top Right Corner: Emoji & Close button -->
+        <div class="flex items-center gap-3">
+          <span class="text-xl select-none" title="Sale Deed">📜</span>
+          <button class="text-zinc-400 hover:text-zinc-955 p-1 hover:bg-zinc-100 rounded transition-colors">
+            <i data-lucide="x" class="w-4 h-4 text-zinc-955"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-6">
+        
+        <!-- Primary Value Block -->
+        <div class="grid grid-cols-2 gap-4 pb-5 border-b border-zinc-100">
+          <div>
+            <span class="text-xs text-zinc-500">Consideration Amount</span>
+            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">₹42,50,000</div>
+          </div>
+          <div>
+            <span class="text-xs text-zinc-500">Stamp Duty Paid</span>
+            <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">₹2,55,000 (6%)</div>
+          </div>
+        </div>
+
+        <!-- Parties Block -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-550 block uppercase">Seller</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MR. RAJESH KUMAR SHARMA</span>
+              <span class="font-mono text-[9px] text-zinc-500 block">PAN: ABRPS4523K</span>
+            </div>
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-550 block uppercase">Buyer</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MR. VIKRAM SINGH CHAUHAN</span>
+              <span class="font-mono text-[9px] text-zinc-500 block">PAN: CDEPR8831A</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry & Property Grids -->
+        <div class="grid grid-cols-2 gap-6 pt-2">
+          <!-- Registry Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Registry</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Sub-Registrar</span>
+                <span class="font-medium text-zinc-955">SRO V-A (Hauz Khas)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Reg. Fee Paid</span>
+                <span class="font-medium text-zinc-955">₹42,500</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Deed Category</span>
+                <span class="font-medium text-zinc-955">Conveyance / Sale</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Property Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Property</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Premises</span>
+                <span class="font-medium text-zinc-955">Flat 8, Plot 1A</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-550">Stated Area</span>
+                <span class="font-semibold text-zinc-955">1200 sq.ft.</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Location</span>
+                <span class="font-medium text-zinc-955">Hauz Khas, New Delhi</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footnote Authorized Signatory -->
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between text-xs">
+          <span class="text-zinc-500">Authorized Signatory</span>
+          <span class="font-medium text-zinc-955">P.K. AGGARWAL <span class="text-[10px] text-zinc-500 font-normal">(Attorney)</span></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 2. MORTGAGE DEED MODAL PREVIEW ── -->
+    <div id="modal-mortgage" class="modal-card bg-white border border-zinc-200 rounded-lg shadow-sm w-full overflow-hidden hidden">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between p-6 border-b border-zinc-100">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold tracking-tight text-zinc-955">Doc 9234/2008</h2>
+            <span class="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-900 bg-zinc-50">Mortgage Deed</span>
+          </div>
+          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <span>Executed 10-08-2008</span>
+            <span class="text-zinc-300">•</span>
+            <a href="#" class="inline-flex items-center gap-1 text-zinc-500 hover:text-zinc-900 underline underline-offset-4 font-medium">
+              <i data-lucide="file-text" class="w-3 h-3"></i>
+              <span>03_Mortgage_Deed_PNB_2008.pdf</span>
+            </a>
+          </p>
+        </div>
+        
+        <!-- Top Right Corner: Emoji & Close button -->
+        <div class="flex items-center gap-3">
+          <span class="text-xl select-none" title="Mortgage Deed">🏦</span>
+          <button class="text-zinc-400 hover:text-zinc-955 p-1 hover:bg-zinc-100 rounded transition-colors">
+            <i data-lucide="x" class="w-4 h-4 text-zinc-955"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-6">
+        
+        <!-- Mortgage Tracker Banner -->
+        <div class="space-y-2.5 pb-4 border-b border-zinc-100">
+          <div class="flex justify-between items-baseline">
+            <div>
+              <span class="text-xs text-zinc-500">Outstanding Balance</span>
+              <div class="text-lg font-semibold tracking-tight text-zinc-955 mt-0.5">₹20,00,000</div>
+            </div>
+            <div class="text-right text-[11px] text-zinc-500">
+              Original Principal: ₹35,00,000
+            </div>
+          </div>
+          <div class="space-y-1">
+            <div class="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden border border-zinc-200/50">
+              <div class="bg-zinc-900 h-full rounded-full" style="width: 43%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-zinc-500">
+              <span>43% Discharged (Released ₹15,00,000)</span>
+              <span>Rate: @ 10.25% p.a. (Floating)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parties -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Mortgagor (Borrower)</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MR. VIKRAM SINGH CHAUHAN</span>
+              <span class="text-[9px] text-zinc-500 block">Property Owner</span>
+            </div>
+            
+            <!-- Lender Card with Bank Logo SVG -->
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Mortgagee (Lender)</span>
+              <div class="flex items-center gap-1.5">
+                <!-- PNB Circular Logo SVG representation -->
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="45" fill="#A12830"/>
+                  <circle cx="50" cy="50" r="30" fill="#F1A400"/>
+                  <path d="M50 35 V65 M35 50 H65" stroke="#A12830" stroke-width="8" stroke-linecap="round"/>
+                </svg>
+                <span class="text-xs font-semibold text-zinc-955 tracking-tight">PUNJAB NATIONAL BANK</span>
+              </div>
+              <span class="text-[9px] text-zinc-500 block">Saket Branch, New Delhi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry & Releases -->
+        <div class="grid grid-cols-2 gap-6 pt-2">
+          <!-- Registry Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Registry</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">SRO Office</span>
+                <span class="font-medium text-zinc-955">SRO V (Mehrauli)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Registered Date</span>
+                <span class="font-medium text-zinc-955">12-08-2008</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Loan Tenure</span>
+                <span class="font-medium text-zinc-955">180 Months</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Releases List -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Release History</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="font-medium text-zinc-955">Doc 14502/2012</div>
+                  <div class="text-[10px] text-zinc-500">Partial Release · 05-11-2012</div>
+                </div>
+                <span class="font-semibold text-zinc-955">₹15,00,000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Authorized Bank Signatory (Institution/Company) -->
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between text-xs">
+          <span class="text-zinc-500">Authorized Bank Signatory</span>
+          <span class="font-semibold text-zinc-955">SURESH BAHADUR <span class="text-[10px] text-zinc-500 font-normal">(Chief Manager)</span></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 3. GIFT DEED MODAL PREVIEW ── -->
+    <div id="modal-gift" class="modal-card bg-white border border-zinc-200 rounded-lg shadow-sm w-full overflow-hidden hidden">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between p-6 border-b border-zinc-100">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold tracking-tight text-zinc-955">Doc 2891/2015</h2>
+            <span class="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-900 bg-zinc-50">Gift Deed</span>
+          </div>
+          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <span>Executed 14-02-2015</span>
+            <span class="text-zinc-300">•</span>
+            <a href="#" class="inline-flex items-center gap-1 text-zinc-500 hover:text-zinc-900 underline underline-offset-4 font-medium">
+              <i data-lucide="file-text" class="w-3 h-3"></i>
+              <span>05_Gift_Deed_2015.pdf</span>
+            </a>
+          </p>
+        </div>
+        
+        <!-- Top Right Corner: Emoji & Close button -->
+        <div class="flex items-center gap-3">
+          <span class="text-xl select-none" title="Gift Deed">🎁</span>
+          <button class="text-zinc-400 hover:text-zinc-955 p-1 hover:bg-zinc-100 rounded transition-colors">
+            <i data-lucide="x" class="w-4 h-4 text-zinc-955"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-6">
+        
+        <!-- Relationship metric -->
+        <div class="pb-4 border-b border-zinc-100">
+          <span class="text-xs text-zinc-500">Donor-Donee Relationship</span>
+          <div class="text-lg font-semibold text-zinc-955 mt-0.5">Spouse (Husband to Wife)</div>
+          <span class="text-[10px] text-zinc-500 mt-0.5 block">Executed out of natural love and affection</span>
+        </div>
+
+        <!-- Parties -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Donor (Giver)</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MR. VIKRAM SINGH CHAUHAN</span>
+              <span class="font-mono text-[9px] text-zinc-500 block">PAN: CDEPR8831A</span>
+            </div>
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Donee (Recipient)</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MRS. PRIYA VIKRAM CHAUHAN</span>
+              <span class="font-mono text-[9px] text-zinc-500 block">PAN: ABKPW1298K</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry & Property details -->
+        <div class="grid grid-cols-2 gap-6 pt-2">
+          <!-- Registry Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Registry</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Sub-Registrar</span>
+                <span class="font-medium text-zinc-955">SRO V-A (Hauz Khas)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Stamp Duty Paid</span>
+                <span class="font-medium text-zinc-955">₹1,00,000 (Concessional)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Property Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Property Details</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Premises</span>
+                <span class="font-medium text-zinc-955">Flat 8, Plot 1A</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Stated Area</span>
+                <span class="font-semibold text-zinc-955">1200 sq.ft.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 4. RELINQUISHMENT DEED MODAL PREVIEW ── -->
+    <div id="modal-release" class="modal-card bg-white border border-zinc-200 rounded-lg shadow-sm w-full overflow-hidden hidden">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between p-6 border-b border-zinc-100">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold tracking-tight text-zinc-950">Doc 891/2024</h2>
+            <span class="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-900 bg-zinc-50">Release Deed</span>
+          </div>
+          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <span>Executed 10-01-2024</span>
+            <span class="text-zinc-300">•</span>
+            <a href="#" class="inline-flex items-center gap-1 text-zinc-500 hover:text-zinc-900 underline underline-offset-4 font-medium">
+              <i data-lucide="file-text" class="w-3 h-3"></i>
+              <span>08_Relinquishment_Deed_2024.pdf</span>
+            </a>
+          </p>
+        </div>
+        
+        <!-- Top Right Corner: Emoji & Close button -->
+        <div class="flex items-center gap-3">
+          <span class="text-xl select-none" title="Release Deed">🔓</span>
+          <button class="text-zinc-400 hover:text-zinc-955 p-1 hover:bg-zinc-100 rounded transition-colors">
+            <i data-lucide="x" class="w-4 h-4 text-zinc-955"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-6">
+        
+        <!-- Share Relinquished -->
+        <div class="pb-4 border-b border-zinc-100">
+          <span class="text-xs text-zinc-500">Relinquished Interest</span>
+          <div class="text-lg font-semibold text-zinc-955 mt-0.5">50.00% Share Relinquished</div>
+          <span class="text-[10px] text-zinc-500 mt-0.5 block">Co-owner transferring right to consolidate sole title</span>
+        </div>
+
+        <!-- Parties -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Releasor</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MR. AMIT SINGH CHAUHAN</span>
+              <span class="text-[9px] text-zinc-500 block">Co-owner (Brother)</span>
+            </div>
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Releasee</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MRS. PRIYA VIKRAM CHAUHAN</span>
+              <span class="text-[9px] text-zinc-500 block">Acquiring / Sole Owner</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry & Property details -->
+        <div class="grid grid-cols-2 gap-6 pt-2">
+          <!-- Registry Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Registry</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Sub-Registrar</span>
+                <span class="font-medium text-zinc-955">SRO V-A (Hauz Khas)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Consideration</span>
+                <span class="font-medium text-zinc-955">Nil (Family Release)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Stamp Duty Paid</span>
+                <span class="font-medium text-zinc-955">₹5,000 (Exempted)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Property Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Property Details</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Premises</span>
+                <span class="font-medium text-zinc-955">Flat 8, Plot 1A</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-550">Total Area</span>
+                <span class="font-semibold text-zinc-955">1200 sq.ft.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── 5. LEAVE & LICENSE MODAL PREVIEW ── -->
+    <div id="modal-lease" class="modal-card bg-white border border-zinc-200 rounded-lg shadow-sm w-full overflow-hidden hidden">
+      
+      <!-- Header -->
+      <div class="flex items-start justify-between p-6 border-b border-zinc-100">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-semibold tracking-tight text-zinc-950">Doc 4455/2022</h2>
+            <span class="inline-flex items-center rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-900 bg-zinc-50">Lease Agreement</span>
+          </div>
+          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <span>Executed 15-05-2022</span>
+            <span class="text-zinc-300">•</span>
+            <a href="#" class="inline-flex items-center gap-1 text-zinc-500 hover:text-zinc-900 underline underline-offset-4 font-medium">
+              <i data-lucide="file-text" class="w-3 h-3"></i>
+              <span>07_Leave_and_License_2022.pdf</span>
+            </a>
+          </p>
+        </div>
+        
+        <!-- Top Right Corner: Emoji & Close button -->
+        <div class="flex items-center gap-3">
+          <span class="text-xl select-none" title="Leave & License">🔑</span>
+          <button class="text-zinc-400 hover:text-zinc-955 p-1 hover:bg-zinc-100 rounded transition-colors">
+            <i data-lucide="x" class="w-4 h-4 text-zinc-955"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-6">
+        
+        <!-- Lease details banner -->
+        <div class="pb-4 border-b border-zinc-100 flex justify-between items-baseline">
+          <div>
+            <span class="text-xs text-zinc-500">Monthly License Rent</span>
+            <div class="text-lg font-semibold text-zinc-955 mt-0.5">₹65,000 / month</div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-zinc-500">Security Deposit</span>
+            <div class="text-xs font-semibold text-zinc-850">₹1,95,000 (Refundable)</div>
+          </div>
+        </div>
+
+        <!-- Parties (Surfaces signatory since Cognizant is a Company) -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Licensor (Owner)</span>
+              <span class="text-xs font-semibold text-zinc-955 block">MRS. PRIYA VIKRAM CHAUHAN</span>
+              <span class="text-[9px] text-zinc-500 block">Property Owner</span>
+            </div>
+            <div class="p-3 border border-zinc-200 rounded-md space-y-1">
+              <span class="text-[9px] font-medium text-zinc-500 block uppercase">Licensee (Tenant)</span>
+              <span class="text-xs font-semibold text-zinc-955 block">COGNIZANT TECHNOLOGIES PVT LTD</span>
+              <span class="text-[9px] text-zinc-500 block">Corporate Licensee</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry & Property details -->
+        <div class="grid grid-cols-2 gap-6 pt-2">
+          <!-- Registry Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Lease Terms</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Sub-Registrar</span>
+                <span class="font-medium text-zinc-955">SRO V-A (Hauz Khas)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">License Period</span>
+                <span class="font-medium text-zinc-955">36 Months (3 Years)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Escalation Clause</span>
+                <span class="font-medium text-zinc-955">10% increment annually</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Property Column -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase pb-1 border-b border-zinc-100">Property Details</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between">
+                <span class="text-zinc-500">Premises Leased</span>
+                <span class="font-medium text-zinc-955">Flat 8, Plot 1A</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-zinc-550">Total Stated Area</span>
+                <span class="font-semibold text-zinc-955">1200 sq.ft.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footnote Authorized Signatory (Institution/Company) -->
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between text-xs">
+          <span class="text-zinc-500">Authorized Tenant Signatory</span>
+          <span class="font-semibold text-zinc-955">RAMESH RAMANATHAN <span class="text-[10px] text-zinc-500 font-normal">(VP - Facilities)</span></span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Tab switching controller
+    function switchTab(tabId) {
+      // Hide all modals
+      document.querySelectorAll('.modal-card').forEach(m => {
+        m.classList.add('hidden');
+      });
+      // Show selected modal
+      document.getElementById('modal-' + tabId).classList.remove('hidden');
+
+      // Update button highlights
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all text-zinc-600 hover:text-zinc-955";
+      });
+      document.getElementById('btn-' + tabId).className = "tab-btn flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-md py-1 text-xs font-medium transition-all bg-white text-zinc-955 shadow-sm";
+    }
+
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>

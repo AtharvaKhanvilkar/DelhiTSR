@@ -5018,8 +5018,12 @@
 
     let circleRateTableHtml = '';
     if (expectedSd > 0) {
+      const isGiftOrRelease = t.includes('GIFT') || t.includes('RELEASE') || t.includes('RELINQUISHMENT') || t.includes('RECONVEYANCE');
       const priceStatus = circleVal > 0 
-        ? (price < circleVal ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Undervalued</span>' : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Compliant</span>')
+        ? (isGiftOrRelease 
+           ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Compliant</span>'
+           : (price < circleVal ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Undervalued</span>' : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Compliant</span>')
+          )
         : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-50 text-zinc-650 border border-zinc-200 shadow-sm">Exempt</span>';
 
       const sdStatus = stampVal < expectedSd 
@@ -5047,7 +5051,11 @@
         ? `Property Value (Area: ${areaSqm} sqm)`
         : 'Property Value (Circle Rate)';
 
-      const baseValuationText = price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—';
+      let baseValuationText = price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—';
+      if (price === 0 && isGiftOrRelease) {
+        if (t.includes('GIFT')) baseValuationText = '<span class="text-zinc-500 font-medium">N/A (Gift Deed)</span>';
+        else if (t.includes('RELINQUISHMENT') || t.includes('RELEASE')) baseValuationText = '<span class="text-zinc-500 font-medium">N/A (Release)</span>';
+      }
 
       circleRateTableHtml = `
         <div class="mt-5 pt-4 border-t border-zinc-150 space-y-2 select-text">

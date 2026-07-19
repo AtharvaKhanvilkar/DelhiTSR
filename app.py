@@ -2404,7 +2404,11 @@ def _build_events_and_errors(project_path):
                         active_gender = gender
                         
                     # Get historical stamp duty rate
-                    sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
+                    if "GIFT" in txn:
+                        # In Delhi, stamp duty on Gift Deeds executed in favor of family members (blood relatives/spouse) is 3%
+                        sd_rate = 0.03
+                    else:
+                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
                         
                     expected_sd_val = valuation_basis * sd_rate
                     expected_reg_val = valuation_basis * 0.01
@@ -2484,7 +2488,10 @@ def _build_events_and_errors(project_path):
                         else:
                             active_gender = gender
                             
-                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
+                        if "GIFT" in txn:
+                            sd_rate = 0.03
+                        else:
+                            sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
                         expected_sd_val = valuation_basis * sd_rate
                         expected_reg_val = valuation_basis * 0.01
             elif "MORTGAGE" in txn or "INTIMATION" in txn:
@@ -2506,15 +2513,22 @@ def _build_events_and_errors(project_path):
                 is_mortgage_release = "mortgage" in sub_type_l or "reconveyance" in sub_type_l or "discharge" in sub_type_l
                 
                 if is_mortgage_release:
-                    expected_sd_val = 500.0
+                    expected_sd_val = 100.0 # Delhi nominal mortgage release stamp duty
                     expected_reg_val = 100.0
                 else:
+                    # Relinquishment/Release Deed among family members / co-heirs for inherited property.
+                    # In Delhi: Stamp duty is ₹150 nominal, Registration fee is ₹100 nominal!
+                    # If there is a specified consideration amount (rel_amt > 0), then it's calculated as 2% stamp duty and 1% reg fee.
                     rel_amt = data.get("released_amount") or data.get("released_amount_figures") or data.get("consideration")
-                    if isinstance(rel_amt, (int, float)) and rel_amt > 0:
-                        expected_sd_val = rel_amt * 0.02
-                        expected_reg_val = rel_amt * 0.01
+                    actual_rel_amt = rel_amt if isinstance(rel_amt, (int, float)) else 0.0
+                    if actual_rel_amt > 0:
+                        expected_sd_val = actual_rel_amt * 0.02
+                        expected_reg_val = actual_rel_amt * 0.01
+                    else:
+                        expected_sd_val = 150.0
+                        expected_reg_val = 100.0
             elif "RECONVEYANCE" in txn:
-                expected_sd_val = 500.0
+                expected_sd_val = 100.0
                 expected_reg_val = 100.0
             
             # Save these in data dictionary (rounded to nearest integer)

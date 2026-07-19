@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New chat — Claude</title>
+  <!-- Google Fonts: Inter (for UI elements) & Lora (for serif brand headers) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ── SYSTEM DESIGN VARIABLES ── */
+    :root {
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-serif: 'Lora', Georgia, serif;
+      
+      /* Colors matched precisely to the zoomed-in screenshot */
+      --bg-sidebar: #f9f9f7;
+      --bg-main: #ffffff;
+      --border-color: #e5e5e0;
+      
+      --text-main: #191919;
+      --text-muted: #6b6b66;
+      --text-tertiary: #a1a19a;
+      
+      --hover-bg: #f0efe9;
+      --hover-bg-light: #f5f5f2;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      outline: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    #app-layout {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* ── LEFT SIDEBAR ── */
+    #sidebar {
+      width: 260px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    #sidebar.collapsed {
+      width: 0;
+      border-right: none;
+    }
+
+    .sidebar-header {
+      padding: 20px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--text-main);
+      letter-spacing: -0.025em;
+      user-select: none;
+    }
+
+    .header-icons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .header-icon-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      transition: background-color 0.15s ease;
+    }
+    .header-icon-btn:hover {
+      background-color: var(--hover-bg);
+      color: var(--text-main);
+    }
+    
+    /* + New chat block - NO outer border, matching screenshot exactly */
+    .new-chat-btn {
+      margin: 8px 12px;
+      padding: 8px 12px;
+      background-color: transparent;
+      border: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: background-color 0.15s;
+      width: calc(100% - 24px);
+    }
+    .new-chat-btn:hover {
+      background-color: var(--hover-bg);
+    }
+
+    .new-chat-plus-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #e5e5e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background-color 0.15s;
+    }
+    .new-chat-btn:hover .new-chat-plus-circle {
+      background-color: #d8d8d3;
+    }
+
+    /* Navigation list items */
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      padding: 0 12px;
+      gap: 2px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 14.5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+    .nav-item:hover {
+      background-color: var(--hover-bg);
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-item svg {
+      color: var(--text-main);
+    }
+
+    /* Upgrade pill - white background, thin border, dark blue text */
+    .upgrade-pill {
+      font-size: 11px;
+      font-weight: 500;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      color: #1e40af;
+      line-height: 1;
+    }
+
+    /* Recents Section */
+    .recents-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-top: 20px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 14px;
+      overflow: hidden;
+    }
+
+    .recents-header {
+      padding: 0 24px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: capitalize;
+    }
+    .recents-header-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .recents-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    /* Custom thin scrollbar */
+    .recents-list-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .recents-list-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .recents-list-scroll::-webkit-scrollbar-thumb {
+      background: #dad9d4;
+      border-radius: 9999px;
+    }
+
+    /* Recent items (plain text, NO icons, exactly like the screenshot) */
+    .recent-item {
+      padding: 8px 12px;
+      font-size: 14px;
+      color: var(--text-main);
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: background-color 0.15s ease;
+    }
+    .recent-item:hover {
+      background-color: var(--hover-bg);
+    }
+
+    /* Footer User Panel exactly matching the zoomed-in screenshot */
+    .sidebar-footer {
+      border-top: 1px solid var(--border-color);
+      padding: 16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-sidebar);
+    }
+
+    .user-profile-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #2e2e2b;
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.35;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-plan {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .footer-actions-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .download-container {
+      position: relative;
+    }
+
+    .download-btn {
+      border: 1px solid var(--border-color);
+      background-color: #ffffff;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background-color 0.15s, border-color 0.15s;
+    }
+    .download-btn:hover {
+      background-color: var(--hover-bg-light);
+      color: var(--text-main);
+      border-color: var(--text-tertiary);
+    }
+
+    /* Blue dot notification overlapping top-right of download button */
+    .download-badge-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background-color: #3b82f6;
+      border-radius: 50%;
+      border: 1.5px solid var(--bg-sidebar);
+    }
+
+    .chevron-selector-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .chevron-selector-btn:hover {
+      color: var(--text-main);
+    }
+
+
+    /* ── MAIN CHAT PANEL ── */
+    #main-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: var(--bg-main);
+      position: relative;
+    }
+
+    /* Floating toggle when sidebar is collapsed */
+    #expand-sidebar-btn {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 20;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background-color 0.15s;
+    }
+    #expand-sidebar-btn:hover {
+      background-color: var(--hover-bg-light);
+    }
+    #expand-sidebar-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.5;
+    }
+
+    /* Top bar badge controls */
+    .chat-top-header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 24px;
+      gap: 12px;
+    }
+
+    .plan-badge-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #f3f3f2;
+      border-radius: 9999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .plan-text {
+      color: var(--text-muted);
+    }
+
+    .upgrade-link {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .upgrade-link:hover {
+      opacity: 0.8;
+    }
+
+    .header-user-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    /* Content Area */
+    .chat-scroll-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 24px 80px;
+    }
+
+    .welcome-container {
+      width: 100%;
+      max-width: 660px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -4vh;
+    }
+
+    /* Title (completely free of orange star logo) */
+    .welcome-title {
+      font-family: var(--font-serif);
+      font-size: 33px;
+      font-weight: 400;
+      color: var(--text-main);
+      letter-spacing: -0.025em;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    /* ── PROMPT BAR CONTAINER ── */
+    .prompt-container {
+      width: 100%;
+      border: 1px solid var(--border-color);
+      background-color: #ffffff;
+      border-radius: 24px;
+      padding: 16px 18px 12px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .prompt-container:focus-within {
+      border-color: #999995;
+      box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.06);
+    }
+
+    .prompt-textarea {
+      width: 100%;
+      border: none;
+      resize: none;
+      font-family: var(--font-sans);
+      font-size: 15.5px;
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 44px;
+      background: transparent;
+      padding: 0 4px;
+    }
+    .prompt-textarea::placeholder {
+      color: var(--text-muted);
+      opacity: 0.85;
+    }
+
+    .prompt-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(0,0,0,0.015);
+      padding-top: 4px;
+    }
+
+    .prompt-left-tools {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Simple Gray Plus Trigger */
+    .add-icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s;
+    }
+    .add-icon-btn:hover {
+      background-color: var(--hover-bg);
+      color: var(--text-main);
+    }
+    .add-icon-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8;
+    }
+
+    .prompt-right-tools {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Model selector button */
+    .model-selector-wrap {
+      position: relative;
+    }
+
+    .model-selector-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .model-selector-btn:hover {
+      background-color: var(--hover-bg);
+      color: var(--text-main);
+    }
+    .model-selector-btn svg {
+      width: 13px;
+      height: 13px;
+      color: var(--text-tertiary);
+    }
+
+    /* Dropdown menu popover */
+    .model-popover {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 6px;
+      min-width: 190px;
+      display: none;
+      z-index: 30;
+    }
+    .model-popover.open {
+      display: block;
+    }
+
+    .model-popover-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 13.5px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: background-color 0.15s;
+    }
+    .model-popover-item:hover {
+      background-color: var(--hover-bg);
+    }
+    .model-popover-item svg {
+      width: 14px;
+      height: 14px;
+      color: var(--text-main);
+      visibility: hidden;
+    }
+    .model-popover-item.active svg {
+      visibility: visible;
+    }
+
+    /* Right icons style */
+    .prompt-action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .prompt-action-btn:hover {
+      background-color: var(--hover-bg);
+      color: var(--text-main);
+    }
+    .prompt-action-btn svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 1.5;
+    }
+
+    /* ── SUGGESTED PILLS GRID ── */
+    .pills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 660px;
+    }
+
+    .pill-button {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 9999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .pill-button:hover {
+      background-color: var(--hover-bg-light);
+      border-color: var(--text-muted);
+      color: var(--text-main);
+    }
+    .pill-button svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 1.5;
+      color: var(--text-muted);
+    }
+
+    /* ── CHAT THREAD VIEW (NO STARS/ORANGE LOGOS) ── */
+    #chat-thread-container {
+      display: none;
+      width: 100%;
+      max-width: 660px;
+      flex-direction: column;
+      gap: 28px;
+      margin-bottom: 24px;
+      animation: threadIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes threadIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-turn {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .message-sender {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: -0.01em;
+    }
+
+    .message-text {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    /* Clean Neutral Assistant turn header */
+    .message-turn.assistant .message-sender {
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .typing-mockup {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .typing-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: var(--text-muted);
+      opacity: 0.4;
+      animation: dotPulse 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotPulse {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-layout">
+
+    <!-- ── LEFT SIDEBAR (EXACT REPLICA) ── -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <span class="brand-title">Claude</span>
+        <div class="header-icons">
+          <!-- Search Icon Button -->
+          <button class="header-icon-btn" title="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+          <!-- Exact Sidebar Collapse Icon Button (divided rectangle) -->
+          <button class="header-icon-btn" onclick="toggleSidebar()" title="Collapse sidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- New Chat Button (circular gray badge and text, no outer border) -->
+      <button class="new-chat-btn" onclick="resetToNewChat()">
+        <span class="new-chat-plus-circle">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </span>
+        <span>New chat</span>
+      </button>
+
+      <!-- Nav List with matching precise icons & weights -->
+      <div class="nav-list">
+        <a href="#" class="nav-item">
+          <span class="nav-item-left">
+            <!-- Chats bubble icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Chats</span>
+          </span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item-left">
+            <!-- Projects open box/tray icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+              <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+            </svg>
+            <span>Projects</span>
+          </span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item-left">
+            <!-- Artifacts interlocking blocks icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span>Artifacts</span>
+          </span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item-left">
+            <!-- Code tag icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>Code</span>
+          </span>
+          <span class="upgrade-pill">Upgrade</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-item-left">
+            <!-- Customize toolbox icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            <span>Customize</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- Recents list with Sliders settings icon, plain texts -->
+      <div class="recents-section">
+        <div class="recents-header">
+          <span>Recents</span>
+          <button class="recents-header-btn" title="Sort recents">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line>
+              <line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line>
+              <line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="2" y1="14" x2="6" y2="14"></line>
+              <line x1="10" y1="8" x2="14" y2="8"></line>
+              <line x1="18" y1="16" x2="22" y2="16"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="recents-list-scroll">
+          <div class="recent-item" onclick="loadRecentChat('Chemical formulas of ethanol')">Chemical formulas of ethanol an...</div>
+          <div class="recent-item" onclick="loadRecentChat('CBSE periodic test question')">CBSE periodic test question gen...</div>
+          <div class="recent-item" onclick="loadRecentChat('Passé composé French homework')">Passé composé French homewo...</div>
+          <div class="recent-item" onclick="loadRecentChat('Rainfall forecast for Vashi')">Rainfall forecast for Vashi</div>
+          <div class="recent-item" onclick="loadRecentChat('Isolating bottom left notification')">Isolating bottom left notification</div>
+          <div class="recent-item" onclick="loadRecentChat('Sidebar and info card components')">Sidebar and info card componen...</div>
+          <div class="recent-item" onclick="loadRecentChat('Top section values showing as zero')">Top section values showing as zero</div>
+          <div class="recent-item" onclick="loadRecentChat('Incomplete message')">Incomplete message</div>
+          <div class="recent-item" onclick="loadRecentChat('Property overview and timeline')">Property overview and timeline ...</div>
+          <div class="recent-item" onclick="loadRecentChat('Mortgage transaction status UI')">Mortgage transaction status UI ...</div>
+          <div class="recent-item" onclick="loadRecentChat('Free alternatives to 21st dev')">Free alternatives to 21st dev</div>
+        </div>
+      </div>
+
+      <!-- Footer User Panel (perfect replica matching zoomed screenshot) -->
+      <div class="sidebar-footer">
+        <div class="user-profile-left">
+          <div class="avatar">AK</div>
+          <div class="user-details">
+            <span class="user-name">Atharva Khanvilkar</span>
+            <span class="user-plan">Free plan</span>
+          </div>
+        </div>
+        <div class="footer-actions-wrap">
+          <!-- Download with solid blue notification dot overlapping top-right -->
+          <div class="download-container">
+            <button class="download-btn" title="Download App">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+            <span class="download-badge-dot"></span>
+          </div>
+          <!-- Chevron Up/Down Selector -->
+          <button class="chevron-selector-btn" title="Options">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="7 15 12 20 17 15"></polyline>
+              <polyline points="7 9 12 4 17 9"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+
+    <!-- ── MAIN CHAT PANEL ── -->
+    <main id="main-chat">
+      <!-- Sidebar Expand Toggle -->
+      <button id="expand-sidebar-btn" onclick="toggleSidebar()" title="Expand sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+      </button>
+
+      <!-- Top bar link controls -->
+      <header class="chat-top-header">
+        <div class="plan-badge-wrapper">
+          <span class="plan-text">Free plan</span>
+          <span style="color:var(--text-tertiary); font-size:10px;">·</span>
+          <a href="#" class="upgrade-link">Upgrade</a>
+        </div>
+        <div class="header-user-btn" title="Support">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+      </header>
+
+      <!-- Chat view -->
+      <div class="chat-scroll-wrapper" id="chatViewport">
+        <div class="welcome-container" id="welcomeViewport">
+          
+          <!-- Welcome header exactly styled (Orange star logo removed!) -->
+          <div class="welcome-header">
+            <h1 class="welcome-title">Good evening, Atharva Khanvilkar</h1>
+          </div>
+
+          <!-- Prompt input box -->
+          <div class="prompt-container">
+            <textarea class="prompt-textarea" id="promptTextarea" placeholder="How can I help you today?" oninput="adjustTextareaHeight()"></textarea>
+            
+            <div class="prompt-bottom">
+              <div class="prompt-left-tools">
+                <button class="add-icon-btn" title="Add Content">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </button>
+              </div>
+              <div class="prompt-right-tools">
+                <!-- Model switcher dropdown -->
+                <div class="model-selector-wrap">
+                  <button class="model-selector-btn" id="modelBtn" onclick="toggleModelDropdown()">
+                    <span id="modelLabel">Sonnet 5 Medium</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  <div class="model-popover" id="modelDropdown">
+                    <button class="model-popover-item active" onclick="selectModel('Sonnet 5 Medium')">
+                      <span>Sonnet 5 Medium</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="model-popover-item" onclick="selectModel('Opus 5 Pro')">
+                      <span>Opus 5 Pro</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                    <button class="model-popover-item" onclick="selectModel('Haiku 5 Light')">
+                      <span>Haiku 5 Light</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Speech mic -->
+                <button class="prompt-action-btn" title="Voice Input" onclick="simulateVoice()">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                    <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
+                    <line x1="12" y1="19" x2="12" y2="22"></line>
+                  </svg>
+                </button>
+                <!-- Voice soundwave -->
+                <button class="prompt-action-btn" title="Voice Chat Mode">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="2" y1="10" x2="2" y2="14"></line>
+                    <line x1="6" y1="6" x2="6" y2="18"></line>
+                    <line x1="10" y1="3" x2="10" y2="21"></line>
+                    <line x1="14" y1="3" x2="14" y2="21"></line>
+                    <line x1="18" y1="6" x2="18" y2="18"></line>
+                    <line x1="22" y1="10" x2="22" y2="14"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Suggested pills -->
+          <div class="pills-grid" id="pillsGrid">
+            <button class="pill-button" onclick="usePill('Write')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+              <span>Write</span>
+            </button>
+            <button class="pill-button" onclick="usePill('Learn')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path></svg>
+              <span>Learn</span>
+            </button>
+            <button class="pill-button" onclick="usePill('Code')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              <span>Code</span>
+            </button>
+            <button class="pill-button" onclick="usePill('Life stuff')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4Z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
+              <span>Life stuff</span>
+            </button>
+            <button class="pill-button" onclick="usePill('Claude\'s choice')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .5 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+              <span>Claude's choice</span>
+            </button>
+          </div>
+
+          <!-- Active Message Thread container -->
+          <div id="chat-thread-container"></div>
+          
+          <!-- Typing indicator inside thread -->
+          <div class="typing-mockup" id="typingMock">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    // ── SIDEBAR EXPAND/COLLAPSE ──
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const expandBtn = document.getElementById('expand-sidebar-btn');
+      
+      sidebar.classList.toggle('collapsed');
+      
+      if (sidebar.classList.contains('collapsed')) {
+        expandBtn.style.display = 'flex';
+      } else {
+        expandBtn.style.display = 'none';
+      }
+    }
+
+    // ── TEXTAREA AUTOHEIGHT & INPUT TRIGGERS ──
+    function adjustTextareaHeight() {
+      const textarea = document.getElementById('promptTextarea');
+      textarea.style.height = '44px'; // Base min height
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    // Handle keypress 'Enter' to send simulated message
+    document.getElementById('promptTextarea').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        triggerSend();
+      }
+    });
+
+    // ── MODEL DROPDOWN MENU ──
+    function toggleModelDropdown() {
+      const dropdown = document.getElementById('modelDropdown');
+      dropdown.classList.toggle('open');
+      event.stopPropagation();
+    }
+
+    function selectModel(modelName) {
+      document.getElementById('modelLabel').innerText = modelName;
+      
+      // Update checkmark visual
+      const items = document.querySelectorAll('.model-popover-item');
+      items.forEach(item => {
+        if (item.querySelector('span').innerText === modelName) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+      document.getElementById('modelDropdown').classList.remove('open');
+    }
+
+    // Click outside dropdown handler
+    window.addEventListener('click', function() {
+      document.getElementById('modelDropdown').classList.remove('open');
+    });
+
+    // ── PILL CLICKS ──
+    function usePill(pillName) {
+      const textarea = document.getElementById('promptTextarea');
+      textarea.value = `Help me with some "${pillName}" related tasks... `;
+      textarea.focus();
+      adjustTextareaHeight();
+    }
+
+    // ── CHAT ENGINE SIMULATOR ──
+    function triggerSend() {
+      const textarea = document.getElementById('promptTextarea');
+      const text = textarea.value.trim();
+      if (!text) return;
+
+      // Hide welcome and pills
+      document.querySelector('.welcome-header').style.display = 'none';
+      document.getElementById('pillsGrid').style.display = 'none';
+      
+      // Display thread container
+      const threadContainer = document.getElementById('chat-thread-container');
+      threadContainer.style.display = 'flex';
+
+      // 1. Add User message
+      appendMessageBubble('You', text);
+      
+      // Clear input
+      textarea.value = '';
+      adjustTextareaHeight();
+
+      // 2. Show simulated typing
+      const typingIndicator = document.getElementById('typingMock');
+      typingIndicator.style.display = 'flex';
+      scrollViewportToBottom();
+
+      // 3. Simulated Response
+      setTimeout(() => {
+        typingIndicator.style.display = 'none';
+        
+        let responseText = `Here's a structured response based on your query: "${text}". Please let me know how you would like to proceed.`;
+        
+        appendMessageBubble('Claude', responseText);
+        scrollViewportToBottom();
+      }, 1500);
+    }
+
+    function appendMessageBubble(sender, text) {
+      const threadContainer = document.getElementById('chat-thread-container');
+      const turnDiv = document.createElement('div');
+      turnDiv.className = `message-turn ${sender.toLowerCase() === 'claude' ? 'assistant' : 'user'}`;
+      
+      if (sender.toLowerCase() === 'claude') {
+        turnDiv.innerHTML = `
+          <div class="message-sender">
+            <span>Claude</span>
+          </div>
+          <div class="message-text">${text}</div>
+        `;
+      } else {
+        turnDiv.innerHTML = `
+          <div class="message-sender">${sender}</div>
+          <div class="message-text">${text}</div>
+        `;
+      }
+      
+      threadContainer.appendChild(turnDiv);
+    }
+
+    function scrollViewportToBottom() {
+      const viewport = document.getElementById('chatViewport');
+      viewport.scrollTop = viewport.scrollHeight;
+    }
+
+    // ── NEW CHAT / RESET BUTTON ──
+    function resetToNewChat() {
+      const threadContainer = document.getElementById('chat-thread-container');
+      turnCount = 0;
+      threadContainer.innerHTML = '';
+      threadContainer.style.display = 'none';
+      document.getElementById('typingMock').style.display = 'none';
+      
+      document.querySelector('.welcome-header').style.display = 'flex';
+      document.getElementById('pillsGrid').style.display = 'flex';
+      
+      const textarea = document.getElementById('promptTextarea');
+      textarea.value = '';
+      adjustTextareaHeight();
+    }
+
+    // Sidebar recents click loader
+    function loadRecentChat(title) {
+      resetToNewChat();
+      
+      // Hide welcome immediately
+      document.querySelector('.welcome-header').style.display = 'none';
+      document.getElementById('pillsGrid').style.display = 'none';
+      
+      const threadContainer = document.getElementById('chat-thread-container');
+      threadContainer.style.display = 'flex';
+
+      appendMessageBubble('You', `Load recent conversation: "${title}"`);
+      
+      // Show simulated typing
+      const typingIndicator = document.getElementById('typingMock');
+      typingIndicator.style.display = 'flex';
+      
+      setTimeout(() => {
+        typingIndicator.style.display = 'none';
+        appendMessageBubble('Claude', `Loaded saved history for "${title}". All context retrieved successfully.`);
+        scrollViewportToBottom();
+      }, 1000);
+    }
+
+    // Voice simulation
+    let isListening = false;
+    function simulateVoice() {
+      const textarea = document.getElementById('promptTextarea');
+      isListening = !isListening;
+      if (isListening) {
+        textarea.placeholder = "Listening...";
+      } else {
+        textarea.placeholder = "How can I help you today?";
+      }
+    }
+  </script>
+</body>
+</html>
