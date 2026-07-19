@@ -2447,25 +2447,150 @@
       <!-- Placeholder Panel for DORIS -->
 
       <div class="panel" id="panel-doris">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full bg-white p-6 overflow-y-auto">
+          
+          <!-- Left side: Form parameters -->
+          <div class="lg:col-span-5 flex flex-col space-y-4 border-r border-zinc-100 pr-6">
+            <div>
+              <h3 class="text-sm font-semibold text-zinc-800">DORIS Verification</h3>
+              <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data with official Delhi government registry entries.</p>
+            </div>
+            
+            <div class="space-y-3">
+              <!-- SRO Dropdown -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Sub-Registrar Office (SRO)</label>
+                <select id="doris-sro" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                  <option value="0">--Select SRO Office--</option>
+                </select>
+              </div>
 
-        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
+              <!-- Locality Dropdown -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Locality</label>
+                <select id="doris-locality" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all" disabled>
+                  <option value="0">--Select Locality--</option>
+                </select>
+              </div>
 
-          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 mb-4 text-[#71717a]">
+              <!-- Registration Year Dropdown -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Year</label>
+                <select id="doris-year" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all" disabled>
+                  <option value="0">--Select Registration Year--</option>
+                </select>
+              </div>
 
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- Property Address / Khasra -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Property Address / Khasra No.</label>
+                <input type="text" id="doris-address" placeholder="e.g. Road Name/Street No./Khasra" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+              </div>
 
-              <circle cx="12" cy="12" r="10" /><path d="M12 6v12M15 9H10.5a2.5 2.5 0 0 0 0 5H13.5a2.5 2.5 0 0 1 0 5H9" />
+              <!-- Party Names -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-medium text-zinc-500 mb-1">First Party Name</label>
+                  <input type="text" id="doris-first-party" placeholder="First party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-medium text-zinc-500 mb-1">Second Party Name</label>
+                  <input type="text" id="doris-second-party" placeholder="Second party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                </div>
+              </div>
 
-            </svg>
+              <!-- Registration No. -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Number</label>
+                <input type="text" id="doris-reg-no" placeholder="Registration Number" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+              </div>
 
+              <!-- CAPTCHA Section -->
+              <div id="doris-captcha-container" class="hidden border border-zinc-200 bg-zinc-50/50 rounded-md p-3 space-y-3">
+                <label class="block text-[11px] font-medium text-zinc-500">Security Verification</label>
+                <div class="flex items-center space-x-3">
+                  <div class="bg-white border border-zinc-200 rounded p-1">
+                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-8 w-auto">
+                  </div>
+                  <button type="button" id="doris-captcha-refresh" class="text-[11px] font-semibold text-zinc-600 hover:text-black transition-all">Refresh Code</button>
+                </div>
+                <div>
+                  <input type="text" id="doris-captcha-input" placeholder="Enter security code" class="w-full bg-white border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 transition-all text-uppercase">
+                </div>
+              </div>
+            </div>
+
+            <!-- Search Action -->
+            <div class="pt-2">
+              <button type="button" id="doris-search-btn" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-md py-2 text-xs transition-all shadow-sm">Query Government Registry</button>
+              <p id="doris-validation-msg" class="text-[11px] text-red-500 mt-1.5 hidden"></p>
+            </div>
           </div>
 
-          <h3 class="text-sm font-semibold mb-1">DORIS Integration</h3>
+          <!-- Right side: Scraped Registry Results -->
+          <div class="lg:col-span-7 flex flex-col space-y-4">
+            <div>
+              <h3 class="text-sm font-semibold text-zinc-800">Scraped Registry Entries</h3>
+              <p class="text-xs text-zinc-500 mt-0.5">Matched records directly retrieved from the government databases.</p>
+            </div>
 
-          <p class="text-sm text-zinc-500 max-w-sm">The DORIS data registry connector interface module is currently in development.</p>
+            <!-- Loader / Empty States / Results Table -->
+            <div id="doris-results-container" class="flex-grow flex flex-col justify-center items-center border border-dashed border-zinc-200 rounded-lg p-6 min-h-[300px]">
+              
+              <!-- Empty State -->
+              <div id="doris-state-empty" class="text-center space-y-2">
+                <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-zinc-50 border border-zinc-100 text-zinc-400 mb-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </div>
+                <h4 class="text-xs font-semibold text-zinc-700">No Query Executed</h4>
+                <p class="text-xs text-zinc-400 max-w-xs">Select your parameters on the left, solve the security check, and click Query to retrieve results.</p>
+              </div>
+
+              <!-- Loading State -->
+              <div id="doris-state-loading" class="hidden text-center space-y-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 mx-auto"></div>
+                <h4 class="text-xs font-semibold text-zinc-700">Connecting to Government Registry...</h4>
+                <p class="text-xs text-zinc-400 max-w-xs">This may take up to 15 seconds as we negotiate view states and download CAPTCHAs.</p>
+              </div>
+
+              <!-- Error State -->
+              <div id="doris-state-error" class="hidden text-center space-y-2 text-red-500">
+                <div class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-red-50 border border-red-100 mb-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <h4 class="text-xs font-semibold" id="doris-error-title">Verification Query Failed</h4>
+                <p class="text-xs text-zinc-500 max-w-xs" id="doris-error-msg"></p>
+              </div>
+
+              <!-- Results Grid Table -->
+              <div id="doris-results-grid" class="hidden w-full h-full flex flex-col justify-start">
+                <div class="overflow-x-auto w-full">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="border-b border-zinc-200 text-zinc-500 font-medium">
+                        <th class="py-2 px-3">Reg. No.</th>
+                        <th class="py-2 px-3">Date</th>
+                        <th class="py-2 px-3">Parties</th>
+                        <th class="py-2 px-3">Deed Type</th>
+                        <th class="py-2 px-3">Property Address</th>
+                        <th class="py-2 px-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">
+                      <!-- Scraped rows will be generated dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
 
         </div>
-
       </div>
 
 
@@ -2531,6 +2656,7 @@
 
 
 <script>
+  const projectName = '{{ project_name }}';
   function formatBankNamesHtml(text) {
     if (!text) return text;
     let s = String(text);
@@ -3195,6 +3321,10 @@
     if (view === 'assistant') {
       if (_chatHistory.length === 0) renderChatGreeting();
       setTimeout(() => { const i = document.getElementById('chatInput'); if (i) i.focus(); }, 100);
+    }
+
+    if (view === 'doris') {
+      initDoris();
     }
 
     // 6. Update topbar breadcrumb tab name
@@ -8146,6 +8276,283 @@
 
   }
 
+
+  // ── DORIS INTEGRATION MODULE ──
+  let dorisSessionActive = false;
+
+  function initDoris() {
+    // 1. Reset Form state to completely empty/blank (as requested, no pre-fill)
+    const sroSel = document.getElementById('doris-sro');
+    const locSel = document.getElementById('doris-locality');
+    const yrSel = document.getElementById('doris-year');
+    const addrInput = document.getElementById('doris-address');
+    const fpInput = document.getElementById('doris-first-party');
+    const spInput = document.getElementById('doris-second-party');
+    const regInput = document.getElementById('doris-reg-no');
+    const capInput = document.getElementById('doris-captcha-input');
+    const capContainer = document.getElementById('doris-captcha-container');
+    const valMsg = document.getElementById('doris-validation-msg');
+    
+    sroSel.innerHTML = '<option value="0">--Select SRO Office--</option>';
+    locSel.innerHTML = '<option value="0">--Select Locality--</option>';
+    yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
+    
+    locSel.disabled = true;
+    yrSel.disabled = true;
+    
+    addrInput.value = '';
+    fpInput.value = '';
+    spInput.value = '';
+    regInput.value = '';
+    capInput.value = '';
+    
+    capContainer.classList.add('hidden');
+    valMsg.classList.add('hidden');
+    
+    // Reset results state
+    showDorisState('empty');
+    
+    // 2. Load SRO Office dropdown values via API
+    fetch(`/api/doris/start/${projectName}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.sro_list) {
+          data.sro_list.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.name;
+            sroSel.appendChild(opt);
+          });
+          dorisSessionActive = true;
+        } else {
+          showDorisError('Failed to load SROs', data.error || 'Server session failed to initialize');
+        }
+      })
+      .catch(err => {
+        showDorisError('Connection Error', 'Could not establish session with government registry');
+      });
+  }
+
+  function showDorisState(state) {
+    document.getElementById('doris-state-empty').classList.add('hidden');
+    document.getElementById('doris-state-loading').classList.add('hidden');
+    document.getElementById('doris-state-error').classList.add('hidden');
+    document.getElementById('doris-results-grid').classList.add('hidden');
+    
+    if (state === 'empty') document.getElementById('doris-state-empty').classList.remove('hidden');
+    else if (state === 'loading') document.getElementById('doris-state-loading').classList.remove('hidden');
+    else if (state === 'error') document.getElementById('doris-state-error').classList.remove('hidden');
+    else if (state === 'results') document.getElementById('doris-results-grid').classList.remove('hidden');
+  }
+
+  function showDorisError(title, msg) {
+    document.getElementById('doris-error-title').textContent = title;
+    document.getElementById('doris-error-msg').textContent = msg;
+    showDorisState('error');
+  }
+
+  // Setup Event Listeners for cascading dropdowns
+  document.getElementById('doris-sro').addEventListener('change', function() {
+    const sroVal = this.value;
+    const locSel = document.getElementById('doris-locality');
+    const yrSel = document.getElementById('doris-year');
+    const capContainer = document.getElementById('doris-captcha-container');
+    
+    locSel.innerHTML = '<option value="0">--Select Locality--</option>';
+    locSel.disabled = true;
+    yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
+    yrSel.disabled = true;
+    capContainer.classList.add('hidden');
+    
+    if (sroVal === '0') return;
+    
+    // Fetch Localities
+    fetch(`/api/doris/select/${projectName}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({step: 'sro_selected', sro_val: sroVal})
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok && data.locality_list) {
+        data.locality_list.forEach(l => {
+          const opt = document.createElement('option');
+          opt.value = l.id;
+          opt.textContent = l.name;
+          locSel.appendChild(opt);
+        });
+        locSel.disabled = false;
+      } else {
+        showDorisError('Locality Load Failed', data.error || 'Failed to fetch locality records');
+      }
+    })
+    .catch(() => showDorisError('Connection Error', 'Failed to retrieve locality listings'));
+  });
+
+  document.getElementById('doris-locality').addEventListener('change', function() {
+    const sroVal = document.getElementById('doris-sro').value;
+    const locVal = this.value;
+    const yrSel = document.getElementById('doris-year');
+    const capContainer = document.getElementById('doris-captcha-container');
+    const capImg = document.getElementById('doris-captcha-img');
+    
+    yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
+    yrSel.disabled = true;
+    capContainer.classList.add('hidden');
+    
+    if (locVal === '0') return;
+    
+    // Fetch Years & Captcha
+    fetch(`/api/doris/select/${projectName}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({step: 'locality_selected', sro_val: sroVal, loc_val: locVal})
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        if (data.reg_years) {
+          data.reg_years.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            yrSel.appendChild(opt);
+          });
+          yrSel.disabled = false;
+        }
+        if (data.captcha_image_base64) {
+          capImg.src = data.captcha_image_base64;
+          capContainer.classList.remove('hidden');
+        }
+      } else {
+        showDorisError('Captcha Load Failed', data.error || 'Could not load security check');
+      }
+    })
+    .catch(() => showDorisError('Connection Error', 'Failed to retrieve verification options'));
+  });
+
+  document.getElementById('doris-captcha-refresh').addEventListener('click', function() {
+    // Trigger locality change logic again to load fresh captcha
+    document.getElementById('doris-locality').dispatchEvent(new Event('change'));
+  });
+
+  document.getElementById('doris-search-btn').addEventListener('click', function() {
+    const sroVal = document.getElementById('doris-sro').value;
+    const locVal = document.getElementById('doris-locality').value;
+    const yrVal = document.getElementById('doris-year').value;
+    const captchaText = document.getElementById('doris-captcha-input').value;
+    
+    const valMsg = document.getElementById('doris-validation-msg');
+    valMsg.classList.add('hidden');
+    
+    if (sroVal === '0' || locVal === '0' || yrVal === '0' || !captchaText.trim()) {
+      valMsg.textContent = 'Please make sure SRO, Locality, Year, and Security Code are filled out.';
+      valMsg.classList.remove('hidden');
+      return;
+    }
+    
+    showDorisState('loading');
+    
+    const params = {
+      property_address: document.getElementById('doris-address').value,
+      first_party: document.getElementById('doris-first-party').value,
+      second_party: document.getElementById('doris-second-party').value,
+      reg_no: document.getElementById('doris-reg-no').value
+    };
+    
+    fetch(`/api/doris/search/${projectName}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        sro_val: sroVal,
+        loc_val: locVal,
+        year_val: yrVal,
+        params: params,
+        captcha_text: captchaText
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        if (!data.records || data.records.length === 0) {
+          showDorisError('No Records Found', 'No transactions matched the criteria for this year and address.');
+          return;
+        }
+        
+        const tbody = document.getElementById('doris-results-tbody');
+        tbody.innerHTML = '';
+        
+        data.records.forEach((rec, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-zinc-50 transition-colors border-b border-zinc-100';
+          
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-medium text-zinc-900">${rec.reg_no}</td>
+            <td class="py-2.5 px-3 text-zinc-500 whitespace-nowrap">${rec.reg_date}</td>
+            <td class="py-2.5 px-3">
+              <div class="font-medium text-zinc-800 text-left">${rec.first_party}</div>
+              <div class="text-[10px] text-zinc-400 text-left">to ${rec.second_party}</div>
+            </td>
+            <td class="py-2.5 px-3 text-zinc-500">${rec.deed_type}</td>
+            <td class="py-2.5 px-3 text-zinc-500 max-w-xs truncate" title="${rec.property_address}">${rec.property_address}</td>
+            <td class="py-2.5 px-3 text-right">
+              <button type="button" class="px-2.5 py-1 text-[11px] font-semibold text-zinc-900 border border-zinc-200 hover:bg-zinc-100 rounded transition-all import-rec-btn" data-idx="${idx}">Import</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+        
+        tbody.querySelectorAll('.import-rec-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const rIdx = parseInt(this.getAttribute('data-idx'));
+            const selectedRec = data.records[rIdx];
+            importDorisRecord(this, selectedRec);
+          });
+        });
+        
+        showDorisState('results');
+      } else {
+        showDorisError('Query Failed', data.error || 'Registry returned search error');
+        document.getElementById('doris-captcha-refresh').click();
+      }
+    })
+    .catch(() => {
+      showDorisError('Connection Mismatch', 'Failed to retrieve search results from the governmental SRO server.');
+      document.getElementById('doris-captcha-refresh').click();
+    });
+  });
+
+  function importDorisRecord(btnElement, record) {
+    btnElement.disabled = true;
+    btnElement.textContent = 'Importing...';
+    
+    fetch(`/api/doris/import/${projectName}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(record)
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        btnElement.className = 'px-2.5 py-1 text-[11px] font-semibold text-green-700 bg-green-50 border border-green-200 rounded';
+        btnElement.textContent = 'Imported';
+        
+        showToast('Success', 'Government registry record imported successfully. Refreshing workspace...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        btnElement.disabled = false;
+        btnElement.textContent = 'Import';
+        showToast('Error', data.error || 'Failed to import transaction record');
+      }
+    })
+    .catch(() => {
+      btnElement.disabled = false;
+      btnElement.textContent = 'Import';
+      showToast('Error', 'Connection failed during record import');
+    });
+  }
 </script>
 
 

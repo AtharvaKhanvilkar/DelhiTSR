@@ -12,6 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from main import extract_text_from_PDF
 from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate
+from doris_scraper import DorisScraperSession
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
@@ -1280,6 +1281,142 @@ def save_settings(project_name):
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+
+# In-memory store for stateful DORIS scraper sessions
+DORIS_SESSIONS = {}
+
+@app.route("/api/doris/start/<project_name>", methods=["GET"])
+@login_required
+def api_doris_start(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
+    from flask import jsonify
+    
+    session_obj = DorisScraperSession()
+    res = session_obj.start_session()
+    if res.get("ok"):
+        DORIS_SESSIONS[project_name] = session_obj
+        return jsonify(res)
+    else:
+        return jsonify(res), 500
+
+
+@app.route("/api/doris/select/<project_name>", methods=["POST"])
+@login_required
+def api_doris_select(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
+    from flask import jsonify
+    
+    payload = request.get_json() or {}
+    step = payload.get("step")
+    sro_val = payload.get("sro_val")
+    loc_val = payload.get("loc_val")
+    
+    session_obj = DORIS_SESSIONS.get(project_name)
+    if not session_obj:
+        session_obj = DorisScraperSession()
+        res = session_obj.start_session()
+        if not res.get("ok"):
+            return jsonify({"ok": False, "error": "Could not establish server session"}), 500
+        DORIS_SESSIONS[project_name] = session_obj
+        
+    if step == "sro_selected":
+        res = session_obj.select_sro(sro_val)
+        return jsonify(res)
+    elif step == "locality_selected":
+        res = session_obj.select_locality(sro_val, loc_val)
+        return jsonify(res)
+    else:
+        return jsonify({"ok": False, "error": "Invalid step"}), 400
+
+
+@app.route("/api/doris/search/<project_name>", methods=["POST"])
+@login_required
+def api_doris_search(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
+    from flask import jsonify
+    
+    payload = request.get_json() or {}
+    sro_val = payload.get("sro_val")
+    loc_val = payload.get("loc_val")
+    year_val = payload.get("year_val")
+    params = payload.get("params") or {}
+    captcha_text = payload.get("captcha_text")
+    
+    session_obj = DORIS_SESSIONS.get(project_name)
+    if not session_obj:
+        return jsonify({"ok": False, "error": "Scraper session not initialized. Please refresh the page."}), 400
+        
+    res = session_obj.execute_search(sro_val, loc_val, year_val, params, captcha_text)
+    return jsonify(res)
+
+
+@app.route("/api/doris/import/<project_name>", methods=["POST"])
+@login_required
+def api_doris_import(project_name):
+    if not check_project_owner(project_name):
+        abort(403)
+    from flask import jsonify
+    
+    record = request.get_json() or {}
+    reg_no = record.get("reg_no", "")
+    if not reg_no:
+        return jsonify({"ok": False, "error": "No registration number provided"}), 400
+        
+    # Create safe filename slug
+    safe_reg = reg_no.replace("/", "_").replace("\\", "_").replace(" ", "_")
+    base_filename = f"DORIS_Record_{safe_reg}"
+    pdf_path = os.path.join(PROJECT_FOLDER, project_name, f"{base_filename}.pdf")
+    json_path = os.path.join(PROJECT_FOLDER, project_name, f"{base_filename}_result.json")
+    
+    try:
+        with open(pdf_path, "wb") as f:
+            f.write(b"%PDF-1.4 ... Empty placeholder for DORIS registry verified record ...")
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Failed to create document placeholder: {str(e)}"}), 500
+        
+    deed_type = record.get("deed_type", "Deed")
+    
+    data_payload = {
+        "doc_no": reg_no,
+        "date_of_execution": record.get("reg_date") or "",
+        "date_of_registration": record.get("reg_date") or "",
+        "deed_type": deed_type,
+        "consideration": 0,
+        "stamp_duty": 0,
+        "registration_fee": 0,
+        "seller_names": record.get("first_party") or "",
+        "buyer_names": record.get("second_party") or "",
+        "society_building_address": record.get("property_address") or "",
+        "is_doris_verified": True,
+        "remarks": "Imported directly from Delhi Online Registration Information System (DORIS) public records."
+    }
+    
+    info_path = os.path.join(PROJECT_FOLDER, project_name, "id_info.json")
+    if os.path.exists(info_path):
+        try:
+            with open(info_path, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+            data_payload["property_type"] = meta.get("property_type") or "private_flat"
+        except Exception:
+            data_payload["property_type"] = "private_flat"
+    else:
+        data_payload["property_type"] = "private_flat"
+        
+    envelope = {
+        "parsed": True,
+        "data": data_payload
+    }
+    
+    try:
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(envelope, f, indent=2)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Failed to write verified record result: {str(e)}"}), 500
 
 
 # Rename a file within a project
