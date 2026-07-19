@@ -35,13 +35,13 @@ def normalize_sro_name(gov_name):
 class DorisScraperSession:
     def __init__(self):
         self.session = requests.Session()
-        self.base_url = "http://esearch.delhigovt.nic.in/Complete_search.aspx"
+        self.base_url = "https://esearch.delhigovt.nic.in/Complete_search.aspx"
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
-            "Origin": "http://esearch.delhigovt.nic.in",
-            "Referer": "http://esearch.delhigovt.nic.in/Complete_search.aspx"
+            "Origin": "https://esearch.delhigovt.nic.in",
+            "Referer": "https://esearch.delhigovt.nic.in/Complete_search.aspx"
         }
         self.viewstate = ""
         self.viewstate_generator = "AA2F82EF"
