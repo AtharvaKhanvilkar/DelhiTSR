@@ -78,7 +78,7 @@ class DorisScraperSession:
     def start_session(self):
         """Initial GET request to load state and fetch SROs"""
         try:
-            r = self.session.get(self.base_url, headers=self.headers, timeout=10)
+            r = self.session.get(self.base_url, headers=self.headers, timeout=20)
             soup = self._extract_tokens(r.text)
             
             sro_select = soup.find("select", {"id": "ctl00_ContentPlaceHolder1_ddl_sro_s"})
@@ -117,7 +117,7 @@ class DorisScraperSession:
             "ctl00$ContentPlaceHolder1$csrftoken": self.csrftoken
         }
         try:
-            r = self.session.post(self.base_url, data=payload, headers=self.headers, timeout=10)
+            r = self.session.post(self.base_url, data=payload, headers=self.headers, timeout=20)
             soup = self._extract_tokens(r.text)
             
             loc_select = soup.find("select", {"id": "ctl00_ContentPlaceHolder1_ddl_loc_s"})
@@ -155,7 +155,7 @@ class DorisScraperSession:
             "ctl00$ContentPlaceHolder1$csrftoken": self.csrftoken
         }
         try:
-            r = self.session.post(self.base_url, data=payload, headers=self.headers, timeout=10)
+            r = self.session.post(self.base_url, data=payload, headers=self.headers, timeout=20)
             soup = self._extract_tokens(r.text)
             
             # Extract Years
@@ -175,7 +175,7 @@ class DorisScraperSession:
                 if src:
                     # Construct full image URL (relative to base URL)
                     captcha_url = urllib.parse.urljoin(self.base_url, src)
-                    c_resp = self.session.get(captcha_url, headers=self.headers, timeout=10)
+                    c_resp = self.session.get(captcha_url, headers=self.headers, timeout=20)
                     if c_resp.status_code == 200:
                         captcha_b64 = "data:image/png;base64," + base64.b64encode(c_resp.content).decode("utf-8")
                         
@@ -208,7 +208,7 @@ class DorisScraperSession:
             "ctl00$ContentPlaceHolder1$csrftoken": self.csrftoken
         }
         try:
-            r = self.session.post(self.base_url, data=payload, headers=self.headers, timeout=15)
+            r = self.session.post(self.base_url, data=payload, headers=self.headers, timeout=45)
             self._extract_tokens(r.text)
             soup = BeautifulSoup(r.text, "html.parser")
             
