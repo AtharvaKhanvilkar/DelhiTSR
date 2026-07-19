@@ -8389,18 +8389,17 @@
     .catch(() => showDorisError('Connection Error', 'Failed to retrieve locality listings'));
   });
 
-  document.getElementById('doris-locality').addEventListener('change', function() {
-    const sroVal = document.getElementById('doris-sro').value;
-    const locVal = this.value;
+  function loadCaptchaAndYears(sroVal, locVal, refreshOnly = false) {
     const yrSel = document.getElementById('doris-year');
     const capContainer = document.getElementById('doris-captcha-container');
     const capImg = document.getElementById('doris-captcha-img');
+    const capInput = document.getElementById('doris-captcha-input');
     
-    yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
-    yrSel.disabled = true;
-    capContainer.classList.add('hidden');
-    
-    if (locVal === '0') return;
+    if (!refreshOnly) {
+      yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
+      yrSel.disabled = true;
+    }
+    capInput.value = '';
     
     // Fetch Years & Captcha
     fetch(`/api/doris/select/${projectName}`, {
@@ -8411,7 +8410,7 @@
     .then(res => res.json())
     .then(data => {
       if (data.ok) {
-        if (data.reg_years) {
+        if (!refreshOnly && data.reg_years) {
           data.reg_years.forEach(y => {
             const opt = document.createElement('option');
             opt.value = y;
@@ -8429,11 +8428,21 @@
       }
     })
     .catch(() => showDorisError('Connection Error', 'Failed to retrieve verification options'));
+  }
+
+  document.getElementById('doris-locality').addEventListener('change', function() {
+    const sroVal = document.getElementById('doris-sro').value;
+    const locVal = this.value;
+    if (locVal === '0') return;
+    loadCaptchaAndYears(sroVal, locVal, false);
   });
 
   document.getElementById('doris-captcha-refresh').addEventListener('click', function() {
-    // Trigger locality change logic again to load fresh captcha
-    document.getElementById('doris-locality').dispatchEvent(new Event('change'));
+    const sroVal = document.getElementById('doris-sro').value;
+    const locVal = document.getElementById('doris-locality').value;
+    if (sroVal !== '0' && locVal !== '0') {
+      loadCaptchaAndYears(sroVal, locVal, true);
+    }
   });
 
   document.getElementById('doris-search-btn').addEventListener('click', function() {
@@ -8476,6 +8485,7 @@
       if (data.ok) {
         if (!data.records || data.records.length === 0) {
           showDorisError('No Records Found', 'No transactions matched the criteria for this year and address.');
+          loadCaptchaAndYears(sroVal, locVal, true);
           return;
         }
         
@@ -8513,12 +8523,12 @@
         showDorisState('results');
       } else {
         showDorisError('Query Failed', data.error || 'Registry returned search error');
-        document.getElementById('doris-captcha-refresh').click();
+        loadCaptchaAndYears(sroVal, locVal, true);
       }
     })
     .catch(() => {
       showDorisError('Connection Mismatch', 'Failed to retrieve search results from the governmental SRO server.');
-      document.getElementById('doris-captcha-refresh').click();
+      loadCaptchaAndYears(sroVal, locVal, true);
     });
   });
 

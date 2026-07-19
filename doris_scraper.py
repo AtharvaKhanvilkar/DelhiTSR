@@ -213,11 +213,9 @@ class DorisScraperSession:
             soup = BeautifulSoup(r.text, "html.parser")
             
             # Check for error alerts (like "Incorrect Captcha")
-            alert_script = soup.find("script", text=re.compile(r"alert\("))
-            if alert_script:
-                match = re.search(r"alert\(['\"]([^'\"]+)['\"]\)", alert_script.text)
-                if match:
-                    return {"ok": False, "error": match.group(1)}
+            alert_match = re.search(r"alert\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", r.text)
+            if alert_match:
+                return {"ok": False, "error": alert_match.group(1).strip()}
 
             tables = soup.find_all("table")
             records = []
