@@ -4,6 +4,34 @@ import re
 from bs4 import BeautifulSoup
 import requests
 
+def normalize_sro_name(gov_name):
+    mapping = {
+        "Central -Asaf Ali (SR III)": "SRO III (Asaf Ali Road)",
+        "Central-KashmereGate (SR I)": "SRO VI (Kashmere Gate)",
+        "East- Geeta Colony (SR VIII)": "SRO VIII (Geeta Colony)",
+        "East-Preet Vihar (SR VIIIA)": "SRO VIII-A (Vasundhara Enclave)",
+        "New Delhi- INA (SR VII)": "SRO VII (INA)",
+        "New Delhi- Sarojini Nagar (SR VII A)": "SRO VII-A (Sarojini Nagar)",
+        "North - Libaspur (SR VI E)": "SRO VI-E (Libaspur)",
+        "North -Narela(SR VIB)": "SRO VI-B (Narela)",
+        "North East-Seelampur (SR IV)": "SRO IV (Seelampur)",
+        "North West Model Town (SR VIA)": "SRO VI-A (Pitampura / Model Town)",
+        "North West-Khanjwala (SR VID)": "SRO VI-C (Kanjhawala)",
+        "North West-Rohini (SR VIC)": "SRO VI-B (Rohini)",
+        "Shahdara (SR IVA)": "SRO IV-A (Shahdara)",
+        "Shahdara-Vivek Vihar(SR IVB)": "SRO IV-B (Vivek Vihar)",
+        "South East - Defence Colony (SR V(1))": "SRO V (Defence Colony)",
+        "South East-Mehrauli (SR V)": "SRO V (Mehrauli)",
+        "South West (Sub Registrar IXA )": "SRO IX-A (Najafgarh)",
+        "South-Hauz Khas (SR V A)": "SRO V-A (Hauz Khas)",
+        "SouthWest (Sub Registrar IX)": "SRO IX (Kapashera)",
+        "West-Basai Darapur (SR II)": "SRO II (Basai Darapur)",
+        "West-Janakpuri (SR IIB)": "SRO II-B (Janakpuri)",
+        "West-Punjabi Bagh (SR IIA)": "SRO II-A (Punjabi Bagh)"
+    }
+    cleaned = gov_name.strip()
+    return mapping.get(cleaned) or cleaned
+
 class DorisScraperSession:
     def __init__(self):
         self.session = requests.Session()
@@ -59,7 +87,8 @@ class DorisScraperSession:
                 for opt in sro_select.find_all("option"):
                     val = opt.get("value", "")
                     if val != "0":
-                        sros.append({"id": val, "name": opt.text.strip()})
+                        gov_name = opt.text.strip()
+                        sros.append({"id": val, "name": normalize_sro_name(gov_name)})
             return {"ok": True, "sro_list": sros}
         except Exception as e:
             return {"ok": False, "error": str(e)}
