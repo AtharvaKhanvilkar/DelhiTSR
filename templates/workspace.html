@@ -2450,7 +2450,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full bg-white p-6 overflow-y-auto">
           
           <!-- Left side: Form parameters -->
-          <div class="lg:col-span-5 flex flex-col space-y-4 border-r border-zinc-100 pr-6">
+          <div class="lg:col-span-4 flex flex-col space-y-4 border-r border-zinc-100 pr-6">
             <div>
               <h3 class="text-sm font-semibold text-zinc-800">DORIS Verification</h3>
               <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data with official Delhi government registry entries.</p>
@@ -2528,7 +2528,7 @@
           </div>
 
           <!-- Right side: Scraped Registry Results -->
-          <div class="lg:col-span-7 flex flex-col space-y-4">
+          <div class="lg:col-span-8 flex flex-col space-y-4">
             <div>
               <h3 class="text-sm font-semibold text-zinc-800">Scraped Registry Entries</h3>
               <p class="text-xs text-zinc-500 mt-0.5">Matched records directly retrieved from the government databases.</p>
@@ -2569,15 +2569,15 @@
               <!-- Results Grid Table -->
               <div id="doris-results-grid" class="hidden w-full h-full flex flex-col justify-start">
                 <div class="overflow-x-auto w-full">
-                  <table class="w-full text-left text-xs border-collapse">
+                  <table class="w-full text-left text-[11px] border-collapse table-fixed">
                     <thead>
                       <tr class="border-b border-zinc-200 text-zinc-500 font-medium">
-                        <th class="py-2 px-3">Reg. No.</th>
-                        <th class="py-2 px-3">Date</th>
-                        <th class="py-2 px-3">Parties</th>
-                        <th class="py-2 px-3">Deed Type</th>
-                        <th class="py-2 px-3">Property Address</th>
-                        <th class="py-2 px-3 text-right">Actions</th>
+                        <th class="py-2 px-3 w-[12%]">Reg. No.</th>
+                        <th class="py-2 px-3 w-[12%]">Date</th>
+                        <th class="py-2 px-3 w-[26%]">Parties</th>
+                        <th class="py-2 px-3 w-[14%]">Deed Type</th>
+                        <th class="py-2 px-3 w-[28%]">Property Address</th>
+                        <th class="py-2 px-3 w-[8%] text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">

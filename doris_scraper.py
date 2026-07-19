@@ -229,24 +229,64 @@ class DorisScraperSession:
                 if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text:
                     headers = [th.text.strip() for th in rows[0].find_all(["th", "td"])]
                     
+                    first_party_idx = None
+                    second_party_idx = None
+                    addr_idx = None
+                    
+                    for idx, h in enumerate(headers):
+                        h_lower = h.lower()
+                        if "first" in h_lower or "party_i" in h_lower or "party i" in h_lower:
+                            first_party_idx = idx
+                        elif "second" in h_lower or "party_ii" in h_lower or "party ii" in h_lower:
+                            second_party_idx = idx
+                        elif "address" in h_lower or "property" in h_lower or "desc" in h_lower:
+                            addr_idx = idx
+                    
+                    if first_party_idx is None:
+                        first_party_idx = 0
+                    if addr_idx is None:
+                        addr_idx = 1
+                    if second_party_idx is None:
+                        second_party_idx = 2
+                    
                     for r_idx in range(1, len(rows)):
                         cols = rows[r_idx].find_all("td")
-                        if len(cols) < len(headers):
+                        # Some rows might be footers, ignore them if they have fewer columns
+                        if len(cols) < max(first_party_idx, second_party_idx, addr_idx) + 1:
                             continue
                         
-                        row_data = {}
-                        for h_idx, header in enumerate(headers):
-                            val = cols[h_idx].text.strip()
-                            h_clean = header.lower().replace(".", "").replace(" ", "_")
-                            row_data[h_clean] = val
+                        first_party = cols[first_party_idx].text.strip()
+                        second_party = cols[second_party_idx].text.strip()
+                        addr_text = cols[addr_idx].text.strip()
+                        
+                        reg_no = ""
+                        reg_date = ""
+                        deed_type = "Deed"
+                        
+                        # Regex matching for Reg.No Details inside the address block
+                        match = re.search(r"Reg\.?No.*?\s+(\d+)\s*([14])?\s*([\d]{2}[\-/][\d]{2}[\-/][\d]{4})\s+([A-Za-z_ \-]+)\s+(\d+)", addr_text, re.IGNORECASE)
+                        if match:
+                            reg_val = match.group(1)
+                            if match.group(2):
+                                reg_no = reg_val
+                            else:
+                                reg_no = reg_val[:-1] if len(reg_val) > 1 else reg_val
+                            reg_date = match.group(3)
+                            deed_type = match.group(4).strip()
+                        
+                        # Strip off the Reg.No line from the property address text
+                        clean_addr = addr_text
+                        lbl_idx = clean_addr.find("Reg.No")
+                        if lbl_idx != -1:
+                            clean_addr = clean_addr[:lbl_idx].strip()
                         
                         records.append({
-                            "reg_no": row_data.get("reg_no") or row_data.get("registration_number") or "",
-                            "reg_date": row_data.get("reg_date") or row_data.get("registration_date") or "",
-                            "first_party": row_data.get("first_party") or row_data.get("party_i") or "",
-                            "second_party": row_data.get("second_party") or row_data.get("party_ii") or "",
-                            "property_address": row_data.get("property_address") or row_data.get("address") or row_data.get("property_description") or "",
-                            "deed_type": row_data.get("deed_name") or row_data.get("deed_type") or row_data.get("nature") or "Deed"
+                            "reg_no": reg_no,
+                            "reg_date": reg_date,
+                            "first_party": first_party,
+                            "second_party": second_party,
+                            "property_address": clean_addr,
+                            "deed_type": deed_type
                         })
             
             return {"ok": True, "records": records}
