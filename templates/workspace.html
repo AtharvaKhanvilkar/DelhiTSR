@@ -2602,8 +2602,8 @@
               <div id="doris-captcha-container" class="md:col-span-2 flex flex-col">
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Security Verification</label>
                 <div class="flex items-center space-x-2">
-                  <div class="bg-zinc-100 border border-zinc-200 rounded h-[32px] w-[110px] flex items-center justify-center overflow-hidden">
-                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-full w-full object-cover hidden">
+                  <div class="bg-zinc-100 border border-zinc-200 rounded h-[32px] min-w-[110px] flex-shrink-0 flex items-center justify-center px-1">
+                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-full w-auto max-w-none object-contain hidden">
                     <span id="doris-captcha-placeholder" class="text-[10px] text-zinc-400 font-medium">Select Locality</span>
                   </div>
                   <button type="button" id="doris-captcha-refresh" class="h-[32px] px-2.5 border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-black rounded-md text-[11px] font-medium transition-all" disabled>Refresh</button>
@@ -8818,7 +8818,7 @@
               <div class="font-semibold text-zinc-800 text-[11px] uppercase leading-tight">${rec.first_party || '—'}</div>
             </td>
             <td class="py-2.5 px-3">
-              <div class="font-medium text-blue-700 text-[11px] uppercase leading-tight">${rec.second_party || '—'}</div>
+              <div class="font-medium text-zinc-800 text-[11px] uppercase leading-tight">${rec.second_party || '—'}</div>
             </td>
             <td class="py-2.5 px-3 text-zinc-500">${rec.deed_type}</td>
             <td class="py-2.5 px-3 text-zinc-500 max-w-xs truncate" title="${rec.property_address}">${rec.property_address}</td>
