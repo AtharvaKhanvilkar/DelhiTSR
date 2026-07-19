@@ -228,11 +228,6 @@ class DorisScraperSession:
                 header_text = "".join([th.text for th in rows[0].find_all(["th", "td"])]).lower()
                 if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text:
                     headers = [th.text.strip() for th in rows[0].find_all(["th", "td"])]
-                    with open("scratch/debug_search.log", "w", encoding="utf-8") as f:
-                        f.write(f"Headers: {headers}\n")
-                        for r_idx in range(1, len(rows)):
-                            c_list = [c.text.strip() for c in rows[r_idx].find_all("td")]
-                            f.write(f"Row {r_idx} cols (len={len(c_list)}): {c_list}\n")
                     
                     for r_idx in range(1, len(rows)):
                         # Look only at direct tds to avoid flattening nested tables

@@ -1323,6 +1323,11 @@ def api_doris_select(project_name):
         DORIS_SESSIONS[project_name] = session_obj
         
     if step == "sro_selected":
+        session_obj = DorisScraperSession()
+        res = session_obj.start_session()
+        if not res.get("ok"):
+            return jsonify({"ok": False, "error": "Could not establish server session"}), 500
+        DORIS_SESSIONS[project_name] = session_obj
         res = session_obj.select_sro(sro_val)
         return jsonify(res)
     elif step == "locality_selected":
