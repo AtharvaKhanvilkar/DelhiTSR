@@ -2415,48 +2415,7 @@
 
                   Run
 
-                  <span class="run-shortcut">
-
-                    Ctrl
-
-                    <span class="material-symbols-outlined">keyboard_return</span>
-
-                  </span>
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- TSR Report Panel -->
-      <div class="panel" id="panel-report">
-        <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
-          <!-- Let the page be blank for now -->
-        </div>
-      </div>
-
-      <!-- Placeholder Panel for DORIS -->
-
-      <div class="panel" id="panel-doris">
-        <div class="flex flex-col space-y-6 h-full bg-white p-6 overflow-y-auto">
-          
-          <!-- Top: Form parameters -->
-          <div class="flex flex-col space-y-4 border-b border-zinc-100 pb-6">
-            <div>
-              <h3 class="text-sm font-semibold text-zinc-800">DORIS Verification</h3>
-              <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data with official Delhi government registry entries.</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <span class="run-sho            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <!-- SRO Dropdown -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Sub-Registrar Office (SRO)</label>
@@ -2480,6 +2439,12 @@
                   <option value="0">--Select Registration Year--</option>
                 </select>
               </div>
+
+              <!-- Registration No. -->
+              <div>
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Number</label>
+                <input type="text" id="doris-reg-no" placeholder="Registration Number" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+              </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -2489,38 +2454,42 @@
                 <input type="text" id="doris-address" placeholder="e.g. Road Name/Street No./Khasra" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
               </div>
 
-              <!-- Registration No. -->
-              <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Number</label>
-                <input type="text" id="doris-reg-no" placeholder="Registration Number" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
-              </div>
-
-              <!-- CAPTCHA Section -->
-              <div id="doris-captcha-container" class="hidden border border-zinc-200 bg-zinc-50/50 rounded-md p-2 flex items-center justify-between h-[38px] mt-[18px]">
-                <div class="flex items-center space-x-2">
-                  <div class="bg-white border border-zinc-200 rounded p-0.5">
-                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-6 w-auto">
-                  </div>
-                  <button type="button" id="doris-captcha-refresh" class="text-[10px] font-semibold text-zinc-500 hover:text-black transition-all">Refresh</button>
-                </div>
-                <input type="text" id="doris-captcha-input" placeholder="Code" class="w-20 bg-white border border-zinc-200 text-zinc-800 rounded-md py-1 px-2 text-xs focus:outline-none focus:border-zinc-400 transition-all text-uppercase">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <!-- Party Names -->
+              <!-- First Party Name -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">First Party Name</label>
                 <input type="text" id="doris-first-party" placeholder="First party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
               </div>
+
+              <!-- Second Party Name -->
               <div>
                 <label class="block text-[11px] font-medium text-zinc-500 mb-1">Second Party Name</label>
                 <input type="text" id="doris-second-party" placeholder="Second party name" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <!-- CAPTCHA Section (Always visible, clean layout) -->
+              <div id="doris-captcha-container" class="md:col-span-2 flex flex-col">
+                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Security Verification</label>
+                <div class="flex items-center space-x-2">
+                  <div class="bg-zinc-100 border border-zinc-200 rounded h-[32px] w-[110px] flex items-center justify-center overflow-hidden">
+                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-full w-full object-cover hidden">
+                    <span id="doris-captcha-placeholder" class="text-[10px] text-zinc-400 font-medium">Select Locality</span>
+                  </div>
+                  <button type="button" id="doris-captcha-refresh" class="h-[32px] px-2.5 border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-black rounded-md text-[11px] font-medium transition-all" disabled>Refresh</button>
+                  <input type="text" id="doris-captcha-input" placeholder="Enter code" class="flex-grow h-[32px] bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all text-uppercase" disabled>
+                </div>
+              </div>
 
               <!-- Search Action -->
-              <div>
-                <button type="button" id="doris-search-btn" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-md py-2 text-xs transition-all shadow-sm">Query Government Registry</button>
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-medium text-transparent select-none mb-1">Search</label>
+                <button type="button" id="doris-search-btn" class="w-full h-[32px] bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-md text-xs transition-all shadow-sm flex items-center justify-center space-x-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                  </svg>
+                  <span>Query Government Registry</span>
+                </button>
                 <p id="doris-validation-msg" class="text-[11px] text-red-500 mt-1 hidden"></p>
               </div>
             </div>
@@ -8288,7 +8257,6 @@
     const spInput = document.getElementById('doris-second-party');
     const regInput = document.getElementById('doris-reg-no');
     const capInput = document.getElementById('doris-captcha-input');
-    const capContainer = document.getElementById('doris-captcha-container');
     const valMsg = document.getElementById('doris-validation-msg');
     
     sroSel.innerHTML = '<option value="0">--Select SRO Office--</option>';
@@ -8304,7 +8272,10 @@
     regInput.value = '';
     capInput.value = '';
     
-    capContainer.classList.add('hidden');
+    document.getElementById('doris-captcha-img').classList.add('hidden');
+    document.getElementById('doris-captcha-placeholder').classList.remove('hidden');
+    document.getElementById('doris-captcha-refresh').disabled = true;
+    capInput.disabled = true;
     valMsg.classList.add('hidden');
     
     // Reset results state
@@ -8354,13 +8325,17 @@
     const sroVal = this.value;
     const locSel = document.getElementById('doris-locality');
     const yrSel = document.getElementById('doris-year');
-    const capContainer = document.getElementById('doris-captcha-container');
     
     locSel.innerHTML = '<option value="0">--Select Locality--</option>';
     locSel.disabled = true;
     yrSel.innerHTML = '<option value="0">--Select Registration Year--</option>';
     yrSel.disabled = true;
-    capContainer.classList.add('hidden');
+    
+    document.getElementById('doris-captcha-img').classList.add('hidden');
+    document.getElementById('doris-captcha-placeholder').classList.remove('hidden');
+    document.getElementById('doris-captcha-refresh').disabled = true;
+    document.getElementById('doris-captcha-input').value = '';
+    document.getElementById('doris-captcha-input').disabled = true;
     
     showDorisState('empty');
     
@@ -8391,7 +8366,6 @@
 
   function loadCaptchaAndYears(sroVal, locVal, refreshOnly = false) {
     const yrSel = document.getElementById('doris-year');
-    const capContainer = document.getElementById('doris-captcha-container');
     const capImg = document.getElementById('doris-captcha-img');
     const capInput = document.getElementById('doris-captcha-input');
     
@@ -8421,7 +8395,10 @@
         }
         if (data.captcha_image_base64) {
           capImg.src = data.captcha_image_base64;
-          capContainer.classList.remove('hidden');
+          capImg.classList.remove('hidden');
+          document.getElementById('doris-captcha-placeholder').classList.add('hidden');
+          document.getElementById('doris-captcha-refresh').disabled = false;
+          capInput.disabled = false;
         }
       } else {
         showDorisError('Captcha Load Failed', data.error || 'Could not load security check');
