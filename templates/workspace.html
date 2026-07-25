@@ -2708,14 +2708,14 @@
                   </div>
                 </div>
 
-                <!-- Table Footer Bar: Counters + Centered Shadcn usePagination -->
-                <div id="doris-grid-pagination-bar" class="flex flex-col md:flex-row items-center justify-between gap-4 px-0.5 pt-1">
-                  <div id="doris-grid-info" class="text-xs text-zinc-500 font-medium">
+                <!-- Table Footer Bar: Left Info + Strictly Centered Shadcn usePagination -->
+                <div id="doris-grid-pagination-bar" class="relative flex items-center justify-center w-full px-0.5 pt-2 pb-1">
+                  <div id="doris-grid-info" class="hidden sm:block absolute left-0 text-xs text-zinc-500 font-medium">
                     Showing 0 to 0 of 0 records
                   </div>
                   
                   <!-- Centered Shadcn usePagination Pills (Matching Attached Image 2) -->
-                  <div class="flex items-center space-x-1.5 self-center md:self-auto" id="doris-grid-controls">
+                  <div class="flex items-center space-x-1.5 mx-auto" id="doris-grid-controls">
                     <button type="button" id="doris-grid-prev" class="h-9 w-9 rounded-lg border border-zinc-200 bg-white flex items-center justify-center text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-xs" title="Previous Page">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
@@ -8803,6 +8803,41 @@
     return pages;
   }
 
+  function getDorisBadgeAndIcon(deedType) {
+    const t = (deedType || '').toUpperCase();
+    let badgeClass = 'border-border bg-secondary text-secondary-foreground';
+    let label = deedType || 'Deed';
+    let icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+    if (t.includes('SALE') || t.includes('AGREEMENT')) {
+      badgeClass = 'border-blue-200 bg-blue-50 text-blue-800';
+      label = t.includes('AGREEMENT') ? 'Agreement' : 'Sale Deed';
+      icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4m4 4H4"/></svg>';
+    } else if (t.includes('MORTGAGE') || t.includes('INTIMATION')) {
+      badgeClass = 'border-amber-200 bg-amber-50 text-amber-800';
+      label = 'Mortgage';
+      icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>';
+    } else if (t.includes('RELEASE') || t.includes('RELINQUISHMENT') || t.includes('RECONVEYANCE')) {
+      badgeClass = 'border-emerald-200 bg-emerald-50 text-emerald-800';
+      label = t.includes('RELINQUISHMENT') ? 'Relinquishment' : (t.includes('RECONVEYANCE') ? 'Reconveyance' : 'Release');
+      icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>';
+    } else if (t.includes('GIFT')) {
+      badgeClass = 'border-purple-200 bg-purple-50 text-purple-700';
+      label = 'Gift';
+      icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>';
+    } else if (t.includes('LEAVE') || t.includes('LICENSE') || t.includes('LEASE')) {
+      badgeClass = 'border-sky-200 bg-sky-50 text-sky-700';
+      label = t.includes('LEASE') ? 'Lease' : 'Leave & License';
+      icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>';
+    } else if (t.includes('CONVEYANCE')) {
+      badgeClass = 'border-indigo-200 bg-indigo-50 text-indigo-800';
+      label = 'Conveyance';
+      icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    }
+
+    return `<span class="inline-flex items-center gap-1 rounded-md border ${badgeClass} px-2 py-0.5 text-xs font-medium">${icon}<span>${label}</span></span>`;
+  }
+
   function renderDorisGridPage() {
     const tbody = document.getElementById('doris-results-tbody');
     if (!tbody) return;
@@ -8830,13 +8865,7 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-zinc-50/70 transition-colors border-b border-zinc-100';
         
-        const deedUpper = (rec.deed_type || 'DEED').toUpperCase();
-        let badgeClass = 'bg-zinc-100 text-zinc-700 border-zinc-200/80';
-        if (deedUpper.includes('SALE')) badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
-        else if (deedUpper.includes('CONVEYANCE')) badgeClass = 'bg-blue-50 text-blue-700 border-blue-200/60';
-        else if (deedUpper.includes('LEASE')) badgeClass = 'bg-purple-50 text-purple-700 border-purple-200/60';
-        else if (deedUpper.includes('RELINQUISHMENT')) badgeClass = 'bg-amber-50 text-amber-700 border-amber-200/60';
-        else if (deedUpper.includes('MORTGAGE')) badgeClass = 'bg-rose-50 text-rose-700 border-rose-200/60';
+        const badgeHtml = getDorisBadgeAndIcon(rec.deed_type);
         
         tr.innerHTML = `
           <td class="py-3.5 px-4 font-mono font-medium text-zinc-900 text-xs">${rec.reg_no || '—'}</td>
@@ -8848,7 +8877,7 @@
             <div class="font-medium text-zinc-800 text-xs uppercase leading-snug">${rec.second_party || '—'}</div>
           </td>
           <td class="py-3.5 px-4">
-            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border ${badgeClass}">${deedUpper}</span>
+            ${badgeHtml}
           </td>
           <td class="py-3.5 px-4 text-zinc-600 text-xs max-w-xs truncate" title="${rec.property_address || ''}">${rec.property_address || '—'}</td>
         `;
