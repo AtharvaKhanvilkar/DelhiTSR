@@ -2093,20 +2093,25 @@ def _build_events_and_errors(project_path):
     ref_id_src = None
     ref_id_doc = None
 
-    # Pass 1: Scan for Rectification / Correction Deeds
+    # Pass 1: Scan for Rectification / Correction / Amendment Deeds
     rectifications = {}  # original_doc_no -> list of dicts
     for rf, data in results:
         txn = (data.get("txn_type") or "").upper()
         cls_info = data.get("_classification") or {}
-        subtype = cls_info.get("subtype") or ""
+        subtype = (cls_info.get("subtype") or "").lower()
         
-        if "RECTIFICATION" in txn or "CORRECTION" in txn or "rectification" in subtype or "correction" in subtype:
-            orig_doc = data.get("rectified_doc_no") or data.get("released_mortgage_doc_no")
+        is_rect = ("RECTIFICATION" in txn or "CORRECTION" in txn or "AMENDMENT" in txn or "SUPPLEMENTARY" in txn or
+                   "rectification" in subtype or "correction" in subtype or "amendment" in subtype)
+        
+        if is_rect:
+            orig_doc = (data.get("rectified_doc_no") or data.get("original_doc_no") or 
+                        data.get("target_doc_no") or data.get("released_mortgage_doc_no") or 
+                        data.get("ref_doc_no"))
             if orig_doc:
                 orig_doc_norm = str(orig_doc).strip().lower()
                 rectifications.setdefault(orig_doc_norm, [])
                 
-                for field in ["flat_no", "floor_no", "society_building_name", "society_building_address", "plot_no", "area", "seller_names", "buyer_names"]:
+                for field in ["flat_no", "floor_no", "society_building_name", "society_building_address", "plot_no", "area", "seller_names", "buyer_names", "sub_registrar_office", "village", "district"]:
                     val = data.get(f"corrected_{field}") or data.get(field)
                     if val and str(val).strip().lower() not in ("null", "none", ""):
                         rectifications[orig_doc_norm].append({

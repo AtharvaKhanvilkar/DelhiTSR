@@ -317,12 +317,25 @@ class DorisScraperSession:
                                         deed_type = deed_type.split(",")[0].strip()
                             
                             # Strip nested table or historical lines from the property address text
+                             # Strip nested table or historical lines from the property address text
                             clean_addr = addr_text
                             for marker in ["Reg.No", "Property History", "Reg.Date", "SR_Office"]:
                                 lbl_idx = clean_addr.find(marker)
                                 if lbl_idx != -1:
                                     clean_addr = clean_addr[:lbl_idx].strip()
                             
+                            # Sanity check: Reject phantom empty rows (like '<td colspan="6">Deed</td>')
+                            if not reg_no and not reg_date and not first_party and not second_party and (not clean_addr or clean_addr.upper() == "DEED"):
+                                continue
+                                
+                            # Shifted column correction: If second_party is a pure integer/plot number (e.g. '93' or 'FLAT 93'), shift it to address
+                            if second_party and (second_party.isdigit() or re.match(r'^(?:FLAT|PLOT|NO\.?)\s*\d+$', second_party, re.IGNORECASE)):
+                                if not clean_addr or clean_addr == "—":
+                                    clean_addr = second_party
+                                elif second_party not in clean_addr:
+                                    clean_addr = f"Plot/Flat No. {second_party}, {clean_addr}"
+                                second_party = "POI" if first_party != "POI" else "—"
+
                             parsed.append({
                                 "reg_no": reg_no,
                                 "reg_date": reg_date,
@@ -376,6 +389,23 @@ class DorisScraperSession:
                     except Exception as e:
                         # Log error but don't crash if we have previous pages' results
                         print(f"Warning: Failed to fetch search results page {page_num}: {e}")
+            
+            # De-duplicate fetched records across postback pages
+            unique_records = []
+            seen = set()
+            for rec in records:
+                key = (
+                    rec.get("reg_no", "").strip().lower(),
+                    rec.get("reg_date", "").strip().lower(),
+                    rec.get("first_party", "").strip().lower(),
+                    rec.get("second_party", "").strip().lower(),
+                    rec.get("deed_type", "").strip().lower(),
+                    rec.get("property_address", "").strip().lower(),
+                )
+                if key not in seen:
+                    seen.add(key)
+                    unique_records.append(rec)
+            records = unique_records
             
             if not records:
                 page_text_lower = soup.text.lower()
