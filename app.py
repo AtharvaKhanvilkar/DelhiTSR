@@ -4459,15 +4459,20 @@ def download_deed_doc(project_name):
     user = SCAN_CREDENTIALS["username"]
     pwd = SCAN_CREDENTIALS["password"]
 
+    if not user or not pwd:
+        return jsonify({
+            "ok": False,
+            "error": "Portal login credentials not set. Click ⚙️ Settings in the header and enter your login details first!"
+        }), 400
+
     try:
         from deed_doc_scraper import DorisDocScraper
         scraper = DorisDocScraper(username=user, password=pwd)
 
-        # 1. Authenticate with portal if credentials provided
-        if user and pwd:
-            auth_res = scraper.login(user, pwd)
-            if not auth_res.get("ok"):
-                return jsonify({"ok": False, "error": f"Portal Login Failed: {auth_res.get('error')}"}), 401
+        # 1. Authenticate with portal
+        auth_res = scraper.login(user, pwd)
+        if not auth_res.get("ok"):
+            return jsonify({"ok": False, "error": f"Portal Login Failed: {auth_res.get('error')}"}), 401
 
         # 2. Search for deed document pages
         search_res = scraper.fetch_deed_document(

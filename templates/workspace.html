@@ -9412,7 +9412,15 @@
         book_no: '1'
       })
     })
-    .then(res => res.json())
+    .then(async res => {
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        data = { ok: false, error: `Server error (HTTP ${res.status}). Make sure settings credentials are set!` };
+      }
+      return data;
+    })
     .then(data => {
       if (data.ok) {
         btn.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 cursor-default';
