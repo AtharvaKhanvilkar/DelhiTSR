@@ -8430,36 +8430,42 @@
 
   // ── Typeahead Engine ──
   // Stores the options arrays so typeahead can filter them
-  const _dorisTypeaheadData = { sro: [], locality: [], year: [] };
+  const DEFAULT_DORIS_YEARS = Array.from({length: 32}, (_, i) => {
+    const y = 2026 - i;
+    return {id: `${y}-${y+1}`, name: `${y}-${y+1}`};
+  });
 
-  /**
-   * Initialize a typeahead on a text input.
-   * @param {string} inputId   - ID of the visible text input
-   * @param {string} hiddenId  - ID of the hidden input that stores the selected value
-   * @param {string} listId    - ID of the <ul> dropdown list
-   * @param {string} wrapperId - ID of the wrapper div
-   * @param {Array}  options   - Array of {id, name} objects
-   * @param {Function} onSelect - Callback fired when user selects an option
-   */
+  const _dorisTypeaheadData = { sro: [], locality: [], year: DEFAULT_DORIS_YEARS };
+
   function initTypeahead(inputId, hiddenId, listId, wrapperId, options, onSelect) {
     const input = document.getElementById(inputId);
     const hidden = document.getElementById(hiddenId);
     const list = document.getElementById(listId);
     const wrapper = document.getElementById(wrapperId);
-    if (!input || !hidden || !list || !wrapper) return;
+    if (!input || !hidden || !list || !wrapper) return null;
+
+    let currentOnSelect = onSelect;
+
+    // Reuse controller if already initialized on this input
+    if (input._typeaheadCtrl) {
+      input._typeaheadCtrl.setOptions(options || []);
+      if (typeof onSelect === 'function') input._typeaheadCtrl.setOnSelect(onSelect);
+      return input._typeaheadCtrl;
+    }
 
     let activeIdx = -1;
-    let filtered = [...options];
+    let localOptions = [...(options || [])];
+    let filtered = [...localOptions];
 
     function render(items) {
       list.innerHTML = '';
       if (!items || items.length === 0) {
-        if (options && options.length > 0) {
-          items = [...options];
+        if (localOptions && localOptions.length > 0) {
+          items = [...localOptions];
         } else {
           const li = document.createElement('li');
           li.className = 'doris-typeahead-empty';
-          li.textContent = 'Select Locality to load options';
+          li.textContent = 'No options available';
           list.appendChild(li);
           return;
         }
@@ -8508,7 +8514,7 @@
       hidden.value = String(opt.id);
       closeList();
       // Fire the onSelect callback
-      if (typeof onSelect === 'function') onSelect(opt);
+      if (typeof currentOnSelect === 'function') currentOnSelect(opt);
     }
 
     function filterOptions(query) {
@@ -8608,7 +8614,7 @@
       }
     });
 
-    return {
+    const controller = {
       reset: (placeholder) => {
         input.value = '';
         hidden.value = '0';
@@ -8616,10 +8622,15 @@
         closeList();
       },
       setOptions: (newOptions) => {
-        options = newOptions;
-        filtered = [...newOptions];
+        localOptions = [...(newOptions || [])];
+        filtered = [...localOptions];
+      },
+      setOnSelect: (newCb) => {
+        currentOnSelect = newCb;
       }
     };
+    input._typeaheadCtrl = controller;
+    return controller;
   }
 
   // Store typeahead controllers so we can reset them
