@@ -8509,10 +8509,20 @@
 
     function filterOptions(query) {
       const q = query.toLowerCase().trim();
-      if (!q) {
+      if (!q || (hidden.value !== '0' && q === input.value.toLowerCase().trim())) {
         filtered = [...options];
       } else {
-        filtered = options.filter(o => o.name.toLowerCase().includes(q));
+        // Multi-token matching so "15 Taj Enclave" matches "Taj Enclave" or vice versa
+        const tokens = q.split(/\s+/).filter(t => t.length > 0 && !/^\d+$/.test(t));
+        filtered = options.filter(o => {
+          const nameLower = o.name.toLowerCase();
+          if (nameLower.includes(q)) return true;
+          if (tokens.length > 0 && tokens.every(tok => nameLower.includes(tok))) return true;
+          return false;
+        });
+        if (filtered.length === 0) {
+          filtered = [...options]; // Fallback to full list if no token match
+        }
       }
       activeIdx = -1;
       render(filtered);
@@ -8520,7 +8530,8 @@
 
     // Event: focus → show full list
     input.addEventListener('focus', () => {
-      filterOptions(input.value);
+      // If an option is already selected or input is focused, show full list for easy switching
+      filterOptions(hidden.value !== '0' ? '' : input.value);
       openList();
     });
 
