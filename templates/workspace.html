@@ -9241,6 +9241,7 @@
     .catch(() => {
       showDorisError('Connection Mismatch', 'Failed to retrieve search results from the governmental SRO server.');
       loadCaptchaAndYears(sroVal, locVal, true);
+    });
   });
 
   // ── Fresh Re-Query (1-Click ASP.NET Session Reset with Pre-filled Fields) ──
