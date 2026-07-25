@@ -8807,6 +8807,36 @@
     else if (state === 'results') document.getElementById('doris-results-grid').classList.remove('hidden');
   }
 
+  function showToast(title, message, type = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'fixed bottom-5 right-5 z-50 flex flex-col space-y-2 max-w-sm pointer-events-none';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    const isSuccess = type === 'success' || type === 'info';
+    toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border ${isSuccess ? 'bg-white border-indigo-100 shadow-xl text-zinc-900' : 'bg-red-50 border-red-200 text-red-900 shadow-md'} transition-all transform translate-y-2 opacity-0 duration-200`;
+    toast.innerHTML = `
+      <div class="flex-shrink-0 mt-0.5 ${isSuccess ? 'text-indigo-600' : 'text-red-500'}">
+        ${isSuccess ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'}
+      </div>
+      <div class="flex-1 text-xs">
+        <h5 class="font-bold leading-tight">${title}</h5>
+        <p class="mt-0.5 text-zinc-500 font-medium">${message}</p>
+      </div>
+    `;
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-2', 'opacity-0');
+    });
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 250);
+    }, 4000);
+  }
+
   function showDorisError(title, msg) {
     document.getElementById('doris-error-title').textContent = title;
     document.getElementById('doris-error-msg').textContent = msg;
@@ -9309,6 +9339,7 @@
           capInput.value = '';
           capInput.focus();
           
+          document.getElementById('doris-state-error').classList.add('hidden');
           showToast('Fresh Session Ready', 'Government session reset! Type the new CAPTCHA code.');
         } else {
           showDorisError('Re-Query Failed', 'Could not establish fresh session with registry');
