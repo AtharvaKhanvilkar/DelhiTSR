@@ -2111,8 +2111,8 @@
       </button>
 
       <!-- Settings Gear Button -->
-      <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 rounded border border-indigo-200 bg-indigo-50/80 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 transition-colors cursor-pointer shadow-2xs" title="Configure Portal Credentials & System Settings">
-        <svg class="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 rounded border border-zinc-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-800 hover:bg-zinc-100 hover:text-zinc-900 transition-colors cursor-pointer" title="Configure Portal Credentials & System Settings">
+        <svg class="w-3.5 h-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
@@ -2585,8 +2585,8 @@
                 </div>
 
                 <div class="flex items-center gap-2.5 ml-auto">
-                  <button type="button" id="doris-requery-btn" class="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md border border-indigo-200 bg-indigo-50/80 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 transition-all cursor-pointer shadow-2xs" title="Start a fresh government session pre-filled with your current parameters">
-                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                  <button type="button" id="doris-requery-btn" class="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md border border-zinc-200 bg-zinc-50/80 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-all cursor-pointer shadow-2xs" title="Start a fresh government session pre-filled with your current parameters">
+                    <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                       <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>
                     </svg>
                     <span>Fresh Re-Query</span>
@@ -2684,16 +2684,16 @@
               <div id="doris-results-grid" class="hidden w-full flex flex-col space-y-4">
                 
                 <!-- Table Header Bar: Instant Search + Per Page Selector -->
-                <div class="flex flex-wrap items-center justify-between gap-3 px-0.5">
-                  <div class="relative flex-1 min-w-[240px] max-w-md">
+                <div class="flex items-center justify-between gap-4 px-0.5 w-full">
+                  <div class="relative flex-1 min-w-0">
                     <svg class="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
                     </svg>
-                    <input type="text" id="doris-grid-search" placeholder="Filter scraped results (party, address, reg no)..." class="w-full h-9 rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 shadow-xs transition-all">
+                    <input type="text" id="doris-grid-search" placeholder="Filter scraped results (party, address, reg no)..." class="w-full h-9 rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 shadow-2xs transition-all">
                   </div>
-                  <div class="flex items-center space-x-2 text-xs text-zinc-500 font-medium">
+                  <div class="flex items-center space-x-2 text-xs text-zinc-500 font-medium shrink-0">
                     <span>Per page:</span>
-                    <select id="doris-grid-perpage" class="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-800 shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 cursor-pointer">
+                    <select id="doris-grid-perpage" class="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-800 shadow-2xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 cursor-pointer">
                       <option value="10" selected>10</option>
                       <option value="25">25</option>
                       <option value="50">50</option>
@@ -9032,8 +9032,8 @@
           </td>
           <td class="py-3.5 px-4 text-zinc-600 text-xs max-w-xs truncate" title="${rec.property_address || ''}">${rec.property_address || '—'}</td>
           <td class="py-3.5 px-4 text-right">
-            <button type="button" onclick="downloadDeedDoc(this, ${jsonEscaped})" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/80 hover:bg-indigo-100 hover:text-indigo-900 transition-colors shadow-2xs cursor-pointer">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <button type="button" onclick="downloadDeedDoc(this, ${jsonEscaped})" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-semibold text-zinc-50 bg-zinc-900 border border-zinc-900 hover:bg-zinc-800 transition-all shadow-2xs cursor-pointer">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-zinc-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               <span>Download</span>
             </button>
           </td>
