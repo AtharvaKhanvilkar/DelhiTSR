@@ -9473,6 +9473,7 @@
         if (data.ok) {
           if (data.username) document.getElementById('settings-scan-user').value = data.username;
           if (data.password_masked) document.getElementById('settings-scan-pass').value = data.password_masked;
+          if (data.session_cookie) document.getElementById('settings-scan-cookie').value = data.session_cookie;
         }
       })
       .catch(() => {});
@@ -9486,11 +9487,12 @@
   function saveSettingsCredentials() {
     const user = document.getElementById('settings-scan-user').value.trim();
     const pass = document.getElementById('settings-scan-pass').value.trim();
+    const cookie = document.getElementById('settings-scan-cookie').value.trim();
 
     fetch('/api/settings/credentials', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username: user, password: pass})
+      body: JSON.stringify({username: user, password: pass, session_cookie: cookie})
     })
     .then(res => res.json())
     .then(data => {
@@ -9869,7 +9871,12 @@ if ('serviceWorker' in navigator) {
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Portal Password</label>
           <input type="password" id="settings-scan-pass" placeholder="e.g. Atharva@2026" class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 font-medium">
-          <p class="text-[10px] text-zinc-400 mt-1">Credentials are used securely to authenticate with scan.delhigovt.nic.in when fetching deed scans.</p>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Active Browser Session Cookie <span class="text-zinc-400 font-normal lowercase">(optional override)</span></label>
+          <input type="text" id="settings-scan-cookie" placeholder="e.g. ASP.NET_SessionId=xyz123..." class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 font-mono text-[11px]">
+          <p class="text-[10px] text-zinc-400 mt-1">If logged into scan.delhigovt.nic.in in Chrome, paste your session cookie here to bypass login CAPTCHAs instantly.</p>
         </div>
       </div>
 

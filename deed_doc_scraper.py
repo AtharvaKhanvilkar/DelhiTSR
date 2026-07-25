@@ -25,12 +25,20 @@ HEADERS = {
 }
 
 class DorisDocScraper:
-    def __init__(self, username=None, password=None):
+    def __init__(self, username=None, password=None, session_cookie=None):
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
         self.username = username or os.getenv("DORIS_SCAN_USER", "")
         self.password = password or os.getenv("DORIS_SCAN_PASS", "")
-        self.is_logged_in = False
+        self.session_cookie = session_cookie or os.getenv("DORIS_SCAN_COOKIE", "")
+        
+        if self.session_cookie:
+            # Set cookie directly on session
+            self.session.headers.update({"Cookie": self.session_cookie})
+            if "ASP.NET_SessionId" not in self.session_cookie and "=" not in self.session_cookie:
+                self.session.cookies.set("ASP.NET_SessionId", self.session_cookie, domain="scan.delhigovt.nic.in")
+        
+        self.is_logged_in = bool(self.session_cookie)
 
     def login(self, username=None, password=None):
         """Authenticates against scan.delhigovt.nic.in/Registration.aspx"""

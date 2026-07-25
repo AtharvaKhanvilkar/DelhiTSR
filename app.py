@@ -4420,7 +4420,8 @@ def chat(project_name):
 # ── Global Settings & Deed Scan API Endpoints ──
 SCAN_CREDENTIALS = {
     "username": os.getenv("DORIS_SCAN_USER", ""),
-    "password": os.getenv("DORIS_SCAN_PASS", "")
+    "password": os.getenv("DORIS_SCAN_PASS", ""),
+    "session_cookie": os.getenv("DORIS_SCAN_COOKIE", "")
 }
 
 @app.route("/api/settings/credentials", methods=["GET", "POST"])
@@ -4429,10 +4430,13 @@ def settings_credentials():
         data = request.json or {}
         user = data.get("username", "").strip()
         pwd = data.get("password", "").strip()
+        cookie = data.get("session_cookie", "").strip()
         SCAN_CREDENTIALS["username"] = user
         SCAN_CREDENTIALS["password"] = pwd
+        SCAN_CREDENTIALS["session_cookie"] = cookie
         os.environ["DORIS_SCAN_USER"] = user
         os.environ["DORIS_SCAN_PASS"] = pwd
+        os.environ["DORIS_SCAN_COOKIE"] = cookie
         return jsonify({"ok": True, "message": "Credentials updated successfully."})
     else:
         # Return masked representation for security
@@ -4440,6 +4444,7 @@ def settings_credentials():
         return jsonify({
             "ok": True,
             "username": SCAN_CREDENTIALS["username"],
+            "session_cookie": SCAN_CREDENTIALS["session_cookie"],
             "password_configured": bool(SCAN_CREDENTIALS["password"]),
             "password_masked": masked_pwd
         })
@@ -4458,21 +4463,17 @@ def download_deed_doc(project_name):
 
     user = SCAN_CREDENTIALS["username"]
     pwd = SCAN_CREDENTIALS["password"]
-
-    if not user or not pwd:
-        return jsonify({
-            "ok": False,
-            "error": "Portal login credentials not set. Click ⚙️ Settings in the header and enter your login details first!"
-        }), 400
+    cookie = SCAN_CREDENTIALS["session_cookie"]
 
     try:
         from deed_doc_scraper import DorisDocScraper
-        scraper = DorisDocScraper(username=user, password=pwd)
+        scraper = DorisDocScraper(username=user, password=pwd, session_cookie=cookie)
 
-        # 1. Authenticate with portal
-        auth_res = scraper.login(user, pwd)
-        if not auth_res.get("ok"):
-            return jsonify({"ok": False, "error": f"Portal Login Failed: {auth_res.get('error')}"}), 401
+        # 1. Authenticate with portal if credentials provided and no session cookie
+        if not cookie and user and pwd:
+            auth_res = scraper.login(user, pwd)
+            if not auth_res.get("ok"):
+                return jsonify({"ok": False, "error": f"Portal Login Failed: {auth_res.get('error')}"}), 401
 
         # 2. Search for deed document pages
         search_res = scraper.fetch_deed_document(
