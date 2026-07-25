@@ -2664,19 +2664,20 @@
                 <p class="text-xs text-zinc-500 max-w-xs" id="doris-error-msg"></p>
               </div>
 
-              <!-- Results Grid Table with Pagination & Instant Filter -->
-              <div id="doris-results-grid" class="hidden w-full h-full flex flex-col space-y-3">
+              <!-- Results Grid Table with Shadcn UI Card & Centered usePagination Bar -->
+              <div id="doris-results-grid" class="hidden w-full flex flex-col space-y-4">
+                
                 <!-- Table Header Bar: Instant Search + Per Page Selector -->
-                <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-zinc-100">
+                <div class="flex flex-wrap items-center justify-between gap-3 px-0.5">
                   <div class="relative flex-1 min-w-[240px] max-w-md">
                     <svg class="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
                     </svg>
-                    <input type="text" id="doris-grid-search" placeholder="Filter scraped results (party, address, reg no)..." class="w-full h-9 rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 transition-all">
+                    <input type="text" id="doris-grid-search" placeholder="Filter scraped results (party, address, reg no)..." class="w-full h-9 rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 shadow-xs transition-all">
                   </div>
-                  <div class="flex items-center space-x-2 text-xs text-zinc-500">
+                  <div class="flex items-center space-x-2 text-xs text-zinc-500 font-medium">
                     <span>Per page:</span>
-                    <select id="doris-grid-perpage" class="h-9 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950">
+                    <select id="doris-grid-perpage" class="h-9 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-800 shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 cursor-pointer">
                       <option value="10" selected>10</option>
                       <option value="25">25</option>
                       <option value="50">50</option>
@@ -2686,34 +2687,42 @@
                   </div>
                 </div>
 
-                <!-- Main Data Table -->
-                <div class="overflow-x-auto w-full border border-zinc-100 rounded-lg">
-                  <table class="w-full text-left text-sm border-collapse table-fixed">
-                    <thead>
-                      <tr class="bg-zinc-50/80 border-b border-zinc-200 text-zinc-600 font-medium">
-                        <th class="py-3 px-4 w-[10%]">Reg. No.</th>
-                        <th class="py-3 px-4 w-[10%]">Date</th>
-                        <th class="py-3 px-4 w-[18%]">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></th>
-                        <th class="py-3 px-4 w-[18%]">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></th>
-                        <th class="py-3 px-4 w-[14%]">Deed Type</th>
-                        <th class="py-3 px-4 w-[30%]">Property Address</th>
-                      </tr>
-                    </thead>
-                    <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">
-                      <!-- Scraped rows rendered via renderDorisGridPage() -->
-                    </tbody>
-                  </table>
+                <!-- Main Data Table (Shadcn Card Container) -->
+                <div class="w-full border border-zinc-200/80 rounded-xl bg-white shadow-xs overflow-hidden">
+                  <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left text-xs border-collapse table-fixed">
+                      <thead>
+                        <tr class="bg-zinc-50/80 border-b border-zinc-200/80 text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
+                          <th class="py-3 px-4 w-[11%]">Reg. No.</th>
+                          <th class="py-3 px-4 w-[11%]">Date</th>
+                          <th class="py-3 px-4 w-[20%]">First Party <span class="text-zinc-400 font-normal lowercase">(transferor)</span></th>
+                          <th class="py-3 px-4 w-[20%]">Second Party <span class="text-zinc-400 font-normal lowercase">(transferee)</span></th>
+                          <th class="py-3 px-4 w-[13%]">Deed Type</th>
+                          <th class="py-3 px-4 w-[25%]">Property Address</th>
+                        </tr>
+                      </thead>
+                      <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">
+                        <!-- Scraped rows rendered via renderDorisGridPage() -->
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
-                <!-- Table Footer Bar: Counters + Pagination Pills -->
-                <div id="doris-grid-pagination-bar" class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <!-- Table Footer Bar: Counters + Centered Shadcn usePagination -->
+                <div id="doris-grid-pagination-bar" class="flex flex-col md:flex-row items-center justify-between gap-4 px-0.5 pt-1">
                   <div id="doris-grid-info" class="text-xs text-zinc-500 font-medium">
                     Showing 0 to 0 of 0 records
                   </div>
-                  <div class="flex items-center space-x-1" id="doris-grid-controls">
-                    <button type="button" id="doris-grid-prev" class="h-8 px-3 rounded border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Previous</button>
-                    <div id="doris-grid-page-pills" class="flex items-center space-x-1"></div>
-                    <button type="button" id="doris-grid-next" class="h-8 px-3 rounded border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Next</button>
+                  
+                  <!-- Centered Shadcn usePagination Pills (Matching Attached Image 2) -->
+                  <div class="flex items-center space-x-1.5 self-center md:self-auto" id="doris-grid-controls">
+                    <button type="button" id="doris-grid-prev" class="h-9 w-9 rounded-lg border border-zinc-200 bg-white flex items-center justify-center text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-xs" title="Previous Page">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <div id="doris-grid-page-pills" class="flex items-center space-x-1.5"></div>
+                    <button type="button" id="doris-grid-next" class="h-9 w-9 rounded-lg border border-zinc-200 bg-white flex items-center justify-center text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-xs" title="Next Page">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -8774,6 +8783,26 @@
     renderDorisGridPage();
   }
 
+  function generateDorisPaginationRange(currentPage, totalPages) {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages = [1];
+    if (currentPage > 3) {
+      pages.push('...');
+    }
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (currentPage < totalPages - 2) {
+      pages.push('...');
+    }
+    pages.push(totalPages);
+    return pages;
+  }
+
   function renderDorisGridPage() {
     const tbody = document.getElementById('doris-results-tbody');
     if (!tbody) return;
@@ -8794,24 +8823,34 @@
     
     if (pageRecords.length === 0) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="6" class="py-8 text-center text-xs text-zinc-400">No records match your search filter.</td>`;
+      tr.innerHTML = `<td colspan="6" class="py-12 text-center text-xs text-zinc-400 font-medium">No records match your search criteria.</td>`;
       tbody.appendChild(tr);
     } else {
       pageRecords.forEach(rec => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-zinc-50 transition-colors border-b border-zinc-100';
+        tr.className = 'hover:bg-zinc-50/70 transition-colors border-b border-zinc-100';
+        
+        const deedUpper = (rec.deed_type || 'DEED').toUpperCase();
+        let badgeClass = 'bg-zinc-100 text-zinc-700 border-zinc-200/80';
+        if (deedUpper.includes('SALE')) badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
+        else if (deedUpper.includes('CONVEYANCE')) badgeClass = 'bg-blue-50 text-blue-700 border-blue-200/60';
+        else if (deedUpper.includes('LEASE')) badgeClass = 'bg-purple-50 text-purple-700 border-purple-200/60';
+        else if (deedUpper.includes('RELINQUISHMENT')) badgeClass = 'bg-amber-50 text-amber-700 border-amber-200/60';
+        else if (deedUpper.includes('MORTGAGE')) badgeClass = 'bg-rose-50 text-rose-700 border-rose-200/60';
         
         tr.innerHTML = `
-          <td class="py-3.5 px-4 font-medium text-zinc-900">${rec.reg_no || '—'}</td>
-          <td class="py-3.5 px-4 text-zinc-500 whitespace-nowrap">${rec.reg_date || '—'}</td>
+          <td class="py-3.5 px-4 font-mono font-medium text-zinc-900 text-xs">${rec.reg_no || '—'}</td>
+          <td class="py-3.5 px-4 text-zinc-600 text-xs whitespace-nowrap font-medium">${rec.reg_date || '—'}</td>
           <td class="py-3.5 px-4">
             <div class="font-semibold text-zinc-800 text-xs uppercase leading-snug">${rec.first_party || '—'}</div>
           </td>
           <td class="py-3.5 px-4">
             <div class="font-medium text-zinc-800 text-xs uppercase leading-snug">${rec.second_party || '—'}</div>
           </td>
-          <td class="py-3.5 px-4 text-zinc-500 text-xs">${rec.deed_type || '—'}</td>
-          <td class="py-3.5 px-4 text-zinc-500 text-xs max-w-xs truncate" title="${rec.property_address || ''}">${rec.property_address || '—'}</td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border ${badgeClass}">${deedUpper}</span>
+          </td>
+          <td class="py-3.5 px-4 text-zinc-600 text-xs max-w-xs truncate" title="${rec.property_address || ''}">${rec.property_address || '—'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -8839,29 +8878,36 @@
     if (prevBtn) prevBtn.disabled = (_dorisCurrentPage <= 1);
     if (nextBtn) nextBtn.disabled = (_dorisCurrentPage >= totalPages);
     
-    // Page pills
+    // Page pills matching Attached Image 2 (shadcn usePagination)
     const pillsContainer = document.getElementById('doris-grid-page-pills');
     if (pillsContainer) {
       pillsContainer.innerHTML = '';
-      let startP = Math.max(1, _dorisCurrentPage - 2);
-      let endP = Math.min(totalPages, startP + 4);
-      if (endP - startP < 4) startP = Math.max(1, endP - 4);
       
-      for (let p = startP; p <= endP; p++) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `h-8 w-8 rounded text-xs font-medium transition-all ${
-          p === _dorisCurrentPage 
-            ? 'bg-zinc-900 text-white font-semibold shadow-sm' 
-            : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-100'
-        }`;
-        btn.textContent = p;
-        btn.addEventListener('click', () => {
-          _dorisCurrentPage = p;
-          renderDorisGridPage();
-        });
-        pillsContainer.appendChild(btn);
-      }
+      const pageRange = generateDorisPaginationRange(_dorisCurrentPage, totalPages);
+      
+      pageRange.forEach(p => {
+        if (p === '...') {
+          const span = document.createElement('span');
+          span.className = 'h-9 px-1.5 flex items-center justify-center text-zinc-400 font-semibold select-none text-xs';
+          span.textContent = '•••';
+          pillsContainer.appendChild(span);
+        } else {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          const isCurrent = p === _dorisCurrentPage;
+          btn.className = `h-9 min-w-9 px-3 rounded-lg text-xs font-semibold flex items-center justify-center transition-all ${
+            isCurrent
+              ? 'bg-zinc-100 border border-zinc-300 text-zinc-900 shadow-xs'
+              : 'bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs'
+          }`;
+          btn.textContent = p;
+          btn.addEventListener('click', () => {
+            _dorisCurrentPage = p;
+            renderDorisGridPage();
+          });
+          pillsContainer.appendChild(btn);
+        }
+      });
     }
   }
 

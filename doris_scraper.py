@@ -220,17 +220,29 @@ class DorisScraperSession:
             def parse_rows(soup_obj):
                 parsed = []
                 tables = soup_obj.find_all("table")
+                date_regex = re.compile(r"^\d{2}[-/]\d{2}[-/]\d{4}$")
+                known_deeds = ["CONVEYANCE", "SALE", "LEASE", "GIFT", "MORTGAGE", "RELINQUISHMENT", "WILL", "GPA", "POWER OF ATTORNEY", "DEED"]
+                
                 for table in tables:
                     rows = table.find_all("tr")
                     if not rows:
                         continue
                     header_text = "".join([th.text for th in rows[0].find_all(["th", "td"])]).lower()
-                    if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text:
+                    if "reg. no" in header_text or "registration number" in header_text or "first party" in header_text or "deed" in header_text:
                         for r_idx in range(1, len(rows)):
                             # Look only at direct tds to avoid flattening nested tables
                             cols = rows[r_idx].find_all("td", recursive=False)
                             if len(cols) < 3:
                                 continue
+                            
+                            raw_texts = [c.text.strip() for c in cols]
+                            
+                            # Detect which column index contains the registration date (DD-MM-YYYY)
+                            date_col_idx = -1
+                            for c_i, val in enumerate(raw_texts):
+                                if date_regex.match(val):
+                                    date_col_idx = c_i
+                                    break
                             
                             reg_no = ""
                             reg_date = ""
@@ -239,30 +251,52 @@ class DorisScraperSession:
                             addr_text = ""
                             deed_type = "Deed"
                             
-                            if len(cols) == 11:
-                                reg_no = cols[0].text.strip()
-                                reg_date = cols[1].text.strip()
-                                first_party = cols[2].text.strip()
-                                second_party = cols[4].text.strip()
-                                addr_text = cols[6].text.strip()
-                                deed_type = cols[9].text.strip()
-                            elif len(cols) == 8:
-                                reg_no = cols[0].text.strip()
-                                reg_date = cols[1].text.strip()
-                                first_party = cols[2].text.strip()
-                                second_party = cols[3].text.strip()
-                                addr_text = cols[4].text.strip()
-                                deed_type = cols[6].text.strip()
+                            if len(cols) == 11 and date_col_idx == 1:
+                                reg_no = raw_texts[0]
+                                reg_date = raw_texts[1]
+                                first_party = raw_texts[2]
+                                second_party = raw_texts[4]
+                                addr_text = raw_texts[6]
+                                deed_type = raw_texts[9]
+                            elif len(cols) == 8 and date_col_idx == 1:
+                                reg_no = raw_texts[0]
+                                reg_date = raw_texts[1]
+                                first_party = raw_texts[2]
+                                second_party = raw_texts[3]
+                                addr_text = raw_texts[4]
+                                deed_type = raw_texts[6]
                             else:
-                                # Direct index mapping fallback
-                                reg_no = cols[0].text.strip()
-                                reg_date = cols[1].text.strip()
-                                first_party = cols[2].text.strip()
-                                if len(cols) > 4:
-                                    second_party = cols[3].text.strip()
-                                    addr_text = cols[4].text.strip()
-                                if len(cols) > 6:
-                                    deed_type = cols[6].text.strip()
+                                # Dynamic alignment based on date_col_idx
+                                if date_col_idx == 2:
+                                    # Column 1 was Book/Vol No (e.g. '1')
+                                    reg_no = raw_texts[0]
+                                    reg_date = raw_texts[2]
+                                    
+                                    col3 = raw_texts[3] if len(raw_texts) > 3 else ""
+                                    if any(kd in col3.upper() for kd in known_deeds):
+                                        deed_type = col3
+                                        first_party = "POI"
+                                        second_party = raw_texts[4] if len(raw_texts) > 4 and raw_texts[4].upper() not in known_deeds else ""
+                                        addr_text = raw_texts[5] if len(raw_texts) > 5 else (raw_texts[4] if len(raw_texts) > 4 else "")
+                                    else:
+                                        first_party = col3
+                                        second_party = raw_texts[4] if len(raw_texts) > 4 else ""
+                                        deed_type = raw_texts[5] if len(raw_texts) > 5 else "Deed"
+                                        addr_text = raw_texts[6] if len(raw_texts) > 6 else (raw_texts[5] if len(raw_texts) > 5 else "")
+                                elif date_col_idx == 1:
+                                    reg_no = raw_texts[0]
+                                    reg_date = raw_texts[1]
+                                    first_party = raw_texts[2] if len(raw_texts) > 2 else ""
+                                    second_party = raw_texts[3] if len(raw_texts) > 3 else ""
+                                    addr_text = raw_texts[4] if len(raw_texts) > 4 else ""
+                                    deed_type = raw_texts[5] if len(raw_texts) > 5 else "Deed"
+                                else:
+                                    reg_no = raw_texts[0]
+                                    reg_date = raw_texts[1] if len(raw_texts) > 1 else ""
+                                    first_party = raw_texts[2] if len(raw_texts) > 2 else ""
+                                    second_party = raw_texts[3] if len(raw_texts) > 3 else ""
+                                    addr_text = raw_texts[4] if len(raw_texts) > 4 else ""
+                                    deed_type = raw_texts[5] if len(raw_texts) > 5 else "Deed"
                             
                             # Clean deed_type if it is comma-separated (e.g. SALE,SALE WITHIN MC AREA)
                             if "," in deed_type:
