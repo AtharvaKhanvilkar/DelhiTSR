@@ -8453,12 +8453,16 @@
 
     function render(items) {
       list.innerHTML = '';
-      if (items.length === 0) {
-        const li = document.createElement('li');
-        li.className = 'doris-typeahead-empty';
-        li.textContent = 'No matches found';
-        list.appendChild(li);
-        return;
+      if (!items || items.length === 0) {
+        if (options && options.length > 0) {
+          items = [...options];
+        } else {
+          const li = document.createElement('li');
+          li.className = 'doris-typeahead-empty';
+          li.textContent = 'Select Locality to load options';
+          list.appendChild(li);
+          return;
+        }
       }
       items.forEach((opt, idx) => {
         const li = document.createElement('li');
@@ -8512,16 +8516,16 @@
       if (!q || (hidden.value !== '0' && q === input.value.toLowerCase().trim())) {
         filtered = [...options];
       } else {
-        // Multi-token matching so "15 Taj Enclave" matches "Taj Enclave" or vice versa
-        const tokens = q.split(/\s+/).filter(t => t.length > 0 && !/^\d+$/.test(t));
+        const tokens = q.split(/\s+/).filter(t => t.length > 0);
         filtered = options.filter(o => {
-          const nameLower = o.name.toLowerCase();
-          if (nameLower.includes(q)) return true;
+          const nameLower = String(o.name || o).toLowerCase();
+          const idLower = String(o.id || o).toLowerCase();
+          if (nameLower.includes(q) || idLower.includes(q)) return true;
           if (tokens.length > 0 && tokens.every(tok => nameLower.includes(tok))) return true;
           return false;
         });
-        if (filtered.length === 0) {
-          filtered = [...options]; // Fallback to full list if no token match
+        if (filtered.length === 0 && options.length > 0) {
+          filtered = [...options]; // Fallback to all options so dropdown is never empty
         }
       }
       activeIdx = -1;
