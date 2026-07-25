@@ -8653,16 +8653,16 @@
       const savedStr = localStorage.getItem(`doris_state_${projectName}`);
       if (!savedStr) return false;
       const state = JSON.parse(savedStr);
-      if (!state || !state.hasSearched || !state.records || state.records.length === 0) return false;
+      if (!state) return false;
       
       if (state.sroVal) document.getElementById('doris-sro').value = state.sroVal;
       if (state.sroInput) document.getElementById('doris-sro-input').value = state.sroInput;
-      if (state.locVal) {
+      if (state.locVal && state.locVal !== '0') {
         document.getElementById('doris-locality').value = state.locVal;
         document.getElementById('doris-locality-input').disabled = false;
       }
       if (state.locInput) document.getElementById('doris-locality-input').value = state.locInput;
-      if (state.yearVal) {
+      if (state.yearVal && state.yearVal !== '0') {
         document.getElementById('doris-year').value = state.yearVal;
         document.getElementById('doris-year-input').disabled = false;
       }
@@ -8676,12 +8676,19 @@
       if (state.perPage) document.getElementById('doris-grid-perpage').value = state.perPage;
       if (state.searchQuery) document.getElementById('doris-grid-search').value = state.searchQuery;
       
-      setupDorisGridPagination(state.records);
-      if (state.currentPage) _dorisCurrentPage = state.currentPage;
-      if (state.searchQuery) filterDorisGridRecords();
-      else renderDorisGridPage();
+      if (state.records && state.records.length > 0) {
+        setupDorisGridPagination(state.records);
+        if (state.currentPage) _dorisCurrentPage = state.currentPage;
+        if (state.searchQuery) filterDorisGridRecords();
+        else renderDorisGridPage();
+        showDorisState('results');
+      }
+
+      // Automatically load fresh CAPTCHA for restored SRO and Locality
+      if (state.sroVal && state.sroVal !== '0' && state.locVal && state.locVal !== '0') {
+        loadCaptchaAndYears(state.sroVal, state.locVal, false);
+      }
       
-      showDorisState('results');
       return true;
     } catch (e) {
       console.error('Failed to restore DORIS state', e);
@@ -9042,7 +9049,10 @@
     const capImg = document.getElementById('doris-captcha-img');
     const capInput = document.getElementById('doris-captcha-input');
     
-    if (!refreshOnly) {
+    const existingYearVal = yrHidden.value;
+    const existingYearText = yrInput.value;
+    
+    if (!refreshOnly && existingYearVal === '0') {
       yrInput.value = ''; yrHidden.value = '0';
       yrInput.disabled = true;
       yrInput.placeholder = 'Loading years...';
@@ -9058,14 +9068,20 @@
     .then(res => res.json())
     .then(data => {
       if (data.ok) {
-        if (!refreshOnly && data.reg_years) {
+        if (data.reg_years) {
           _dorisTypeaheadData.year = data.reg_years.map(y => ({id: y, name: String(y)}));
           
           yrInput.disabled = false;
           yrInput.placeholder = 'Search year...';
           
+          if (existingYearVal !== '0' && existingYearText) {
+            yrHidden.value = existingYearVal;
+            yrInput.value = existingYearText;
+          }
+          
           _yearTypeahead = initTypeahead('doris-year-input', 'doris-year', 'doris-year-list', 'doris-year-wrapper', _dorisTypeaheadData.year, (opt) => {
             // Year selected — CAPTCHA and session remain valid!
+            saveDorisSessionState();
           });
         }
         if (data.captcha_image_base64) {
