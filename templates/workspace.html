@@ -9065,8 +9065,7 @@
           yrInput.placeholder = 'Search year...';
           
           _yearTypeahead = initTypeahead('doris-year-input', 'doris-year', 'doris-year-list', 'doris-year-wrapper', _dorisTypeaheadData.year, (opt) => {
-            // When user picks a new year, refresh CAPTCHA so ASP.NET session token is fresh!
-            loadCaptchaAndYears(sroVal, locVal, true);
+            // Year selected — CAPTCHA and session remain valid!
           });
         }
         if (data.captcha_image_base64) {
