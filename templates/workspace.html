@@ -975,12 +975,12 @@
       left: 0;
       right: 0;
       z-index: 50;
-      max-height: 220px;
+      max-height: 180px;
       overflow-y: auto;
       background: white;
       border: 1px solid #e4e4e7;
       border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
       list-style: none;
       padding: 4px;
       margin: 0;
@@ -989,11 +989,12 @@
       display: none;
     }
     .doris-typeahead-item {
-      padding: 5px 10px;
-      font-size: 11px;
-      color: #3f3f46;
+      padding: 4px 8px;
+      font-size: 13px;
+      line-height: 1.35;
+      color: #09090b;
       border-radius: 4px;
-      cursor: pointer;
+      cursor: default;
       transition: background 0.1s ease;
       white-space: nowrap;
       overflow: hidden;
@@ -1005,9 +1006,9 @@
       color: #18181b;
     }
     .doris-typeahead-item.selected {
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-weight: 600;
+      background: #f4f4f5;
+      color: #09090b;
+      font-weight: 500;
     }
     .doris-typeahead-empty {
       padding: 8px 10px;
@@ -2523,17 +2524,6 @@
       <div class="panel" id="panel-doris">
         <div class="flex flex-col space-y-6 h-full bg-white p-6 overflow-y-auto">
 
-          <!-- Collapsed summary bar (shown once results load) -->
-          <div id="doris-summary-bar" class="hidden items-center gap-2 flex-wrap border border-zinc-200 rounded-lg px-4 py-2.5 bg-zinc-50">
-            <svg class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-            <span id="doris-summary-scope" class="text-xs text-zinc-800"></span>
-            <span id="doris-summary-count" class="text-[11px] font-medium text-zinc-600 bg-zinc-200/70 rounded px-2 py-0.5"></span>
-            <div class="flex-grow"></div>
-            <button type="button" id="doris-edit-search-btn" class="h-[28px] px-3 border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-black rounded-md text-[11px] font-medium transition-all flex-shrink-0">Edit search</button>
-          </div>
-
           <!-- Top: Form parameters -->
           <div id="doris-form-section" class="flex flex-col space-y-4 border-b border-zinc-100 pb-6">
             <div>
@@ -2541,17 +2531,13 @@
               <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data with official Delhi government registry entries.</p>
             </div>
 
-            <div class="flex items-baseline gap-2">
-              <span class="text-xs font-semibold text-zinc-800">Scope</span>
-              <span class="text-[11px] text-zinc-400">required</span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="rounded-xl border border-zinc-200 bg-white text-zinc-950 shadow-sm p-6 space-y-4">
+              <div class="flex items-end gap-3 flex-wrap">
               <!-- SRO Typeahead -->
-              <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Sub-Registrar Office (SRO)</label>
+              <div class="flex-1 min-w-[190px]">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">Sub-Registrar Office (SRO)</label>
                 <div class="doris-typeahead" id="doris-sro-wrapper">
-                  <input type="text" id="doris-sro-input" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all pr-7" placeholder="Search SRO..." autocomplete="off">
+                  <input type="text" id="doris-sro-input" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 pr-7" placeholder="Search SRO..." autocomplete="off">
                   <input type="hidden" id="doris-sro" value="0">
                   <span class="doris-typeahead-chevron">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
@@ -2561,10 +2547,10 @@
               </div>
 
               <!-- Locality Typeahead -->
-              <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Locality</label>
+              <div class="flex-1 min-w-[190px]">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">Locality</label>
                 <div class="doris-typeahead" id="doris-locality-wrapper">
-                  <input type="text" id="doris-locality-input" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select SRO first" autocomplete="off" disabled>
+                  <input type="text" id="doris-locality-input" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select SRO first" autocomplete="off" disabled>
                   <input type="hidden" id="doris-locality" value="0">
                   <span class="doris-typeahead-chevron">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
@@ -2574,10 +2560,10 @@
               </div>
 
               <!-- Registration Year Typeahead -->
-              <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Year</label>
+              <div class="w-[150px] flex-shrink-0">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">Registration Year</label>
                 <div class="doris-typeahead" id="doris-year-wrapper">
-                  <input type="text" id="doris-year-input" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select Locality first" autocomplete="off" disabled>
+                  <input type="text" id="doris-year-input" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select Locality first" autocomplete="off" disabled>
                   <input type="hidden" id="doris-year" value="0">
                   <span class="doris-typeahead-chevron">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
@@ -2586,62 +2572,56 @@
                 </div>
               </div>
 
-            </div>
+              <!-- Verify + run, right-aligned on the same toolbar row -->
+                <div id="doris-captcha-container" class="flex items-end gap-2 ml-auto">
+                  <div class="bg-white border border-zinc-200 rounded-md shadow-sm h-9 min-w-[104px] flex-shrink-0 flex items-center justify-center px-1">
+                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-full w-auto max-w-none object-contain hidden">
+                    <span id="doris-captcha-placeholder" class="text-[10px] text-zinc-400 font-medium px-2">Select Locality</span>
+                  </div>
+                  <button type="button" id="doris-captcha-refresh" class="inline-flex items-center justify-center h-9 px-3 rounded-md border border-zinc-200 bg-white text-sm font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:pointer-events-none disabled:opacity-50" disabled>Refresh</button>
+                  <input type="text" id="doris-captcha-input" placeholder="Enter code" class="w-[124px] h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 tracking-widest shadow-sm transition-colors placeholder:text-zinc-500 placeholder:tracking-normal focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 text-uppercase" disabled>
+                  <button type="button" id="doris-search-btn" class="inline-flex items-center justify-center gap-2 h-9 px-4 py-2 rounded-md bg-zinc-900 text-sm font-medium text-zinc-50 shadow transition-colors hover:bg-zinc-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 flex-shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <span>Search registry</span>
+                  </button>
+                </div>
+              </div>
 
-            <div class="flex items-baseline gap-2 pt-1">
-              <span class="text-xs font-semibold text-zinc-800">Narrow it down</span>
-              <span class="text-[11px] text-zinc-400">optional</span>
-            </div>
+              <!-- Optional filters, hidden until asked for -->
+              <button type="button" id="doris-filters-toggle" class="inline-flex items-center gap-1.5 h-8 px-2 -ml-2 rounded-md text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 self-start">
+                <svg id="doris-filters-chevron" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                <span id="doris-filters-toggle-label">Add filters</span>
+              </button>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div id="doris-filters-body" class="hidden grid-cols-1 md:grid-cols-4 gap-3 pt-1">
               <!-- Registration No. -->
               <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Registration Number</label>
-                <input type="text" id="doris-reg-no" placeholder="e.g. 151" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">Registration Number</label>
+                <input type="text" id="doris-reg-no" placeholder="e.g. 151" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50">
               </div>
 
               <!-- Property Address / Khasra -->
               <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Property Address / Khasra No.</label>
-                <input type="text" id="doris-address" placeholder="e.g. Flat No. B-2/608" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">Property Address / Khasra No.</label>
+                <input type="text" id="doris-address" placeholder="e.g. Flat No. B-2/608" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50">
               </div>
 
               <!-- First Party Name -->
               <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></label>
-                <input type="text" id="doris-first-party" placeholder="e.g. Vijay Kumar Saini" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></label>
+                <input type="text" id="doris-first-party" placeholder="e.g. Vijay Kumar Saini" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50">
               </div>
 
               <!-- Second Party Name -->
               <div>
-                <label class="block text-[11px] font-medium text-zinc-500 mb-1">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></label>
-                <input type="text" id="doris-second-party" placeholder="e.g. Abhinav Bose" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md py-1.5 px-3 text-xs focus:outline-none focus:border-zinc-400 focus:bg-white transition-all">
+                <label class="block text-sm font-medium leading-none text-zinc-900 mb-2">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></label>
+                <input type="text" id="doris-second-party" placeholder="e.g. Abhinav Bose" class="w-full h-9 rounded-md border border-zinc-200 bg-transparent px-3 py-1 text-sm text-zinc-900 shadow-sm transition-colors placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50">
               </div>
             </div>
 
-            <div class="border-t border-zinc-100 pt-4 mt-1">
-              <div class="flex items-center gap-2 flex-wrap">
-                <!-- CAPTCHA: an auth step, not a search parameter -->
-                <div id="doris-captcha-container" class="flex items-center gap-2">
-                  <div class="bg-zinc-100 border border-zinc-200 rounded h-[38px] min-w-[110px] flex-shrink-0 flex items-center justify-center px-1">
-                    <img id="doris-captcha-img" src="" alt="Captcha" class="h-full w-auto max-w-none object-contain hidden">
-                    <span id="doris-captcha-placeholder" class="text-[10px] text-zinc-400 font-medium px-2">Select Locality</span>
-                  </div>
-                  <button type="button" id="doris-captcha-refresh" class="h-[38px] px-2.5 border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-black rounded-md text-[11px] font-medium transition-all" disabled>Refresh</button>
-                  <input type="text" id="doris-captcha-input" placeholder="Enter code" class="w-[130px] h-[38px] bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-md px-3 text-xs tracking-widest focus:outline-none focus:border-zinc-400 focus:bg-white transition-all text-uppercase" disabled>
-                </div>
-
-                <div class="flex-grow"></div>
-
-                <!-- Search Action -->
-                <button type="button" id="doris-search-btn" class="h-[38px] px-5 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-md text-xs transition-all shadow-sm flex items-center justify-center space-x-1.5 flex-shrink-0">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-                  </svg>
-                  <span>Search registry</span>
-                </button>
-              </div>
-              <p id="doris-validation-msg" class="text-[11px] text-red-500 mt-2 hidden"></p>
+              <p id="doris-validation-msg" class="text-[11px] text-red-500 hidden"></p>
             </div>
           </div>
 
@@ -2684,24 +2664,57 @@
                 <p class="text-xs text-zinc-500 max-w-xs" id="doris-error-msg"></p>
               </div>
 
-              <!-- Results Grid Table -->
-              <div id="doris-results-grid" class="hidden w-full h-full flex flex-col justify-start">
-                <div class="overflow-x-auto w-full">
-                  <table class="w-full text-left text-[11px] border-collapse table-fixed">
+              <!-- Results Grid Table with Pagination & Instant Filter -->
+              <div id="doris-results-grid" class="hidden w-full h-full flex flex-col space-y-3">
+                <!-- Table Header Bar: Instant Search + Per Page Selector -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-zinc-100">
+                  <div class="relative flex-1 min-w-[240px] max-w-md">
+                    <svg class="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <input type="text" id="doris-grid-search" placeholder="Filter scraped results (party, address, reg no)..." class="w-full h-9 rounded-md border border-zinc-200 bg-white pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 transition-all">
+                  </div>
+                  <div class="flex items-center space-x-2 text-xs text-zinc-500">
+                    <span>Per page:</span>
+                    <select id="doris-grid-perpage" class="h-9 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950">
+                      <option value="10" selected>10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                      <option value="all">All</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Main Data Table -->
+                <div class="overflow-x-auto w-full border border-zinc-100 rounded-lg">
+                  <table class="w-full text-left text-sm border-collapse table-fixed">
                     <thead>
-                      <tr class="border-b border-zinc-200 text-zinc-500 font-medium">
-                        <th class="py-2 px-3 w-[10%]">Reg. No.</th>
-                        <th class="py-2 px-3 w-[10%]">Date</th>
-                        <th class="py-2 px-3 w-[18%]">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></th>
-                        <th class="py-2 px-3 w-[18%]">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></th>
-                        <th class="py-2 px-3 w-[14%]">Deed Type</th>
-                        <th class="py-2 px-3 w-[30%]">Property Address</th>
+                      <tr class="bg-zinc-50/80 border-b border-zinc-200 text-zinc-600 font-medium">
+                        <th class="py-3 px-4 w-[10%]">Reg. No.</th>
+                        <th class="py-3 px-4 w-[10%]">Date</th>
+                        <th class="py-3 px-4 w-[18%]">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></th>
+                        <th class="py-3 px-4 w-[18%]">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></th>
+                        <th class="py-3 px-4 w-[14%]">Deed Type</th>
+                        <th class="py-3 px-4 w-[30%]">Property Address</th>
                       </tr>
                     </thead>
                     <tbody id="doris-results-tbody" class="divide-y divide-zinc-100 text-zinc-700">
-                      <!-- Scraped rows will be generated dynamically -->
+                      <!-- Scraped rows rendered via renderDorisGridPage() -->
                     </tbody>
                   </table>
+                </div>
+
+                <!-- Table Footer Bar: Counters + Pagination Pills -->
+                <div id="doris-grid-pagination-bar" class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <div id="doris-grid-info" class="text-xs text-zinc-500 font-medium">
+                    Showing 0 to 0 of 0 records
+                  </div>
+                  <div class="flex items-center space-x-1" id="doris-grid-controls">
+                    <button type="button" id="doris-grid-prev" class="h-8 px-3 rounded border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Previous</button>
+                    <div id="doris-grid-page-pills" class="flex items-center space-x-1"></div>
+                    <button type="button" id="doris-grid-next" class="h-8 px-3 rounded border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Next</button>
+                  </div>
                 </div>
               </div>
 
@@ -8662,36 +8675,6 @@
     else if (state === 'loading') document.getElementById('doris-state-loading').classList.remove('hidden');
     else if (state === 'error') document.getElementById('doris-state-error').classList.remove('hidden');
     else if (state === 'results') document.getElementById('doris-results-grid').classList.remove('hidden');
-
-    // Collapse the query form once results are on screen so the table gets the space
-    if (state === 'results') collapseDorisForm();
-    else expandDorisForm();
-  }
-
-  // ── Form collapse / expand ──
-  function collapseDorisForm() {
-    const scope = [
-      document.getElementById('doris-sro-input').value,
-      document.getElementById('doris-locality-input').value,
-      document.getElementById('doris-year-input').value
-    ].filter(Boolean).join(' · ');
-
-    const rows = document.getElementById('doris-results-tbody').querySelectorAll('tr').length;
-
-    document.getElementById('doris-summary-scope').textContent = scope;
-    const countEl = document.getElementById('doris-summary-count');
-    countEl.textContent = rows === 1 ? '1 record' : `${rows} records`;
-    countEl.classList.toggle('hidden', rows === 0);
-
-    document.getElementById('doris-form-section').classList.add('hidden');
-    document.getElementById('doris-summary-bar').classList.remove('hidden');
-    document.getElementById('doris-summary-bar').classList.add('flex');
-  }
-
-  function expandDorisForm() {
-    document.getElementById('doris-form-section').classList.remove('hidden');
-    document.getElementById('doris-summary-bar').classList.add('hidden');
-    document.getElementById('doris-summary-bar').classList.remove('flex');
   }
 
   function showDorisError(title, msg) {
@@ -8755,6 +8738,149 @@
     loadCaptchaAndYears(sroVal, locVal, false);
   }
 
+  // ── Grid Pagination Engine ──
+  let _dorisAllRecords = [];
+  let _dorisFilteredRecords = [];
+  let _dorisCurrentPage = 1;
+  let _dorisPerPage = 10;
+
+  function setupDorisGridPagination(records) {
+    _dorisAllRecords = records || [];
+    _dorisFilteredRecords = [..._dorisAllRecords];
+    _dorisCurrentPage = 1;
+    
+    const searchInput = document.getElementById('doris-grid-search');
+    if (searchInput) searchInput.value = '';
+    
+    renderDorisGridPage();
+  }
+
+  function filterDorisGridRecords() {
+    const query = (document.getElementById('doris-grid-search')?.value || '').toLowerCase().trim();
+    if (!query) {
+      _dorisFilteredRecords = [..._dorisAllRecords];
+    } else {
+      _dorisFilteredRecords = _dorisAllRecords.filter(r => {
+        const reg = (r.reg_no || '').toLowerCase();
+        const date = (r.reg_date || '').toLowerCase();
+        const fp = (r.first_party || '').toLowerCase();
+        const sp = (r.second_party || '').toLowerCase();
+        const deed = (r.deed_type || '').toLowerCase();
+        const addr = (r.property_address || '').toLowerCase();
+        return reg.includes(query) || date.includes(query) || fp.includes(query) || sp.includes(query) || deed.includes(query) || addr.includes(query);
+      });
+    }
+    _dorisCurrentPage = 1;
+    renderDorisGridPage();
+  }
+
+  function renderDorisGridPage() {
+    const tbody = document.getElementById('doris-results-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    const total = _dorisFilteredRecords.length;
+    const perPageVal = document.getElementById('doris-grid-perpage')?.value || '10';
+    _dorisPerPage = perPageVal === 'all' ? (total || 1) : parseInt(perPageVal, 10);
+    
+    const totalPages = Math.max(1, Math.ceil(total / _dorisPerPage));
+    if (_dorisCurrentPage > totalPages) _dorisCurrentPage = totalPages;
+    if (_dorisCurrentPage < 1) _dorisCurrentPage = 1;
+    
+    const startIdx = (total === 0) ? 0 : (_dorisCurrentPage - 1) * _dorisPerPage;
+    const endIdx = Math.min(startIdx + _dorisPerPage, total);
+    
+    const pageRecords = _dorisFilteredRecords.slice(startIdx, endIdx);
+    
+    if (pageRecords.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="6" class="py-8 text-center text-xs text-zinc-400">No records match your search filter.</td>`;
+      tbody.appendChild(tr);
+    } else {
+      pageRecords.forEach(rec => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-zinc-50 transition-colors border-b border-zinc-100';
+        
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-medium text-zinc-900">${rec.reg_no || '—'}</td>
+          <td class="py-3.5 px-4 text-zinc-500 whitespace-nowrap">${rec.reg_date || '—'}</td>
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-zinc-800 text-xs uppercase leading-snug">${rec.first_party || '—'}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="font-medium text-zinc-800 text-xs uppercase leading-snug">${rec.second_party || '—'}</div>
+          </td>
+          <td class="py-3.5 px-4 text-zinc-500 text-xs">${rec.deed_type || '—'}</td>
+          <td class="py-3.5 px-4 text-zinc-500 text-xs max-w-xs truncate" title="${rec.property_address || ''}">${rec.property_address || '—'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    
+    // Info text
+    const infoEl = document.getElementById('doris-grid-info');
+    if (infoEl) {
+      if (total === 0) {
+        infoEl.textContent = 'Showing 0 records';
+      } else {
+        const startDisplay = startIdx + 1;
+        const endDisplay = endIdx;
+        if (_dorisFilteredRecords.length !== _dorisAllRecords.length) {
+          infoEl.textContent = `Showing ${startDisplay}–${endDisplay} of ${total} records (filtered from ${_dorisAllRecords.length} total)`;
+        } else {
+          infoEl.textContent = `Showing ${startDisplay}–${endDisplay} of ${total} records`;
+        }
+      }
+    }
+    
+    // Prev / Next
+    const prevBtn = document.getElementById('doris-grid-prev');
+    const nextBtn = document.getElementById('doris-grid-next');
+    if (prevBtn) prevBtn.disabled = (_dorisCurrentPage <= 1);
+    if (nextBtn) nextBtn.disabled = (_dorisCurrentPage >= totalPages);
+    
+    // Page pills
+    const pillsContainer = document.getElementById('doris-grid-page-pills');
+    if (pillsContainer) {
+      pillsContainer.innerHTML = '';
+      let startP = Math.max(1, _dorisCurrentPage - 2);
+      let endP = Math.min(totalPages, startP + 4);
+      if (endP - startP < 4) startP = Math.max(1, endP - 4);
+      
+      for (let p = startP; p <= endP; p++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `h-8 w-8 rounded text-xs font-medium transition-all ${
+          p === _dorisCurrentPage 
+            ? 'bg-zinc-900 text-white font-semibold shadow-sm' 
+            : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-100'
+        }`;
+        btn.textContent = p;
+        btn.addEventListener('click', () => {
+          _dorisCurrentPage = p;
+          renderDorisGridPage();
+        });
+        pillsContainer.appendChild(btn);
+      }
+    }
+  }
+
+  document.getElementById('doris-grid-search')?.addEventListener('input', filterDorisGridRecords);
+  document.getElementById('doris-grid-perpage')?.addEventListener('change', () => {
+    _dorisCurrentPage = 1;
+    renderDorisGridPage();
+  });
+  document.getElementById('doris-grid-prev')?.addEventListener('click', () => {
+    if (_dorisCurrentPage > 1) {
+      _dorisCurrentPage--;
+      renderDorisGridPage();
+    }
+  });
+  document.getElementById('doris-grid-next')?.addEventListener('click', () => {
+    _dorisCurrentPage++;
+    renderDorisGridPage();
+  });
+
   function loadCaptchaAndYears(sroVal, locVal, refreshOnly = false) {
     const yrInput = document.getElementById('doris-year-input');
     const yrHidden = document.getElementById('doris-year');
@@ -8784,7 +8910,8 @@
           yrInput.placeholder = 'Search year...';
           
           _yearTypeahead = initTypeahead('doris-year-input', 'doris-year', 'doris-year-list', 'doris-year-wrapper', _dorisTypeaheadData.year, (opt) => {
-            // Year selected — no further cascade needed
+            // When user picks a new year, refresh CAPTCHA so ASP.NET session token is fresh!
+            loadCaptchaAndYears(sroVal, locVal, true);
           });
         }
         if (data.captcha_image_base64) {
@@ -8809,9 +8936,37 @@
     }
   });
 
-  // ── Reopen the form from the collapsed summary bar ──
-  document.getElementById('doris-edit-search-btn').addEventListener('click', function() {
-    expandDorisForm();
+  // ── Optional filters disclosure ──
+  const DORIS_FILTER_IDS = ['doris-reg-no', 'doris-address', 'doris-first-party', 'doris-second-party'];
+
+  function dorisActiveFilterCount() {
+    return DORIS_FILTER_IDS.filter(id => document.getElementById(id).value.trim() !== '').length;
+  }
+
+  function setDorisFiltersOpen(open) {
+    const body = document.getElementById('doris-filters-body');
+    body.classList.toggle('hidden', !open);
+    body.classList.toggle('grid', open);
+    document.getElementById('doris-filters-chevron').style.transform = open ? 'rotate(90deg)' : '';
+    updateDorisFilterLabel();
+  }
+
+  function updateDorisFilterLabel() {
+    const open = !document.getElementById('doris-filters-body').classList.contains('hidden');
+    const n = dorisActiveFilterCount();
+    const label = document.getElementById('doris-filters-toggle-label');
+    if (open) label.textContent = 'Hide filters';
+    else label.textContent = n > 0 ? `Filters · ${n} active` : 'Add filters';
+    label.classList.toggle('text-zinc-800', !open && n > 0);
+  }
+
+  document.getElementById('doris-filters-toggle').addEventListener('click', function() {
+    const open = document.getElementById('doris-filters-body').classList.contains('hidden');
+    setDorisFiltersOpen(open);
+  });
+
+  DORIS_FILTER_IDS.forEach(id => {
+    document.getElementById(id).addEventListener('input', updateDorisFilterLabel);
   });
 
   // ── Enter in the captcha field submits the query ──
@@ -8867,29 +9022,11 @@
           return;
         }
         
-        const tbody = document.getElementById('doris-results-tbody');
-        tbody.innerHTML = '';
-        
-        data.records.forEach((rec, idx) => {
-          const tr = document.createElement('tr');
-          tr.className = 'hover:bg-zinc-50 transition-colors border-b border-zinc-100';
-          
-          tr.innerHTML = `
-            <td class="py-2.5 px-3 font-medium text-zinc-900">${rec.reg_no}</td>
-            <td class="py-2.5 px-3 text-zinc-500 whitespace-nowrap">${rec.reg_date}</td>
-            <td class="py-2.5 px-3">
-              <div class="font-semibold text-zinc-800 text-[11px] uppercase leading-tight">${rec.first_party || '—'}</div>
-            </td>
-            <td class="py-2.5 px-3">
-              <div class="font-medium text-zinc-800 text-[11px] uppercase leading-tight">${rec.second_party || '—'}</div>
-            </td>
-            <td class="py-2.5 px-3 text-zinc-500">${rec.deed_type}</td>
-            <td class="py-2.5 px-3 text-zinc-500 max-w-xs truncate" title="${rec.property_address}">${rec.property_address}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-        
+        setupDorisGridPagination(data.records);
         showDorisState('results');
+        
+        // Auto-refresh CAPTCHA so the ASP.NET session token stays valid for the next query/metric change!
+        loadCaptchaAndYears(sroVal, locVal, true);
       } else {
         showDorisError('Query Failed', data.error || 'Registry returned search error');
         loadCaptchaAndYears(sroVal, locVal, true);
