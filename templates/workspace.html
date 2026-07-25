@@ -9390,6 +9390,23 @@
     });
   }
 
+  function getFinancialYearFromDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const month = parseInt(parts[1], 10);
+      const year = parseInt(parts[2], 10);
+      if (!isNaN(month) && !isNaN(year)) {
+        if (month >= 4) {
+          return `${year}-${year + 1}`;
+        } else {
+          return `${year - 1}-${year}`;
+        }
+      }
+    }
+    return '';
+  }
+
   // ── Download Deed Scans Action ──
   function downloadDeedDoc(btn, rec) {
     if (!rec || !rec.reg_no) return;
@@ -9399,7 +9416,10 @@
 
     const sroText = document.getElementById('doris-sro-input')?.value || '';
     const locText = document.getElementById('doris-locality-input')?.value || '';
-    const yrText = document.getElementById('doris-year-input')?.value || (rec.reg_date ? rec.reg_date.slice(-4) : '2021-2022');
+    
+    // Auto-calculate exact financial year from record date (e.g. 01-02-2022 -> 2021-2022)
+    const recFy = getFinancialYearFromDate(rec.reg_date);
+    const yrText = recFy || document.getElementById('doris-year-input')?.value || '2021-2022';
 
     fetch(`/api/doris/download_deed/${projectName}`, {
       method: 'POST',
