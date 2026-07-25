@@ -8623,45 +8623,114 @@
   let _locTypeahead = null;
   let _yearTypeahead = null;
 
+  function saveDorisSessionState() {
+    try {
+      const state = {
+        sroVal: document.getElementById('doris-sro')?.value || '0',
+        sroInput: document.getElementById('doris-sro-input')?.value || '',
+        locVal: document.getElementById('doris-locality')?.value || '0',
+        locInput: document.getElementById('doris-locality-input')?.value || '',
+        yearVal: document.getElementById('doris-year')?.value || '0',
+        yearInput: document.getElementById('doris-year-input')?.value || '',
+        regNo: document.getElementById('doris-reg-no')?.value || '',
+        address: document.getElementById('doris-address')?.value || '',
+        firstParty: document.getElementById('doris-first-party')?.value || '',
+        secondParty: document.getElementById('doris-second-party')?.value || '',
+        records: _dorisAllRecords || [],
+        currentPage: _dorisCurrentPage || 1,
+        perPage: document.getElementById('doris-grid-perpage')?.value || '10',
+        searchQuery: document.getElementById('doris-grid-search')?.value || '',
+        hasSearched: _dorisAllRecords && _dorisAllRecords.length > 0
+      };
+      localStorage.setItem(`doris_state_${projectName}`, JSON.stringify(state));
+    } catch (e) {
+      console.error('Failed to save DORIS state to localStorage', e);
+    }
+  }
+
+  function restoreDorisSessionState() {
+    try {
+      const savedStr = localStorage.getItem(`doris_state_${projectName}`);
+      if (!savedStr) return false;
+      const state = JSON.parse(savedStr);
+      if (!state || !state.hasSearched || !state.records || state.records.length === 0) return false;
+      
+      if (state.sroVal) document.getElementById('doris-sro').value = state.sroVal;
+      if (state.sroInput) document.getElementById('doris-sro-input').value = state.sroInput;
+      if (state.locVal) {
+        document.getElementById('doris-locality').value = state.locVal;
+        document.getElementById('doris-locality-input').disabled = false;
+      }
+      if (state.locInput) document.getElementById('doris-locality-input').value = state.locInput;
+      if (state.yearVal) {
+        document.getElementById('doris-year').value = state.yearVal;
+        document.getElementById('doris-year-input').disabled = false;
+      }
+      if (state.yearInput) document.getElementById('doris-year-input').value = state.yearInput;
+      
+      if (state.regNo) document.getElementById('doris-reg-no').value = state.regNo;
+      if (state.address) document.getElementById('doris-address').value = state.address;
+      if (state.firstParty) document.getElementById('doris-first-party').value = state.firstParty;
+      if (state.secondParty) document.getElementById('doris-second-party').value = state.secondParty;
+      
+      if (state.perPage) document.getElementById('doris-grid-perpage').value = state.perPage;
+      if (state.searchQuery) document.getElementById('doris-grid-search').value = state.searchQuery;
+      
+      setupDorisGridPagination(state.records);
+      if (state.currentPage) _dorisCurrentPage = state.currentPage;
+      if (state.searchQuery) filterDorisGridRecords();
+      else renderDorisGridPage();
+      
+      showDorisState('results');
+      return true;
+    } catch (e) {
+      console.error('Failed to restore DORIS state', e);
+      return false;
+    }
+  }
+
   function initDoris() {
-    // 1. Reset Form state
-    const sroInput = document.getElementById('doris-sro-input');
-    const locInput = document.getElementById('doris-locality-input');
-    const yrInput = document.getElementById('doris-year-input');
-    const sroHidden = document.getElementById('doris-sro');
-    const locHidden = document.getElementById('doris-locality');
-    const yrHidden = document.getElementById('doris-year');
-    const addrInput = document.getElementById('doris-address');
-    const fpInput = document.getElementById('doris-first-party');
-    const spInput = document.getElementById('doris-second-party');
-    const regInput = document.getElementById('doris-reg-no');
-    const capInput = document.getElementById('doris-captcha-input');
-    const valMsg = document.getElementById('doris-validation-msg');
+    // 1. If state is already restored, don't wipe out form or grid!
+    const restored = restoreDorisSessionState();
     
-    // Reset all inputs
-    sroInput.value = ''; sroHidden.value = '0';
-    locInput.value = ''; locHidden.value = '0';
-    yrInput.value = ''; yrHidden.value = '0';
-    
-    locInput.disabled = true;
-    locInput.placeholder = 'Select SRO first';
-    yrInput.disabled = true;
-    yrInput.placeholder = 'Select Locality first';
-    
-    addrInput.value = '';
-    fpInput.value = '';
-    spInput.value = '';
-    regInput.value = '';
-    capInput.value = '';
-    
-    document.getElementById('doris-captcha-img').classList.add('hidden');
-    document.getElementById('doris-captcha-placeholder').classList.remove('hidden');
-    document.getElementById('doris-captcha-refresh').disabled = true;
-    capInput.disabled = true;
-    valMsg.classList.add('hidden');
-    
-    // Reset results state
-    showDorisState('empty');
+    if (!restored) {
+      // Reset Form state
+      const sroInput = document.getElementById('doris-sro-input');
+      const locInput = document.getElementById('doris-locality-input');
+      const yrInput = document.getElementById('doris-year-input');
+      const sroHidden = document.getElementById('doris-sro');
+      const locHidden = document.getElementById('doris-locality');
+      const yrHidden = document.getElementById('doris-year');
+      const addrInput = document.getElementById('doris-address');
+      const fpInput = document.getElementById('doris-first-party');
+      const spInput = document.getElementById('doris-second-party');
+      const regInput = document.getElementById('doris-reg-no');
+      const capInput = document.getElementById('doris-captcha-input');
+      const valMsg = document.getElementById('doris-validation-msg');
+      
+      sroInput.value = ''; sroHidden.value = '0';
+      locInput.value = ''; locHidden.value = '0';
+      yrInput.value = ''; yrHidden.value = '0';
+      
+      locInput.disabled = true;
+      locInput.placeholder = 'Select SRO first';
+      yrInput.disabled = true;
+      yrInput.placeholder = 'Select Locality first';
+      
+      addrInput.value = '';
+      fpInput.value = '';
+      spInput.value = '';
+      regInput.value = '';
+      capInput.value = '';
+      
+      document.getElementById('doris-captcha-img').classList.add('hidden');
+      document.getElementById('doris-captcha-placeholder').classList.remove('hidden');
+      document.getElementById('doris-captcha-refresh').disabled = true;
+      capInput.disabled = true;
+      valMsg.classList.add('hidden');
+      
+      showDorisState('empty');
+    }
     
     // 2. Load SRO Office dropdown values via API
     fetch(`/api/doris/start/${projectName}`)
@@ -8846,7 +8915,7 @@
       icon = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
     }
 
-    return `<span class="inline-flex items-center gap-1 rounded-md border ${badgeClass} px-2 py-0.5 text-xs font-medium">${icon}<span>${label}</span></span>`;
+    return `<span class="type-badge inline-flex items-center gap-1 rounded-md border ${badgeClass} px-2 py-0.5 text-xs font-medium cursor-default">${icon}<span>${label}</span></span>`;
   }
 
   function renderDorisGridPage() {
@@ -9110,6 +9179,7 @@
         
         setupDorisGridPagination(data.records);
         showDorisState('results');
+        saveDorisSessionState();
         
         // Auto-refresh CAPTCHA so the ASP.NET session token stays valid for the next query/metric change!
         loadCaptchaAndYears(sroVal, locVal, true);
