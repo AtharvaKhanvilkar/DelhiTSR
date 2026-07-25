@@ -2508,22 +2508,30 @@
 
           <!-- Top: Form parameters -->
           <div id="doris-form-section" class="flex flex-col space-y-4 border-b border-zinc-100 pb-6">
-            <div>
-              <h3 class="text-sm font-semibold text-zinc-800">DORIS Verification</h3>
-              <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data with official Delhi government registry entries.</p>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-bold text-zinc-900 tracking-tight">DORIS Verification</h3>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
+                    <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                    Govt Registry Portal
+                  </span>
+                </div>
+                <p class="text-xs text-zinc-500 mt-0.5">Cross-reference project data directly with official Delhi Sub-Registrar entries.</p>
+              </div>
             </div>
 
-            <div class="rounded-xl border border-zinc-200/90 bg-white text-zinc-950 shadow-xs p-5 space-y-5">
+            <div class="rounded-xl border border-zinc-200/90 bg-gradient-to-b from-white via-white to-zinc-50/50 text-zinc-950 shadow-xs p-5 space-y-5">
               <!-- Section 1: Required Query Parameters Grid (3 Columns) -->
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- SRO Typeahead -->
                 <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5 flex items-center gap-1.5">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-500"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-800 mb-1.5 flex items-center gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-indigo-600"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
                     Sub-Registrar Office (SRO)
                   </label>
                   <div class="doris-typeahead" id="doris-sro-wrapper">
-                    <input type="text" id="doris-sro-input" class="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 pr-7" placeholder="Search SRO office..." autocomplete="off">
+                    <input type="text" id="doris-sro-input" class="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm font-medium text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 pr-7" placeholder="Search SRO office..." autocomplete="off">
                     <input type="hidden" id="doris-sro" value="0">
                     <span class="doris-typeahead-chevron">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
@@ -2534,12 +2542,12 @@
 
                 <!-- Locality Typeahead -->
                 <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5 flex items-center gap-1.5">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-500"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-800 mb-1.5 flex items-center gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-emerald-600"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                     Locality / Colony
                   </label>
                   <div class="doris-typeahead" id="doris-locality-wrapper">
-                    <input type="text" id="doris-locality-input" class="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select SRO first" autocomplete="off" disabled>
+                    <input type="text" id="doris-locality-input" class="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm font-medium text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select SRO first" autocomplete="off" disabled>
                     <input type="hidden" id="doris-locality" value="0">
                     <span class="doris-typeahead-chevron">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
@@ -2550,12 +2558,12 @@
 
                 <!-- Registration Year Typeahead -->
                 <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5 flex items-center gap-1.5">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-500"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-800 mb-1.5 flex items-center gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" class="text-amber-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                     Registration Year
                   </label>
                   <div class="doris-typeahead" id="doris-year-wrapper">
-                    <input type="text" id="doris-year-input" class="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select Locality first" autocomplete="off" disabled>
+                    <input type="text" id="doris-year-input" class="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-sm font-medium text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 pr-7 disabled:opacity-50 disabled:cursor-not-allowed" placeholder="Select Locality first" autocomplete="off" disabled>
                     <input type="hidden" id="doris-year" value="0">
                     <span class="doris-typeahead-chevron">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
@@ -2566,18 +2574,28 @@
               </div>
 
               <!-- Section 2: Security Verification & Search Action Bar -->
-              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-zinc-100">
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-100">
                 <div id="doris-captcha-container" class="flex items-center gap-3">
-                  <div class="bg-zinc-50 border border-zinc-200 rounded-md shadow-2xs h-9 min-w-[120px] flex items-center justify-center px-2">
+                  <div class="bg-zinc-50 border border-zinc-200 rounded-md shadow-2xs h-9 min-w-[124px] flex items-center justify-center px-2">
                     <img id="doris-captcha-img" src="" alt="Captcha" class="h-full w-auto max-w-none object-contain hidden">
-                    <span id="doris-captcha-placeholder" class="text-[11px] text-zinc-400 font-medium select-none">Select Locality</span>
+                    <div id="doris-captcha-placeholder" class="flex items-center justify-center gap-1.5 text-zinc-400 text-xs font-medium select-none">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-zinc-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <span>Captcha</span>
+                    </div>
                   </div>
-                  <input type="text" id="doris-captcha-input" placeholder="ENTER CODE" class="w-36 h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-xs text-zinc-900 font-mono font-semibold tracking-widest text-center shadow-2xs transition-all placeholder:tracking-normal placeholder:font-normal placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:cursor-not-allowed disabled:opacity-50 uppercase" disabled>
+                  <input type="text" id="doris-captcha-input" placeholder="ENTER CODE" class="w-36 h-9 rounded-md border border-zinc-200 bg-white px-3 py-1 text-xs text-zinc-900 font-mono font-bold tracking-widest text-center shadow-2xs transition-all placeholder:tracking-normal placeholder:font-normal placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-50 uppercase" disabled>
                 </div>
 
-                <div class="flex items-center gap-3 ml-auto">
-                  <button type="button" id="doris-search-btn" class="inline-flex items-center justify-center gap-2 h-9 px-5 rounded-md bg-zinc-900 text-xs font-semibold text-zinc-50 shadow-sm transition-all hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <div class="flex items-center gap-2.5 ml-auto">
+                  <button type="button" id="doris-requery-btn" class="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md border border-indigo-200 bg-indigo-50/80 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 transition-all cursor-pointer shadow-2xs" title="Start a fresh government session pre-filled with your current parameters">
+                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>
+                    </svg>
+                    <span>Fresh Re-Query</span>
+                  </button>
+
+                  <button type="button" id="doris-search-btn" class="inline-flex items-center justify-center gap-2 h-9 px-5 rounded-md bg-zinc-900 text-xs font-semibold text-zinc-50 shadow-sm transition-all hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
                     </svg>
                     <span>Search registry</span>
@@ -2597,26 +2615,26 @@
                 <div id="doris-filters-body" class="hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3">
                   <!-- Registration No. -->
                   <div>
-                    <label class="block text-[11px] font-medium text-zinc-600 mb-1">Registration Number</label>
-                    <input type="text" id="doris-reg-no" placeholder="e.g. 151" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950">
+                    <label class="block text-[11px] font-bold text-zinc-700 mb-1">Registration Number</label>
+                    <input type="text" id="doris-reg-no" placeholder="e.g. 151" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20">
                   </div>
 
                   <!-- Property Address / Khasra -->
                   <div>
-                    <label class="block text-[11px] font-medium text-zinc-600 mb-1">Property Address / Khasra No.</label>
-                    <input type="text" id="doris-address" placeholder="e.g. Flat No. B-2/608" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950">
+                    <label class="block text-[11px] font-bold text-zinc-700 mb-1">Property Address / Khasra No.</label>
+                    <input type="text" id="doris-address" placeholder="e.g. Flat No. B-2/608" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20">
                   </div>
 
                   <!-- First Party Name -->
                   <div>
-                    <label class="block text-[11px] font-medium text-zinc-600 mb-1">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></label>
-                    <input type="text" id="doris-first-party" placeholder="e.g. Vijay Kumar Saini" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950">
+                    <label class="block text-[11px] font-bold text-zinc-700 mb-1">First Party <span class="text-zinc-400 font-normal">(Transferor)</span></label>
+                    <input type="text" id="doris-first-party" placeholder="e.g. Vijay Kumar Saini" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20">
                   </div>
 
                   <!-- Second Party Name -->
                   <div>
-                    <label class="block text-[11px] font-medium text-zinc-600 mb-1">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></label>
-                    <input type="text" id="doris-second-party" placeholder="e.g. Abhinav Bose" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950">
+                    <label class="block text-[11px] font-bold text-zinc-700 mb-1">Second Party <span class="text-zinc-400 font-normal">(Transferee)</span></label>
+                    <input type="text" id="doris-second-party" placeholder="e.g. Abhinav Bose" class="w-full h-8 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-900 shadow-2xs transition-all placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20">
                   </div>
                 </div>
               </div>
@@ -9223,7 +9241,83 @@
     .catch(() => {
       showDorisError('Connection Mismatch', 'Failed to retrieve search results from the governmental SRO server.');
       loadCaptchaAndYears(sroVal, locVal, true);
-    });
+  });
+
+  // ── Fresh Re-Query (1-Click ASP.NET Session Reset with Pre-filled Fields) ──
+  document.getElementById('doris-requery-btn')?.addEventListener('click', function() {
+    const sroVal = document.getElementById('doris-sro').value;
+    const sroText = document.getElementById('doris-sro-input').value;
+    const locVal = document.getElementById('doris-locality').value;
+    const locText = document.getElementById('doris-locality-input').value;
+    const yrVal = document.getElementById('doris-year').value;
+    const yrText = document.getElementById('doris-year-input').value;
+    
+    if (sroVal === '0' || locVal === '0') {
+      showToast('Selection Required', 'Please select SRO and Locality first to re-query.');
+      return;
+    }
+    
+    const reqBtn = this;
+    reqBtn.disabled = true;
+    reqBtn.innerHTML = `<svg class="animate-spin w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Resetting Session...</span>`;
+    
+    // 1. Wipe stale server session
+    fetch(`/api/doris/start/${projectName}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          // 2. Negotiate fresh ViewState for SRO
+          return fetch(`/api/doris/select/${projectName}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({step: 'sro_selected', sro_val: sroVal})
+          }).then(r => r.json());
+        }
+        throw new Error(data.error || 'Failed to start session');
+      })
+      .then(data => {
+        if (data && data.ok) {
+          // 3. Negotiate fresh ViewState for Locality & download fresh CAPTCHA
+          return fetch(`/api/doris/select/${projectName}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({step: 'locality_selected', sro_val: sroVal, loc_val: locVal})
+          }).then(r => r.json());
+        }
+      })
+      .then(data => {
+        reqBtn.disabled = false;
+        reqBtn.innerHTML = `<svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg><span>Fresh Re-Query</span>`;
+        
+        if (data && data.ok && data.captcha_image_base64) {
+          // Re-populate selected text & hidden values
+          document.getElementById('doris-sro').value = sroVal;
+          document.getElementById('doris-sro-input').value = sroText;
+          document.getElementById('doris-locality').value = locVal;
+          document.getElementById('doris-locality-input').value = locText;
+          document.getElementById('doris-year').value = yrVal;
+          document.getElementById('doris-year-input').value = yrText;
+          
+          const capImg = document.getElementById('doris-captcha-img');
+          const capInput = document.getElementById('doris-captcha-input');
+          
+          capImg.src = data.captcha_image_base64;
+          capImg.classList.remove('hidden');
+          document.getElementById('doris-captcha-placeholder').classList.add('hidden');
+          capInput.disabled = false;
+          capInput.value = '';
+          capInput.focus();
+          
+          showToast('Fresh Session Ready', 'Government session reset! Type the new CAPTCHA code.');
+        } else {
+          showDorisError('Re-Query Failed', 'Could not establish fresh session with registry');
+        }
+      })
+      .catch(err => {
+        reqBtn.disabled = false;
+        reqBtn.innerHTML = `<svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg><span>Fresh Re-Query</span>`;
+        showDorisError('Re-Query Error', err.message || 'Connection error during session reset');
+      });
   });
 
   function importDorisRecord(btnElement, record) {
