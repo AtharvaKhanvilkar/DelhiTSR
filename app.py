@@ -4417,5 +4417,95 @@ def chat(project_name):
     return jsonify({"ok": True, "reply": reply})
 
 
+# ── Global Settings & Deed Scan API Endpoints ──
+SCAN_CREDENTIALS = {
+    "username": os.getenv("DORIS_SCAN_USER", ""),
+    "password": os.getenv("DORIS_SCAN_PASS", "")
+}
+
+@app.route("/api/settings/credentials", methods=["GET", "POST"])
+def settings_credentials():
+    if request.method == "POST":
+        data = request.json or {}
+        user = data.get("username", "").strip()
+        pwd = data.get("password", "").strip()
+        SCAN_CREDENTIALS["username"] = user
+        SCAN_CREDENTIALS["password"] = pwd
+        os.environ["DORIS_SCAN_USER"] = user
+        os.environ["DORIS_SCAN_PASS"] = pwd
+        return jsonify({"ok": True, "message": "Credentials updated successfully."})
+    else:
+        # Return masked representation for security
+        masked_pwd = "*" * len(SCAN_CREDENTIALS["password"]) if SCAN_CREDENTIALS["password"] else ""
+        return jsonify({
+            "ok": True,
+            "username": SCAN_CREDENTIALS["username"],
+            "password_configured": bool(SCAN_CREDENTIALS["password"]),
+            "password_masked": masked_pwd
+        })
+
+@app.route("/api/doris/download_deed/<project_name>", methods=["POST"])
+def download_deed_doc(project_name):
+    data = request.json or {}
+    reg_no = data.get("reg_no", "").strip()
+    reg_year = data.get("reg_year", "").strip()
+    locality = data.get("locality", "").strip()
+    sro_name = data.get("sro_name", "").strip()
+    book_no = data.get("book_no", "1").strip()
+
+    if not reg_no or not reg_year:
+        return jsonify({"ok": False, "error": "Registration Number and Year are required."}), 400
+
+    user = SCAN_CREDENTIALS["username"]
+    pwd = SCAN_CREDENTIALS["password"]
+
+    try:
+        from deed_doc_scraper import DorisDocScraper
+        scraper = DorisDocScraper(username=user, password=pwd)
+
+        # 1. Authenticate with portal if credentials provided
+        if user and pwd:
+            auth_res = scraper.login(user, pwd)
+            if not auth_res.get("ok"):
+                return jsonify({"ok": False, "error": f"Portal Login Failed: {auth_res.get('error')}"}), 401
+
+        # 2. Search for deed document pages
+        search_res = scraper.fetch_deed_document(
+            locality=locality,
+            reg_no=reg_no,
+            reg_year=reg_year,
+            sro_name=sro_name,
+            book_no=book_no
+        )
+
+        if not search_res.get("ok"):
+            return jsonify({"ok": False, "error": search_res.get("error", "Failed to retrieve deed scans.")}), 500
+
+        image_urls = search_res.get("image_urls", [])
+        if not image_urls:
+            return jsonify({"ok": False, "error": f"No scanned pages found for Reg No. {reg_no} ({reg_year})."}), 444
+
+        # 3. Stitch images into PDF and save to project folder
+        project_dir = os.path.join(RESULTS_DIR, project_name)
+        pdf_filename = f"Deed_Doc_Reg_{reg_no}_{reg_year.replace('/', '-')}.pdf"
+        output_pdf_path = os.path.join(project_dir, pdf_filename)
+
+        pdf_res = scraper.generate_stitched_pdf(image_urls, output_pdf_path)
+        if not pdf_res.get("ok"):
+            return jsonify({"ok": False, "error": pdf_res.get("error")}), 500
+
+        return jsonify({
+            "ok": True,
+            "filename": pdf_filename,
+            "pdf_path": output_pdf_path,
+            "pages_stitched": pdf_res.get("page_count"),
+            "file_size_bytes": pdf_res.get("file_size_bytes"),
+            "message": f"Successfully created {pdf_filename} with {pdf_res.get('page_count')} page scans."
+        })
+
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Deed downloader error: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
