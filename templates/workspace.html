@@ -1907,10 +1907,10 @@
     </div>
 
         <!-- Deed Scan Portal (Embedded Scanner View) -->
-        <div class="sb-item flex items-center justify-between group/link" data-tab="deed-doc" onclick="switchTab('deed-doc', 'Deed Scan Portal')">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <span class="sb-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+        <div id="sidebar-deed-doc" onclick="switchMainTab('deed-doc')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-700 hover:text-blue-700 cursor-pointer font-medium text-[12px] transition-all group/link">
+          <div class="flex items-center gap-2 sb-row-content">
+            <span class="text-zinc-650 group-hover/link:text-blue-500">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
             </span>
             <span class="sb-label">Deed Scan Portal</span>
           </div>
@@ -2509,60 +2509,63 @@
         <div class="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
           <!-- Let the page be blank for now -->
         </div>
+      </div>
       <!-- Dedicated Embedded Panel for Deed Document Scan Portal -->
-      <div class="panel h-full w-full flex flex-col bg-white overflow-hidden" id="panel-deed-doc">
-        <!-- 1-Click ⚡ Auto-Fill Header Bar -->
-        <div class="border-b border-zinc-200 bg-zinc-50/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 select-none shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <div class="p-1.5 rounded-lg bg-zinc-900 text-zinc-100 shadow-xs">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+      <div class="panel" id="panel-deed-doc">
+        <div class="h-full w-full flex flex-col bg-white overflow-hidden">
+          <!-- 1-Click ⚡ Auto-Fill Header Bar -->
+          <div class="border-b border-zinc-200 bg-zinc-50/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 select-none shadow-2xs">
+            <div class="flex items-center gap-2.5">
+              <div class="p-1.5 rounded-lg bg-zinc-900 text-zinc-100 shadow-xs">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-zinc-900 leading-none">Deed Scan Portal (Live)</h3>
+                <p class="text-[10px] text-zinc-500 mt-0.5">Search and view document image scans on scan.delhigovt.nic.in.</p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-xs font-bold text-zinc-900 leading-none">Deed Scan Portal (Live)</h3>
-              <p class="text-[10px] text-zinc-500 mt-0.5">Search and view document image scans on scan.delhigovt.nic.in.</p>
+
+            <div class="flex items-center gap-2.5 ml-auto">
+              <!-- ⚡ Quick Parameter Copy/Fill Badge -->
+              <div class="flex items-center gap-1.5 bg-white border border-zinc-200 rounded-lg px-2.5 py-1 text-xs shadow-2xs">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Target Record:</span>
+                <select id="deed-doc-record-select" class="text-xs font-semibold text-zinc-800 bg-transparent border-0 focus:outline-none cursor-pointer" onchange="updateDeedDocHelperInfo()">
+                  <option value="213">Reg 213 · Indrani Seth (2021-2022)</option>
+                  <option value="7">Reg 7 · Sanjeev Ganguly (2021-2022)</option>
+                  <option value="60">Reg 60 · Devendra Mishra (2021-2022)</option>
+                </select>
+              </div>
+
+              <!-- Quick Action Buttons -->
+              <button type="button" onclick="copyTargetDeedParams()" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-900 text-xs font-semibold text-zinc-50 hover:bg-zinc-800 transition-all cursor-pointer shadow-xs">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <span>Copy Parameters</span>
+              </button>
+
+              <a href="https://scan.delhigovt.nic.in/SearchForm.aspx" target="_blank" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition-all cursor-pointer shadow-2xs">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
+                <span>Open in New Tab</span>
+              </a>
             </div>
           </div>
 
-          <div class="flex items-center gap-2.5 ml-auto">
-            <!-- ⚡ Quick Parameter Copy/Fill Badge -->
-            <div class="flex items-center gap-1.5 bg-white border border-zinc-200 rounded-lg px-2.5 py-1 text-xs shadow-2xs">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Target Record:</span>
-              <select id="deed-doc-record-select" class="text-xs font-semibold text-zinc-800 bg-transparent border-0 focus:outline-none cursor-pointer" onchange="updateDeedDocHelperInfo()">
-                <option value="213">Reg 213 · Indrani Seth (2021-2022)</option>
-                <option value="7">Reg 7 · Sanjeev Ganguly (2021-2022)</option>
-                <option value="60">Reg 60 · Devendra Mishra (2021-2022)</option>
-              </select>
+          <!-- Floating Parameter Reference Banner -->
+          <div id="deed-doc-param-banner" class="bg-indigo-50/80 border-b border-indigo-100 px-4 py-2 flex items-center justify-between text-xs text-indigo-900 font-medium">
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-indigo-950">⚡ Active Search Helper:</span>
+              <span>Locality: <strong id="helper-locality">Vasundhara Enclave</strong></span>
+              <span>· SRO: <strong id="helper-sro">SRO VIII (Geeta Colony)</strong></span>
+              <span>· Reg No: <strong id="helper-regno">213</strong></span>
+              <span>· Year: <strong id="helper-year">2021-2022</strong></span>
+              <span>· Book: <strong>1</strong></span>
             </div>
-
-            <!-- Quick Action Buttons -->
-            <button type="button" onclick="copyTargetDeedParams()" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-900 text-xs font-semibold text-zinc-50 hover:bg-zinc-800 transition-all cursor-pointer shadow-xs">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              <span>Copy Parameters</span>
-            </button>
-
-            <a href="https://scan.delhigovt.nic.in/SearchForm.aspx" target="_blank" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition-all cursor-pointer shadow-2xs">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-              <span>Open in New Tab</span>
-            </a>
+            <span class="text-[11px] text-indigo-700 font-bold">Use parameters above to submit form below</span>
           </div>
-        </div>
 
-        <!-- Floating Parameter Reference Banner -->
-        <div id="deed-doc-param-banner" class="bg-indigo-50/80 border-b border-indigo-100 px-4 py-2 flex items-center justify-between text-xs text-indigo-900 font-medium">
-          <div class="flex items-center gap-3">
-            <span class="font-bold text-indigo-950">⚡ Active Search Helper:</span>
-            <span>Locality: <strong id="helper-locality">Vasundhara Enclave</strong></span>
-            <span>· SRO: <strong id="helper-sro">SRO VIII (Geeta Colony)</strong></span>
-            <span>· Reg No: <strong id="helper-regno">213</strong></span>
-            <span>· Year: <strong id="helper-year">2021-2022</strong></span>
-            <span>· Book: <strong>1</strong></span>
+          <!-- Embedded Portal Frame -->
+          <div class="flex-1 w-full h-full relative bg-zinc-100">
+            <iframe id="deedDocPortalFrame" src="https://scan.delhigovt.nic.in/SearchForm.aspx" class="w-full h-full border-0" title="Delhi Deed Scan Portal"></iframe>
           </div>
-          <span class="text-[11px] text-indigo-700 font-bold">Use parameters above to submit form below</span>
-        </div>
-
-        <!-- Embedded Portal Frame -->
-        <div class="flex-1 w-full h-full relative bg-zinc-100">
-          <iframe id="deedDocPortalFrame" src="https://scan.delhigovt.nic.in/SearchForm.aspx" class="w-full h-full border-0" title="Delhi Deed Scan Portal"></iframe>
         </div>
       </div>
 
