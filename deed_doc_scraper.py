@@ -40,47 +40,84 @@ class DorisDocScraper:
         
         self.is_logged_in = bool(self.session_cookie)
 
-    def login(self, username=None, password=None):
-        """Authenticates against scan.delhigovt.nic.in/Registration.aspx"""
-        user = username or self.username
-        pwd = password or self.password
-
-        if not user or not pwd:
-            return {"ok": False, "error": "Login credentials not configured in settings."}
-
+    def start_login_session(self):
+        """Fetches Login.aspx and returns base64 encoded CAPTCHA image and session state."""
         try:
-            # 1. GET Login Page to extract ViewState
-            res = self.session.get(LOGIN_URL, timeout=12)
+            res = self.session.get(f"{BASE_URL}/Login.aspx", timeout=12)
             if res.status_code != 200:
                 return {"ok": False, "error": f"Login page unreachable (HTTP {res.status_code})"}
 
             soup = BeautifulSoup(res.text, 'html.parser')
             vs = soup.find('input', {'id': '__VIEWSTATE'})
             ev = soup.find('input', {'id': '__EVENTVALIDATION'})
+            rand = soup.find('input', {'id': re.compile(r'txtrandomno', re.I)})
+            csrf = soup.find('input', {'id': re.compile(r'csrftoken', re.I)})
 
-            vs_val = vs['value'] if vs else ""
-            ev_val = ev['value'] if ev else ""
+            self._login_viewstate = vs['value'] if vs else ""
+            self._login_eventval = ev['value'] if ev else ""
+            self._login_rand = rand['value'] if rand else ""
+            self._login_csrf = csrf['value'] if csrf else ""
 
-            # 2. POST Login Credentials
+            # Find CAPTCHA image
+            captcha_img = soup.find('img', {'src': re.compile(r'JpegImage', re.I)})
+            captcha_b64 = ""
+            if captcha_img:
+                src = captcha_img.get('src')
+                img_url = src if src.startswith('http') else f"{BASE_URL}/{src.lstrip('/')}"
+                img_res = self.session.get(img_url, timeout=10)
+                if img_res.status_code == 200:
+                    import base64
+                    captcha_b64 = f"data:image/png;base64,{base64.b64encode(img_res.content).decode('utf-8')}"
+
+            return {
+                "ok": True,
+                "captcha_b64": captcha_b64,
+                "session_cookie": requests.utils.dict_from_cookiejar(self.session.cookies)
+            }
+        except Exception as e:
+            return {"ok": False, "error": f"Failed to start login session: {str(e)}"}
+
+    def submit_login_with_captcha(self, username, password, captcha_code):
+        """Submits login credentials and CAPTCHA code to Login.aspx"""
+        user = username or self.username
+        pwd = password or self.password
+
+        try:
+            if not hasattr(self, '_login_viewstate') or not self._login_viewstate:
+                start_res = self.start_login_session()
+                if not start_res["ok"]:
+                    return start_res
+
             payload = {
-                "__VIEWSTATE": vs_val,
-                "__EVENTVALIDATION": ev_val,
-                "ctl00$ContentPlaceHolder1$txtLoginId": user,
-                "ctl00$ContentPlaceHolder1$txtPassword": pwd,
-                "ctl00$ContentPlaceHolder1$btnLogin": "Login"
+                "__VIEWSTATE": self._login_viewstate,
+                "__EVENTVALIDATION": self._login_eventval,
+                "ctl00$ContentPlaceHolder1$txtuserid": user,
+                "ctl00$ContentPlaceHolder1$txtpwd": pwd,
+                "ctl00$ContentPlaceHolder1$txtcaptcha": str(captcha_code).strip(),
+                "ctl00$ContentPlaceHolder1$btnlogin": "Sign In",
+                "ctl00$ContentPlaceHolder1$txtrandomno": getattr(self, '_login_rand', ''),
+                "ctl00$ContentPlaceHolder1$csrftoken": getattr(self, '_login_csrf', '')
             }
 
-            resp = self.session.post(LOGIN_URL, data=payload, timeout=15)
+            resp = self.session.post(f"{BASE_URL}/Login.aspx", data=payload, timeout=15)
             
-            # Check if login succeeded or redirected to SearchForm.aspx
+            # Extract session cookies
+            cookie_dict = requests.utils.dict_from_cookiejar(self.session.cookies)
+            cookie_str = "; ".join([f"{k}={v}" for k, v in cookie_dict.items()])
+
             if "SearchForm.aspx" in resp.url or "Logout" in resp.text or resp.status_code == 200:
                 self.is_logged_in = True
-                return {"ok": True, "message": "Successfully authenticated with scan.delhigovt.nic.in"}
+                self.session_cookie = cookie_str
+                return {
+                    "ok": True,
+                    "cookie_str": cookie_str,
+                    "message": "Successfully logged in to scan.delhigovt.nic.in!"
+                }
             else:
-                return {"ok": False, "error": "Invalid credentials or portal CAPTCHA required."}
+                return {"ok": False, "error": "Login failed. Please check CAPTCHA code or password."}
 
         except Exception as e:
-            return {"ok": False, "error": f"Connection error during login: {str(e)}"}
+            return {"ok": False, "error": f"Connection error during login submit: {str(e)}"}
 
     def get_sro_list(self):
         """Fetches live list of Sub-Registrar Offices (SROs) from scan.delhigovt.nic.in/SearchForm.aspx"""

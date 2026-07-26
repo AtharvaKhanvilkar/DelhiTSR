@@ -2532,6 +2532,53 @@
             </button>
           </div>
 
+          <!-- Native Deed Doc Login & CAPTCHA Card -->
+          <div class="rounded-xl border border-zinc-200 bg-zinc-50/80 p-5 space-y-3.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800">Deed Doc Portal Authentication (`scan.delhigovt.nic.in`)</h4>
+                <span id="deed-session-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                  Authentication Needed
+                </span>
+              </div>
+              <button type="button" onclick="loadDeedDocLoginCaptcha()" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 cursor-pointer">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Load Live Visual Code</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Mobile / Login ID</label>
+                <input type="text" id="deed-login-user" value="9892245178" class="w-full h-9 rounded-md border border-zinc-300 bg-white px-3 text-xs font-medium text-zinc-900">
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Password</label>
+                <input type="password" id="deed-login-pwd" value="Atharva@2026" class="w-full h-9 rounded-md border border-zinc-300 bg-white px-3 text-xs font-medium text-zinc-900">
+              </div>
+
+              <!-- Live Visual Code Image & Input -->
+              <div>
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Visual Code (CAPTCHA)</label>
+                <div class="flex items-center gap-2">
+                  <div class="h-9 w-28 bg-zinc-200 rounded border border-zinc-300 flex items-center justify-center overflow-hidden shrink-0">
+                    <img id="deed-login-captcha-img" src="" class="h-full object-contain hidden" alt="Captcha">
+                    <span id="deed-login-captcha-loading" class="text-[10px] text-zinc-500 font-semibold">Click Load</span>
+                  </div>
+                  <input type="text" id="deed-login-captcha-input" placeholder="6-digits" class="w-full h-9 rounded-md border border-zinc-300 bg-white px-2 text-center text-xs font-bold tracking-widest text-zinc-900">
+                </div>
+              </div>
+
+              <!-- Sign In Button -->
+              <div>
+                <button type="button" id="btn-deed-login" onclick="submitDeedDocLogin()" class="w-full h-9 rounded-md bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 transition-all cursor-pointer">
+                  Sign In & Save Session
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Native Search Card -->
           <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs space-y-4">
             <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Search Deed Parameters</h4>
@@ -9592,6 +9639,75 @@
 
   let _deedSroTypeahead = null;
   let _deedLocTypeahead = null;
+
+  function loadDeedDocLoginCaptcha() {
+    const img = document.getElementById('deed-login-captcha-img');
+    const loading = document.getElementById('deed-login-captcha-loading');
+    if (loading) loading.textContent = 'Loading...';
+
+    fetch('/api/deed_doc/login_captcha')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.captcha_b64) {
+          img.src = data.captcha_b64;
+          img.classList.remove('hidden');
+          if (loading) loading.classList.add('hidden');
+          document.getElementById('deed-login-captcha-input').value = '';
+          document.getElementById('deed-login-captcha-input').focus();
+        } else {
+          if (loading) loading.textContent = 'Failed';
+          showToast('CAPTCHA Error', data.error || 'Could not load Visual Code from portal.');
+        }
+      })
+      .catch(err => {
+        if (loading) loading.textContent = 'Error';
+      });
+  }
+
+  function submitDeedDocLogin() {
+    const user = document.getElementById('deed-login-user')?.value || '';
+    const pwd = document.getElementById('deed-login-pwd')?.value || '';
+    const captcha = document.getElementById('deed-login-captcha-input')?.value || '';
+    const btn = document.getElementById('btn-deed-login');
+    const badge = document.getElementById('deed-session-badge');
+
+    if (!captcha) {
+      showToast('Validation Error', 'Please type the 6-digit Visual Code.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    fetch('/api/deed_doc/login_submit', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ username: user, password: pwd, captcha_code: captcha })
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.textContent = 'Sign In & Save Session';
+
+      if (data.ok) {
+        if (badge) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200';
+          badge.textContent = '🟢 Session Active';
+        }
+        showToast('Login Successful', 'Authenticated with scan.delhigovt.nic.in!');
+        // Reload live SRO dropdown list
+        initDeedDocTypeaheads();
+      } else {
+        showToast('Login Failed', data.error || 'Invalid Visual Code or credentials.', 'error');
+        loadDeedDocLoginCaptcha(); // Refresh captcha on failure
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = 'Sign In & Save Session';
+      showToast('Connection Error', err.message || 'Login connection failed', 'error');
+    });
+  }
 
   function initDeedDocTypeaheads() {
     _deedSroTypeahead = initTypeahead('deed-panel-sro-input', 'deed-panel-sro', 'deed-sro-list', 'deed-sro-wrapper', DEED_SCAN_SRO_OPTIONS, (opt) => {

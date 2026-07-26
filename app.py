@@ -4448,6 +4448,31 @@ def settings_credentials():
             "password_configured": bool(SCAN_CREDENTIALS["password"]),
             "password_masked": masked_pwd
         })
+@app.route("/api/deed_doc/login_captcha", methods=["GET"])
+def deed_doc_login_captcha():
+    """Fetches live CAPTCHA for scan.delhigovt.nic.in/Login.aspx"""
+    scraper = DorisDocScraper(
+        username=SCAN_CREDENTIALS.get("username"),
+        password=SCAN_CREDENTIALS.get("password")
+    )
+    res = scraper.start_login_session()
+    return jsonify(res)
+
+@app.route("/api/deed_doc/login_submit", methods=["POST"])
+def deed_doc_login_submit():
+    """Submits login credentials and CAPTCHA code to Login.aspx"""
+    data = request.json or {}
+    user = data.get("username") or SCAN_CREDENTIALS.get("username")
+    pwd = data.get("password") or SCAN_CREDENTIALS.get("password")
+    captcha = data.get("captcha_code", "")
+
+    scraper = DorisDocScraper(username=user, password=pwd)
+    res = scraper.submit_login_with_captcha(user, pwd, captcha)
+    if res.get("ok") and res.get("cookie_str"):
+        SCAN_CREDENTIALS["session_cookie"] = res["cookie_str"]
+        os.environ["DORIS_SCAN_COOKIE"] = res["cookie_str"]
+    return jsonify(res)
+
 @app.route("/api/deed_doc/start/<project_name>", methods=["GET"])
 def deed_doc_start(project_name):
     """Fetches live SRO dropdown list directly from scan.delhigovt.nic.in"""
