@@ -81,7 +81,7 @@ class DorisDocScraper:
             return {"ok": False, "error": f"Failed to start login session: {str(e)}"}
 
     def submit_login_with_captcha(self, username, password, captcha_code):
-        """Submits login credentials and CAPTCHA code to Login.aspx"""
+        """Submits login credentials and CAPTCHA code to Login.aspx with salted SHA256 password hash."""
         user = username or self.username
         pwd = password or self.password
 
@@ -91,20 +91,24 @@ class DorisDocScraper:
                 if not start_res["ok"]:
                     return start_res
 
+            import hashlib
+            pwd_hash = hashlib.sha256(pwd.encode('utf-8')).hexdigest().lower()
+            rand_val = getattr(self, '_login_rand', '')
+            salted_hash = hashlib.sha256((pwd_hash + rand_val).encode('utf-8')).hexdigest().lower()
+
             payload = {
                 "__VIEWSTATE": self._login_viewstate,
                 "__EVENTVALIDATION": self._login_eventval,
                 "ctl00$ContentPlaceHolder1$txtuserid": user,
-                "ctl00$ContentPlaceHolder1$txtpwd": pwd,
+                "ctl00$ContentPlaceHolder1$txtpwd": salted_hash,
                 "ctl00$ContentPlaceHolder1$txtcaptcha": str(captcha_code).strip(),
                 "ctl00$ContentPlaceHolder1$btnlogin": "Sign In",
-                "ctl00$ContentPlaceHolder1$txtrandomno": getattr(self, '_login_rand', ''),
+                "ctl00$ContentPlaceHolder1$txtrandomno": "",
                 "ctl00$ContentPlaceHolder1$csrftoken": getattr(self, '_login_csrf', '')
             }
 
             resp = self.session.post(f"{BASE_URL}/Login.aspx", data=payload, timeout=15)
             
-            # Extract session cookies
             cookie_dict = requests.utils.dict_from_cookiejar(self.session.cookies)
             cookie_str = "; ".join([f"{k}={v}" for k, v in cookie_dict.items()])
 
@@ -114,10 +118,10 @@ class DorisDocScraper:
                 return {
                     "ok": True,
                     "cookie_str": cookie_str,
-                    "message": "Successfully logged in to scan.delhigovt.nic.in!"
+                    "message": "Successfully authenticated with scan.delhigovt.nic.in!"
                 }
             else:
-                return {"ok": False, "error": "Login failed. Please check CAPTCHA code or password."}
+                return {"ok": False, "error": "Login failed. Please check Visual Code or credentials."}
 
         except Exception as e:
             return {"ok": False, "error": f"Connection error during login submit: {str(e)}"}
