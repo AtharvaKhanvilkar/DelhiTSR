@@ -127,7 +127,19 @@ class DorisDocScraper:
 
             res_search = self.session.post(SEARCH_URL, data=payload, timeout=18)
             if res_search.status_code != 200:
-                return {"ok": False, "error": "Failed to submit search query to portal."}
+                return {
+                    "ok": False,
+                    "diagnostic_code": "BACKEND_HTTP_ERROR",
+                    "error": f"Portal returned HTTP {res_search.status_code}."
+                }
+
+            # Check if portal redirected to Logout/Error page
+            if "Logout" in res_search.url or "errorPage" in res_search.url or "Some Error occured" in res_search.text:
+                return {
+                    "ok": False,
+                    "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                    "error": "Government portal session expired or blocked automated login. Active session cookie required."
+                }
 
             search_soup = BeautifulSoup(res_search.text, 'html.parser')
             
@@ -152,15 +164,35 @@ class DorisDocScraper:
                         href = f"{BASE_URL}/{href.lstrip('/')}"
                     image_urls.append(href)
 
+            if not image_urls:
+                # Check if "No Records Found" or "Check Deed Doc" button was missing
+                if "Check Deed Doc" not in res_search.text and "No Record" in res_search.text:
+                    return {
+                        "ok": False,
+                        "diagnostic_code": "NO_RECORDS_ON_GOVT_SITE",
+                        "error": f"Government database has 0 scanned deed records for Reg No. {reg_no} ({reg_year})."
+                    }
+                else:
+                    return {
+                        "ok": False,
+                        "diagnostic_code": "NO_SCANNED_PAGES_FOUND",
+                        "error": f"Government portal returned 0 scanned pages for Reg No. {reg_no} in {reg_year}."
+                    }
+
             return {
                 "ok": True,
+                "diagnostic_code": "SUCCESS",
                 "image_urls": image_urls,
                 "total_pages": len(image_urls),
                 "raw_html": res_search.text[:2000]
             }
 
         except Exception as e:
-            return {"ok": False, "error": f"Deed document query exception: {str(e)}"}
+            return {
+                "ok": False,
+                "diagnostic_code": "BACKEND_EXCEPTION",
+                "error": f"Deed document query exception: {str(e)}"
+            }
 
     def generate_stitched_pdf(self, image_urls, output_pdf_path):
         """Downloads images from image_urls, converts them to RGB, and stitches into a PDF."""

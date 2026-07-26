@@ -4485,11 +4485,11 @@ def download_deed_doc(project_name):
         )
 
         if not search_res.get("ok"):
-            return jsonify({"ok": False, "error": search_res.get("error", "Failed to retrieve deed scans.")}), 500
-
-        image_urls = search_res.get("image_urls", [])
-        if not image_urls:
-            return jsonify({"ok": False, "error": f"No scanned pages found for Reg No. {reg_no} ({reg_year})."}), 444
+            return jsonify({
+                "ok": False,
+                "diagnostic_code": search_res.get("diagnostic_code", "UNKNOWN_ERROR"),
+                "error": search_res.get("error", "Failed to retrieve deed scans.")
+            }), 400
 
         # 3. Stitch images into PDF and save to project folder
         project_dir = os.path.join(RESULTS_DIR, project_name)
