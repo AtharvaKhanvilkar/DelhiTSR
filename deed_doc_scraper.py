@@ -59,15 +59,18 @@ class DorisDocScraper:
             self._login_csrf = csrf['value'] if csrf else ""
 
             # Find CAPTCHA image
-            captcha_img = soup.find('img', {'src': re.compile(r'JpegImage', re.I)})
+            captcha_img = soup.find('img', {'id': 'IMG4'}) or soup.find('img', {'src': re.compile(r'JpegImage', re.I)})
             captcha_b64 = ""
             if captcha_img:
                 src = captcha_img.get('src')
                 img_url = src if src.startswith('http') else f"{BASE_URL}/{src.lstrip('/')}"
-                img_res = self.session.get(img_url, timeout=10)
-                if img_res.status_code == 200:
+                img_res = self.session.get(img_url, headers={"Referer": f"{BASE_URL}/Login.aspx"}, timeout=10)
+                if img_res.status_code == 200 and not img_res.content.startswith(b'<!DOCTYPE') and not img_res.content.startswith(b'<html'):
                     import base64
-                    captcha_b64 = f"data:image/png;base64,{base64.b64encode(img_res.content).decode('utf-8')}"
+                    mime = "image/jpeg"
+                    if img_res.content.startswith(b'\x89PNG'):
+                        mime = "image/png"
+                    captcha_b64 = f"data:{mime};base64,{base64.b64encode(img_res.content).decode('utf-8')}"
 
             return {
                 "ok": True,
