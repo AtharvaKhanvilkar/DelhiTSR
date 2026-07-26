@@ -9710,24 +9710,28 @@
     });
     _deedLocTypeahead = initTypeahead('deed-panel-locality-input', 'deed-panel-locality', 'deed-locality-list', 'deed-locality-wrapper', DEED_SCAN_LOCALITY_OPTIONS);
 
-    // Live Locality AutoComplete Query
+    // Debounced Live Locality AutoComplete Query
     const locInput = document.getElementById('deed-panel-locality-input');
+    let locDebounceTimer = null;
     if (locInput) {
       locInput.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         const sroVal = document.getElementById('deed-panel-sro')?.value || '';
+        clearTimeout(locDebounceTimer);
+
         if (query.length >= 1) {
-          fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}&sro=${encodeURIComponent(sroVal)}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.ok && data.localities && data.localities.length > 0) {
-                _deedLocTypeahead.setOptions(data.localities);
-              } else {
-                _deedLocTypeahead.setOptions([]);
-                showToast('Active Session Cookie Required', 'Please paste your active Chrome session cookie in Settings ⚙️ to enable live portal autocomplete.', 'warning');
-              }
-            })
-            .catch(() => {});
+          locDebounceTimer = setTimeout(() => {
+            fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}&sro=${encodeURIComponent(sroVal)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.ok && data.localities) {
+                  _deedLocTypeahead.setOptions(data.localities);
+                } else {
+                  _deedLocTypeahead.setOptions([]);
+                }
+              })
+              .catch(() => {});
+          }, 300);
         }
       });
     }
