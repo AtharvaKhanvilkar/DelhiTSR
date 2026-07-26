@@ -2510,62 +2510,77 @@
           <!-- Let the page be blank for now -->
         </div>
       </div>
-      <!-- Dedicated Embedded Panel for Deed Document Scan Portal -->
+      <!-- Dedicated Panel for Deed Document Scan Extractor (Native Custom UI) -->
       <div class="panel" id="panel-deed-doc">
-        <div class="h-full w-full flex flex-col bg-white overflow-hidden">
-          <!-- 1-Click ⚡ Auto-Fill Header Bar -->
-          <div class="border-b border-zinc-200 bg-zinc-50/90 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 select-none shadow-2xs">
-            <div class="flex items-center gap-2.5">
-              <div class="p-1.5 rounded-lg bg-zinc-900 text-zinc-100 shadow-xs">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+        <div class="flex flex-col space-y-6 h-full bg-white p-6 overflow-y-auto">
+          
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b border-zinc-100 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-zinc-900 tracking-tight">Deed Scan Extractor</h3>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Native PDF Engine
+                </span>
               </div>
-              <div>
-                <h3 class="text-xs font-bold text-zinc-900 leading-none">Deed Scan Portal (Live)</h3>
-                <p class="text-[10px] text-zinc-500 mt-0.5">Search and view document image scans on scan.delhigovt.nic.in.</p>
-              </div>
+              <p class="text-xs text-zinc-500 mt-0.5">Automated image scan extraction & PDF stitching from scan.delhigovt.nic.in</p>
             </div>
+            <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition-all cursor-pointer shadow-2xs">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Portal Credentials ⚙️</span>
+            </button>
+          </div>
 
-            <div class="flex items-center gap-2.5 ml-auto">
-              <!-- ⚡ Quick Parameter Copy/Fill Badge -->
-              <div class="flex items-center gap-1.5 bg-white border border-zinc-200 rounded-lg px-2.5 py-1 text-xs shadow-2xs">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Target Record:</span>
-                <select id="deed-doc-record-select" class="text-xs font-semibold text-zinc-800 bg-transparent border-0 focus:outline-none cursor-pointer" onchange="updateDeedDocHelperInfo()">
-                  <option value="213">Reg 213 · Indrani Seth (2021-2022)</option>
-                  <option value="7">Reg 7 · Sanjeev Ganguly (2021-2022)</option>
-                  <option value="60">Reg 60 · Devendra Mishra (2021-2022)</option>
+          <!-- Native Search Card -->
+          <div class="rounded-xl border border-zinc-200 bg-white p-5 shadow-xs space-y-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Search Deed Parameters</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-[11px] font-bold text-zinc-700 mb-1">Locality Name</label>
+                <input type="text" id="deed-panel-locality" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900" placeholder="e.g. Vasundhara Enclave" value="Vasundhara Enclave">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-zinc-700 mb-1">SRO Office</label>
+                <input type="text" id="deed-panel-sro" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900" placeholder="e.g. SRO VIII (Geeta Colony)" value="SRO VIII (Geeta Colony)">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-zinc-700 mb-1">Registration No</label>
+                <input type="text" id="deed-panel-regno" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900" placeholder="e.g. 213" value="213">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-zinc-700 mb-1">Reg Financial Year</label>
+                <select id="deed-panel-year" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 cursor-pointer">
+                  <option value="2023-2024">2023-2024</option>
+                  <option value="2022-2023">2022-2023</option>
+                  <option value="2021-2022" selected>2021-2022</option>
+                  <option value="2020-2021">2020-2021</option>
+                  <option value="2019-2020">2019-2020</option>
                 </select>
               </div>
+            </div>
 
-              <!-- Quick Action Buttons -->
-              <button type="button" onclick="copyTargetDeedParams()" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-900 text-xs font-semibold text-zinc-50 hover:bg-zinc-800 transition-all cursor-pointer shadow-xs">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                <span>Copy Parameters</span>
+            <div class="flex items-center justify-between pt-2">
+              <span class="text-xs text-zinc-500">Book No: <strong>Book 1</strong> (Default)</span>
+              <button id="btn-run-deed-extraction" onclick="runNativeDeedExtraction()" class="inline-flex items-center gap-2 h-9 px-5 rounded-md bg-zinc-900 text-xs font-bold text-zinc-50 hover:bg-zinc-800 transition-all cursor-pointer shadow-xs">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Extract Scanned Deed PDF</span>
               </button>
-
-              <a href="https://scan.delhigovt.nic.in/SearchForm.aspx" target="_blank" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition-all cursor-pointer shadow-2xs">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>
-                <span>Open in New Tab</span>
-              </a>
             </div>
           </div>
 
-          <!-- Floating Parameter Reference Banner -->
-          <div id="deed-doc-param-banner" class="bg-indigo-50/80 border-b border-indigo-100 px-4 py-2 flex items-center justify-between text-xs text-indigo-900 font-medium">
-            <div class="flex items-center gap-3">
-              <span class="font-bold text-indigo-950">⚡ Active Search Helper:</span>
-              <span>Locality: <strong id="helper-locality">Vasundhara Enclave</strong></span>
-              <span>· SRO: <strong id="helper-sro">SRO VIII (Geeta Colony)</strong></span>
-              <span>· Reg No: <strong id="helper-regno">213</strong></span>
-              <span>· Year: <strong id="helper-year">2021-2022</strong></span>
-              <span>· Book: <strong>1</strong></span>
+          <!-- Diagnostic Result / Progress Output Card -->
+          <div id="deed-extraction-result-card" class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-5 space-y-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Extraction Status & Diagnostic Output</h4>
+            <div id="deed-extraction-status-content" class="text-xs text-zinc-600 font-medium">
+              Ready. Enter parameters above and click <strong>Extract Scanned Deed PDF</strong>.
             </div>
-            <span class="text-[11px] text-indigo-700 font-bold">Use parameters above to submit form below</span>
           </div>
 
-          <!-- Embedded Portal Frame -->
-          <div class="flex-1 w-full h-full relative bg-zinc-100">
-            <iframe id="deedDocPortalFrame" src="https://scan.delhigovt.nic.in/SearchForm.aspx" class="w-full h-full border-0" title="Delhi Deed Scan Portal"></iframe>
-          </div>
         </div>
       </div>
 
@@ -9532,6 +9547,114 @@
       btn.disabled = false;
       btn.innerHTML = oldHtml;
       showToast('Download Exception', err.message || 'Connection error during deed scan download', 'error');
+    });
+  }
+
+  // ── Native Deed Extraction UI Logic ──
+  function runNativeDeedExtraction() {
+    const btn = document.getElementById('btn-run-deed-extraction');
+    const out = document.getElementById('deed-extraction-status-content');
+    if (!btn || !out) return;
+
+    const loc = document.getElementById('deed-panel-locality')?.value || '';
+    const sro = document.getElementById('deed-panel-sro')?.value || '';
+    const regno = document.getElementById('deed-panel-regno')?.value || '';
+    const year = document.getElementById('deed-panel-year')?.value || '';
+
+    if (!regno) {
+      showToast('Validation Error', 'Please enter a Registration Number');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="animate-spin w-3.5 h-3.5 text-zinc-50" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Running Scraper...</span>`;
+    
+    out.innerHTML = `
+      <div class="flex items-center gap-2 text-zinc-800 font-semibold mb-2">
+        <svg class="animate-spin w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <span>Connecting to scan.delhigovt.nic.in for Reg No. ${regno} (${year})...</span>
+      </div>
+      <p class="text-[11px] text-zinc-500">Executing ASP.NET session request and page image parser...</p>
+    `;
+
+    fetch(`/api/doris/download_deed/${projectName}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        reg_no: regno,
+        reg_year: year,
+        locality: loc,
+        sro_name: sro,
+        book_no: '1'
+      })
+    })
+    .then(async res => {
+      let data;
+      try { data = await res.json(); } catch(e) { data = { ok: false, error: `HTTP ${res.status} error.` }; }
+      return data;
+    })
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Extract Scanned Deed PDF</span>`;
+
+      if (data.ok) {
+        out.innerHTML = `
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-950 space-y-2">
+            <div class="flex items-center gap-2 font-bold text-xs">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-emerald-600"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Extraction Complete: Stitched ${data.pages_stitched} Scanned Pages!</span>
+            </div>
+            <p class="text-[11px] text-emerald-800">Saved file: <strong>${data.filename}</strong> (${Math.round(data.file_size_bytes / 1024)} KB)</p>
+            <div class="flex items-center gap-3 pt-1">
+              <button onclick="switchMainTab('pdf'); selectFile('${data.filename}');" class="px-3 py-1.5 rounded bg-emerald-700 text-white font-bold text-xs hover:bg-emerald-800 transition-all cursor-pointer">
+                👁️ View PDF in Reader
+              </button>
+              <a href="/pdf/${projectName}/${data.filename}" target="_blank" class="px-3 py-1.5 rounded bg-white border border-emerald-300 text-emerald-900 font-bold text-xs hover:bg-emerald-100 transition-all">
+                📥 Download PDF File
+              </a>
+            </div>
+          </div>
+        `;
+        showToast('Deed Scans Downloaded', data.message);
+        refreshWorkspaceData();
+      } else {
+        if (data.diagnostic_code === 'NO_RECORDS_ON_GOVT_SITE') {
+          out.innerHTML = `
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-950 space-y-1">
+              <div class="flex items-center gap-2 font-bold text-xs text-amber-900">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-amber-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Govt Database Result: 0 Scanned Pages</span>
+              </div>
+              <p class="text-[11px] text-amber-800">The government portal responded 100% OK, but returned 0 scanned image records for Reg No. ${regno} (${year}).</p>
+            </div>
+          `;
+        } else if (data.diagnostic_code === 'PORTAL_SESSION_EXPIRED') {
+          out.innerHTML = `
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-950 space-y-2">
+              <div class="flex items-center gap-2 font-bold text-xs text-red-900">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-red-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Government Session Expired / Blocked</span>
+              </div>
+              <p class="text-[11px] text-red-800">ASP.NET session expired. Click Settings ⚙️ above to update your active browser session cookie.</p>
+              <button onclick="openSettingsModal()" class="px-3 py-1 rounded bg-red-800 text-white font-bold text-xs hover:bg-red-900 transition-all cursor-pointer">
+                ⚙️ Configure Credentials & Cookie
+              </button>
+            </div>
+          `;
+        } else {
+          out.innerHTML = `
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-950">
+              <span class="font-bold text-xs block">Extraction Error</span>
+              <span class="text-[11px]">${data.error || 'Failed to extract deed scans.'}</span>
+            </div>
+          `;
+        }
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Extract Scanned Deed PDF</span>`;
+      out.innerHTML = `<div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-950 text-xs">Connection exception: ${err.message}</div>`;
     });
   }
 
