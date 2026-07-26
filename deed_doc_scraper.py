@@ -155,8 +155,12 @@ class DorisDocScraper:
         """Fetches live localities for a given SRO from scan.delhigovt.nic.in/SearchForm.aspx postback"""
         try:
             res = self.session.get(SEARCH_URL, timeout=12)
-            if res.status_code != 200:
-                return {"ok": False, "error": "SearchForm.aspx unreachable"}
+            if res.status_code != 200 or "Logout" in res.url or "errorPage" in res.url:
+                return {
+                    "ok": False,
+                    "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                    "error": "Session expired or cookie invalid when loading localities."
+                }
             
             soup = BeautifulSoup(res.text, 'html.parser')
             vs = soup.find('input', {'id': '__VIEWSTATE'})
@@ -174,15 +178,17 @@ class DorisDocScraper:
             res_post = self.session.post(SEARCH_URL, data=payload, timeout=12)
             post_soup = BeautifulSoup(res_post.text, 'html.parser')
             
-            loc_select = post_soup.find('select', {'id': re.compile(r'(locality|ddlLocality|txtLocality)', re.I)})
             loc_list = []
-            if loc_select:
-                for opt in loc_select.find_all('option'):
-                    val = opt.get('value', '').strip()
-                    txt = opt.text.strip()
-                    if val and val != "0" and "select" not in txt.lower():
-                        loc_list.append({"id": val, "name": txt})
-            
+            # 1. Search all select elements
+            for sel in post_soup.find_all('select'):
+                sel_id = sel.get('id', '').lower()
+                if 'locality' in sel_id or 'loc' in sel_id or 'sro' not in sel_id:
+                    for opt in sel.find_all('option'):
+                        val = opt.get('value', '').strip()
+                        txt = opt.text.strip()
+                        if val and val != "0" and "select" not in txt.lower():
+                            loc_list.append({"id": val, "name": txt})
+
             return {"ok": True, "locality_list": loc_list}
         except Exception as e:
             return {"ok": False, "error": f"Failed to fetch locality list: {str(e)}"}

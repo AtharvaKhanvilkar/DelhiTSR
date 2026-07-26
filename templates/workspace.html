@@ -9720,8 +9720,11 @@
           fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}&sro=${encodeURIComponent(sroVal)}`)
             .then(res => res.json())
             .then(data => {
-              if (data.ok && data.localities) {
+              if (data.ok && data.localities && data.localities.length > 0) {
                 _deedLocTypeahead.setOptions(data.localities);
+              } else {
+                _deedLocTypeahead.setOptions([]);
+                showToast('Active Session Cookie Required', 'Please paste your active Chrome session cookie in Settings ⚙️ to enable live portal autocomplete.', 'warning');
               }
             })
             .catch(() => {});
