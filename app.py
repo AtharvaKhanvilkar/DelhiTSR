@@ -13,6 +13,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from main import extract_text_from_PDF
 from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate
 from doris_scraper import DorisScraperSession
+from deed_doc_scraper import DorisDocScraper
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
