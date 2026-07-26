@@ -21,7 +21,6 @@ import re
 import io
 import time
 import base64
-import threading
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -49,25 +48,23 @@ HEADERS = {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Module-level persistent Playwright state, protected by a lock.
+# Module-level persistent Playwright state.
+# All Playwright operations run on a SINGLE dedicated thread via _pw_executor
+# to avoid thread-affinity issues with sync_playwright.
 # ──────────────────────────────────────────────────────────────────────────────
-_pw_lock = threading.Lock()
+from concurrent.futures import ThreadPoolExecutor
+
+_pw_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="playwright")
 _pw_instance = None
 _pw_browser = None
 _pw_context = None
 _pw_page = None
-_pw_thread_id = None
 
 
 def _ensure_browser():
     """Ensure a persistent Playwright browser + context + page exists.
-    Must be called while holding _pw_lock."""
-    global _pw_instance, _pw_browser, _pw_context, _pw_page, _pw_thread_id
-
-    current_thread = threading.current_thread().ident
-
-    if _pw_instance is not None and _pw_thread_id != current_thread:
-        _teardown_unlocked()
+    MUST only be called from the _pw_executor thread."""
+    global _pw_instance, _pw_browser, _pw_context, _pw_page
 
     if _pw_instance is None:
         pw = sync_playwright().start()
@@ -81,14 +78,13 @@ def _ensure_browser():
         _pw_browser = browser
         _pw_context = context
         _pw_page = page
-        _pw_thread_id = current_thread
 
     return _pw_page, _pw_context
 
 
-def _teardown_unlocked():
-    """Tear down Playwright state. Must be called while holding _pw_lock."""
-    global _pw_instance, _pw_browser, _pw_context, _pw_page, _pw_thread_id
+def _teardown():
+    """Tear down Playwright state. MUST only be called from the _pw_executor thread."""
+    global _pw_instance, _pw_browser, _pw_context, _pw_page
     try:
         if _pw_browser:
             _pw_browser.close()
@@ -103,13 +99,19 @@ def _teardown_unlocked():
     _pw_browser = None
     _pw_context = None
     _pw_page = None
-    _pw_thread_id = None
+
+
+def _run_in_pw_thread(fn):
+    """Submit a function to the dedicated Playwright thread and wait for result.
+    This ensures ALL Playwright calls happen on the same single thread."""
+    future = _pw_executor.submit(fn)
+    return future.result(timeout=60)
 
 
 def reset_browser():
     """Public: tear down and force a fresh browser on next call."""
-    with _pw_lock:
-        _teardown_unlocked()
+    _run_in_pw_thread(_teardown)
+
 
 
 class DorisDocScraper:
@@ -123,8 +125,8 @@ class DorisDocScraper:
         """Loads Login.aspx in a PERSISTENT Playwright browser and captures live CAPTCHA image.
         The browser stays open so submit_login_with_captcha() can use the SAME session."""
         try:
-            with _pw_lock:
-                _teardown_unlocked()
+            def _do():
+                _teardown()
                 page, context = _ensure_browser()
 
                 page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
@@ -138,6 +140,7 @@ class DorisDocScraper:
                 b64_str = f"data:image/png;base64,{base64.b64encode(png_bytes).decode('utf-8')}"
 
                 return {"ok": True, "captcha_b64": b64_str}
+            return _run_in_pw_thread(_do)
         except Exception as e:
             return {"ok": False, "error": f"Failed to load Login page via Playwright: {str(e)}"}
 
@@ -147,7 +150,7 @@ class DorisDocScraper:
         user = username or self.username
         pwd = password or self.password
         try:
-            with _pw_lock:
+            def _do():
                 page, context = _ensure_browser()
 
                 current_url = page.url
@@ -174,7 +177,6 @@ class DorisDocScraper:
                 )
 
                 if login_success:
-                    self.session_cookie = cookie_str
                     return {"ok": True, "cookie_str": cookie_str, "message": "Authenticated with scan.delhigovt.nic.in!"}
                 else:
                     if "Invalid Captcha" in page_content or "captcha" in page_content.lower():
@@ -183,6 +185,10 @@ class DorisDocScraper:
                         return {"ok": False, "error": "Invalid credentials. Please check username and password."}
                     else:
                         return {"ok": False, "error": f"Login failed. Page stayed at: {curr_url}"}
+            result = _run_in_pw_thread(_do)
+            if result.get("ok") and result.get("cookie_str"):
+                self.session_cookie = result["cookie_str"]
+            return result
         except Exception as e:
             return {"ok": False, "error": f"Login submission error: {str(e)}"}
 
@@ -200,7 +206,7 @@ class DorisDocScraper:
             return {"ok": True, "suggestions": []}
 
         try:
-            with _pw_lock:
+            def _do():
                 page, context = _ensure_browser()
 
                 # Navigate to SearchForm if not already there
@@ -237,6 +243,7 @@ class DorisDocScraper:
                             suggestions.append(text)
 
                 return {"ok": True, "suggestions": suggestions}
+            return _run_in_pw_thread(_do)
         except Exception as e:
             return {"ok": False, "error": f"Failed to get locality suggestions: {str(e)}"}
 
@@ -248,7 +255,7 @@ class DorisDocScraper:
         Must call get_locality_suggestions() first to populate the autocomplete list.
         """
         try:
-            with _pw_lock:
+            def _do():
                 page, context = _ensure_browser()
 
                 if "login.aspx" in page.url.lower():
@@ -272,7 +279,6 @@ class DorisDocScraper:
                             break
 
                     if not clicked and count > 0:
-                        # If no exact match, click the first item
                         items.nth(0).click()
                         clicked = True
 
@@ -309,6 +315,7 @@ class DorisDocScraper:
                 sro_list = [o for o in sro_options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
 
                 return {"ok": True, "sro_list": sro_list}
+            return _run_in_pw_thread(_do)
         except Exception as e:
             return {"ok": False, "error": f"Failed to select locality: {str(e)}"}
 
@@ -316,7 +323,7 @@ class DorisDocScraper:
     def get_reg_years(self):
         """Extracts the registration year dropdown options from SearchForm.aspx."""
         try:
-            with _pw_lock:
+            def _do():
                 page, context = _ensure_browser()
 
                 if "SearchForm.aspx" not in page.url:
@@ -332,6 +339,7 @@ class DorisDocScraper:
                 years = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
 
                 return {"ok": True, "reg_years": years}
+            return _run_in_pw_thread(_do)
         except Exception as e:
             return {"ok": False, "error": f"Failed to get reg years: {str(e)}"}
 
