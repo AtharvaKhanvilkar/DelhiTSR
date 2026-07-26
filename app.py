@@ -4448,6 +4448,30 @@ def settings_credentials():
             "password_configured": bool(SCAN_CREDENTIALS["password"]),
             "password_masked": masked_pwd
         })
+@app.route("/api/deed_doc/start/<project_name>", methods=["GET"])
+def deed_doc_start(project_name):
+    """Fetches live SRO dropdown list directly from scan.delhigovt.nic.in"""
+    scraper = DorisDocScraper(
+        username=SCAN_CREDENTIALS.get("username"),
+        password=SCAN_CREDENTIALS.get("password"),
+        session_cookie=SCAN_CREDENTIALS.get("session_cookie")
+    )
+    res = scraper.get_sro_list()
+    return jsonify(res)
+
+@app.route("/api/deed_doc/select/<project_name>", methods=["POST"])
+def deed_doc_select(project_name):
+    """Fetches live localities for a selected SRO from scan.delhigovt.nic.in"""
+    data = request.json or {}
+    sro_val = data.get("sro_val", "")
+    scraper = DorisDocScraper(
+        username=SCAN_CREDENTIALS.get("username"),
+        password=SCAN_CREDENTIALS.get("password"),
+        session_cookie=SCAN_CREDENTIALS.get("session_cookie")
+    )
+    res = scraper.get_locality_list(sro_val)
+    return jsonify(res)
+
 
 @app.route("/api/doris/download_deed/<project_name>", methods=["POST"])
 def download_deed_doc(project_name):

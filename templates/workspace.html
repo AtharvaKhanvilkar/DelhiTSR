@@ -9593,9 +9593,45 @@
   let _deedSroTypeahead = null;
   let _deedLocTypeahead = null;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    _deedSroTypeahead = initTypeahead('deed-panel-sro-input', 'deed-panel-sro', 'deed-sro-list', 'deed-sro-wrapper', DEED_SCAN_SRO_OPTIONS);
+  function initDeedDocTypeaheads() {
+    _deedSroTypeahead = initTypeahead('deed-panel-sro-input', 'deed-panel-sro', 'deed-sro-list', 'deed-sro-wrapper', DEED_SCAN_SRO_OPTIONS, (opt) => {
+      onDeedSroSelected(opt.id);
+    });
     _deedLocTypeahead = initTypeahead('deed-panel-locality-input', 'deed-panel-locality', 'deed-locality-list', 'deed-locality-wrapper', DEED_SCAN_LOCALITY_OPTIONS);
+
+    // Try fetching live SRO list from scan.delhigovt.nic.in
+    fetch(`/api/deed_doc/start/${projectName}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.sro_list && data.sro_list.length > 0) {
+          _deedSroTypeahead.setOptions(data.sro_list);
+        }
+      })
+      .catch(() => {});
+  }
+
+  function onDeedSroSelected(sroVal) {
+    if (!sroVal) return;
+    const locInput = document.getElementById('deed-panel-locality-input');
+    if (locInput) locInput.placeholder = 'Loading live localities...';
+
+    fetch(`/api/deed_doc/select/${projectName}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ sro_val: sroVal })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok && data.locality_list && data.locality_list.length > 0) {
+        _deedLocTypeahead.setOptions(data.locality_list);
+        if (locInput) locInput.placeholder = 'Search locality...';
+      }
+    })
+    .catch(() => {});
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initDeedDocTypeaheads();
   });
 
   function runNativeDeedExtraction() {
@@ -10131,25 +10167,25 @@ if ('serviceWorker' in navigator) {
 
       <!-- Tab Navigation -->
       <div class="flex border-b border-zinc-100 text-xs font-semibold">
-        <button class="pb-2 px-3 border-b-2 border-indigo-600 text-indigo-700">DORIS Scan Portal</button>
+        <button class="pb-2 px-3 border-b-2 border-zinc-900 text-zinc-900">Delhi Govt Portal Credentials (Deed Doc & DORIS)</button>
       </div>
 
       <!-- Tab Body: Credentials -->
       <div class="space-y-4 pt-1">
         <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Mobile / Login ID</label>
-          <input type="text" id="settings-scan-user" placeholder="e.g. 9892245178" class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 font-medium">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Mobile / Login ID (Deed Doc & DORIS)</label>
+          <input type="text" id="settings-scan-user" placeholder="e.g. 9892245178" class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-900/20 font-medium">
         </div>
 
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Portal Password</label>
-          <input type="password" id="settings-scan-pass" placeholder="e.g. Atharva@2026" class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 font-medium">
+          <input type="password" id="settings-scan-pass" placeholder="e.g. Atharva@2026" class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-900/20 font-medium">
         </div>
 
         <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Active Browser Session Cookie <span class="text-zinc-400 font-normal lowercase">(optional override)</span></label>
-          <input type="text" id="settings-scan-cookie" placeholder="e.g. ASP.NET_SessionId=xyz123..." class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 font-mono text-[11px]">
-          <p class="text-[10px] text-zinc-400 mt-1">If logged into scan.delhigovt.nic.in in Chrome, paste your session cookie here to bypass login CAPTCHAs instantly.</p>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-700 mb-1.5">Deed Doc / DORIS Session Cookie <span class="text-zinc-400 font-normal lowercase">(Active Chrome Session)</span></label>
+          <input type="text" id="settings-scan-cookie" placeholder="e.g. AuthToken=...; DORIS=...; newId=..." class="w-full h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 shadow-2xs focus-visible:outline-none focus-visible:border-zinc-900 focus-visible:ring-2 focus-visible:ring-zinc-900/20 font-mono text-[11px]">
+          <p class="text-[10px] text-zinc-500 mt-1">Paste active cookies from your logged-in Chrome browser (`scan.delhigovt.nic.in` & `esearch.delhigovt.nic.in`) to bypass session blocks instantly.</p>
         </div>
       </div>
 

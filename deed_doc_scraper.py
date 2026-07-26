@@ -82,6 +82,67 @@ class DorisDocScraper:
         except Exception as e:
             return {"ok": False, "error": f"Connection error during login: {str(e)}"}
 
+    def get_sro_list(self):
+        """Fetches live list of Sub-Registrar Offices (SROs) from scan.delhigovt.nic.in/SearchForm.aspx"""
+        try:
+            res = self.session.get(SEARCH_URL, timeout=12)
+            if res.status_code != 200 or "Logout" in res.url or "errorPage" in res.url:
+                return {
+                    "ok": False,
+                    "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                    "error": "Session expired or cookie invalid when loading SRO list from scan.delhigovt.nic.in."
+                }
+            soup = BeautifulSoup(res.text, 'html.parser')
+            sro_select = soup.find('select', {'id': re.compile(r'ddlSRO', re.I)}) or soup.find('select')
+            
+            sro_list = []
+            if sro_select:
+                for opt in sro_select.find_all('option'):
+                    val = opt.get('value', '').strip()
+                    txt = opt.text.strip()
+                    if val and val != "0" and "select" not in txt.lower():
+                        sro_list.append({"id": val, "name": txt})
+            
+            return {"ok": True, "sro_list": sro_list}
+        except Exception as e:
+            return {"ok": False, "error": f"Failed to fetch SRO list: {str(e)}"}
+
+    def get_locality_list(self, sro_val):
+        """Fetches live localities for a given SRO from scan.delhigovt.nic.in/SearchForm.aspx postback"""
+        try:
+            res = self.session.get(SEARCH_URL, timeout=12)
+            if res.status_code != 200:
+                return {"ok": False, "error": "SearchForm.aspx unreachable"}
+            
+            soup = BeautifulSoup(res.text, 'html.parser')
+            vs = soup.find('input', {'id': '__VIEWSTATE'})
+            ev = soup.find('input', {'id': '__EVENTVALIDATION'})
+            vs_val = vs['value'] if vs else ""
+            ev_val = ev['value'] if ev else ""
+
+            payload = {
+                "__VIEWSTATE": vs_val,
+                "__EVENTVALIDATION": ev_val,
+                "__EVENTTARGET": "ctl00$ContentPlaceHolder1$ddlSRO",
+                "ctl00$ContentPlaceHolder1$ddlSRO": str(sro_val)
+            }
+            
+            res_post = self.session.post(SEARCH_URL, data=payload, timeout=12)
+            post_soup = BeautifulSoup(res_post.text, 'html.parser')
+            
+            loc_select = post_soup.find('select', {'id': re.compile(r'(locality|ddlLocality|txtLocality)', re.I)})
+            loc_list = []
+            if loc_select:
+                for opt in loc_select.find_all('option'):
+                    val = opt.get('value', '').strip()
+                    txt = opt.text.strip()
+                    if val and val != "0" and "select" not in txt.lower():
+                        loc_list.append({"id": val, "name": txt})
+            
+            return {"ok": True, "locality_list": loc_list}
+        except Exception as e:
+            return {"ok": False, "error": f"Failed to fetch locality list: {str(e)}"}
+
     def fetch_deed_document(self, locality, reg_no, reg_year, sro_name="", book_no="1"):
         """
         Submits search request on SearchForm.aspx and extracts scan images.
