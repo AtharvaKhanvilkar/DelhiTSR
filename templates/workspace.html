@@ -9715,11 +9715,12 @@
     if (locInput) {
       locInput.addEventListener('input', (e) => {
         const query = e.target.value.trim();
+        const sroVal = document.getElementById('deed-panel-sro')?.value || '';
         if (query.length >= 1) {
-          fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}`)
+          fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}&sro=${encodeURIComponent(sroVal)}`)
             .then(res => res.json())
             .then(data => {
-              if (data.ok && data.localities && data.localities.length > 0) {
+              if (data.ok && data.localities) {
                 _deedLocTypeahead.setOptions(data.localities);
               }
             })

@@ -4474,89 +4474,25 @@ def deed_doc_login_submit():
         os.environ["DORIS_SCAN_COOKIE"] = res["cookie_str"]
     return jsonify(res)
 
-MASTER_DELHI_LOCALITIES = [
-    {"id": "D Mall (Rohini Sector-10)", "name": "D Mall (Rohini Sector-10)"},
-    {"id": "Kings Mall (Rohini Sector-10)", "name": "Kings Mall (Rohini Sector-10)"},
-    {"id": "Manglam Palace (Rohini Sector-3)", "name": "Manglam Palace (Rohini Sector-3)"},
-    {"id": "Prashant Vihar (Rohini Sector-14)", "name": "Prashant Vihar (Rohini Sector-14)"},
-    {"id": "Rajapur Village Sec-9 Rohini", "name": "Rajapur Village Sec-9 Rohini"},
-    {"id": "Ring Road Mall (Rohini Sector-3)", "name": "Ring Road Mall (Rohini Sector-3)"},
-    {"id": "Rohini", "name": "Rohini"},
-    {"id": "Rohini Sector 1", "name": "Rohini Sector 1"},
-    {"id": "Rohini Sector 2", "name": "Rohini Sector 2"},
-    {"id": "Rohini Sector 3", "name": "Rohini Sector 3"},
-    {"id": "Rohini Sector 4", "name": "Rohini Sector 4"},
-    {"id": "Rohini Sector 5", "name": "Rohini Sector 5"},
-    {"id": "Rohini Sector 6", "name": "Rohini Sector 6"},
-    {"id": "Rohini Sector 7", "name": "Rohini Sector 7"},
-    {"id": "Rohini Sector 8", "name": "Rohini Sector 8"},
-    {"id": "Rohini Sector 9", "name": "Rohini Sector 9"},
-    {"id": "Rohini Sector-10", "name": "Rohini Sector-10"},
-    {"id": "Rohini Sector-11", "name": "Rohini Sector-11"},
-    {"id": "Rohini Sector-12", "name": "Rohini Sector-12"},
-    {"id": "Rohini Sector-13", "name": "Rohini Sector-13"},
-    {"id": "Rohini Sector-14", "name": "Rohini Sector-14"},
-    {"id": "Rohini Sector-15", "name": "Rohini Sector-15"},
-    {"id": "Rohini Sector-16", "name": "Rohini Sector-16"},
-    {"id": "Rohini Sector-17", "name": "Rohini Sector-17"},
-    {"id": "Rohini Sector-18", "name": "Rohini Sector-18"},
-    {"id": "Rohini Sector-19", "name": "Rohini Sector-19"},
-    {"id": "Rohini Sector 20", "name": "Rohini Sector 20"},
-    {"id": "Rohini Sector-21", "name": "Rohini Sector-21"},
-    {"id": "Rohini Sector-22", "name": "Rohini Sector-22"},
-    {"id": "Rohini Sector-23", "name": "Rohini Sector-23"},
-    {"id": "Rohini Sector-24", "name": "Rohini Sector-24"},
-    {"id": "Chitra Vihar", "name": "Chitra Vihar"},
-    {"id": "Vasundhara Enclave", "name": "Vasundhara Enclave"},
-    {"id": "Mayur Vihar Phase 1", "name": "Mayur Vihar Phase 1"},
-    {"id": "Mayur Vihar Phase 2", "name": "Mayur Vihar Phase 2"},
-    {"id": "Mayur Vihar Phase 3", "name": "Mayur Vihar Phase 3"},
-    {"id": "Preet Vihar", "name": "Preet Vihar"},
-    {"id": "Laxmi Nagar", "name": "Laxmi Nagar"},
-    {"id": "Bank Colony", "name": "Bank Colony"},
-    {"id": "Nirman Vihar", "name": "Nirman Vihar"},
-    {"id": "Swasthya Vihar", "name": "Swasthya Vihar"},
-    {"id": "Vasant Kunj", "name": "Vasant Kunj"},
-    {"id": "Vasant Vihar", "name": "Vasant Vihar"},
-    {"id": "Dwarka Sector 1", "name": "Dwarka Sector 1"},
-    {"id": "Dwarka Sector 6", "name": "Dwarka Sector 6"},
-    {"id": "Dwarka Sector 10", "name": "Dwarka Sector 10"},
-    {"id": "Dwarka Sector 12", "name": "Dwarka Sector 12"},
-    {"id": "Janakpuri", "name": "Janakpuri"},
-    {"id": "Pitampura", "name": "Pitampura"},
-    {"id": "Punjabi Bagh", "name": "Punjabi Bagh"},
-    {"id": "Paschim Vihar", "name": "Paschim Vihar"},
-    {"id": "Model Town", "name": "Model Town"},
-    {"id": "Civil Lines", "name": "Civil Lines"},
-    {"id": "Defence Colony", "name": "Defence Colony"},
-    {"id": "Saket", "name": "Saket"},
-    {"id": "Hauz Khas", "name": "Hauz Khas"},
-    {"id": "Mehrauli", "name": "Mehrauli"},
-    {"id": "Greater Kailash", "name": "Greater Kailash"},
-    {"id": "Lajpat Nagar", "name": "Lajpat Nagar"},
-    {"id": "Shahdara", "name": "Shahdara"},
-    {"id": "Seelampur", "name": "Seelampur"}
-]
-
 @app.route("/api/deed_doc/search_locality", methods=["GET"])
 def deed_doc_search_locality():
-    """Live search endpoint for locality autocomplete"""
+    """Live search endpoint querying scan.delhigovt.nic.in directly"""
     q = request.args.get("q", "").strip().lower()
-    if not q:
+    sro_val = request.args.get("sro", "").strip()
+    if not q and not sro_val:
         return jsonify({"ok": True, "localities": []})
 
-    # Try live query from DorisDocScraper if active session exists
     if SCAN_CREDENTIALS.get("session_cookie"):
         scraper = DorisDocScraper(session_cookie=SCAN_CREDENTIALS.get("session_cookie"))
-        res = scraper.get_locality_list("0")
+        res = scraper.get_locality_list(sro_val or "0")
         if res.get("ok") and res.get("locality_list"):
-            live_matches = [l for l in res["locality_list"] if q in l["name"].lower()]
-            if live_matches:
-                return jsonify({"ok": True, "localities": live_matches})
+            live_matches = res["locality_list"]
+            if q:
+                live_matches = [l for l in live_matches if q in l["name"].lower()]
+            return jsonify({"ok": True, "localities": live_matches})
 
-    # Fallback to master dataset matches
-    matches = [loc for loc in MASTER_DELHI_LOCALITIES if q in loc["name"].lower()]
-    return jsonify({"ok": True, "localities": matches})
+    # Return empty list if portal returns no live items or session inactive
+    return jsonify({"ok": True, "localities": []})
 
 
 @app.route("/api/deed_doc/start/<project_name>", methods=["GET"])
