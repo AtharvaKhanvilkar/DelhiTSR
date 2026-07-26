@@ -2537,14 +2537,30 @@
             <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Search Deed Parameters</h4>
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <!-- Locality Name Typeahead Dropdown -->
               <div>
                 <label class="block text-[11px] font-bold text-zinc-700 mb-1">Locality Name</label>
-                <input type="text" id="deed-panel-locality" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900" placeholder="e.g. Vasundhara Enclave" value="Vasundhara Enclave">
+                <div class="doris-typeahead" id="deed-locality-wrapper">
+                  <input type="text" id="deed-panel-locality-input" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 pr-7" placeholder="Search locality..." value="Chitra Vihar" autocomplete="off">
+                  <input type="hidden" id="deed-panel-locality" value="Chitra Vihar">
+                  <span class="doris-typeahead-chevron">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                  <ul class="doris-typeahead-list hidden" id="deed-locality-list"></ul>
+                </div>
               </div>
 
+              <!-- SRO Office Typeahead Dropdown -->
               <div>
-                <label class="block text-[11px] font-bold text-zinc-700 mb-1">SRO Office</label>
-                <input type="text" id="deed-panel-sro" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900" placeholder="e.g. SRO VIII (Geeta Colony)" value="SRO VIII (Geeta Colony)">
+                <label class="block text-[11px] font-bold text-zinc-700 mb-1">Sub-Registrar Office (SRO)</label>
+                <div class="doris-typeahead" id="deed-sro-wrapper">
+                  <input type="text" id="deed-panel-sro-input" class="w-full h-9 rounded-md border border-zinc-300 px-3 text-xs font-semibold text-zinc-900 focus:outline-none focus:border-zinc-900 pr-7" placeholder="Search SRO office..." value="East-Sub Registrar VIII A - Preet Vihar" autocomplete="off">
+                  <input type="hidden" id="deed-panel-sro" value="East-Sub Registrar VIII A - Preet Vihar">
+                  <span class="doris-typeahead-chevron">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                  </span>
+                  <ul class="doris-typeahead-list hidden" id="deed-sro-list"></ul>
+                </div>
               </div>
 
               <div>
@@ -9551,6 +9567,37 @@
   }
 
   // ── Native Deed Extraction UI Logic ──
+  const DEED_SCAN_SRO_OPTIONS = [
+    {id: 'East-Sub Registrar VIII A - Preet Vihar', name: 'East-Sub Registrar VIII A - Preet Vihar'},
+    {id: 'Sub Registrar VIII - Geeta Colony', name: 'Sub Registrar VIII - Geeta Colony'},
+    {id: 'Sub Registrar IV - Seelampur', name: 'Sub Registrar IV - Seelampur'},
+    {id: 'Sub Registrar V - Mehrauli', name: 'Sub Registrar V - Mehrauli'},
+    {id: 'Sub Registrar I - Kashmere Gate', name: 'Sub Registrar I - Kashmere Gate'},
+    {id: 'Sub Registrar II - Basai Darapur', name: 'Sub Registrar II - Basai Darapur'},
+    {id: 'Sub Registrar III - Asaf Ali Road', name: 'Sub Registrar III - Asaf Ali Road'},
+    {id: 'Sub Registrar VI A - Pitampura', name: 'Sub Registrar VI A - Pitampura'},
+    {id: 'Sub Registrar VII - INA Vikas Sadan', name: 'Sub Registrar VII - INA Vikas Sadan'}
+  ];
+
+  const DEED_SCAN_LOCALITY_OPTIONS = [
+    {id: 'Chitra Vihar', name: 'Chitra Vihar'},
+    {id: 'Vasundhara Enclave', name: 'Vasundhara Enclave'},
+    {id: 'Mayur Vihar Phase 1', name: 'Mayur Vihar Phase 1'},
+    {id: 'Preet Vihar', name: 'Preet Vihar'},
+    {id: 'Laxmi Nagar', name: 'Laxmi Nagar'},
+    {id: 'Bank Colony', name: 'Bank Colony'},
+    {id: 'Nirman Vihar', name: 'Nirman Vihar'},
+    {id: 'Swasthya Vihar', name: 'Swasthya Vihar'}
+  ];
+
+  let _deedSroTypeahead = null;
+  let _deedLocTypeahead = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    _deedSroTypeahead = initTypeahead('deed-panel-sro-input', 'deed-panel-sro', 'deed-sro-list', 'deed-sro-wrapper', DEED_SCAN_SRO_OPTIONS);
+    _deedLocTypeahead = initTypeahead('deed-panel-locality-input', 'deed-panel-locality', 'deed-locality-list', 'deed-locality-wrapper', DEED_SCAN_LOCALITY_OPTIONS);
+  });
+
   function runNativeDeedExtraction() {
     const btn = document.getElementById('btn-run-deed-extraction');
     const out = document.getElementById('deed-extraction-status-content');
