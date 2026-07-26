@@ -4476,48 +4476,59 @@ def deed_doc_login_submit():
 
 @app.route("/api/deed_doc/search_locality", methods=["GET"])
 def deed_doc_search_locality():
-    """Live search endpoint querying scan.delhigovt.nic.in directly"""
-    q = request.args.get("q", "").strip().lower()
-    sro_val = request.args.get("sro", "").strip()
-    if not q and not sro_val:
-        return jsonify({"ok": True, "localities": []})
+    """Live autocomplete: types query into portal's txtSearch and returns suggestions."""
+    q = request.args.get("q", "").strip()
+    if not q or len(q) < 2:
+        return jsonify({"ok": True, "suggestions": []})
 
-    if SCAN_CREDENTIALS.get("session_cookie"):
-        scraper = DorisDocScraper(session_cookie=SCAN_CREDENTIALS.get("session_cookie"))
-        res = scraper.get_locality_list(sro_val or "0")
-        if res.get("ok") and res.get("locality_list"):
-            live_matches = res["locality_list"]
-            if q:
-                live_matches = [l for l in live_matches if q in l["name"].lower()]
-            return jsonify({"ok": True, "localities": live_matches})
-
-    # Return empty list if portal returns no live items or session inactive
-    return jsonify({"ok": True, "localities": []})
-
-
-@app.route("/api/deed_doc/start/<project_name>", methods=["GET"])
-def deed_doc_start(project_name):
-    """Fetches live SRO dropdown list directly from scan.delhigovt.nic.in"""
     scraper = DorisDocScraper(
         username=SCAN_CREDENTIALS.get("username"),
         password=SCAN_CREDENTIALS.get("password"),
         session_cookie=SCAN_CREDENTIALS.get("session_cookie")
     )
-    res = scraper.get_sro_list()
+    res = scraper.get_locality_suggestions(q)
+    return jsonify(res)
+
+@app.route("/api/deed_doc/select_locality", methods=["POST"])
+def deed_doc_select_locality():
+    """Selects a locality from autocomplete, waits for postback, returns SRO list."""
+    data = request.json or {}
+    locality_name = data.get("locality_name", "").strip()
+    if not locality_name:
+        return jsonify({"ok": False, "error": "locality_name is required."})
+
+    scraper = DorisDocScraper(
+        username=SCAN_CREDENTIALS.get("username"),
+        password=SCAN_CREDENTIALS.get("password"),
+        session_cookie=SCAN_CREDENTIALS.get("session_cookie")
+    )
+    res = scraper.select_locality_and_get_sros(locality_name)
+    return jsonify(res)
+
+@app.route("/api/deed_doc/start/<project_name>", methods=["GET"])
+def deed_doc_start(project_name):
+    """Returns registration years from SearchForm.aspx (SRO requires locality first)."""
+    scraper = DorisDocScraper(
+        username=SCAN_CREDENTIALS.get("username"),
+        password=SCAN_CREDENTIALS.get("password"),
+        session_cookie=SCAN_CREDENTIALS.get("session_cookie")
+    )
+    res = scraper.get_reg_years()
     return jsonify(res)
 
 @app.route("/api/deed_doc/select/<project_name>", methods=["POST"])
 def deed_doc_select(project_name):
-    """Fetches live localities for a selected SRO from scan.delhigovt.nic.in"""
+    """Fetches SROs for a selected locality (not SRO-first anymore)."""
     data = request.json or {}
-    sro_val = data.get("sro_val", "")
+    locality_name = data.get("locality_name", "")
     scraper = DorisDocScraper(
         username=SCAN_CREDENTIALS.get("username"),
         password=SCAN_CREDENTIALS.get("password"),
         session_cookie=SCAN_CREDENTIALS.get("session_cookie")
     )
-    res = scraper.get_locality_list(sro_val)
+    res = scraper.select_locality_and_get_sros(locality_name)
     return jsonify(res)
+
 
 
 @app.route("/api/doris/download_deed/<project_name>", methods=["POST"])

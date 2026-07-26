@@ -2,6 +2,18 @@
 Deed Document Scan Scraper (deed_doc_scraper.py)
 Automates authentication, deed document search, page scan extraction,
 and PDF stitching from official Delhi government portal (scan.delhigovt.nic.in).
+
+Architecture: Uses a SINGLE persistent Playwright browser context that stays
+alive across the full flow: load CAPTCHA → submit login → autocomplete locality
+→ select SRO → search deed documents.
+
+Portal Form Structure (SearchForm.aspx):
+  - txtSearch: text input with AjaxControlToolkit AutoComplete (calls GetLoc WebMethod)
+  - ddl_Sro: SRO dropdown (populated by postback after locality selection in txtSearch)
+  - txt_Regno: Registration number input
+  - dd_regyear: Registration year dropdown (pre-populated)
+  - ddl_book: Book number dropdown (pre-populated)
+  - btnSearch: Search button
 """
 
 import os
@@ -9,6 +21,7 @@ import re
 import io
 import time
 import base64
+import threading
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -18,6 +31,15 @@ BASE_URL = "https://scan.delhigovt.nic.in"
 LOGIN_URL = f"{BASE_URL}/Login.aspx"
 SEARCH_URL = f"{BASE_URL}/SearchForm.aspx"
 
+# ASP.NET element IDs on SearchForm.aspx
+ID_TXT_SEARCH = "#ctl00_ContentPlaceHolder1_GenerateTicket1_txtSearch"
+ID_DDL_SRO = "#ctl00_ContentPlaceHolder1_GenerateTicket1_ddl_Sro"
+ID_TXT_REGNO = "#ctl00_ContentPlaceHolder1_GenerateTicket1_txt_Regno"
+ID_DDL_REGYEAR = "#ctl00_ContentPlaceHolder1_GenerateTicket1_dd_regyear"
+ID_DDL_BOOK = "#ctl00_ContentPlaceHolder1_GenerateTicket1_ddl_book"
+ID_BTN_SEARCH = "#ctl00_ContentPlaceHolder1_GenerateTicket1_btnSearch"
+ID_AUTOCOMPLETE_LIST = "#ctl00_ContentPlaceHolder1_GenerateTicket1_AutoCompleteExtender2_completionListElem"
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -26,55 +48,116 @@ HEADERS = {
     "Referer": SEARCH_URL
 }
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Module-level persistent Playwright state, protected by a lock.
+# ──────────────────────────────────────────────────────────────────────────────
+_pw_lock = threading.Lock()
+_pw_instance = None
+_pw_browser = None
+_pw_context = None
+_pw_page = None
+_pw_thread_id = None
+
+
+def _ensure_browser():
+    """Ensure a persistent Playwright browser + context + page exists.
+    Must be called while holding _pw_lock."""
+    global _pw_instance, _pw_browser, _pw_context, _pw_page, _pw_thread_id
+
+    current_thread = threading.current_thread().ident
+
+    if _pw_instance is not None and _pw_thread_id != current_thread:
+        _teardown_unlocked()
+
+    if _pw_instance is None:
+        pw = sync_playwright().start()
+        browser = pw.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
+        page = context.new_page()
+
+        _pw_instance = pw
+        _pw_browser = browser
+        _pw_context = context
+        _pw_page = page
+        _pw_thread_id = current_thread
+
+    return _pw_page, _pw_context
+
+
+def _teardown_unlocked():
+    """Tear down Playwright state. Must be called while holding _pw_lock."""
+    global _pw_instance, _pw_browser, _pw_context, _pw_page, _pw_thread_id
+    try:
+        if _pw_browser:
+            _pw_browser.close()
+    except Exception:
+        pass
+    try:
+        if _pw_instance:
+            _pw_instance.stop()
+    except Exception:
+        pass
+    _pw_instance = None
+    _pw_browser = None
+    _pw_context = None
+    _pw_page = None
+    _pw_thread_id = None
+
+
+def reset_browser():
+    """Public: tear down and force a fresh browser on next call."""
+    with _pw_lock:
+        _teardown_unlocked()
+
+
 class DorisDocScraper:
     def __init__(self, username=None, password=None, session_cookie=None):
         self.username = username or os.getenv("DORIS_SCAN_USER", "9892245178")
         self.password = password or os.getenv("DORIS_SCAN_PASS", "Atharva@2026")
         self.session_cookie = session_cookie or os.getenv("DORIS_SCAN_COOKIE", "")
 
+    # ── Step 1: Load Login page & capture CAPTCHA ─────────────────────────
     def start_login_session(self):
-        """Loads Login.aspx in thread-safe Playwright and captures live CAPTCHA image."""
+        """Loads Login.aspx in a PERSISTENT Playwright browser and captures live CAPTCHA image.
+        The browser stays open so submit_login_with_captcha() can use the SAME session."""
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-                context = browser.new_context(
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                )
-                page = context.new_page()
+            with _pw_lock:
+                _teardown_unlocked()
+                page, context = _ensure_browser()
+
                 page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
                 page.wait_for_selector("#IMG4, img[src*='JpegImage']", timeout=10000)
 
                 captcha_el = page.query_selector("#IMG4") or page.query_selector("img[src*='JpegImage']")
                 if not captcha_el:
-                    browser.close()
                     return {"ok": False, "error": "CAPTCHA element not found on Login.aspx"}
 
                 png_bytes = captcha_el.screenshot()
                 b64_str = f"data:image/png;base64,{base64.b64encode(png_bytes).decode('utf-8')}"
-                browser.close()
+
                 return {"ok": True, "captcha_b64": b64_str}
         except Exception as e:
             return {"ok": False, "error": f"Failed to load Login page via Playwright: {str(e)}"}
 
+    # ── Step 2: Submit CAPTCHA + credentials on the SAME session ──────────
     def submit_login_with_captcha(self, username, password, captcha_code):
-        """Fills login form in thread-safe Playwright, submits CAPTCHA, and extracts authenticated cookies."""
+        """Fills login form on the SAME page/session that generated the CAPTCHA and submits."""
         user = username or self.username
         pwd = password or self.password
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-                context = browser.new_context(
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                )
-                page = context.new_page()
-                page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
+            with _pw_lock:
+                page, context = _ensure_browser()
 
-                # Fill credentials
+                current_url = page.url
+                if "Login.aspx" not in current_url:
+                    page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
+
                 page.fill("#ctl00_ContentPlaceHolder1_txtuserid", user)
                 page.fill("#ctl00_ContentPlaceHolder1_txtpwd", pwd)
                 page.fill("#ctl00_ContentPlaceHolder1_txtcaptcha", str(captcha_code).strip())
 
-                # Submit
                 page.click("#ctl00_ContentPlaceHolder1_btnlogin")
                 page.wait_for_timeout(3000)
 
@@ -82,75 +165,197 @@ class DorisDocScraper:
                 page_content = page.content()
                 cookies = context.cookies()
                 cookie_str = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
-                browser.close()
 
-                if "SearchForm.aspx" in curr_url or "Logout" in page_content or len(cookies) > 0:
+                login_success = (
+                    "SearchForm.aspx" in curr_url or
+                    "Logout" in page_content or
+                    "Welcome" in page_content or
+                    "SearchForm" in page_content
+                )
+
+                if login_success:
+                    self.session_cookie = cookie_str
                     return {"ok": True, "cookie_str": cookie_str, "message": "Authenticated with scan.delhigovt.nic.in!"}
                 else:
-                    return {"ok": False, "error": "Login failed. Please check Visual Code or credentials."}
+                    if "Invalid Captcha" in page_content or "captcha" in page_content.lower():
+                        return {"ok": False, "error": "Invalid CAPTCHA code. Please try again."}
+                    elif "Invalid User" in page_content or "invalid" in page_content.lower():
+                        return {"ok": False, "error": "Invalid credentials. Please check username and password."}
+                    else:
+                        return {"ok": False, "error": f"Login failed. Page stayed at: {curr_url}"}
         except Exception as e:
             return {"ok": False, "error": f"Login submission error: {str(e)}"}
 
-    def get_sro_list(self):
-        """Extracts live SRO list from scan.delhigovt.nic.in/SearchForm.aspx"""
+    # ── Step 3: Get locality autocomplete suggestions ─────────────────────
+    def get_locality_suggestions(self, query):
+        """Types a locality query into the txtSearch AutoComplete field and
+        returns the live autocomplete suggestions from the portal.
+        
+        The portal uses AjaxControlToolkit AutoCompleteBehavior with:
+        - minimumPrefixLength: 2
+        - serviceMethod: GetLoc
+        - servicePath: /SearchForm.aspx
+        """
+        if not query or len(query) < 2:
+            return {"ok": True, "suggestions": []}
+
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-                context = browser.new_context(
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            with _pw_lock:
+                page, context = _ensure_browser()
+
+                # Navigate to SearchForm if not already there
+                if "SearchForm.aspx" not in page.url:
+                    page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
+
+                if "login.aspx" in page.url.lower():
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                            "error": "Session expired. Please log in again."}
+
+                # Clear the search field and type the query
+                search_input = page.locator(ID_TXT_SEARCH)
+                search_input.fill("")  # clear first
+                search_input.click()
+
+                # Type character by character to trigger autocomplete
+                for char in query:
+                    search_input.press(char)
+                    page.wait_for_timeout(50)
+
+                # Wait for autocomplete suggestions to appear
+                page.wait_for_timeout(1500)
+
+                # Extract suggestions from the completion list
+                completion_list = page.locator(ID_AUTOCOMPLETE_LIST)
+                suggestions = []
+
+                if completion_list.is_visible():
+                    items = completion_list.locator("li")
+                    count = items.count()
+                    for i in range(count):
+                        text = items.nth(i).inner_text().strip()
+                        if text:
+                            suggestions.append(text)
+
+                return {"ok": True, "suggestions": suggestions}
+        except Exception as e:
+            return {"ok": False, "error": f"Failed to get locality suggestions: {str(e)}"}
+
+    # ── Step 4: Select locality and get SRO list ──────────────────────────
+    def select_locality_and_get_sros(self, locality_name):
+        """Selects a locality from the autocomplete list (by clicking it),
+        waits for the ASP.NET postback, and extracts the populated SRO dropdown.
+        
+        Must call get_locality_suggestions() first to populate the autocomplete list.
+        """
+        try:
+            with _pw_lock:
+                page, context = _ensure_browser()
+
+                if "login.aspx" in page.url.lower():
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                            "error": "Session expired. Please log in again."}
+
+                # The autocomplete list should already be visible from get_locality_suggestions()
+                completion_list = page.locator(ID_AUTOCOMPLETE_LIST)
+
+                if completion_list.is_visible():
+                    items = completion_list.locator("li")
+                    count = items.count()
+
+                    # Find and click the matching item
+                    clicked = False
+                    for i in range(count):
+                        text = items.nth(i).inner_text().strip()
+                        if text.lower() == locality_name.lower():
+                            items.nth(i).click()
+                            clicked = True
+                            break
+
+                    if not clicked and count > 0:
+                        # If no exact match, click the first item
+                        items.nth(0).click()
+                        clicked = True
+
+                    if not clicked:
+                        return {"ok": False, "error": f"No autocomplete suggestion found for '{locality_name}'"}
+                else:
+                    # Try typing the locality and triggering autocomplete
+                    search_input = page.locator(ID_TXT_SEARCH)
+                    search_input.fill("")
+                    search_input.click()
+                    for char in locality_name:
+                        search_input.press(char)
+                        page.wait_for_timeout(50)
+                    page.wait_for_timeout(1500)
+
+                    completion_list = page.locator(ID_AUTOCOMPLETE_LIST)
+                    if completion_list.is_visible():
+                        items = completion_list.locator("li")
+                        if items.count() > 0:
+                            items.nth(0).click()
+                        else:
+                            return {"ok": False, "error": "No autocomplete suggestions appeared."}
+                    else:
+                        return {"ok": False, "error": "Autocomplete list not visible."}
+
+                # Wait for the postback to populate the SRO dropdown
+                page.wait_for_timeout(3000)
+
+                # Extract SRO options
+                sro_options = page.eval_on_selector_all(
+                    f"{ID_DDL_SRO} option",
+                    "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))"
                 )
-                if self.session_cookie:
-                    for item in self.session_cookie.split(";"):
-                        if "=" in item:
-                            k, v = item.strip().split("=", 1)
-                            context.add_cookies([{"name": k, "value": v, "domain": "scan.delhigovt.nic.in", "path": "/"}])
+                sro_list = [o for o in sro_options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
 
-                page = context.new_page()
-                page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
-
-                if "Login.aspx" in page.url or "Logout.aspx" in page.url:
-                    browser.close()
-                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
-
-                options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
-                sro_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
-                browser.close()
                 return {"ok": True, "sro_list": sro_list}
         except Exception as e:
-            return {"ok": False, "error": f"Failed to fetch SRO list: {str(e)}"}
+            return {"ok": False, "error": f"Failed to select locality: {str(e)}"}
 
-    def get_locality_list(self, sro_val="0"):
-        """Extracts live localities for a given SRO from scan.delhigovt.nic.in/SearchForm.aspx"""
+    # ── Step 5: Get registration years ────────────────────────────────────
+    def get_reg_years(self):
+        """Extracts the registration year dropdown options from SearchForm.aspx."""
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
-                context = browser.new_context(
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            with _pw_lock:
+                page, context = _ensure_browser()
+
+                if "SearchForm.aspx" not in page.url:
+                    page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
+
+                if "login.aspx" in page.url.lower():
+                    return {"ok": False, "error": "Session expired."}
+
+                options = page.eval_on_selector_all(
+                    f"{ID_DDL_REGYEAR} option",
+                    "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))"
                 )
-                if self.session_cookie:
-                    for item in self.session_cookie.split(";"):
-                        if "=" in item:
-                            k, v = item.strip().split("=", 1)
-                            context.add_cookies([{"name": k, "value": v, "domain": "scan.delhigovt.nic.in", "path": "/"}])
+                years = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
 
-                page = context.new_page()
-                page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
-
-                if "Login.aspx" in page.url or "Logout.aspx" in page.url:
-                    browser.close()
-                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
-
-                if sro_val and sro_val != "0":
-                    page.select_option("select[id*='ddlSRO']", sro_val)
-                    page.wait_for_timeout(1000)
-
-                options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
-                loc_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
-                browser.close()
-                return {"ok": True, "locality_list": loc_list}
+                return {"ok": True, "reg_years": years}
         except Exception as e:
-            return {"ok": False, "error": f"Failed to fetch locality list: {str(e)}"}
+            return {"ok": False, "error": f"Failed to get reg years: {str(e)}"}
 
+    # ── Legacy compat: get_sro_list (now requires locality first) ─────────
+    def get_sro_list(self):
+        """Legacy method. SRO list requires a locality selection first.
+        Returns empty list with guidance message."""
+        return {
+            "ok": True,
+            "sro_list": [],
+            "message": "SRO list requires typing a locality name first. Use get_locality_suggestions() then select_locality_and_get_sros()."
+        }
+
+    # ── Legacy compat: get_locality_list ──────────────────────────────────
+    def get_locality_list(self, sro_val="0"):
+        """Legacy method. The portal uses text autocomplete, not a dropdown.
+        Redirect to get_locality_suggestions()."""
+        return {
+            "ok": True,
+            "locality_list": [],
+            "message": "Portal uses autocomplete, not a dropdown. Use get_locality_suggestions(query) instead."
+        }
+
+    # ── Deed Document Search & Extract ────────────────────────────────────
     def fetch_deed_document(self, locality, reg_no, reg_year, sro_name="", book_no="1"):
         """
         Submits search request on SearchForm.aspx and extracts scan images.
@@ -160,7 +365,6 @@ class DorisDocScraper:
             # Ensure session is active
             res_form = self.session.get(SEARCH_URL, timeout=12)
             if res_form.status_code != 200:
-                # Attempt re-login
                 login_res = self.login()
                 if not login_res["ok"]:
                     return login_res
@@ -173,25 +377,23 @@ class DorisDocScraper:
             vs_val = vs['value'] if vs else ""
             ev_val = ev['value'] if ev else ""
 
-            # Extract SRO dropdown option matching sro_name
             sro_val = "0"
-            sro_select = soup.find('select', {'id': re.compile(r'ddlSRO', re.I)})
+            sro_select = soup.find('select', {'id': re.compile(r'ddlSRO|ddl_Sro', re.I)})
             if sro_select and sro_name:
                 for opt in sro_select.find_all('option'):
                     if sro_name.lower() in opt.text.lower() or opt.text.lower() in sro_name.lower():
                         sro_val = opt.get('value', '0')
                         break
 
-            # Build ASP.NET Search Payload
             payload = {
                 "__VIEWSTATE": vs_val,
                 "__EVENTVALIDATION": ev_val,
-                "ctl00$ContentPlaceHolder1$txtLocality": locality or "",
-                "ctl00$ContentPlaceHolder1$ddlSRO": sro_val,
-                "ctl00$ContentPlaceHolder1$txtRegNo": str(reg_no),
-                "ctl00$ContentPlaceHolder1$ddlRegYear": str(reg_year),
-                "ctl00$ContentPlaceHolder1$ddlBookNo": str(book_no),
-                "ctl00$ContentPlaceHolder1$btnSearch": "Search"
+                "ctl00$ContentPlaceHolder1$GenerateTicket1$txtSearch": locality or "",
+                "ctl00$ContentPlaceHolder1$GenerateTicket1$ddl_Sro": sro_val,
+                "ctl00$ContentPlaceHolder1$GenerateTicket1$txt_Regno": str(reg_no),
+                "ctl00$ContentPlaceHolder1$GenerateTicket1$dd_regyear": str(reg_year),
+                "ctl00$ContentPlaceHolder1$GenerateTicket1$ddl_book": str(book_no),
+                "ctl00$ContentPlaceHolder1$GenerateTicket1$btnSearch": "Search"
             }
 
             res_search = self.session.post(SEARCH_URL, data=payload, timeout=18)
@@ -202,7 +404,6 @@ class DorisDocScraper:
                     "error": f"Portal returned HTTP {res_search.status_code}."
                 }
 
-            # Check if portal redirected to Logout/Error page
             if "Logout" in res_search.url or "errorPage" in res_search.url or "Some Error occured" in res_search.text:
                 return {
                     "ok": False,
@@ -211,8 +412,6 @@ class DorisDocScraper:
                 }
 
             search_soup = BeautifulSoup(res_search.text, 'html.parser')
-            
-            # Find page scan image tags or iframe sources
             img_tags = search_soup.find_all('img', {'src': re.compile(r'\.(jpg|jpeg|png|tiff|gif|aspx)', re.I)})
             
             image_urls = []
@@ -225,7 +424,6 @@ class DorisDocScraper:
                 image_urls.append(src)
 
             if not image_urls:
-                # Also check links / anchors
                 links = search_soup.find_all('a', {'href': re.compile(r'(View|Show|Doc|Page)', re.I)})
                 for a in links:
                     href = a.get('href', '')
@@ -234,7 +432,6 @@ class DorisDocScraper:
                     image_urls.append(href)
 
             if not image_urls:
-                # Check if "No Records Found" or "Check Deed Doc" button was missing
                 if "Check Deed Doc" not in res_search.text and "No Record" in res_search.text:
                     return {
                         "ok": False,

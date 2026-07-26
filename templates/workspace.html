@@ -9705,66 +9705,78 @@
   }
 
   function initDeedDocTypeaheads() {
-    _deedSroTypeahead = initTypeahead('deed-panel-sro-input', 'deed-panel-sro', 'deed-sro-list', 'deed-sro-wrapper', DEED_SCAN_SRO_OPTIONS, (opt) => {
-      onDeedSroSelected(opt.id);
+    // Portal flow: 1) Type locality → autocomplete → 2) Select locality → SRO populates
+
+    // Locality autocomplete typeahead (this is the FIRST field the user fills)
+    _deedLocTypeahead = initTypeahead('deed-panel-locality-input', 'deed-panel-locality', 'deed-locality-list', 'deed-locality-wrapper', DEED_SCAN_LOCALITY_OPTIONS, (opt) => {
+      // When user selects a locality, fetch SROs for it
+      onDeedLocalitySelected(typeof opt === 'string' ? opt : (opt.name || opt.id || opt));
     });
-    _deedLocTypeahead = initTypeahead('deed-panel-locality-input', 'deed-panel-locality', 'deed-locality-list', 'deed-locality-wrapper', DEED_SCAN_LOCALITY_OPTIONS);
+
+    // SRO typeahead (populated AFTER locality selection via postback)
+    _deedSroTypeahead = initTypeahead('deed-panel-sro-input', 'deed-panel-sro', 'deed-sro-list', 'deed-sro-wrapper', DEED_SCAN_SRO_OPTIONS);
 
     // Debounced Live Locality AutoComplete Query
     const locInput = document.getElementById('deed-panel-locality-input');
     let locDebounceTimer = null;
     if (locInput) {
+      locInput.setAttribute('placeholder', 'Type locality/village name (min 2 chars)...');
       locInput.addEventListener('input', (e) => {
         const query = e.target.value.trim();
-        const sroVal = document.getElementById('deed-panel-sro')?.value || '';
         clearTimeout(locDebounceTimer);
 
-        if (query.length >= 1) {
+        if (query.length >= 2) {
           locDebounceTimer = setTimeout(() => {
-            fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}&sro=${encodeURIComponent(sroVal)}`)
+            fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}`)
               .then(res => res.json())
               .then(data => {
-                if (data.ok && data.localities) {
-                  _deedLocTypeahead.setOptions(data.localities);
+                if (data.ok && data.suggestions && data.suggestions.length > 0) {
+                  // Convert string suggestions to typeahead option objects
+                  const opts = data.suggestions.map(s => ({ id: s, name: s }));
+                  _deedLocTypeahead.setOptions(opts);
                 } else {
                   _deedLocTypeahead.setOptions([]);
                 }
               })
               .catch(() => {});
-          }, 300);
+          }, 400);
         }
       });
     }
-
-    // Try fetching live SRO list from scan.delhigovt.nic.in
-    fetch(`/api/deed_doc/start/${projectName}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.ok && data.sro_list && data.sro_list.length > 0) {
-          _deedSroTypeahead.setOptions(data.sro_list);
-        }
-      })
-      .catch(() => {});
   }
 
-  function onDeedSroSelected(sroVal) {
-    if (!sroVal) return;
-    const locInput = document.getElementById('deed-panel-locality-input');
-    if (locInput) locInput.placeholder = 'Loading live localities...';
+  function onDeedLocalitySelected(localityName) {
+    if (!localityName) return;
+    const sroInput = document.getElementById('deed-panel-sro-input');
+    if (sroInput) sroInput.placeholder = 'Loading SRO offices...';
 
-    fetch(`/api/deed_doc/select/${projectName}`, {
+    // Tell the backend to click this locality in the autocomplete and extract SROs
+    fetch(`/api/deed_doc/select_locality`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ sro_val: sroVal })
+      body: JSON.stringify({ locality_name: localityName })
     })
     .then(res => res.json())
     .then(data => {
-      if (data.ok && data.locality_list && data.locality_list.length > 0) {
-        _deedLocTypeahead.setOptions(data.locality_list);
-        if (locInput) locInput.placeholder = 'Search locality...';
+      if (data.ok && data.sro_list && data.sro_list.length > 0) {
+        _deedSroTypeahead.setOptions(data.sro_list);
+        if (sroInput) sroInput.placeholder = 'Select SRO office...';
+        showToast('SRO Offices Loaded', `Found ${data.sro_list.length} SRO office(s) for "${localityName}".`, 'success');
+      } else {
+        _deedSroTypeahead.setOptions([]);
+        if (sroInput) sroInput.placeholder = 'No SRO offices found';
+        if (data.error) {
+          showToast('Session Error', data.error, 'warning');
+        }
       }
     })
-    .catch(() => {});
+    .catch(() => {
+      if (sroInput) sroInput.placeholder = 'Search SRO...';
+    });
+  }
+
+  function onDeedSroSelected(sroVal) {
+    // SRO selected — no further cascading needed, user can now fill reg details
   }
 
   document.addEventListener('DOMContentLoaded', () => {
