@@ -8,12 +8,14 @@ import os
 import re
 import io
 import time
+import base64
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
+from playwright.sync_api import sync_playwright
 
 BASE_URL = "https://scan.delhigovt.nic.in"
-LOGIN_URL = f"{BASE_URL}/Registration.aspx"
+LOGIN_URL = f"{BASE_URL}/Login.aspx"
 SEARCH_URL = f"{BASE_URL}/SearchForm.aspx"
 
 HEADERS = {
@@ -25,170 +27,124 @@ HEADERS = {
 }
 
 class DorisDocScraper:
+    _playwright_instance = None
+    _browser_instance = None
+    _context_instance = None
+    _page_instance = None
+
     def __init__(self, username=None, password=None, session_cookie=None):
-        self.session = requests.Session()
-        self.session.headers.update(HEADERS)
         self.username = username or os.getenv("DORIS_SCAN_USER", "")
         self.password = password or os.getenv("DORIS_SCAN_PASS", "")
-        self.session_cookie = session_cookie or os.getenv("DORIS_SCAN_COOKIE", "")
-        
-        if self.session_cookie:
-            # Set cookie directly on session
-            self.session.headers.update({"Cookie": self.session_cookie})
-            if "ASP.NET_SessionId" not in self.session_cookie and "=" not in self.session_cookie:
-                self.session.cookies.set("ASP.NET_SessionId", self.session_cookie, domain="scan.delhigovt.nic.in")
-        
-        self.is_logged_in = bool(self.session_cookie)
+        self.session_cookie = session_cookie
+
+    @classmethod
+    def get_playwright_page(cls):
+        """Returns active Playwright page instance, initializing if needed."""
+        if cls._page_instance and not cls._page_instance.is_closed():
+            return cls._page_instance
+
+        if not cls._playwright_instance:
+            cls._playwright_instance = sync_playwright().start()
+
+        if not cls._browser_instance:
+            cls._browser_instance = cls._playwright_instance.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-setuid-sandbox"]
+            )
+
+        if not cls._context_instance:
+            cls._context_instance = cls._browser_instance.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+
+        cls._page_instance = cls._context_instance.new_page()
+        return cls._page_instance
 
     def start_login_session(self):
-        """Fetches Login.aspx and returns base64 encoded CAPTCHA image and session state."""
+        """Loads Login.aspx in Playwright and captures the live CAPTCHA element screenshot."""
         try:
-            res = self.session.get(f"{BASE_URL}/Login.aspx", timeout=12)
-            if res.status_code != 200:
-                return {"ok": False, "error": f"Login page unreachable (HTTP {res.status_code})"}
+            page = self.get_playwright_page()
+            page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
+            page.wait_for_selector("#IMG4, img[src*='JpegImage']", timeout=10000)
 
-            soup = BeautifulSoup(res.text, 'html.parser')
-            vs = soup.find('input', {'id': '__VIEWSTATE'})
-            ev = soup.find('input', {'id': '__EVENTVALIDATION'})
-            rand = soup.find('input', {'id': re.compile(r'txtrandomno', re.I)})
-            csrf = soup.find('input', {'id': re.compile(r'csrftoken', re.I)})
+            captcha_el = page.query_selector("#IMG4") or page.query_selector("img[src*='JpegImage']")
+            if not captcha_el:
+                return {"ok": False, "error": "CAPTCHA image element not found on Login.aspx"}
 
-            self._login_viewstate = vs['value'] if vs else ""
-            self._login_eventval = ev['value'] if ev else ""
-            self._login_rand = rand['value'] if rand else ""
-            self._login_csrf = csrf['value'] if csrf else ""
-
-            # Find CAPTCHA image
-            captcha_img = soup.find('img', {'id': 'IMG4'}) or soup.find('img', {'src': re.compile(r'JpegImage', re.I)})
-            captcha_b64 = ""
-            if captcha_img:
-                src = captcha_img.get('src')
-                img_url = src if src.startswith('http') else f"{BASE_URL}/{src.lstrip('/')}"
-                img_res = self.session.get(img_url, headers={"Referer": f"{BASE_URL}/Login.aspx"}, timeout=10)
-                if img_res.status_code == 200 and not img_res.content.startswith(b'<!DOCTYPE') and not img_res.content.startswith(b'<html'):
-                    import base64
-                    mime = "image/jpeg"
-                    if img_res.content.startswith(b'\x89PNG'):
-                        mime = "image/png"
-                    captcha_b64 = f"data:{mime};base64,{base64.b64encode(img_res.content).decode('utf-8')}"
-
-            return {
-                "ok": True,
-                "captcha_b64": captcha_b64,
-                "session_cookie": requests.utils.dict_from_cookiejar(self.session.cookies)
-            }
+            png_bytes = captcha_el.screenshot()
+            b64_str = f"data:image/png;base64,{base64.b64encode(png_bytes).decode('utf-8')}"
+            return {"ok": True, "captcha_b64": b64_str}
         except Exception as e:
-            return {"ok": False, "error": f"Failed to start login session: {str(e)}"}
+            return {"ok": False, "error": f"Failed to load Login page via Playwright: {str(e)}"}
 
     def submit_login_with_captcha(self, username, password, captcha_code):
-        """Submits login credentials and CAPTCHA code to Login.aspx with salted SHA256 password hash."""
+        """Fills login form in Playwright, submits CAPTCHA, and verifies authentication."""
         user = username or self.username
         pwd = password or self.password
-
         try:
-            if not hasattr(self, '_login_viewstate') or not self._login_viewstate:
-                start_res = self.start_login_session()
-                if not start_res["ok"]:
-                    return start_res
+            page = self.get_playwright_page()
+            if "Login.aspx" not in page.url:
+                page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
 
-            import hashlib
-            pwd_hash = hashlib.sha256(pwd.encode('utf-8')).hexdigest().lower()
-            rand_val = getattr(self, '_login_rand', '')
-            salted_hash = hashlib.sha256((pwd_hash + rand_val).encode('utf-8')).hexdigest().lower()
+            # Fill inputs
+            page.fill("#ctl00_ContentPlaceHolder1_txtuserid", user)
+            page.fill("#ctl00_ContentPlaceHolder1_txtpwd", pwd)
+            page.fill("#ctl00_ContentPlaceHolder1_txtcaptcha", str(captcha_code).strip())
 
-            payload = {
-                "__VIEWSTATE": self._login_viewstate,
-                "__EVENTVALIDATION": self._login_eventval,
-                "ctl00$ContentPlaceHolder1$txtuserid": user,
-                "ctl00$ContentPlaceHolder1$txtpwd": salted_hash,
-                "ctl00$ContentPlaceHolder1$txtcaptcha": str(captcha_code).strip(),
-                "ctl00$ContentPlaceHolder1$btnlogin": "Sign In",
-                "ctl00$ContentPlaceHolder1$txtrandomno": "",
-                "ctl00$ContentPlaceHolder1$csrftoken": getattr(self, '_login_csrf', '')
-            }
+            # Click Sign In
+            page.click("#ctl00_ContentPlaceHolder1_btnlogin")
+            page.wait_for_timeout(3000)
 
-            resp = self.session.post(f"{BASE_URL}/Login.aspx", data=payload, timeout=15)
-            
-            cookie_dict = requests.utils.dict_from_cookiejar(self.session.cookies)
-            cookie_str = "; ".join([f"{k}={v}" for k, v in cookie_dict.items()])
+            curr_url = page.url
+            page_content = page.content()
 
-            if "SearchForm.aspx" in resp.url or "Logout" in resp.text or resp.status_code == 200:
-                self.is_logged_in = True
-                self.session_cookie = cookie_str
-                return {
-                    "ok": True,
-                    "cookie_str": cookie_str,
-                    "message": "Successfully authenticated with scan.delhigovt.nic.in!"
-                }
+            if "SearchForm.aspx" in curr_url or "Logout" in page_content:
+                cookies = page.context.cookies()
+                cookie_str = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
+                return {"ok": True, "cookie_str": cookie_str, "message": "Authenticated with scan.delhigovt.nic.in!"}
             else:
                 return {"ok": False, "error": "Login failed. Please check Visual Code or credentials."}
-
         except Exception as e:
-            return {"ok": False, "error": f"Connection error during login submit: {str(e)}"}
+            return {"ok": False, "error": f"Login submission error: {str(e)}"}
 
     def get_sro_list(self):
-        """Fetches live list of Sub-Registrar Offices (SROs) from scan.delhigovt.nic.in/SearchForm.aspx"""
+        """Extracts live SRO list from Playwright page DOM."""
         try:
-            res = self.session.get(SEARCH_URL, timeout=12)
-            if res.status_code != 200 or "Logout" in res.url or "errorPage" in res.url:
-                return {
-                    "ok": False,
-                    "diagnostic_code": "PORTAL_SESSION_EXPIRED",
-                    "error": "Session expired or cookie invalid when loading SRO list from scan.delhigovt.nic.in."
-                }
-            soup = BeautifulSoup(res.text, 'html.parser')
-            sro_select = soup.find('select', {'id': re.compile(r'ddlSRO', re.I)}) or soup.find('select')
-            
-            sro_list = []
-            if sro_select:
-                for opt in sro_select.find_all('option'):
-                    val = opt.get('value', '').strip()
-                    txt = opt.text.strip()
-                    if val and val != "0" and "select" not in txt.lower():
-                        sro_list.append({"id": val, "name": txt})
-            
+            page = self.get_playwright_page()
+            if "SearchForm.aspx" not in page.url:
+                page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
+
+            if "Login.aspx" in page.url or "Logout.aspx" in page.url:
+                return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
+
+            sro_select = page.query_selector("select[id*='ddlSRO']") or page.query_selector("select")
+            if not sro_select:
+                return {"ok": False, "error": "SRO dropdown element not found on page"}
+
+            options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
+            sro_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
             return {"ok": True, "sro_list": sro_list}
         except Exception as e:
             return {"ok": False, "error": f"Failed to fetch SRO list: {str(e)}"}
 
-    def get_locality_list(self, sro_val):
-        """Fetches live localities for a given SRO from scan.delhigovt.nic.in/SearchForm.aspx postback"""
+    def get_locality_list(self, sro_val="0"):
+        """Selects SRO in Playwright live page and extracts live localities from DOM."""
         try:
-            res = self.session.get(SEARCH_URL, timeout=12)
-            if res.status_code != 200 or "Logout" in res.url or "errorPage" in res.url:
-                return {
-                    "ok": False,
-                    "diagnostic_code": "PORTAL_SESSION_EXPIRED",
-                    "error": "Session expired or cookie invalid when loading localities."
-                }
-            
-            soup = BeautifulSoup(res.text, 'html.parser')
-            vs = soup.find('input', {'id': '__VIEWSTATE'})
-            ev = soup.find('input', {'id': '__EVENTVALIDATION'})
-            vs_val = vs['value'] if vs else ""
-            ev_val = ev['value'] if ev else ""
+            page = self.get_playwright_page()
+            if "SearchForm.aspx" not in page.url:
+                page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
 
-            payload = {
-                "__VIEWSTATE": vs_val,
-                "__EVENTVALIDATION": ev_val,
-                "__EVENTTARGET": "ctl00$ContentPlaceHolder1$ddlSRO",
-                "ctl00$ContentPlaceHolder1$ddlSRO": str(sro_val)
-            }
-            
-            res_post = self.session.post(SEARCH_URL, data=payload, timeout=12)
-            post_soup = BeautifulSoup(res_post.text, 'html.parser')
-            
-            loc_list = []
-            # 1. Search all select elements
-            for sel in post_soup.find_all('select'):
-                sel_id = sel.get('id', '').lower()
-                if 'locality' in sel_id or 'loc' in sel_id or 'sro' not in sel_id:
-                    for opt in sel.find_all('option'):
-                        val = opt.get('value', '').strip()
-                        txt = opt.text.strip()
-                        if val and val != "0" and "select" not in txt.lower():
-                            loc_list.append({"id": val, "name": txt})
+            if "Login.aspx" in page.url or "Logout.aspx" in page.url:
+                return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
 
+            # Select SRO if provided
+            if sro_val and sro_val != "0":
+                page.select_option("select[id*='ddlSRO']", sro_val)
+                page.wait_for_timeout(1000)
+
+            # Extract locality options or autocompletes from DOM
+            options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
+            loc_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
             return {"ok": True, "locality_list": loc_list}
         except Exception as e:
             return {"ok": False, "error": f"Failed to fetch locality list: {str(e)}"}
