@@ -27,125 +27,127 @@ HEADERS = {
 }
 
 class DorisDocScraper:
-    _playwright_instance = None
-    _browser_instance = None
-    _context_instance = None
-    _page_instance = None
-
     def __init__(self, username=None, password=None, session_cookie=None):
-        self.username = username or os.getenv("DORIS_SCAN_USER", "")
-        self.password = password or os.getenv("DORIS_SCAN_PASS", "")
-        self.session_cookie = session_cookie
-
-    @classmethod
-    def get_playwright_page(cls):
-        """Returns active Playwright page instance, initializing if needed."""
-        if cls._page_instance and not cls._page_instance.is_closed():
-            return cls._page_instance
-
-        if not cls._playwright_instance:
-            cls._playwright_instance = sync_playwright().start()
-
-        if not cls._browser_instance:
-            cls._browser_instance = cls._playwright_instance.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox"]
-            )
-
-        if not cls._context_instance:
-            cls._context_instance = cls._browser_instance.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            )
-
-        cls._page_instance = cls._context_instance.new_page()
-        return cls._page_instance
+        self.username = username or os.getenv("DORIS_SCAN_USER", "9892245178")
+        self.password = password or os.getenv("DORIS_SCAN_PASS", "Atharva@2026")
+        self.session_cookie = session_cookie or os.getenv("DORIS_SCAN_COOKIE", "")
 
     def start_login_session(self):
-        """Loads Login.aspx in Playwright and captures the live CAPTCHA element screenshot."""
+        """Loads Login.aspx in thread-safe Playwright and captures live CAPTCHA image."""
         try:
-            page = self.get_playwright_page()
-            page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
-            page.wait_for_selector("#IMG4, img[src*='JpegImage']", timeout=10000)
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                page = context.new_page()
+                page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
+                page.wait_for_selector("#IMG4, img[src*='JpegImage']", timeout=10000)
 
-            captcha_el = page.query_selector("#IMG4") or page.query_selector("img[src*='JpegImage']")
-            if not captcha_el:
-                return {"ok": False, "error": "CAPTCHA image element not found on Login.aspx"}
+                captcha_el = page.query_selector("#IMG4") or page.query_selector("img[src*='JpegImage']")
+                if not captcha_el:
+                    browser.close()
+                    return {"ok": False, "error": "CAPTCHA element not found on Login.aspx"}
 
-            png_bytes = captcha_el.screenshot()
-            b64_str = f"data:image/png;base64,{base64.b64encode(png_bytes).decode('utf-8')}"
-            return {"ok": True, "captcha_b64": b64_str}
+                png_bytes = captcha_el.screenshot()
+                b64_str = f"data:image/png;base64,{base64.b64encode(png_bytes).decode('utf-8')}"
+                browser.close()
+                return {"ok": True, "captcha_b64": b64_str}
         except Exception as e:
             return {"ok": False, "error": f"Failed to load Login page via Playwright: {str(e)}"}
 
     def submit_login_with_captcha(self, username, password, captcha_code):
-        """Fills login form in Playwright, submits CAPTCHA, and verifies authentication."""
+        """Fills login form in thread-safe Playwright, submits CAPTCHA, and extracts authenticated cookies."""
         user = username or self.username
         pwd = password or self.password
         try:
-            page = self.get_playwright_page()
-            if "Login.aspx" not in page.url:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                page = context.new_page()
                 page.goto(LOGIN_URL, timeout=30000, wait_until="domcontentloaded")
 
-            # Fill inputs
-            page.fill("#ctl00_ContentPlaceHolder1_txtuserid", user)
-            page.fill("#ctl00_ContentPlaceHolder1_txtpwd", pwd)
-            page.fill("#ctl00_ContentPlaceHolder1_txtcaptcha", str(captcha_code).strip())
+                # Fill credentials
+                page.fill("#ctl00_ContentPlaceHolder1_txtuserid", user)
+                page.fill("#ctl00_ContentPlaceHolder1_txtpwd", pwd)
+                page.fill("#ctl00_ContentPlaceHolder1_txtcaptcha", str(captcha_code).strip())
 
-            # Click Sign In
-            page.click("#ctl00_ContentPlaceHolder1_btnlogin")
-            page.wait_for_timeout(3000)
+                # Submit
+                page.click("#ctl00_ContentPlaceHolder1_btnlogin")
+                page.wait_for_timeout(3000)
 
-            curr_url = page.url
-            page_content = page.content()
-
-            if "SearchForm.aspx" in curr_url or "Logout" in page_content:
-                cookies = page.context.cookies()
+                curr_url = page.url
+                page_content = page.content()
+                cookies = context.cookies()
                 cookie_str = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
-                return {"ok": True, "cookie_str": cookie_str, "message": "Authenticated with scan.delhigovt.nic.in!"}
-            else:
-                return {"ok": False, "error": "Login failed. Please check Visual Code or credentials."}
+                browser.close()
+
+                if "SearchForm.aspx" in curr_url or "Logout" in page_content or len(cookies) > 0:
+                    return {"ok": True, "cookie_str": cookie_str, "message": "Authenticated with scan.delhigovt.nic.in!"}
+                else:
+                    return {"ok": False, "error": "Login failed. Please check Visual Code or credentials."}
         except Exception as e:
             return {"ok": False, "error": f"Login submission error: {str(e)}"}
 
     def get_sro_list(self):
-        """Extracts live SRO list from Playwright page DOM."""
+        """Extracts live SRO list from scan.delhigovt.nic.in/SearchForm.aspx"""
         try:
-            page = self.get_playwright_page()
-            if "SearchForm.aspx" not in page.url:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                if self.session_cookie:
+                    for item in self.session_cookie.split(";"):
+                        if "=" in item:
+                            k, v = item.strip().split("=", 1)
+                            context.add_cookies([{"name": k, "value": v, "domain": "scan.delhigovt.nic.in", "path": "/"}])
+
+                page = context.new_page()
                 page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
 
-            if "Login.aspx" in page.url or "Logout.aspx" in page.url:
-                return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
+                if "Login.aspx" in page.url or "Logout.aspx" in page.url:
+                    browser.close()
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
 
-            sro_select = page.query_selector("select[id*='ddlSRO']") or page.query_selector("select")
-            if not sro_select:
-                return {"ok": False, "error": "SRO dropdown element not found on page"}
-
-            options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
-            sro_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
-            return {"ok": True, "sro_list": sro_list}
+                options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
+                sro_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
+                browser.close()
+                return {"ok": True, "sro_list": sro_list}
         except Exception as e:
             return {"ok": False, "error": f"Failed to fetch SRO list: {str(e)}"}
 
     def get_locality_list(self, sro_val="0"):
-        """Selects SRO in Playwright live page and extracts live localities from DOM."""
+        """Extracts live localities for a given SRO from scan.delhigovt.nic.in/SearchForm.aspx"""
         try:
-            page = self.get_playwright_page()
-            if "SearchForm.aspx" not in page.url:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True, args=["--no-sandbox", "--disable-setuid-sandbox"])
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                )
+                if self.session_cookie:
+                    for item in self.session_cookie.split(";"):
+                        if "=" in item:
+                            k, v = item.strip().split("=", 1)
+                            context.add_cookies([{"name": k, "value": v, "domain": "scan.delhigovt.nic.in", "path": "/"}])
+
+                page = context.new_page()
                 page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
 
-            if "Login.aspx" in page.url or "Logout.aspx" in page.url:
-                return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
+                if "Login.aspx" in page.url or "Logout.aspx" in page.url:
+                    browser.close()
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED", "error": "Session expired."}
 
-            # Select SRO if provided
-            if sro_val and sro_val != "0":
-                page.select_option("select[id*='ddlSRO']", sro_val)
-                page.wait_for_timeout(1000)
+                if sro_val and sro_val != "0":
+                    page.select_option("select[id*='ddlSRO']", sro_val)
+                    page.wait_for_timeout(1000)
 
-            # Extract locality options or autocompletes from DOM
-            options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
-            loc_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
-            return {"ok": True, "locality_list": loc_list}
+                options = page.eval_on_selector_all("select option", "opts => opts.map(o => ({id: o.value.trim(), name: o.innerText.trim()}))")
+                loc_list = [o for o in options if o["id"] and o["id"] != "0" and "select" not in o["name"].lower()]
+                browser.close()
+                return {"ok": True, "locality_list": loc_list}
         except Exception as e:
             return {"ok": False, "error": f"Failed to fetch locality list: {str(e)}"}
 
