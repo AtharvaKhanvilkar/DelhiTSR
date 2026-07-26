@@ -9710,6 +9710,24 @@
     });
     _deedLocTypeahead = initTypeahead('deed-panel-locality-input', 'deed-panel-locality', 'deed-locality-list', 'deed-locality-wrapper', DEED_SCAN_LOCALITY_OPTIONS);
 
+    // Live Locality AutoComplete Query
+    const locInput = document.getElementById('deed-panel-locality-input');
+    if (locInput) {
+      locInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        if (query.length >= 1) {
+          fetch(`/api/deed_doc/search_locality?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.ok && data.localities && data.localities.length > 0) {
+                _deedLocTypeahead.setOptions(data.localities);
+              }
+            })
+            .catch(() => {});
+        }
+      });
+    }
+
     // Try fetching live SRO list from scan.delhigovt.nic.in
     fetch(`/api/deed_doc/start/${projectName}`)
       .then(res => res.json())
