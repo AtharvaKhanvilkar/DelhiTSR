@@ -5258,31 +5258,31 @@
                   <span id="findings-filter-badge" class="${_findingsSeverityFilter === 'all' && _findingsCategoryFilter === 'all' ? 'hidden' : ''} h-1.5 w-1.5 rounded-full bg-slate-700"></span>
                 </button>
 
-                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-72 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
-                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">5-Tier Audit Severity Ladder</div>
+                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-80 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">TSR Legal Opinion Severity Ladder</div>
                   <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
                     <span>All Severities</span>
                     <span class="${_findingsSeverityFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'CRITICAL')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔴 Level 5: Critical (Fatal Title Defect)</span>
-                    <span class="${_findingsSeverityFilter === 'CRITICAL' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'VOIDANCE')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔴 Tier 5: Statutory Voidance / Fatal Defect</span>
+                    <span class="${_findingsSeverityFilter === 'VOIDANCE' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'HIGH')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟠 Level 4: High (Serious Legal Risk)</span>
-                    <span class="${_findingsSeverityFilter === 'HIGH' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'SUBSTANTIVE_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟠 Tier 4: Substantive Title Risk</span>
+                    <span class="${_findingsSeverityFilter === 'SUBSTANTIVE_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'MEDIUM')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟡 Level 3: Medium (Compliance Discrepancy)</span>
-                    <span class="${_findingsSeverityFilter === 'MEDIUM' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'REQUISITION')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟡 Tier 3: Legal Requisition / Compliance Gap</span>
+                    <span class="${_findingsSeverityFilter === 'REQUISITION' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'LOW')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔵 Level 2: Low (Formatting Anomaly)</span>
-                    <span class="${_findingsSeverityFilter === 'LOW' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'PROCEDURAL_IRREGULARITY')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔵 Tier 2: Procedural Irregularity</span>
+                    <span class="${_findingsSeverityFilter === 'PROCEDURAL_IRREGULARITY' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'INFORMATIONAL')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>⚪ Level 1: Informational (Recital Note)</span>
-                    <span class="${_findingsSeverityFilter === 'INFORMATIONAL' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'RECORD_NOTATION')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>⚪ Tier 1: Informational Record Notation</span>
+                    <span class="${_findingsSeverityFilter === 'RECORD_NOTATION' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
 
                   <div class="border-t border-slate-100 my-1"></div>
@@ -6889,20 +6889,20 @@
 
 
     const tier = getSeverityTier(err);
-    let sevLabel = 'Level 1: Informational';
+    let sevLabel = 'Record Notation';
     let sevBadgeCls = 'border-slate-200 bg-slate-50 text-slate-600 font-medium';
 
-    if (tier === 'CRITICAL') {
-      sevLabel = 'Level 5: Critical';
+    if (tier === 'VOIDANCE') {
+      sevLabel = 'Statutory Voidance';
       sevBadgeCls = 'border-red-200 bg-red-50 text-red-800 font-bold';
-    } else if (tier === 'HIGH') {
-      sevLabel = 'Level 4: High';
+    } else if (tier === 'SUBSTANTIVE_RISK') {
+      sevLabel = 'Substantive Title Risk';
       sevBadgeCls = 'border-orange-200 bg-orange-50 text-orange-800 font-bold';
-    } else if (tier === 'MEDIUM') {
-      sevLabel = 'Level 3: Medium';
+    } else if (tier === 'REQUISITION') {
+      sevLabel = 'Legal Requisition';
       sevBadgeCls = 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
-    } else if (tier === 'LOW') {
-      sevLabel = 'Level 2: Low';
+    } else if (tier === 'PROCEDURAL_IRREGULARITY') {
+      sevLabel = 'Procedural Irregularity';
       sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-medium';
     }
 
