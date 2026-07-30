@@ -1115,7 +1115,15 @@ def workspace(project_name):
             except OSError:
                 pass
 
-    index_iis = [f for f in os.listdir(project_path) if f.lower().endswith(".pdf")]
+    # Clean up any legacy preview files in root project directory
+    for f in os.listdir(project_path):
+        if f.startswith("_preview_") and f.lower().endswith(".pdf"):
+            try:
+                os.remove(os.path.join(project_path, f))
+            except OSError:
+                pass
+
+    index_iis = [f for f in os.listdir(project_path) if f.lower().endswith(".pdf") and not f.startswith("_")]
 
     id_type = None
     id_value = None
@@ -5299,7 +5307,7 @@ def sorter_attach(project_name):
 @app.route("/sorter/preview/<project_name>", methods=["POST"])
 @login_required
 def sorter_preview(project_name):
-    """Generate a temporary preview PDF for a specific page range (deed or supporting doc extract)."""
+    """Generate a temporary preview PDF inside _sorter subdirectory (keeps attachments list clean)."""
     if not check_project_owner(project_name):
         abort(403)
     data = request.get_json(silent=True) or {}
@@ -5307,7 +5315,9 @@ def sorter_preview(project_name):
     pages = data.get("pages") or []
     doc_label = data.get("doc_label") or "extract"
     project_path = os.path.join(PROJECT_FOLDER, project_name)
-    src = os.path.join(project_path, SORTER_SUBDIR, fname)
+    staging = os.path.join(project_path, SORTER_SUBDIR)
+    os.makedirs(staging, exist_ok=True)
+    src = os.path.join(staging, fname)
     if not fname or not os.path.exists(src):
         return jsonify({"ok": False, "error": "Uploaded bundle not found."}), 404
     if not pages:
@@ -5315,7 +5325,7 @@ def sorter_preview(project_name):
 
     clean_label = re.sub(r'[^a-zA-Z0-9_\-]', '_', doc_label).strip('_').lower() or "extract"
     out_name = f"_preview_{clean_label}.pdf"
-    out_path = os.path.join(project_path, out_name)
+    out_path = os.path.join(staging, out_name)
     try:
         count = _build_refined_pdf(src, pages, out_path)
     except Exception as e:
@@ -5323,10 +5333,21 @@ def sorter_preview(project_name):
     return jsonify({
         "ok": True,
         "filename": out_name,
-        "pdf_url": f"/pdf/{project_name}/{out_name}",
+        "pdf_url": f"/sorter/pdf_preview/{project_name}/{out_name}",
         "page_count": count,
         "doc_label": doc_label
     })
+
+
+@app.route("/sorter/pdf_preview/<project_name>/<path:filename>")
+@login_required
+def serve_sorter_pdf_preview(project_name, filename):
+    """Serve preview PDF directly from the project's _sorter staging folder."""
+    if not check_project_owner(project_name):
+        abort(403)
+    from flask import send_from_directory
+    staging = os.path.join(PROJECT_FOLDER, project_name, SORTER_SUBDIR)
+    return send_from_directory(staging, filename)
 
 
 if __name__ == "__main__":

@@ -2550,6 +2550,14 @@
 
           <!-- Results Section -->
           <div id="sorter-results" class="space-y-5"></div>
+
+          <!-- Inline Multi-Tab Extract Viewer (Right inside the Document Sorter panel!) -->
+          <div id="sorter-inline-viewer" class="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm mt-5 hidden">
+            <!-- Multi-Tab Navigation Bar -->
+            <div id="sorter-tab-bar" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100/90 border-b border-slate-200 overflow-x-auto"></div>
+            <!-- Active Tab Content -->
+            <div id="sorter-tab-content"></div>
+          </div>
         </div>
       </div>
 
@@ -10108,50 +10116,99 @@
     return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-200">${label}</span>`;
   }
 
-  let _sorterPreviewPages = [];
-  let _sorterPreviewLabel = '';
+  let _sorterOpenTabs = [];
+  let _sorterActiveTabId = null;
 
-  function sorterPreviewDoc(pages, label) {
+  function sorterOpenExtractTab(pages, label) {
     if (!_sorterFilename || !pages || !pages.length) return;
-    _sorterPreviewPages = pages;
-    _sorterPreviewLabel = label;
+    const tabId = 'tab_' + String(label).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    let tab = _sorterOpenTabs.find(t => t.id === tabId);
+    if (!tab) {
+      tab = { id: tabId, label: label, pages: pages, pdfUrl: '', isLoaded: false };
+      _sorterOpenTabs.push(tab);
+    }
+    sorterSelectExtractTab(tabId);
 
-    const modal = document.getElementById('sorter-preview-modal');
-    const title = document.getElementById('sorter-preview-title');
-    const subtitle = document.getElementById('sorter-preview-subtitle');
-    const iframe = document.getElementById('sorter-preview-iframe');
-
-    if (title) title.textContent = `Preview Extract: ${label}`;
-    if (subtitle) subtitle.textContent = `${pages.length} Page(s) • Pages ${pages.join(', ')}`;
-    if (iframe) iframe.src = 'about:blank';
-    if (modal) modal.classList.remove('hidden');
-
-    fetch(`/sorter/preview/${projectName}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: _sorterFilename, pages: pages, doc_label: label })
-    })
-      .then(r => r.json())
-      .then(d => {
-        if (!d.ok) throw new Error(d.error || 'Failed to generate preview PDF');
-        if (iframe) iframe.src = d.pdf_url;
+    if (!tab.isLoaded) {
+      fetch(`/sorter/preview/${projectName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: _sorterFilename, pages: pages, doc_label: label })
       })
-      .catch(e => {
-        if (typeof showToast === 'function') showToast('Preview Error', e.message, 'error');
-      });
+        .then(r => r.json())
+        .then(d => {
+          if (!d.ok) throw new Error(d.error || 'Failed to generate preview PDF');
+          tab.pdfUrl = d.pdf_url;
+          tab.isLoaded = true;
+          renderSorterTabs();
+        })
+        .catch(e => {
+          if (typeof showToast === 'function') showToast('Preview Error', e.message, 'error');
+        });
+    }
   }
 
-  function closeSorterPreviewModal() {
-    const modal = document.getElementById('sorter-preview-modal');
-    const iframe = document.getElementById('sorter-preview-iframe');
-    if (iframe) iframe.src = 'about:blank';
-    if (modal) modal.classList.add('hidden');
+  function sorterSelectExtractTab(tabId) {
+    _sorterActiveTabId = tabId;
+    renderSorterTabs();
   }
 
-  function sorterAttachFromPreview() {
-    if (!_sorterPreviewPages || !_sorterPreviewPages.length) return;
-    sorterAttachDoc(_sorterPreviewPages, _sorterPreviewLabel, 'sorter-preview-attach-btn');
-    closeSorterPreviewModal();
+  function sorterCloseExtractTab(tabId, ev) {
+    if (ev) ev.stopPropagation();
+    _sorterOpenTabs = _sorterOpenTabs.filter(t => t.id !== tabId);
+    if (_sorterActiveTabId === tabId) {
+      _sorterActiveTabId = _sorterOpenTabs.length ? _sorterOpenTabs[_sorterOpenTabs.length - 1].id : null;
+    }
+    renderSorterTabs();
+  }
+
+  function renderSorterTabs() {
+    const container = document.getElementById('sorter-inline-viewer');
+    if (!container) return;
+    if (!_sorterOpenTabs.length) {
+      container.classList.add('hidden');
+      return;
+    }
+    container.classList.remove('hidden');
+
+    const tabBar = document.getElementById('sorter-tab-bar');
+    const tabContent = document.getElementById('sorter-tab-content');
+
+    // Render Header Tabs
+    let tabHtml = '';
+    _sorterOpenTabs.forEach(t => {
+      const isActive = t.id === _sorterActiveTabId;
+      const activeStyle = isActive
+        ? 'bg-white border-slate-300 text-slate-900 font-bold shadow-2xs'
+        : 'bg-slate-200/50 border-transparent text-slate-600 hover:bg-slate-200/90 font-medium';
+      tabHtml += `
+        <div onclick="sorterSelectExtractTab('${t.id}')" class="flex items-center gap-2 h-7.5 px-3 rounded-lg border text-xs cursor-pointer transition-all select-none ${activeStyle}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>${t.label} (${t.pages.length} Pg)</span>
+          <button onclick="sorterCloseExtractTab('${t.id}', event)" class="h-4 w-4 rounded hover:bg-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-500 hover:text-slate-900 transition-all">✕</button>
+        </div>`;
+    });
+    tabBar.innerHTML = tabHtml;
+
+    // Render Active Tab PDF Viewer
+    const activeTab = _sorterOpenTabs.find(t => t.id === _activeSorterTabId);
+    if (activeTab) {
+      const pagesText = activeTab.pages.length === 1 ? `Page ${activeTab.pages[0]}` : `Pages ${activeTab.pages.join(', ')}`;
+      tabContent.innerHTML = `
+        <div class="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-200 text-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="font-bold text-slate-900">${activeTab.label}</span>
+            <span class="text-slate-500 font-medium">• ${activeTab.pages.length} Page(s) (${pagesText})</span>
+          </div>
+          <button id="btn-tab-attach" onclick="sorterAttachDoc(${JSON.stringify(activeTab.pages).replace(/"/g, '&quot;')}, '${activeTab.label}', 'btn-tab-attach')" class="inline-flex items-center gap-1.5 h-7 px-3 rounded bg-slate-700 hover:bg-slate-800 text-white font-semibold text-[11px] transition-all cursor-pointer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Attach Extract to Project</span>
+          </button>
+        </div>
+        <div class="h-[65vh] bg-slate-200/40 p-2">
+          <iframe class="w-full h-full rounded-lg border border-slate-200 bg-white" src="${activeTab.pdfUrl || 'about:blank'}"></iframe>
+        </div>`;
+    }
   }
 
   function renderSorterManifest(m) {
@@ -10187,8 +10244,9 @@
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button onclick="sorterPreviewDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}')" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-medium text-xs transition-all cursor-pointer">
-              <span>👁️ Preview Deed</span>
+            <button onclick="sorterOpenExtractTab(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}')" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-medium text-xs transition-all cursor-pointer">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>View Deed</span>
             </button>
             <button id="sorter-attach-deed-btn" onclick="sorterAttachDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}', 'sorter-attach-deed-btn')" ${_sorterInstrumentPages.length ? '' : 'disabled'} class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-slate-700 text-white hover:bg-slate-800 font-semibold text-xs transition-all cursor-pointer disabled:opacity-40">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -10219,8 +10277,9 @@
               </div>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <button onclick="sorterPreviewDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}')" class="inline-flex items-center justify-center h-7.5 px-2.5 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-[11px] font-medium transition-all cursor-pointer">
-                <span>👁️ View</span>
+              <button onclick="sorterOpenExtractTab(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}')" class="inline-flex items-center justify-center gap-1.5 h-7.5 px-2.5 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-[11px] font-medium transition-all cursor-pointer">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>View</span>
               </button>
               <button id="${btnId}" onclick="sorterAttachDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}', '${btnId}')" class="inline-flex items-center justify-center h-7.5 px-2.5 rounded bg-slate-700 text-white hover:bg-slate-800 text-[11px] font-semibold transition-all cursor-pointer">
                 <span>Attach</span>
@@ -10266,6 +10325,11 @@
 
     results.innerHTML = html;
     if (window.lucide) lucide.createIcons();
+
+    // Re-render open tabs if present
+    if (_sorterOpenTabs.length) {
+      renderSorterTabs();
+    }
   }
 
   function sorterAttachDoc(pages, label, btnId) {
