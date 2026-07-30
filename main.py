@@ -21,21 +21,32 @@ client = genai.Client(api_key=_API_KEY)
 
 
 def extract_text_from_PDF(file_path):
-    """Read PDF and return all text. (Includes transparent disk cache for fast reloading)"""
+    """Read a PDF's embedded text layer and return all its text (with a transparent
+    disk cache).
+
+    Text-only by design: the app does NOT OCR. Users bring text-based PDFs. If a PDF
+    has no usable text layer this returns an empty/near-empty string, and the caller
+    is responsible for telling the user to attach a text-based PDF.
+    """
     cache_path = file_path + ".txt"
     if os.path.exists(cache_path):
         try:
             with open(cache_path, "r", encoding="utf-8") as f:
-                return f.read()
+                cached = f.read()
+            if cached.strip():
+                return cached
         except Exception:
             pass
 
     text = ""
-    with pdfplumber.open(file_path) as pdf:
-        for page in pdf.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
+    try:
+        with pdfplumber.open(file_path) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+    except Exception as e:
+        print(f"[extract_text] pdfplumber failed: {e}")
 
     try:
         with open(cache_path, "w", encoding="utf-8") as f:
@@ -44,6 +55,192 @@ def extract_text_from_PDF(file_path):
         pass
 
     return text
+
+
+def pdf_has_text_layer(file_path, min_chars=40):
+    """True if the PDF has a usable embedded text layer. Used to reject image-only
+    PDFs up front with a clear message instead of parsing garbage."""
+    try:
+        return len((extract_text_from_PDF(file_path) or "").strip()) >= min_chars
+    except Exception:
+        return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DOCUMENT SORTER — AI-first per-page classifier for uncleaned bundles
+# A downloaded deed PDF is a bundle of many documents. This labels every page,
+# then groups them into (a) the deed INSTRUMENT (goes to the title parser) and
+# (b) SUPPORTING documents (filed separately). Text-only; no OCR.
+# ─────────────────────────────────────────────────────────────────────────────
+SORTER_DOC_TYPES = [
+    # instrument body types
+    "SALE_DEED", "CONVEYANCE_DEED", "GIFT_DEED", "MORTGAGE_DEED", "RELEASE_DEED",
+    "LEAVE_LICENSE", "AGREEMENT_TO_SELL", "GPA",
+    # instrument-attached pages
+    "E_STAMP", "REGISTRATION_ENDORSEMENT",
+    # supporting documents
+    "PAN_CARD", "AADHAAR_CARD", "PASSPORT", "VOTER_ID", "DRIVING_LICENSE",
+    "ELECTRICITY_BILL", "GAS_BILL", "WATER_BILL", "PROPERTY_TAX_RECEIPT",
+    "FORM_A", "UNDERTAKING", "NOC", "SANCTION_PLAN", "MUTATION",
+    # catch-alls
+    "BLANK", "OTHER",
+]
+
+# Types that make up the refined deed instrument (everything else is supporting).
+SORTER_INSTRUMENT_TYPES = {
+    "SALE_DEED", "CONVEYANCE_DEED", "GIFT_DEED", "MORTGAGE_DEED", "RELEASE_DEED",
+    "LEAVE_LICENSE", "AGREEMENT_TO_SELL", "GPA", "E_STAMP", "REGISTRATION_ENDORSEMENT",
+}
+
+SORTER_TYPE_LABELS = {
+    "SALE_DEED": "Sale Deed", "CONVEYANCE_DEED": "Conveyance Deed", "GIFT_DEED": "Gift Deed",
+    "MORTGAGE_DEED": "Mortgage Deed", "RELEASE_DEED": "Release Deed",
+    "LEAVE_LICENSE": "Leave & License", "AGREEMENT_TO_SELL": "Agreement to Sell", "GPA": "Power of Attorney",
+    "E_STAMP": "e-Stamp Certificate", "REGISTRATION_ENDORSEMENT": "Registration Endorsement",
+    "PAN_CARD": "PAN Card", "AADHAAR_CARD": "Aadhaar Card", "PASSPORT": "Passport",
+    "VOTER_ID": "Voter ID", "DRIVING_LICENSE": "Driving License",
+    "ELECTRICITY_BILL": "Electricity Bill", "GAS_BILL": "Gas Bill", "WATER_BILL": "Water Bill",
+    "PROPERTY_TAX_RECEIPT": "Property Tax Receipt", "FORM_A": "Form-A",
+    "UNDERTAKING": "Undertaking", "NOC": "NOC", "SANCTION_PLAN": "Sanction Plan",
+    "MUTATION": "Mutation", "BLANK": "Blank Page", "OTHER": "Other Document",
+}
+
+
+def _extract_pages_text(file_path):
+    """Return a list of per-page text (empty string for pages with no text layer)."""
+    pages = []
+    with pdfplumber.open(file_path) as pdf:
+        for pg in pdf.pages:
+            pages.append(pg.extract_text() or "")
+    return pages
+
+
+def classify_bundle_pages(file_path, snippet_chars=900):
+    """AI-FIRST page classifier for an uncleaned bundle PDF.
+
+    Sends every page's text to the model in one strict pass and returns a manifest:
+    {
+      "total_pages": int,
+      "pages": [{page, type, is_deed_instrument, is_blank, confidence, reason}],
+      "instrument": {"type": <body type or None>, "pages": [ints]},
+      "supporting": [{"type", "label", "pages":[ints]}],
+      "blanks": [ints],
+    }
+    Defensive: pages with no text are forced BLANK; unknown/garbled labels become
+    OTHER; missing pages are backfilled — the caller always gets one row per page.
+    """
+    pages_text = _extract_pages_text(file_path)
+    n = len(pages_text)
+
+    blocks = []
+    for i, t in enumerate(pages_text):
+        snip = re.sub(r"\s+", " ", (t or "").strip())[:snippet_chars]
+        blocks.append(f"===== PAGE {i+1} =====\n{snip or '(no extractable text)'}")
+    joined = "\n\n".join(blocks)
+
+    prompt = f"""You are a STRICT document-sorting engine for Indian property registration bundles.
+A bundle is ONE PDF that concatenates MANY documents: the main registrable instrument
+(Sale Deed / Conveyance / Gift / Mortgage / Release / Lease / Agreement to Sell / GPA), its
+e-Stamp certificate, the Sub-Registrar / DORIS registration endorsement, plus supporting
+documents (PAN cards, Aadhaar cards, electricity / gas / water bills, property-tax receipts,
+Form-A, undertakings), and blank pages.
+
+Classify EVERY page below into EXACTLY ONE type from this list:
+{", ".join(SORTER_DOC_TYPES)}
+
+Rules:
+- Decide ONLY from the page text shown. Do NOT invent or assume.
+- A page with essentially no meaningful text is BLANK.
+- e-Stamp certificate page(s) -> E_STAMP. The registration receipt / "Certificate (Section 60)" /
+  DORIS presenter/endorsement page -> REGISTRATION_ENDORSEMENT.
+- For a multi-page instrument, label EVERY page of the deed body with the instrument type
+  (including continuation pages like "PAGE No. X OF SALE DEED").
+- If a page is genuinely unrecognizable, use OTHER. Never guess a specific type you cannot justify.
+- confidence is your certainty 0.0-1.0. reason is <= 12 words.
+
+Return ONLY a JSON array — one object per page, in page order, no prose, no code fences:
+[{{"page": 1, "type": "E_STAMP", "confidence": 0.95, "reason": "India Non-Judicial e-Stamp certificate"}}]
+
+PAGES:
+{joined}
+"""
+
+    arr = []
+    try:
+        resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        raw = resp.text.strip()
+        raw = re.sub(r"^```(?:json)?\s*", "", raw)
+        raw = re.sub(r"\s*```$", "", raw).strip()
+        arr = json.loads(raw)
+    except Exception as e:
+        print("[classify_bundle] classification failed:", e)
+        arr = []
+
+    by_page = {}
+    for o in arr:
+        if isinstance(o, dict) and o.get("page") is not None:
+            try:
+                by_page[int(o["page"])] = o
+            except (ValueError, TypeError):
+                pass
+
+    pages = []
+    for i in range(1, n + 1):
+        o = by_page.get(i, {})
+        typ = str(o.get("type") or "OTHER").upper().strip()
+        if typ not in SORTER_DOC_TYPES:
+            typ = "OTHER"
+        if not pages_text[i - 1].strip():   # no text at all -> definitively blank
+            typ = "BLANK"
+        try:
+            conf = float(o.get("confidence"))
+        except (ValueError, TypeError):
+            conf = 0.0
+        pages.append({
+            "page": i,
+            "type": typ,
+            "label": SORTER_TYPE_LABELS.get(typ, typ.title()),
+            "is_blank": typ == "BLANK",
+            "is_deed_instrument": typ in SORTER_INSTRUMENT_TYPES,
+            "confidence": round(max(0.0, min(1.0, conf)), 2),
+            "reason": str(o.get("reason") or "")[:120],
+        })
+
+    from collections import Counter
+    body_counts = Counter(
+        p["type"] for p in pages
+        if p["is_deed_instrument"] and p["type"] not in ("E_STAMP", "REGISTRATION_ENDORSEMENT")
+    )
+    instrument_type = body_counts.most_common(1)[0][0] if body_counts else None
+    instrument_pages = [p["page"] for p in pages if p["is_deed_instrument"]]
+
+    # Group supporting docs into consecutive runs of the same type
+    supporting, run = [], None
+    for p in pages:
+        if p["is_deed_instrument"] or p["is_blank"]:
+            if run:
+                supporting.append(run); run = None
+            continue
+        if run and run["type"] == p["type"]:
+            run["pages"].append(p["page"])
+        else:
+            if run:
+                supporting.append(run)
+            run = {"type": p["type"], "label": p["label"], "pages": [p["page"]]}
+    if run:
+        supporting.append(run)
+
+    return {
+        "total_pages": n,
+        "pages": pages,
+        "instrument": {
+            "type": instrument_type,
+            "label": SORTER_TYPE_LABELS.get(instrument_type, "Deed Instrument") if instrument_type else "Deed Instrument",
+            "pages": instrument_pages,
+        },
+        "supporting": supporting,
+        "blanks": [p["page"] for p in pages if p["is_blank"]],
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -358,6 +555,93 @@ FINANCIALS (general)
 - market_value
 {schema_part}
 ═══════════════════════════════════════════════════════════
+E-STAMP CERTIFICATE  (only if an e-Stamp / stamp certificate page is present; else leave null)
+═══════════════════════════════════════════════════════════
+- estamp_certificate_no           (e.g. "IN-DL44237927139351V"; null if not clearly legible)
+- estamp_issued_datetime          (issue date/time exactly as printed)
+- estamp_amount                   (numeric value the e-Stamp was purchased for, e.g. 600000)
+- estamp_first_party              (first party as printed on the certificate)
+- estamp_second_party             (second party as printed on the certificate)
+- estamp_duty_paid_by             (who paid the stamp duty, per the certificate)
+- estamp_description              (e.g. "Article 23 Sale")
+
+═══════════════════════════════════════════════════════════
+REGISTRATION ENDORSEMENT  (the Sub-Registrar/DORIS registration page & Section-60 certificate)
+═══════════════════════════════════════════════════════════
+- reg_book_no                     (registration book number, e.g. 1)
+- reg_volume_no                   (registration volume number, e.g. 2664)
+- reg_pages                       (page range in the register, e.g. "74 to 88")
+- doris_document_number           (the long DORIS document number, e.g. "2387212700149")
+- presenter_name                  (person who presented the deed for registration)
+- pasting_fee                     (pasting fee amount, numeric)
+
+═══════════════════════════════════════════════════════════
+VALUATION / SCHEDULE  (circle-rate computation block, if present; else null)
+═══════════════════════════════════════════════════════════
+- property_number                 (e.g. "170")
+- undivided_share_fraction        (e.g. "1/4" — the undivided share in land/stilt, if stated)
+- floor_under_sale                (e.g. "First Floor upto ceiling level")
+- number_of_storeys               (e.g. "Stilt + Four")
+- covered_area                    (plinth/covered area WITH unit)
+- plot_area                       (total plot area WITH unit)
+- proportionate_stilt_area        (WITH unit)
+- structure_type                  (Pucca / Semi-Pucca / Katcha)
+- age_factor                      (numeric, if stated)
+- structure_type_factor           (numeric, if stated)
+- year_of_construction            (e.g. "After 2017")
+- building_sanction_ref           (e.g. "MCD File No.10043054 dated 27/10/2017")
+- use_factor                      (numeric, if stated)
+- min_land_rate                   (numeric per sqm, if stated)
+- min_construction_rate           (numeric per sqm, if stated)
+- circle_rate_value_stated        (numeric — the deed's OWN stated circle-rate valuation)
+- cost_of_land_stated             (numeric component, only if the deed shows the a+b+c breakdown)
+- cost_of_construction_stated     (numeric component)
+- cost_of_stilt_stated            (numeric component)
+- stamp_duty_rate                 (e.g. "3%")
+- corporation_tax_amount          (numeric, if stated)
+- corporation_tax_rate            (e.g. "3%")
+- total_non_judicial_stamp        (numeric total stamp-paper value, if stated)
+
+═══════════════════════════════════════════════════════════
+PAYMENT TRAIL  (how the consideration was paid — sale deeds; else empty list)
+═══════════════════════════════════════════════════════════
+- payment_instruments             (list, ONE object per cheque/RTGS/DD/instrument, each
+                                    {{"amount": <numeric>, "mode": "cheque|rtgs|dd|cash|other",
+                                      "instrument_no", "bank", "date"}})
+- tds_challans                    (list, ONE object per TDS deposit, each
+                                    {{"amount": <numeric>, "challan_no", "bsr_code", "serial_no", "date", "bank"}})
+
+═══════════════════════════════════════════════════════════
+TITLE-CHAIN RECITALS  (prior instruments the deed NARRATES in its "Previous Facts"/"Whereas" text)
+═══════════════════════════════════════════════════════════
+- chain_recitals                  (list, ONE object per prior registered instrument the deed
+                                    recites, each {{"instrument_type", "doc_no", "book_no", "volume",
+                                    "pages", "sro", "execution_date", "registration_date",
+                                    "from_parties", "to_parties"}})
+- title_root                      (root/origin of title if stated, e.g. "President of India / DDA")
+- leasehold_to_freehold_converted (true / false / null — is a leasehold→freehold conversion recited?)
+
+═══════════════════════════════════════════════════════════
+WITNESSES  (the attesting witnesses to the deed; empty list if none present)
+═══════════════════════════════════════════════════════════
+- witnesses                       (list, each {{"name", "relation", "address", "aadhaar"}};
+                                    aadhaar null if not clearly legible — NEVER guess digits)
+
+═══════════════════════════════════════════════════════════
+ANNEXED SUPPORTING DOCUMENTS  (ID proofs, tax receipt, utility bills, Form-A, undertaking — only if bundled)
+═══════════════════════════════════════════════════════════
+- annexed_id_proofs               (list of ID cards actually present, each {{"person_name",
+                                    "id_type": "aadhaar|pan", "id_value", "dob", "father_or_husband"}})
+- property_tax                    (object {{"upic", "receipt_no", "financial_year", "amount",
+                                    "paid_date", "ward", "zone", "owner"}} or null)
+- utility_bills                   (list, each {{"utility_type": "gas|water|electricity",
+                                    "consumer_name", "account_no", "bill_date", "amount_payable",
+                                    "arrears"}})
+- form_a                          (object {{"transferor", "transferee", "consideration",
+                                    "plinth_area", "land_use", "category"}} or null)
+- undertaking                     (object {{"buyer_name", "property", "mobile", "serial_no", "sro"}} or null)
+
+═══════════════════════════════════════════════════════════
 PARTIES — IDENTITY NUMBERS BOUND TO EACH PERSON
 ═══════════════════════════════════════════════════════════
 PAN and PIN are UNIQUE to each individual. You MUST bind each PAN/PIN
@@ -368,9 +652,14 @@ Return TWO lists of party objects. Each object pairs ONE person with
 THEIR OWN identity numbers, exactly as the document associates them:
 
 - transferor_parties              (list of objects, the GIVING side — sellers/donors/mortgagors/releasors/licensors)
-    each object: {{"name", "pan", "pin", "address"}}
+    each object: {{"name", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
 - transferee_parties              (list of objects, the RECEIVING side — buyers/donees/mortgagees/releasees/licensees)
-    each object: {{"name", "pan", "pin", "address"}}
+    each object: {{"name", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
+    • age: this person's stated age as an integer (e.g. 35), or null if not explicitly recited.
+    • dob: this person's date of birth as printed (DD-MM-YYYY or DD.MM.YYYY).
+    • aadhaar: the 12-digit Aadhaar bound to THIS person, exactly as printed. If not clearly
+      legible, set null. NEVER guess or complete Aadhaar digits.
+    • father_or_husband: this person's S/o or W/o name, if stated.
 
 RULES FOR BINDING:
   • Read the document carefully to see which PAN/PIN sits next to which name.
@@ -395,6 +684,17 @@ RULES
 - Do NOT add labels like "Building Name:", "Road:", "City:" to addresses. Return addresses exactly as written, without restructuring.
 - If a field is unclear or absent, set it to null.
 - Normalize obvious OCR noise in NAMES (stray punctuation, doubled spaces), but do NOT invent or "correct" content that isn't there.
+- CRITICAL — NO FABRICATION on the new blocks (e-Stamp, registration endorsement, valuation,
+  payment_instruments, tds_challans, chain_recitals, witnesses, annexed documents): extract a
+  field ONLY when that page/line is actually present and clearly legible. If a page type is not
+  in this document, return null (for objects) or [] (for lists). NEVER invent a witness, an ID
+  number, a payment, a bill, or a recited prior deed that you cannot actually read. A missing
+  value is ALWAYS better than a guessed one.
+- For every numeric field in payment_instruments, tds_challans, and the *_stated valuation
+  components: output a clean number (no commas/₹) ONLY if legible; otherwise null. Do NOT
+  compute or reconcile totals yourself — report each line exactly as printed.
+- Aadhaar values (party, witness, or annexed ID): 12 digits exactly as printed. If any digit is
+  illegible, set the whole value to null. Do NOT pad, complete, or infer digits.
 
 DOCUMENT:
 {document_text}
@@ -505,6 +805,68 @@ DOCUMENT:
         ACT_data["transferor_pin"] = [p.get("pin") for p in transferor_parties if p.get("pin")]
         ACT_data["transferee_pan"] = [p.get("pan") for p in transferee_parties if p.get("pan")]
         ACT_data["transferee_pin"] = [p.get("pin") for p in transferee_parties if p.get("pin")]
+
+        # ── New structured blocks: guarantee presence + derive SAFE totals ──
+        # Everything here is defensive so the downstream audit never sees a
+        # malformed shape and never receives a total derived from illegible data.
+        def _to_number(v):
+            """Best-effort numeric parse. Returns float or None. Never raises."""
+            if v is None:
+                return None
+            if isinstance(v, bool):
+                return None
+            if isinstance(v, (int, float)):
+                return float(v)
+            s = re.sub(r"[^\d.]", "", str(v))
+            if not s or s == ".":
+                return None
+            try:
+                return float(s)
+            except ValueError:
+                return None
+
+        def _digits_only(v):
+            if v is None:
+                return None
+            d = re.sub(r"\D", "", str(v))
+            return d or None
+
+        # Ensure list/object fields exist so downstream audit code is null-safe.
+        for _lst in ("payment_instruments", "tds_challans", "chain_recitals",
+                     "witnesses", "annexed_id_proofs", "utility_bills"):
+            if not isinstance(ACT_data.get(_lst), list):
+                ACT_data[_lst] = []
+        for _obj in ("property_tax", "form_a", "undertaking"):
+            if not isinstance(ACT_data.get(_obj), dict):
+                ACT_data[_obj] = None
+
+        # Normalize Aadhaar to 12-digit strings on every person object; anything
+        # that isn't a clean 12-digit value becomes None (never a partial guess).
+        # Masking/encryption happens later at the storage layer (app.py).
+        for _p in transferor_parties + transferee_parties + ACT_data["witnesses"]:
+            if isinstance(_p, dict) and _p.get("aadhaar") is not None:
+                d = _digits_only(_p.get("aadhaar"))
+                _p["aadhaar"] = d if (d and len(d) == 12) else None
+        for _idp in ACT_data["annexed_id_proofs"]:
+            if isinstance(_idp, dict) and str(_idp.get("id_type", "")).lower() == "aadhaar":
+                d = _digits_only(_idp.get("id_value"))
+                _idp["id_value"] = d if (d and len(d) == 12) else None
+
+        # Derive payment sums for the PAYMENT_SUM_MISMATCH audit — but ONLY when
+        # every listed amount is legibly numeric. If a single line is unreadable we
+        # publish None, so the audit stays silent rather than raising a false mismatch.
+        pay_amts = [_to_number(p.get("amount")) for p in ACT_data["payment_instruments"] if isinstance(p, dict)]
+        tds_amts = [_to_number(t.get("amount")) for t in ACT_data["tds_challans"] if isinstance(t, dict)]
+        pay_complete = bool(pay_amts) and all(a is not None for a in pay_amts)
+        tds_complete = all(a is not None for a in tds_amts)  # empty list -> True
+        ACT_data["payments_only_sum"] = sum(pay_amts) if pay_complete else None
+        ACT_data["tds_total"] = sum(a for a in tds_amts if a is not None) if tds_amts else 0.0
+        if pay_complete and tds_complete:
+            ACT_data["total_payments_sum"] = ACT_data["payments_only_sum"] + ACT_data["tds_total"]
+            ACT_data["_payments_complete"] = True
+        else:
+            ACT_data["total_payments_sum"] = None
+            ACT_data["_payments_complete"] = False
 
     return ACT_data
 

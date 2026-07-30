@@ -2313,6 +2313,153 @@ def _phase1_supporting_checks(data, source):
                 f"No attached ID proof (Aadhaar/PAN) found for {pname}, although other parties' IDs are present in the bundle.",
                 category="supporting_docs")
 
+    # ===== 1. NAME Validation =====
+    # Check 1A: Placeholder / Numeric Sequence Name Check
+    def _is_placeholder_name(name_str):
+        if not name_str or not isinstance(name_str, str):
+            return False
+        clean = re.sub(r'[^A-Za-z0-9]', '', name_str).upper()
+        if not clean:
+            return False
+        if len(set(clean)) == 1 and len(clean) >= 3:
+            return True
+        if re.match(r'^(?:[XFFA]{4,}|([A-Z])\1{3,}|[A-Z]{1,2}[XFFA]{4,}|[0-9]+|DUMMY|UNKNOWN|TEST|XXXXXX|AFFFFFF|AAAAAA)$', clean):
+            return True
+        if clean.isdigit():
+            return True
+        return False
+
+    all_parties = []
+    for side in ("transferor_parties", "transferee_parties"):
+        for p in (data.get(side) or []):
+            if isinstance(p, dict) and p.get("name"):
+                all_parties.append((side, p))
+    for p in (data.get("parties") or []):
+        if isinstance(p, dict) and p.get("name"):
+            all_parties.append(("parties", p))
+
+    for side, p in all_parties:
+        pname = str(p.get("name") or "").strip()
+        if _is_placeholder_name(pname):
+            add("ERROR", "INVALID_NAME_PLACEHOLDER",
+                f"Party name '{pname}' consists solely of placeholder strings or invalid numeric sequences (e.g. XXXXXX, AFFFFFF).",
+                actual=pname, category="party_identity")
+
+    # Check 1B: Deed Name vs Aadhaar Card Name Check (ONLY when Aadhaar Card is present!)
+    aadhaar_proofs = [i for i in id_proofs if (i.get("id_type") or "").lower() == "aadhaar"]
+    if aadhaar_proofs:
+        for proof in aadhaar_proofs:
+            proof_name = (proof.get("person_name") or "").strip()
+            proof_val = (proof.get("id_value") or "").strip()
+            if not proof_name:
+                continue
+            matched = False
+            for side, p in all_parties:
+                deed_name = (p.get("name") or "").strip()
+                p_aad = str(p.get("aadhaar") or "").replace(" ", "").replace("-", "")
+                pr_aad = str(proof_val).replace(" ", "").replace("-", "")
+                if (p_aad and pr_aad and p_aad == pr_aad) or names_match(proof_name, deed_name):
+                    matched = True
+                    if deed_name and not names_match(proof_name, deed_name):
+                        add("WARNING", "DEED_AADHAAR_NAME_MISMATCH",
+                            f"Name in deed text '{deed_name}' does not match name on annexed Aadhaar Card '{proof_name}'.",
+                            expected=proof_name, actual=deed_name, category="party_identity")
+                    break
+
+    # ===== 2. AGE & Date Validation =====
+    exec_d_str = data.get("date_of_execution") or data.get("date_of_registration")
+    exec_dt = to_date(exec_d_str)
+
+    # 2A: Check format of all dates present
+    date_fields_to_check = [
+        ("date_of_execution", data.get("date_of_execution")),
+        ("date_of_registration", data.get("date_of_registration")),
+        ("released_mortgage_date", data.get("released_mortgage_date")),
+    ]
+    for side, p in all_parties:
+        if p.get("dob"):
+            date_fields_to_check.append((f"{side}.dob", p.get("dob")))
+    for proof in id_proofs:
+        if proof.get("dob"):
+            date_fields_to_check.append(("annexed_id.dob", proof.get("dob")))
+
+    for df_name, df_val in date_fields_to_check:
+        if df_val and str(df_val).strip().lower() not in ("null", "none", ""):
+            if not to_date(str(df_val)):
+                add("WARNING", "INVALID_DATE_FORMAT",
+                    f"Field '{df_name}' contains an invalid date or non-standard format: '{df_val}'.",
+                    actual=str(df_val), category="date_validation")
+
+    # 2B: Minor prohibition & Age-DOB consistency check
+    for side, p in all_parties:
+        pname = p.get("name") or "Party"
+        stated_age = None
+        if p.get("age") is not None:
+            try: stated_age = int(p.get("age"))
+            except (ValueError, TypeError): pass
+
+        dob_str = p.get("dob")
+        dob_dt = to_date(dob_str) if dob_str else None
+
+        comp_age = None
+        if dob_dt and exec_dt:
+            comp_age = exec_dt.year - dob_dt.year - ((exec_dt.month, exec_dt.day) < (dob_dt.month, dob_dt.day))
+        elif dob_dt:
+            from datetime import datetime as _dt_now
+            now = _dt_now.now()
+            comp_age = now.year - dob_dt.year - ((now.month, now.day) < (dob_dt.month, dob_dt.day))
+
+        eff_age = comp_age if comp_age is not None else stated_age
+        if eff_age is not None and eff_age < 18:
+            add("ERROR", "MINOR_PARTY_PROHIBITED",
+                f"Party '{pname}' has age {eff_age} (<18). Minors cannot convey or hold property ownership under Indian law.",
+                expected="Age >= 18", actual=f"Age {eff_age}", category="age_validation")
+
+        if stated_age is not None and comp_age is not None and abs(stated_age - comp_age) > 2:
+            add("WARNING", "AGE_DOB_MISMATCH",
+                f"Stated age ({stated_age} years) for '{pname}' is inconsistent with DOB '{dob_str}' (computed age: {comp_age} years).",
+                expected=f"~{comp_age} years", actual=f"{stated_age} years", category="age_validation")
+
+    # ===== 3. AADHAR / PAN Format Validation (ONLY WHEN PRESENT) =====
+    # 3A: Aadhaar Format Check (12 numeric digits)
+    aadhaar_list = []
+    for side, p in all_parties:
+        if p.get("aadhaar"):
+            aadhaar_list.append((f"{side} ({p.get('name', 'Party')})", str(p.get("aadhaar"))))
+    for w in (data.get("witnesses") or []):
+        if isinstance(w, dict) and w.get("aadhaar"):
+            aadhaar_list.append((f"witness ({w.get('name', 'Witness')})", str(w.get("aadhaar"))))
+    for proof in id_proofs:
+        if (proof.get("id_type") or "").lower() == "aadhaar" and proof.get("id_value"):
+            aadhaar_list.append((f"annexed Aadhaar ({proof.get('person_name', 'ID Card')})", str(proof.get("id_value"))))
+
+    for src_lbl, a_val in aadhaar_list:
+        clean_a = re.sub(r'[\s\-]', '', a_val)
+        if clean_a and clean_a.lower() not in ("null", "none", ""):
+            is_valid_a = bool(re.match(r'^\d{12}$', clean_a)) and len(set(clean_a)) > 1
+            if not is_valid_a:
+                add("ERROR", "INVALID_AADHAAR_FORMAT",
+                    f"Aadhaar number '{a_val}' for {src_lbl} does not conform to the standard 12-digit Aadhaar format.",
+                    expected="12-digit numeric Aadhaar", actual=a_val, category="id_validation")
+
+    # 3B: PAN Format Check (5 letters + 4 digits + 1 letter)
+    pan_list = []
+    for side, p in all_parties:
+        if p.get("pan"):
+            pan_list.append((f"{side} ({p.get('name', 'Party')})", str(p.get("pan"))))
+    for proof in id_proofs:
+        if (proof.get("id_type") or "").lower() == "pan" and proof.get("id_value"):
+            pan_list.append((f"annexed PAN ({proof.get('person_name', 'ID Card')})", str(proof.get("id_value"))))
+
+    for src_lbl, p_val in pan_list:
+        clean_p = str(p_val).strip().upper()
+        if clean_p and clean_p.lower() not in ("null", "none", ""):
+            is_valid_p = bool(re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$', clean_p))
+            if not is_valid_p:
+                add("ERROR", "INVALID_PAN_FORMAT",
+                    f"PAN number '{p_val}' for {src_lbl} does not conform to standard PAN format (ABCDE1234F).",
+                    expected="5 Letters + 4 Digits + 1 Letter", actual=p_val, category="id_validation")
+
     # ===== Witnesses =====
     witnesses = [w for w in (data.get("witnesses") or []) if isinstance(w, dict)]
     if len(witnesses) == 1:  # 0 => page likely not captured, stay silent
