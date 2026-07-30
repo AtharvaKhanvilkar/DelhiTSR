@@ -4677,9 +4677,7 @@
     if (type === 'category') _findingsCategoryFilter = value;
     const menu = document.getElementById('findings-filter-menu');
     if (menu) menu.classList.add('hidden');
-    if (window._lastRenderedEventsData) {
-      renderEventsList(window._lastRenderedEventsData);
-    }
+    loadEvents();
   }
 
   function getSeverityTier(finding) {
@@ -4745,7 +4743,7 @@
     });
   }
 
-  function renderEventsList(data) {
+  function loadEvents() {
 
     fetch('/events/{{ project_name }}')
 
