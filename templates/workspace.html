@@ -4661,12 +4661,59 @@
   // ─────────────────────────────────────────────────────────
 
   let _eventsStore = [];
-
   let _currentOwnerName = null;
 
+  let _findingsSeverityFilter = 'all';
+  let _findingsCategoryFilter = 'all';
 
+  function toggleFindingsFilterMenu(ev) {
+    if (ev) ev.stopPropagation();
+    const menu = document.getElementById('findings-filter-menu');
+    if (menu) menu.classList.toggle('hidden');
+  }
 
-  function loadEvents() {
+  function setFindingsFilter(type, value) {
+    if (type === 'severity') _findingsSeverityFilter = value;
+    if (type === 'category') _findingsCategoryFilter = value;
+    const menu = document.getElementById('findings-filter-menu');
+    if (menu) menu.classList.add('hidden');
+    if (window._lastRenderedEventsData) {
+      renderEventsList(window._lastRenderedEventsData);
+    }
+  }
+
+  function applyFindingsFilter(list) {
+    return list.filter(f => {
+      const sev = (f.severity || '').toUpperCase();
+      if (_findingsSeverityFilter === 'HIGH_RISK' && sev !== 'ERROR') return false;
+      if (_findingsSeverityFilter === 'MEDIUM_RISK' && sev !== 'WARNING') return false;
+      if (_findingsSeverityFilter === 'LOW_RISK' && sev !== 'INFO') return false;
+
+      if (_findingsCategoryFilter !== 'all') {
+        const cat = f.category || '';
+        const type = f.type || '';
+        if (_findingsCategoryFilter === 'identity_age_id') {
+          const isIdentity = ['party_identity', 'age_validation', 'id_validation', 'date_validation'].includes(cat) ||
+            ['INVALID_NAME_PLACEHOLDER', 'DEED_AADHAAR_NAME_MISMATCH', 'MINOR_PARTY_PROHIBITED', 'AGE_DOB_MISMATCH', 'INVALID_AADHAAR_FORMAT', 'INVALID_PAN_FORMAT', 'INVALID_DATE_FORMAT'].includes(type);
+          if (!isIdentity) return false;
+        }
+        if (_findingsCategoryFilter === 'title_chain') {
+          const isTitle = ['title_chain', 'ownership', 'sro_jurisdiction'].includes(cat) ||
+            ['RECITAL_CHAIN_GAP', 'SRO_JURISDICTION_MISMATCH', 'CHAIN_DISCONTINUITY', 'LEASEHOLD_UNCONVERTED'].includes(type);
+          if (!isTitle) return false;
+        }
+        if (_findingsCategoryFilter === 'financial') {
+          const isFin = ['financial', 'circle_rate', 'stamp_duty', 'tax'].includes(cat) ||
+            ['UNDER_CIRCLE_RATE_VALUATION', 'TDS_194IA_SHORTFALL', 'CIRCLE_RATE_STATED_MISMATCH', 'PROPERTY_TYPE_MISMATCH', 'ESTAMP_VALUE_MISMATCH'].includes(type);
+          if (!isFin) return false;
+        }
+        if (_findingsCategoryFilter === 'supporting_docs' && cat !== 'supporting_docs') return false;
+      }
+      return true;
+    });
+  }
+
+  function renderEventsList(data) {
 
     fetch('/events/{{ project_name }}')
 
@@ -5180,41 +5227,41 @@
                 </button>
 
                 <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
-                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Severity</div>
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Audit Severity Ladder</div>
                   <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
                     <span>All Severities</span>
                     <span class="${_findingsSeverityFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'ERROR')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔴 Errors Only</span>
-                    <span class="${_findingsSeverityFilter === 'ERROR' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'HIGH_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔴 High Risk (Critical Defects)</span>
+                    <span class="${_findingsSeverityFilter === 'HIGH_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'WARNING')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟡 Warnings Only</span>
-                    <span class="${_findingsSeverityFilter === 'WARNING' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'MEDIUM_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟡 Medium Risk (Advisories)</span>
+                    <span class="${_findingsSeverityFilter === 'MEDIUM_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('severity', 'LOW_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔵 Low Risk (Informational)</span>
+                    <span class="${_findingsSeverityFilter === 'LOW_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
 
                   <div class="border-t border-slate-100 my-1"></div>
-                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Rule Category</div>
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Legal Rule Category</div>
                   <button onclick="setFindingsFilter('category', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
                     <span>All Categories</span>
                     <span class="${_findingsCategoryFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'party_identity')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>👤 Party Identity & Name</span>
-                    <span class="${_findingsCategoryFilter === 'party_identity' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'identity_age_id')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>👤 Identity, Age & ID Proofs</span>
+                    <span class="${_findingsCategoryFilter === 'identity_age_id' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'age_validation')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🎂 Age & DOB Validation</span>
-                    <span class="${_findingsCategoryFilter === 'age_validation' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'title_chain')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>📜 Title Chain & Ownership</span>
+                    <span class="${_findingsCategoryFilter === 'title_chain' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'id_validation')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🆔 Aadhaar / PAN Format</span>
-                    <span class="${_findingsCategoryFilter === 'id_validation' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
-                  </button>
-                  <button onclick="setFindingsFilter('category', 'date_validation')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>📅 Date Format & Validity</span>
-                    <span class="${_findingsCategoryFilter === 'date_validation' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'financial')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>💰 Financial & Valuation</span>
+                    <span class="${_findingsCategoryFilter === 'financial' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
                   <button onclick="setFindingsFilter('category', 'supporting_docs')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
                     <span>📎 Supporting Documents</span>
@@ -6801,15 +6848,24 @@
 
 
 
+    let rawSev = (err.severity || '').toUpperCase();
     let sevLabel = 'Documentation Conflict';
-    if (sev === 'voidance') sevLabel = 'Voidance Hazard';
-    else if (sev === 'dispute') sevLabel = 'Ownership Dispute Risk';
-    else if (sev === 'liability') sevLabel = 'Financial Liability';
-    else if (sev === 'informational') sevLabel = 'Informational Log';
+    let sevBadgeCls = 'border-slate-200 bg-white text-slate-700';
 
-    const sevBadgeCls = isDismissed 
-      ? 'border-zinc-200 bg-zinc-50 text-zinc-400 line-through' 
-      : 'border-zinc-200 bg-white text-zinc-700';
+    if (rawSev === 'ERROR' || sev === 'voidance' || sev === 'dispute') {
+      sevLabel = 'High Risk';
+      sevBadgeCls = 'border-rose-200 bg-rose-50 text-rose-800 font-semibold';
+    } else if (rawSev === 'WARNING' || sev === 'liability') {
+      sevLabel = 'Medium Risk';
+      sevBadgeCls = 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
+    } else {
+      sevLabel = 'Low Risk';
+      sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-semibold';
+    }
+
+    if (isDismissed) {
+      sevBadgeCls = 'border-slate-200 bg-slate-50 text-slate-400 line-through';
+    }
 
 
 
