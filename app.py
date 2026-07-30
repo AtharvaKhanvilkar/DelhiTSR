@@ -5288,6 +5288,24 @@ def sorter_attach(project_name):
     if not pages:
         return jsonify({"ok": False, "error": "No pages selected to attach."}), 400
 
+    # If attaching the primary deed instrument, also bundle any annexed AADHAAR_CARD or PAN_CARD pages from the manifest!
+    is_primary_deed = "deed" in doc_label.lower() or "sale" in doc_label.lower() or "conveyance" in doc_label.lower() or "mortgage" in doc_label.lower() or "gift" in doc_label.lower()
+    
+    target_pages = list(pages)
+    if is_primary_deed:
+        manifest_path = os.path.join(project_path, SORTER_SUBDIR, "manifest.json")
+        if os.path.exists(manifest_path):
+            try:
+                with open(manifest_path, "r", encoding="utf-8") as f:
+                    manifest_data = json.load(f).get("manifest", {})
+                for p in manifest_data.get("pages", []):
+                    ptype = (p.get("type") or "").upper()
+                    if ptype in ("AADHAAR_CARD", "PAN_CARD") and p.get("page") not in target_pages:
+                        target_pages.append(p.get("page"))
+                target_pages = sorted(list(set(target_pages)))
+            except Exception as e:
+                print("[sorter_attach] Warning: Could not merge ID card pages from manifest:", e)
+
     stem = os.path.splitext(fname)[0]
     clean_label = re.sub(r'[^a-zA-Z0-9_\-]', '_', doc_label).strip('_').lower() or "extract"
     out_name = f"{stem}_{clean_label}.pdf"
@@ -5298,7 +5316,7 @@ def sorter_attach(project_name):
         out_path = os.path.join(project_path, out_name)
         i += 1
     try:
-        count = _build_refined_pdf(src, pages, out_path)
+        count = _build_refined_pdf(src, target_pages, out_path)
     except Exception as e:
         return jsonify({"ok": False, "error": f"Could not build extract PDF: {e}"}), 500
     return jsonify({"ok": True, "filename": out_name, "page_count": count})

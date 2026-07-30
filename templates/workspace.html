@@ -4784,12 +4784,11 @@
 
 
 
+        window._lastRenderedEventsData = data;
+
         const findings           = data.chain_errors || [];
-
-        const activeFindings     = findings.filter(f => !f.dismissed);
-
-        const dismissedFindings  = findings.filter(f => f.dismissed);
-
+        const activeFindings     = applyFindingsFilter(findings.filter(f => !f.dismissed));
+        const dismissedFindings  = applyFindingsFilter(findings.filter(f => f.dismissed));
         const findingsCount      = activeFindings.length;
 
         const encumbrancesTotal   = data.encumbrances_total || 0;
@@ -5165,15 +5164,64 @@
         html += `
 
           <div class="mt-8">
+            <div class="flex items-center justify-between gap-2.5 mb-3 px-1 relative">
+              <div class="flex items-center gap-2.5">
+                <h3 class="text-sm font-semibold tracking-tight">Findings</h3>
+                <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums text-secondary-foreground">${findingsCount}</span>
+                ${dismissedFindings.length > 0 ? `<span class="text-xs text-muted-foreground/70">· ${dismissedFindings.length} dismissed</span>` : ''}
+              </div>
 
-            <div class="flex items-center gap-2.5 mb-3 px-1">
+              <!-- Filter Dropdown Trigger & Menu -->
+              <div class="relative inline-block text-left">
+                <button onclick="toggleFindingsFilterMenu(event)" class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 font-medium text-xs shadow-2xs transition-all cursor-pointer select-none">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  <span>Filter</span>
+                  <span id="findings-filter-badge" class="${_findingsSeverityFilter === 'all' && _findingsCategoryFilter === 'all' ? 'hidden' : ''} h-1.5 w-1.5 rounded-full bg-slate-700"></span>
+                </button>
 
-              <h3 class="text-sm font-semibold tracking-tight">Findings</h3>
+                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Severity</div>
+                  <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>All Severities</span>
+                    <span class="${_findingsSeverityFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('severity', 'ERROR')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔴 Errors Only</span>
+                    <span class="${_findingsSeverityFilter === 'ERROR' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('severity', 'WARNING')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟡 Warnings Only</span>
+                    <span class="${_findingsSeverityFilter === 'WARNING' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
 
-              <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums text-secondary-foreground">${findingsCount}</span>
-
-              ${dismissedFindings.length > 0 ? `<span class="text-xs text-muted-foreground/70">· ${dismissedFindings.length} dismissed</span>` : ''}
-
+                  <div class="border-t border-slate-100 my-1"></div>
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Rule Category</div>
+                  <button onclick="setFindingsFilter('category', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>All Categories</span>
+                    <span class="${_findingsCategoryFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('category', 'party_identity')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>👤 Party Identity & Name</span>
+                    <span class="${_findingsCategoryFilter === 'party_identity' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('category', 'age_validation')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🎂 Age & DOB Validation</span>
+                    <span class="${_findingsCategoryFilter === 'age_validation' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('category', 'id_validation')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🆔 Aadhaar / PAN Format</span>
+                    <span class="${_findingsCategoryFilter === 'id_validation' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('category', 'date_validation')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>📅 Date Format & Validity</span>
+                    <span class="${_findingsCategoryFilter === 'date_validation' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('category', 'supporting_docs')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>📎 Supporting Documents</span>
+                    <span class="${_findingsCategoryFilter === 'supporting_docs' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                </div>
+              </div>
             </div>`;
 
 
