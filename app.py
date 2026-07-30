@@ -190,7 +190,42 @@ def check_project_owner(project_name):
     if not current_user.is_authenticated:
         return False
     proj = Project.query.filter_by(project_name=project_name, user_id=current_user.id).first()
-    return proj is not None
+    if proj is None:
+        proj_prefix = Project.query.filter(Project.project_name.startswith(project_name), Project.user_id == current_user.id).first()
+        if proj_prefix:
+            return True
+        folder_path = os.path.join(PROJECT_FOLDER, project_name)
+        if os.path.exists(folder_path):
+            existing = Project.query.filter_by(project_name=project_name).first()
+            if not existing:
+                proj = Project(project_name=project_name, user_id=current_user.id)
+                db.session.add(proj)
+                db.session.commit()
+                return True
+            elif existing.user_id != current_user.id:
+                existing.user_id = current_user.id
+                db.session.commit()
+                return True
+        return False
+    return True
+
+@app.errorhandler(403)
+def forbidden_error(e):
+    if request.path.startswith('/api/'):
+        return jsonify({'ok': False, 'error': 'Permission denied or project ownership error.'}), 403
+    return render_template('login.html'), 403
+
+@app.errorhandler(404)
+def not_found_error(e):
+    if request.path.startswith('/api/'):
+        return jsonify({'ok': False, 'error': 'API endpoint or resource not found.'}), 404
+    return render_template('login.html'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    if request.path.startswith('/api/'):
+        return jsonify({'ok': False, 'error': 'Internal server error.'}), 500
+    return render_template('login.html'), 500
 
 with app.app_context():
     inspector = db.inspect(db.engine)

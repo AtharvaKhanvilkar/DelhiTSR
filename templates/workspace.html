@@ -8955,9 +8955,13 @@
         showDorisState('results');
       }
 
-      // Automatically load fresh CAPTCHA for restored SRO and Locality
-      if (state.sroVal && state.sroVal !== '0' && state.locVal && state.locVal !== '0') {
-        loadCaptchaAndYears(state.sroVal, state.locVal, false);
+      // Automatically load fresh localities / CAPTCHA for restored SRO
+      if (state.sroVal && state.sroVal !== '0') {
+        if (state.locVal && state.locVal !== '0') {
+          loadCaptchaAndYears(state.sroVal, state.locVal, false);
+        } else {
+          onSroSelected(state.sroVal);
+        }
       }
       
       return true;
@@ -9024,12 +9028,35 @@
           });
           
           dorisSessionActive = true;
+
+          // Re-sync SRO ID against official portal list & auto-trigger locality fetch if SRO is selected
+          const sroHidden = document.getElementById('doris-sro');
+          const sroInput = document.getElementById('doris-sro-input');
+          const curVal = sroHidden.value;
+          const curText = (sroInput.value || '').trim();
+
+          if (curText) {
+            const match = _dorisTypeaheadData.sro.find(s => s.id === curVal) ||
+                          _dorisTypeaheadData.sro.find(s => s.name.toLowerCase() === curText.toLowerCase()) ||
+                          _dorisTypeaheadData.sro.find(s => s.name.toLowerCase().includes(curText.toLowerCase()));
+            if (match) {
+              sroHidden.value = match.id;
+              sroInput.value = match.name;
+              
+              const locVal = document.getElementById('doris-locality').value;
+              if (locVal && locVal !== '0') {
+                onLocalitySelected(match.id, locVal);
+              } else {
+                onSroSelected(match.id);
+              }
+            }
+          }
         } else {
           showDorisError('Failed to load SROs', data.error || 'Server session failed to initialize');
         }
       })
       .catch(err => {
-        showDorisError('Connection Error', 'Could not establish session with government registry');
+        showDorisError('Connection Error', (err && err.message) || 'Could not establish session with government registry');
       });
   }
 
@@ -9125,10 +9152,14 @@
           onLocalitySelected(sroVal, opt.id);
         });
       } else {
+        locInput.placeholder = 'Failed to load localities';
         showDorisError('Locality Load Failed', data.error || 'Failed to fetch locality records');
       }
     })
-    .catch(() => showDorisError('Connection Error', 'Failed to retrieve locality listings'));
+    .catch((err) => {
+      locInput.placeholder = 'Failed to load localities';
+      showDorisError('Connection Error', (err && err.message) || 'Failed to retrieve locality listings');
+    });
   }
 
   // ── Cascade: Locality selected → load years + captcha ──
