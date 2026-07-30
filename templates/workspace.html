@@ -2491,7 +2491,6 @@
 
                       <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
 
-
                     </button>
 
                   </div>
@@ -2524,24 +2523,24 @@
       <!-- Dedicated Panel for Deed Document Scan Extractor (Native Custom UI) -->
       <!-- Document Sorter Panel -->
       <div class="panel" id="panel-sorter">
-        <div class="flex flex-col h-full bg-white p-6 overflow-y-auto">
+        <div class="flex flex-col h-full bg-slate-50/40 p-6 overflow-y-auto">
           <!-- Header -->
-          <div class="mb-5 flex items-center justify-between border-b border-zinc-100 pb-3.5">
+          <div class="mb-5 flex items-center justify-between border-b border-slate-200/80 pb-3.5">
             <div>
-              <h3 class="text-base font-bold text-zinc-900 tracking-tight">Document Sorter</h3>
-              <p class="text-xs text-zinc-500 mt-0.5">Upload an uncleaned bundle PDF to automatically separate the primary deed instrument from supporting extracts.</p>
+              <h3 class="text-base font-bold text-slate-900 tracking-tight">Document Sorter</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Upload an uncleaned bundle PDF to automatically separate the primary deed instrument from supporting extracts.</p>
             </div>
           </div>
 
           <!-- Minimalist Upload Control Card -->
-          <div id="sorter-upload-card" class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-5 mb-5 transition-all">
+          <div id="sorter-upload-card" class="rounded-xl border border-slate-200/90 bg-white p-5 mb-5 shadow-2xs transition-all">
             <div class="flex flex-wrap items-center gap-3">
-              <label for="sorter-file" class="flex-1 flex items-center justify-between h-9 px-3 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-700 cursor-pointer hover:border-zinc-300 transition-all shadow-2xs">
-                <span id="sorter-file-name-display" class="truncate font-medium text-zinc-500">Select raw PDF bundle file...</span>
-                <span class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 font-semibold text-[11px] shrink-0">Browse</span>
+              <label for="sorter-file" class="flex-1 flex items-center justify-between h-9 px-3 rounded-lg border border-slate-200 bg-slate-50/50 text-xs text-slate-700 cursor-pointer hover:border-slate-300 transition-all shadow-2xs">
+                <span id="sorter-file-name-display" class="truncate font-medium text-slate-500">Select raw PDF bundle file...</span>
+                <span class="px-2.5 py-1 rounded bg-slate-200/70 text-slate-800 font-semibold text-[11px] shrink-0">Browse</span>
                 <input type="file" id="sorter-file" accept="application/pdf" class="hidden" onchange="onSorterFileSelected(this)">
               </label>
-              <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800 transition-all cursor-pointer shrink-0">
+              <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-slate-700 text-xs font-semibold text-white hover:bg-slate-800 shadow-2xs transition-all cursor-pointer shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
                 <span>Sort & Classify Document</span>
               </button>
@@ -10109,6 +10108,52 @@
     return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-200">${label}</span>`;
   }
 
+  let _sorterPreviewPages = [];
+  let _sorterPreviewLabel = '';
+
+  function sorterPreviewDoc(pages, label) {
+    if (!_sorterFilename || !pages || !pages.length) return;
+    _sorterPreviewPages = pages;
+    _sorterPreviewLabel = label;
+
+    const modal = document.getElementById('sorter-preview-modal');
+    const title = document.getElementById('sorter-preview-title');
+    const subtitle = document.getElementById('sorter-preview-subtitle');
+    const iframe = document.getElementById('sorter-preview-iframe');
+
+    if (title) title.textContent = `Preview Extract: ${label}`;
+    if (subtitle) subtitle.textContent = `${pages.length} Page(s) • Pages ${pages.join(', ')}`;
+    if (iframe) iframe.src = 'about:blank';
+    if (modal) modal.classList.remove('hidden');
+
+    fetch(`/sorter/preview/${projectName}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: _sorterFilename, pages: pages, doc_label: label })
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) throw new Error(d.error || 'Failed to generate preview PDF');
+        if (iframe) iframe.src = d.pdf_url;
+      })
+      .catch(e => {
+        if (typeof showToast === 'function') showToast('Preview Error', e.message, 'error');
+      });
+  }
+
+  function closeSorterPreviewModal() {
+    const modal = document.getElementById('sorter-preview-modal');
+    const iframe = document.getElementById('sorter-preview-iframe');
+    if (iframe) iframe.src = 'about:blank';
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function sorterAttachFromPreview() {
+    if (!_sorterPreviewPages || !_sorterPreviewPages.length) return;
+    sorterAttachDoc(_sorterPreviewPages, _sorterPreviewLabel, 'sorter-preview-attach-btn');
+    closeSorterPreviewModal();
+  }
+
   function renderSorterManifest(m) {
     const results = document.getElementById('sorter-results');
     if (!results || !m) return;
@@ -10120,58 +10165,67 @@
 
     let html = '';
 
-    // 1. Unified Minimal Summary Strip & Primary Deed Action
+    // 1. Primary Deed Summary Bar with Slate Grey Buttons
     html += `
-      <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-2xs">
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="flex items-center gap-3.5 min-w-0">
-            <div class="h-10 w-10 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
+            <div class="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center shrink-0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-zinc-900 truncate">${instr.label || 'Deed Instrument'}</span>
+                <span class="text-xs font-bold text-slate-900 truncate">${instr.label || 'Deed Instrument'}</span>
                 <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-semibold text-[10px] border border-emerald-200">Primary Instrument</span>
               </div>
-              <div class="text-[11px] text-zinc-500 mt-0.5 flex flex-wrap items-center gap-2">
+              <div class="text-[11px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
                 <span>${_sorterInstrumentPages.length} Page(s) (${pagesTxt(_sorterInstrumentPages)})</span>
-                <span class="text-zinc-300">•</span>
+                <span class="text-slate-300">•</span>
                 <span>${m.total_pages} Total Bundle Pages</span>
-                ${m.blanks && m.blanks.length ? `<span class="text-zinc-300">•</span><span>${m.blanks.length} Blank Pages Filtered</span>` : ''}
+                ${m.blanks && m.blanks.length ? `<span class="text-slate-300">•</span><span>${m.blanks.length} Blank Pages Filtered</span>` : ''}
               </div>
             </div>
           </div>
-          <button id="sorter-attach-deed-btn" onclick="sorterAttachDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}', 'sorter-attach-deed-btn')" ${_sorterInstrumentPages.length ? '' : 'disabled'} class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 font-semibold text-xs transition-all cursor-pointer disabled:opacity-40 shrink-0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Attach Primary Deed to Project</span>
-          </button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="sorterPreviewDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}')" class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-medium text-xs transition-all cursor-pointer">
+              <span>👁️ Preview Deed</span>
+            </button>
+            <button id="sorter-attach-deed-btn" onclick="sorterAttachDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}', 'sorter-attach-deed-btn')" ${_sorterInstrumentPages.length ? '' : 'disabled'} class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-slate-700 text-white hover:bg-slate-800 font-semibold text-xs transition-all cursor-pointer disabled:opacity-40">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Attach Deed</span>
+            </button>
+          </div>
         </div>
       </div>`;
 
-    // 2. Supporting Document Extracts List (Clean Slate Cards)
+    // 2. Supporting Document Extracts List (Clean Slate Design + Dual Preview/Attach Buttons)
     if (supporting && supporting.length) {
       html += `
         <div>
-          <h4 class="text-xs font-bold text-zinc-900 uppercase tracking-wider mb-2.5">Supporting Document Extracts (${supporting.length})</h4>
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5">Supporting Document Extracts (${supporting.length})</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">`;
 
       supporting.forEach((s, idx) => {
         const btnId = `sorter-attach-sup-${idx}`;
         html += `
-          <div class="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-2xs hover:border-zinc-300 transition-all">
+          <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-2xs hover:border-slate-300 transition-all">
             <div class="flex items-center gap-2.5 min-w-0 flex-1">
-              <span class="h-7 w-7 rounded bg-zinc-100 text-zinc-600 border border-zinc-200 flex items-center justify-center shrink-0">
+              <span class="h-7 w-7 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
               </span>
               <div class="min-w-0 flex-1">
-                <div class="text-xs font-semibold text-zinc-900 truncate">${s.label}</div>
-                <div class="text-[11px] text-zinc-500 font-medium">${s.pages.length} Page(s) • ${pagesTxt(s.pages)}</div>
+                <div class="text-xs font-semibold text-slate-900 truncate">${s.label}</div>
+                <div class="text-[11px] text-slate-500 font-medium">${s.pages.length} Page(s) • ${pagesTxt(s.pages)}</div>
               </div>
             </div>
-            <button id="${btnId}" onclick="sorterAttachDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}', '${btnId}')" class="inline-flex items-center gap-1.5 h-7.5 px-3 rounded bg-zinc-100 border border-zinc-200 text-zinc-800 hover:bg-zinc-200 text-[11px] font-semibold transition-all cursor-pointer shrink-0">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Attach</span>
-            </button>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="sorterPreviewDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}')" class="inline-flex items-center justify-center h-7.5 px-2.5 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-[11px] font-medium transition-all cursor-pointer">
+                <span>👁️ View</span>
+              </button>
+              <button id="${btnId}" onclick="sorterAttachDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}', '${btnId}')" class="inline-flex items-center justify-center h-7.5 px-2.5 rounded bg-slate-700 text-white hover:bg-slate-800 text-[11px] font-semibold transition-all cursor-pointer">
+                <span>Attach</span>
+              </button>
+            </div>
           </div>`;
       });
 
@@ -10180,28 +10234,28 @@
         </div>`;
     }
 
-    // 3. Collapsible Per-Page Decision Log (Hidden by default to eliminate clutter!)
+    // 3. Collapsible Per-Page Decision Log
     if (m.pages && m.pages.length) {
       html += `
-        <details class="rounded-xl border border-zinc-200 bg-white overflow-hidden group">
-          <summary class="flex items-center justify-between px-4 py-3 bg-zinc-50/70 border-b border-zinc-200/80 cursor-pointer select-none">
-            <span class="text-xs font-semibold text-zinc-700">▶ Page-by-Page Classification Trace (${m.pages.length} Pages)</span>
-            <span class="text-[11px] text-zinc-400 font-normal">Click to expand AI decision log</span>
+        <details class="rounded-xl border border-slate-200 bg-white overflow-hidden group">
+          <summary class="flex items-center justify-between px-4 py-3 bg-slate-50/70 border-b border-slate-200/80 cursor-pointer select-none">
+            <span class="text-xs font-semibold text-slate-700">▶ Page-by-Page Classification Trace (${m.pages.length} Pages)</span>
+            <span class="text-[11px] text-slate-400 font-normal">Click to expand AI decision log</span>
           </summary>
-          <div class="divide-y divide-zinc-100 max-h-80 overflow-y-auto">`;
+          <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">`;
 
       m.pages.forEach(p => {
         const confPct = Math.round((p.confidence || 0) * 100);
         const badgeHtml = getDocCategoryBadge(p.type, p.label);
 
         html += `
-          <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-zinc-50/50 text-xs">
+          <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-slate-50/50 text-xs">
             <div class="flex items-center gap-3 min-w-0 flex-1">
-              <span class="font-mono text-zinc-400 text-[11px] w-12 shrink-0">PG ${p.page}</span>
+              <span class="font-mono text-slate-400 text-[11px] w-12 shrink-0">PG ${p.page}</span>
               <div class="shrink-0">${badgeHtml}</div>
-              <span class="text-zinc-600 truncate text-[11px] flex-1">${p.reason || 'No reasoning captured'}</span>
+              <span class="text-slate-600 truncate text-[11px] flex-1">${p.reason || 'No reasoning captured'}</span>
             </div>
-            <span class="font-mono text-zinc-400 text-[10px] shrink-0">${confPct}%</span>
+            <span class="font-mono text-slate-400 text-[10px] shrink-0">${confPct}%</span>
           </div>`;
       });
 
@@ -10236,7 +10290,7 @@
         if (btn) {
           const span = btn.querySelector('span');
           if (span) span.textContent = 'Attached ✓';
-          btn.classList.remove('bg-zinc-900', 'bg-zinc-100', 'text-white', 'text-zinc-800');
+          btn.classList.remove('bg-slate-700', 'bg-slate-100', 'text-white', 'text-slate-800');
           btn.classList.add('bg-emerald-600', 'text-white');
         }
         if (status) status.textContent = `✓ Attached "${d.filename}" (${d.page_count} pages) to project Attachments.`;

@@ -5149,5 +5149,38 @@ def sorter_attach(project_name):
     return jsonify({"ok": True, "filename": out_name, "page_count": count})
 
 
+@app.route("/sorter/preview/<project_name>", methods=["POST"])
+@login_required
+def sorter_preview(project_name):
+    """Generate a temporary preview PDF for a specific page range (deed or supporting doc extract)."""
+    if not check_project_owner(project_name):
+        abort(403)
+    data = request.get_json(silent=True) or {}
+    fname = data.get("filename", "")
+    pages = data.get("pages") or []
+    doc_label = data.get("doc_label") or "extract"
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    src = os.path.join(project_path, SORTER_SUBDIR, fname)
+    if not fname or not os.path.exists(src):
+        return jsonify({"ok": False, "error": "Uploaded bundle not found."}), 404
+    if not pages:
+        return jsonify({"ok": False, "error": "No pages selected for preview."}), 400
+
+    clean_label = re.sub(r'[^a-zA-Z0-9_\-]', '_', doc_label).strip('_').lower() or "extract"
+    out_name = f"_preview_{clean_label}.pdf"
+    out_path = os.path.join(project_path, out_name)
+    try:
+        count = _build_refined_pdf(src, pages, out_path)
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Could not build preview PDF: {e}"}), 500
+    return jsonify({
+        "ok": True,
+        "filename": out_name,
+        "pdf_url": f"/pdf/{project_name}/{out_name}",
+        "page_count": count,
+        "doc_label": doc_label
+    })
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
