@@ -28,9 +28,99 @@ def make_session_permanent():
 
 db = SQLAlchemy(app)
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Aadhaar protection: mask for display, store the full value encrypted (Fernet).
+# Plaintext Aadhaar is NEVER written to disk. The audit decrypts in-memory only
+# when it needs to compare two Aadhaar values, then discards the plaintext.
+# Set AADHAAR_ENC_KEY in the environment for production; dev falls back to the
+# app SECRET_KEY so it works out of the box.
+# ──────────────────────────────────────────────────────────────────────────────
+import base64 as _b64lib
+import hashlib as _hashlib
+from cryptography.fernet import Fernet as _Fernet
+
+
+def _aadhaar_fernet():
+    key_material = os.getenv("AADHAAR_ENC_KEY") or app.config["SECRET_KEY"]
+    digest = _hashlib.sha256(key_material.encode("utf-8")).digest()
+    return _Fernet(_b64lib.urlsafe_b64encode(digest))
+
+
+def _aadhaar_digits(value):
+    """Return a clean 12-digit Aadhaar string, or None if it isn't exactly 12 digits."""
+    if value is None:
+        return None
+    d = re.sub(r"\D", "", str(value))
+    return d if len(d) == 12 else None
+
+
+def _aadhaar_mask(value):
+    d = _aadhaar_digits(value)
+    return f"XXXX-XXXX-{d[-4:]}" if d else None
+
+
+def _aadhaar_encrypt(value):
+    d = _aadhaar_digits(value)
+    if not d:
+        return None
+    try:
+        return _aadhaar_fernet().encrypt(d.encode("utf-8")).decode("utf-8")
+    except Exception:
+        return None
+
+
+def _aadhaar_decrypt(token):
+    if not token:
+        return None
+    try:
+        return _aadhaar_fernet().decrypt(str(token).encode("utf-8")).decode("utf-8")
+    except Exception:
+        return None
+
+
+def _protect_aadhaar(result):
+    """In-place: replace every plaintext Aadhaar in a parsed result with a masked
+    display value + an encrypted token. Anything that isn't a clean 12-digit value
+    is dropped rather than stored partially. Safe to call more than once (already
+    masked values have no 12-digit form, so they're left alone)."""
+    if not isinstance(result, dict):
+        return result
+
+    def _protect_person(obj):
+        if not isinstance(obj, dict):
+            return
+        raw = obj.get("aadhaar")
+        d = _aadhaar_digits(raw)
+        if d:
+            obj["aadhaar"] = _aadhaar_mask(d)
+            obj["aadhaar_enc"] = _aadhaar_encrypt(d)
+        elif raw is not None and "aadhaar_enc" not in obj:
+            # Not a clean Aadhaar and not already protected -> don't keep a partial.
+            obj["aadhaar"] = None
+
+    for key in ("transferor_parties", "transferee_parties", "witnesses"):
+        for person in (result.get(key) or []):
+            _protect_person(person)
+
+    for idp in (result.get("annexed_id_proofs") or []):
+        if isinstance(idp, dict) and str(idp.get("id_type", "")).lower() == "aadhaar":
+            d = _aadhaar_digits(idp.get("id_value"))
+            if d:
+                idp["id_value"] = _aadhaar_mask(d)
+                idp["id_value_enc"] = _aadhaar_encrypt(d)
+            elif "id_value_enc" not in idp:
+                idp["id_value"] = None
+    return result
+
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    if request.path.startswith('/api/'):
+        return jsonify({'ok': False, 'error': 'Session expired. Please sign in again.'}), 401
+    return redirect(url_for('login'))
 
 # Database Models
 class User(UserMixin, db.Model):
@@ -1119,6 +1209,9 @@ def parse(project_name, filename):
         result = parse_index_ii(file_path)
         if result is None:
             return jsonify({"error": "Could not parse document"})
+        # Mask + encrypt Aadhaar BEFORE anything is written or returned, so the
+        # plaintext never reaches the disk or the browser.
+        _protect_aadhaar(result)
         # Save result to disk WITH a "parsed" marker so we can
         # distinguish freshly-parsed results from stale files on disk.
         # Provisional results (low-confidence classification) get flagged
@@ -1230,7 +1323,12 @@ def save_result(project_name, filename):
         
     result_filename = os.path.splitext(filename)[0] + "_result.json"
     result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
-    
+
+    # Re-protect Aadhaar on any user-edited save, whether the payload is a bare
+    # data dict or a {"parsed":..., "data":...} envelope. Plaintext never persists.
+    if isinstance(payload, dict):
+        _protect_aadhaar(payload.get("data") if isinstance(payload.get("data"), dict) else payload)
+
     try:
         with open(result_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2)
@@ -1316,13 +1414,7 @@ def api_doris_select(project_name):
     loc_val = payload.get("loc_val")
     
     session_obj = DORIS_SESSIONS.get(project_name)
-    if not session_obj:
-        session_obj = DorisScraperSession()
-        res = session_obj.start_session()
-        if not res.get("ok"):
-            return jsonify({"ok": False, "error": "Could not establish server session"}), 500
-        DORIS_SESSIONS[project_name] = session_obj
-        
+    
     if step == "sro_selected":
         session_obj = DorisScraperSession()
         res = session_obj.start_session()
@@ -1332,6 +1424,13 @@ def api_doris_select(project_name):
         res = session_obj.select_sro(sro_val)
         return jsonify(res)
     elif step == "locality_selected":
+        if not session_obj or not getattr(session_obj, 'viewstate', None):
+            session_obj = DorisScraperSession()
+            res = session_obj.start_session()
+            if not res.get("ok"):
+                return jsonify({"ok": False, "error": "Could not establish server session"}), 500
+            DORIS_SESSIONS[project_name] = session_obj
+            session_obj.select_sro(sro_val)
         res = session_obj.select_locality(sro_val, loc_val)
         return jsonify(res)
     else:
@@ -1353,8 +1452,14 @@ def api_doris_search(project_name):
     captcha_text = payload.get("captcha_text")
     
     session_obj = DORIS_SESSIONS.get(project_name)
-    if not session_obj:
-        return jsonify({"ok": False, "error": "Scraper session not initialized. Please refresh the page."}), 400
+    if not session_obj or not getattr(session_obj, 'viewstate', None):
+        session_obj = DorisScraperSession()
+        res = session_obj.start_session()
+        if not res.get("ok"):
+            return jsonify({"ok": False, "error": "Scraper session not initialized. Please refresh the page."}), 400
+        session_obj.select_sro(sro_val)
+        session_obj.select_locality(sro_val, loc_val)
+        DORIS_SESSIONS[project_name] = session_obj
         
     res = session_obj.execute_search(sro_val, loc_val, year_val, params, captcha_text)
     return jsonify(res)
@@ -2057,6 +2162,275 @@ def _is_govt_authority(name):
     return any(kw in name_lower for kw in gov_kws)
 
 
+def _phase1_supporting_checks(data, source):
+    """
+    Phase-1 audit checks a single document can prove AGAINST ITSELF — no external
+    rate tables, no cross-document state. Every check is heavily gated: it fires
+    ONLY on data that is present and legible, and stays silent whenever anything is
+    missing or ambiguous, so it cannot raise a false positive.
+
+    Returns a list of finding dicts (same shape as the rest of the engine).
+    Findings about annexed supporting documents carry category="supporting_docs"
+    so the UI can route them into their own section.
+    """
+    findings = []
+    if not isinstance(data, dict):
+        return findings
+
+    doc_no = data.get("doc_no")
+    ev_date = data.get("date_of_execution")
+
+    def add(sev, code, msg, expected=None, actual=None, category=None):
+        f = {"severity": sev, "type": code, "doc_no": doc_no,
+             "event_date": ev_date, "source": source, "message": msg}
+        if expected is not None:
+            f["expected"] = expected
+        if actual is not None:
+            f["actual"] = actual
+        if category:
+            f["category"] = category
+        findings.append(f)
+
+    def num(v):
+        return _parse_money(v)
+
+    def close(a, b, tol_frac=0.01, tol_abs=1000.0):
+        """True/False if both known, None if either is unknown (can't judge)."""
+        if a is None or b is None:
+            return None
+        return abs(a - b) <= max(tol_abs, abs(b) * tol_frac)
+
+    def norm_name(s):
+        if not s:
+            return ""
+        s = str(s).upper()
+        s = re.sub(r"\bALIAS\b.*$", "", s)  # keep the primary name only
+        s = re.sub(r"\b(MR|MRS|MS|SH|SHRI|SMT|KM|KUMARI|LATE|M/S)\b", " ", s)
+        s = re.sub(r"[^A-Z0-9 ]", " ", s)
+        return re.sub(r"\s+", " ", s).strip()
+
+    def name_tokens(s):
+        return set(t for t in norm_name(s).split() if len(t) > 1)
+
+    def names_match(a, b):
+        """Lenient on purpose: loose pairing means fewer false 'mismatch'/'missing'."""
+        ta, tb = name_tokens(a), name_tokens(b)
+        if not ta or not tb:
+            return False
+        inter = ta & tb
+        return len(inter) >= 2 or (len(inter) >= 1 and (inter == ta or inter == tb))
+
+    def to_date(s):
+        if not s:
+            return None
+        from datetime import datetime as _dt
+        s = str(s).strip()
+        for fmt in ("%d-%m-%Y", "%d/%m/%Y", "%d.%m.%Y", "%d-%b-%Y", "%d %b %Y",
+                    "%d-%B-%Y", "%Y-%m-%d"):
+            try:
+                return _dt.strptime(s, fmt)
+            except Exception:
+                pass
+        m = re.search(r"(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})", s)
+        if m:
+            try:
+                return _dt(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+            except Exception:
+                return None
+        return None
+
+    parties = [p for p in (data.get("transferor_parties") or []) if isinstance(p, dict)] + \
+              [p for p in (data.get("transferee_parties") or []) if isinstance(p, dict)]
+
+    # ===== Party identity vs annexed ID proofs =====
+    id_proofs = [x for x in (data.get("annexed_id_proofs") or []) if isinstance(x, dict)]
+    have_id_section = len(id_proofs) > 0
+
+    def id_proofs_for(person_name, id_type):
+        return [i for i in id_proofs
+                if str(i.get("id_type", "")).lower() == id_type
+                and names_match(person_name, i.get("person_name"))]
+
+    for p in parties:
+        pname = p.get("name")
+        if not pname:
+            continue
+        deed_pan = (p.get("pan") or "").strip().upper()
+        if deed_pan:
+            matches = [i for i in id_proofs_for(pname, "pan") if (i.get("id_value") or "").strip()]
+            if len(matches) == 1:
+                card_pan = matches[0]["id_value"].strip().upper()
+                if card_pan and card_pan != deed_pan:
+                    add("ERROR", "ID_PROOF_PAN_MISMATCH",
+                        f"PAN for {pname} differs between the deed ({deed_pan}) and the attached PAN card ({card_pan}).",
+                        expected=deed_pan, actual=card_pan, category="supporting_docs")
+        deed_dob = to_date(p.get("dob"))
+        if deed_dob:
+            for idp in (id_proofs_for(pname, "pan") + id_proofs_for(pname, "aadhaar")):
+                card_dob = to_date(idp.get("dob"))
+                if card_dob and card_dob != deed_dob:
+                    add("WARNING", "ID_PROOF_DOB_MISMATCH",
+                        f"Date of birth for {pname} differs between the deed and an attached ID ({p.get('dob')} vs {idp.get('dob')}).",
+                        expected=str(p.get("dob")), actual=str(idp.get("dob")), category="supporting_docs")
+                    break
+        if have_id_section and not id_proofs_for(pname, "pan") and not id_proofs_for(pname, "aadhaar"):
+            add("INFO", "ID_PROOF_MISSING",
+                f"No attached ID proof (Aadhaar/PAN) found for {pname}, although other parties' IDs are present in the bundle.",
+                category="supporting_docs")
+
+    # ===== Witnesses =====
+    witnesses = [w for w in (data.get("witnesses") or []) if isinstance(w, dict)]
+    if len(witnesses) == 1:  # 0 => page likely not captured, stay silent
+        add("WARNING", "INSUFFICIENT_WITNESSES",
+            "Only one attesting witness was detected. Registered deeds require at least two — verify the second witness.",
+            expected="At least 2 witnesses", actual="1 detected", category="supporting_docs")
+
+    party_aadhaars = set(filter(None, (_aadhaar_decrypt(p.get("aadhaar_enc")) for p in parties)))
+    for w in witnesses:
+        wname = w.get("name")
+        w_aad = _aadhaar_decrypt(w.get("aadhaar_enc"))
+        if w_aad and w_aad in party_aadhaars:
+            add("ERROR", "WITNESS_IS_PARTY",
+                f"Witness {(wname or '').strip()} shares an Aadhaar with a transacting party — a witness must be independent.".strip(),
+                category="supporting_docs")
+            continue
+        if wname:
+            for p in parties:
+                if p.get("name") and len(name_tokens(wname) & name_tokens(p.get("name"))) >= 2:
+                    add("WARNING", "WITNESS_IS_PARTY",
+                        f"Witness '{wname}' appears to match a transacting party '{p.get('name')}' — verify the witness is independent.",
+                        category="supporting_docs")
+                    break
+
+    # ===== Annexed utility bills =====
+    for bill in (data.get("utility_bills") or []):
+        if not isinstance(bill, dict):
+            continue
+        utype = (bill.get("utility_type") or "utility").strip()
+        arr = num(bill.get("arrears"))
+        if arr is not None and arr > 1:
+            add("WARNING", "UTILITY_ARREARS_OUTSTANDING",
+                f"The attached {utype} bill shows outstanding arrears of ₹{arr:,.2f}. The deed makes the seller liable for pre-sale dues — confirm they are cleared.",
+                expected="₹0 arrears at transfer", actual=f"₹{arr:,.2f}", category="supporting_docs")
+        consumer = bill.get("consumer_name")
+        if consumer and parties and not any(names_match(consumer, p.get("name")) for p in parties if p.get("name")):
+            add("WARNING", "OCCUPANT_NOT_PARTY",
+                f"The attached {utype} bill is billed to '{consumer}', who does not match any buyer or seller on the deed — verify who is in possession.",
+                actual=consumer, category="supporting_docs")
+
+    # ===== Property tax receipt =====
+    ptax = data.get("property_tax")
+    if isinstance(ptax, dict) and any(ptax.get(k) for k in ("upic", "receipt_no", "amount", "financial_year")):
+        if not ptax.get("paid_date") and num(ptax.get("amount")) is None:
+            add("WARNING", "PROPERTY_TAX_UNVERIFIED",
+                "A property-tax entry was found but no payment date/amount is legible — confirm municipal tax is paid with no dues.",
+                category="supporting_docs")
+
+    # ===== Payment reconciliation =====
+    if data.get("_payments_complete") and (data.get("payment_instruments") or data.get("tds_challans")):
+        cons = num(data.get("consideration"))
+        if cons and cons > 0:
+            only, incl = data.get("payments_only_sum"), data.get("total_payments_sum")
+            comparisons = [c for c in (close(only, cons), close(incl, cons)) if c is not None]
+            if comparisons and not any(comparisons):
+                shown = incl if incl is not None else only
+                add("WARNING", "PAYMENT_SUM_MISMATCH",
+                    f"The listed payments total ₹{(shown or 0):,.0f} but the sale consideration is ₹{cons:,.0f}. Verify the payment schedule.",
+                    expected=f"₹{cons:,.0f}", actual=f"₹{(shown or 0):,.0f}", category="supporting_docs")
+
+    # ===== e-Stamp consistency =====
+    est_amt = num(data.get("estamp_amount"))
+    ref_stamp = num(data.get("total_non_judicial_stamp"))
+    if ref_stamp is None:
+        ref_stamp = num(data.get("stamp_duty"))
+    if est_amt is not None and ref_stamp is not None and close(est_amt, ref_stamp) is False:
+        add("WARNING", "ESTAMP_VALUE_MISMATCH",
+            f"e-Stamp certificate value (₹{est_amt:,.0f}) does not match the stamp paper stated in the deed (₹{ref_stamp:,.0f}).",
+            expected=f"₹{ref_stamp:,.0f}", actual=f"₹{est_amt:,.0f}", category="supporting_docs")
+
+    est_d = to_date(data.get("estamp_issued_datetime"))
+    exec_d = to_date(data.get("date_of_execution"))
+    if est_d and exec_d and est_d.date() > exec_d.date():
+        add("WARNING", "ESTAMP_DATE_ANOMALY",
+            f"The e-Stamp was issued ({est_d.date()}) AFTER the deed's execution date ({exec_d.date()}), which is irregular.",
+            category="supporting_docs")
+
+    # ===== Form-A vs deed =====
+    fa = data.get("form_a")
+    if isinstance(fa, dict):
+        fa_cons, cons = num(fa.get("consideration")), num(data.get("consideration"))
+        if close(fa_cons, cons) is False:
+            add("WARNING", "FORMA_CONSIDERATION_MISMATCH",
+                f"Form-A states consideration ₹{fa_cons:,.0f} but the deed states ₹{cons:,.0f}.",
+                expected=f"₹{cons:,.0f}", actual=f"₹{fa_cons:,.0f}", category="supporting_docs")
+
+    # ===== Circle-rate arithmetic self-check (deed's own numbers only) =====
+    a, b, c = num(data.get("cost_of_land_stated")), num(data.get("cost_of_construction_stated")), num(data.get("cost_of_stilt_stated"))
+    stated_total = num(data.get("circle_rate_value_stated"))
+    if None not in (a, b, c) and stated_total is not None and close(a + b + c, stated_total, tol_abs=100.0) is False:
+        add("WARNING", "CIRCLE_RATE_STATED_MISMATCH",
+            f"The circle-rate components (₹{a:,.0f}+₹{b:,.0f}+₹{c:,.0f}=₹{a+b+c:,.0f}) don't add up to the deed's stated circle value (₹{stated_total:,.0f}).",
+            expected=f"₹{a+b+c:,.0f}", actual=f"₹{stated_total:,.0f}")
+
+    # ===== TDS u/s 194-IA (statutory 1% over ₹50 lakh) =====
+    # Gated hard to avoid false positives:
+    #   • Section 194-IA only applies from 01-Jun-2013 — never flag earlier sales.
+    #   • Only judge when a payment trail was actually extracted; if we never read a
+    #     payment section we cannot tell whether TDS is missing or just uncaptured.
+    #   • If the transaction date is unknown, stay silent.
+    from datetime import datetime as _dt194
+    txn_d = to_date(data.get("date_of_execution")) or to_date(data.get("date_of_registration"))
+    have_payment_trail = bool(data.get("payment_instruments")) or bool(data.get("tds_challans"))
+    cons = num(data.get("consideration"))
+    tds_total = num(data.get("tds_total")) or 0.0
+    if (cons is not None and cons >= 5000000 and have_payment_trail
+            and txn_d and txn_d >= _dt194(2013, 6, 1)):
+        required = round(cons * 0.01)
+        if tds_total > 0 and tds_total < required * 0.99:
+            add("WARNING", "TDS_194IA_SHORTFALL",
+                f"For a sale of ₹{cons:,.0f}, 1% TDS (₹{required:,.0f}) is due u/s 194-IA, but only ₹{tds_total:,.0f} in TDS challans is recorded.",
+                expected=f"₹{required:,.0f}", actual=f"₹{tds_total:,.0f}", category="supporting_docs")
+        elif tds_total == 0:
+            add("INFO", "TDS_194IA_NOT_FOUND",
+                f"Sale exceeds ₹50 lakh so 1% TDS (₹{required:,.0f}) is required u/s 194-IA, but no TDS challan was found in the extracted payment schedule — verify it was deducted.",
+                category="supporting_docs")
+
+    # ===== Name alias on record =====
+    alias_found = None
+    if re.search(r"\bALIAS\b", str(data.get("presenter_name") or ""), re.I):
+        alias_found = data.get("presenter_name")
+    else:
+        for p in parties:
+            if p.get("name") and re.search(r"\bALIAS\b", str(p.get("name")), re.I):
+                alias_found = p.get("name")
+                break
+    if alias_found:
+        add("INFO", "NAME_ALIAS_ON_RECORD",
+            f"An alias is recorded on this deed: '{alias_found.strip()}'. Carry both name forms forward when matching the title chain.",
+            actual=alias_found.strip())
+
+    # ===== Leasehold not converted to freehold =====
+    root = (data.get("title_root") or "").lower()
+    if data.get("leasehold_to_freehold_converted") is False and ("lease" in root or "president of india" in root or "dda" in root):
+        add("WARNING", "LEASEHOLD_UNCONVERTED",
+            "The title root appears to be a government leasehold and the deed does not recite a leasehold→freehold conversion. Verify the freehold conveyance exists.")
+
+    # ===== Title-chain recital gap (conservative) =====
+    recitals = [r for r in (data.get("chain_recitals") or []) if isinstance(r, dict)]
+    for i in range(len(recitals) - 1):
+        cur_to = recitals[i].get("to_parties")
+        nxt_from = recitals[i + 1].get("from_parties")
+        cur_txt = " ".join(cur_to) if isinstance(cur_to, list) else str(cur_to or "")
+        nxt_txt = " ".join(nxt_from) if isinstance(nxt_from, list) else str(nxt_from or "")
+        ta, tb = name_tokens(cur_txt), name_tokens(nxt_txt)
+        if ta and tb and not (ta & tb):
+            add("WARNING", "RECITAL_CHAIN_GAP",
+                f"In the deed's recited history, ownership passes to '{cur_txt}' but the next step starts from '{nxt_txt}' — a possible gap. Verify the intermediate link.")
+            break
+
+    return findings
+
+
 def _build_events_and_errors(project_path):
     """
     Core logic: build events, entities, and all errors from result files.
@@ -2152,6 +2526,13 @@ def _build_events_and_errors(project_path):
     for rf, data in results:
         source = rf.replace("_result.json", ".pdf")
         txn = (data.get("txn_type") or "").upper()
+
+        # Phase-1 self-contained supporting-document & consistency checks.
+        # Isolated, heavily gated, and additive — cannot affect existing findings.
+        try:
+            errors.extend(_phase1_supporting_checks(data, source))
+        except Exception as _e:
+            print(f"[phase1_checks] skipped for {source}: {_e}")
 
         # Apply rectification corrections if any
         doc_no_norm = str(data.get("doc_no") or "").strip().lower()
@@ -4551,13 +4932,11 @@ def download_deed_doc(project_name):
         from deed_doc_scraper import DorisDocScraper
         scraper = DorisDocScraper(username=user, password=pwd, session_cookie=cookie)
 
-        # 1. Authenticate with portal if credentials provided and no session cookie
-        if not cookie and user and pwd:
-            auth_res = scraper.login(user, pwd)
-            if not auth_res.get("ok"):
-                return jsonify({"ok": False, "error": f"Portal Login Failed: {auth_res.get('error')}"}), 401
+        # The portal session is established interactively via the CAPTCHA login flow
+        # (login_captcha → login_submit) and kept alive in a persistent Playwright
+        # browser, so no separate re-login is performed here.
 
-        # 2. Search for deed document pages
+        # 1. Search for deed document pages on the live session
         search_res = scraper.fetch_deed_document(
             locality=locality,
             reg_no=reg_no,
@@ -4573,26 +4952,166 @@ def download_deed_doc(project_name):
                 "error": search_res.get("error", "Failed to retrieve deed scans.")
             }), 400
 
-        # 3. Stitch images into PDF and save to project folder
-        project_dir = os.path.join(RESULTS_DIR, project_name)
+        # 2. Save the deed PDF to the project folder. The portal serves the deed as a
+        #    real PDF, so we write those bytes directly; only if that path was
+        #    unavailable do we stitch captured page images instead.
+        project_dir = os.path.join(PROJECT_FOLDER, project_name)
+        os.makedirs(project_dir, exist_ok=True)
         pdf_filename = f"Deed_Doc_Reg_{reg_no}_{reg_year.replace('/', '-')}.pdf"
         output_pdf_path = os.path.join(project_dir, pdf_filename)
 
-        pdf_res = scraper.generate_stitched_pdf(image_urls, output_pdf_path)
-        if not pdf_res.get("ok"):
-            return jsonify({"ok": False, "error": pdf_res.get("error")}), 500
+        pdf_b64 = search_res.get("pdf_bytes_b64")
+        if pdf_b64:
+            import base64 as _b64
+            with open(output_pdf_path, "wb") as f:
+                f.write(_b64.b64decode(pdf_b64))
+            pdf_res = {
+                "ok": True,
+                "page_count": search_res.get("total_pages"),
+                "file_size_bytes": os.path.getsize(output_pdf_path),
+            }
+        else:
+            page_images = search_res.get("page_images_b64", [])
+            pdf_res = scraper.generate_stitched_pdf(page_images, output_pdf_path)
+            if not pdf_res.get("ok"):
+                return jsonify({"ok": False, "error": pdf_res.get("error")}), 500
 
+        page_count = pdf_res.get("page_count")
+        pages_msg = f" with {page_count} pages" if page_count else ""
         return jsonify({
             "ok": True,
             "filename": pdf_filename,
             "pdf_path": output_pdf_path,
-            "pages_stitched": pdf_res.get("page_count"),
+            "pages_stitched": page_count,
             "file_size_bytes": pdf_res.get("file_size_bytes"),
-            "message": f"Successfully created {pdf_filename} with {pdf_res.get('page_count')} page scans."
+            "message": f"Successfully saved {pdf_filename}{pages_msg}."
         })
 
     except Exception as e:
         return jsonify({"ok": False, "error": f"Deed downloader error: {str(e)}"}), 500
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DOCUMENT SORTER — upload an uncleaned bundle, AI-sort it, attach the clean deed
+# ──────────────────────────────────────────────────────────────────────────────
+SORTER_SUBDIR = "_sorter"
+
+
+def _build_refined_pdf(src_path, page_numbers, out_path):
+    """Write a new PDF containing only the given 1-based page numbers (in order)."""
+    from pypdf import PdfReader, PdfWriter
+    reader = PdfReader(src_path)
+    writer = PdfWriter()
+    total = len(reader.pages)
+    for pnum in sorted({int(p) for p in page_numbers}):
+        if 1 <= pnum <= total:
+            writer.add_page(reader.pages[pnum - 1])
+    with open(out_path, "wb") as f:
+        writer.write(f)
+    return len(writer.pages)
+
+
+@app.route("/sorter/upload/<project_name>", methods=["POST"])
+@login_required
+def sorter_upload(project_name):
+    """Stage a raw bundle PDF (kept OUT of the attachments dropdown until refined)."""
+    if not check_project_owner(project_name):
+        abort(403)
+    f = request.files.get("bundle")
+    if not f or not (f.filename or "").lower().endswith(".pdf"):
+        return jsonify({"ok": False, "error": "Please choose a PDF file."}), 400
+    from werkzeug.utils import secure_filename
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    staging = os.path.join(project_path, SORTER_SUBDIR)
+    os.makedirs(staging, exist_ok=True)
+    fname = secure_filename(f.filename) or "bundle.pdf"
+    save_path = os.path.join(staging, fname)
+    f.save(save_path)
+
+    from main import pdf_has_text_layer
+    if not pdf_has_text_layer(save_path):
+        try:
+            os.remove(save_path)
+        except OSError:
+            pass
+        return jsonify({"ok": False, "error": (
+            "This PDF has no readable text layer. The sorter is text-only — please "
+            "attach a text-based (searchable/OCR'd) PDF and try again."
+        )}), 400
+    return jsonify({"ok": True, "filename": fname})
+
+
+@app.route("/sorter/manifest/<project_name>", methods=["GET"])
+@login_required
+def sorter_manifest(project_name):
+    """Retrieve saved sorter manifest if present for this project."""
+    if not check_project_owner(project_name):
+        abort(403)
+    manifest_path = os.path.join(PROJECT_FOLDER, project_name, SORTER_SUBDIR, "manifest.json")
+    if not os.path.exists(manifest_path):
+        return jsonify({"ok": False, "error": "No saved sorter manifest."}), 404
+    try:
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify({"ok": True, "manifest": data.get("manifest"), "filename": data.get("filename")})
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Failed to read manifest: {e}"}), 500
+
+
+@app.route("/sorter/classify/<project_name>", methods=["POST"])
+@login_required
+def sorter_classify(project_name):
+    """Run the AI-first page classifier on a staged bundle; return and persist the manifest."""
+    if not check_project_owner(project_name):
+        abort(403)
+    data = request.get_json(silent=True) or {}
+    fname = data.get("filename", "")
+    src = os.path.join(PROJECT_FOLDER, project_name, SORTER_SUBDIR, fname)
+    if not fname or not os.path.exists(src):
+        return jsonify({"ok": False, "error": "Uploaded bundle not found."}), 404
+    from main import classify_bundle_pages
+    try:
+        manifest = classify_bundle_pages(src)
+        manifest_path = os.path.join(PROJECT_FOLDER, project_name, SORTER_SUBDIR, "manifest.json")
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump({"filename": fname, "manifest": manifest}, f, indent=2)
+        return jsonify({"ok": True, "filename": fname, "manifest": manifest})
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Classification failed: {e}"}), 500
+
+
+@app.route("/sorter/attach/<project_name>", methods=["POST"])
+@login_required
+def sorter_attach(project_name):
+    """Build a clean PDF extract from the chosen pages (deed or supporting doc) and drop it into
+    the project's attachments so it appears in the normal dropdown for parsing/viewing."""
+    if not check_project_owner(project_name):
+        abort(403)
+    data = request.get_json(silent=True) or {}
+    fname = data.get("filename", "")
+    pages = data.get("pages") or []
+    doc_label = data.get("doc_label") or "deed"
+    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    src = os.path.join(project_path, SORTER_SUBDIR, fname)
+    if not fname or not os.path.exists(src):
+        return jsonify({"ok": False, "error": "Uploaded bundle not found."}), 404
+    if not pages:
+        return jsonify({"ok": False, "error": "No pages selected to attach."}), 400
+
+    stem = os.path.splitext(fname)[0]
+    clean_label = re.sub(r'[^a-zA-Z0-9_\-]', '_', doc_label).strip('_').lower() or "extract"
+    out_name = f"{stem}_{clean_label}.pdf"
+    out_path = os.path.join(project_path, out_name)
+    i = 1
+    while os.path.exists(out_path):
+        out_name = f"{stem}_{clean_label}_{i}.pdf"
+        out_path = os.path.join(project_path, out_name)
+        i += 1
+    try:
+        count = _build_refined_pdf(src, pages, out_path)
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Could not build extract PDF: {e}"}), 500
+    return jsonify({"ok": True, "filename": out_name, "page_count": count})
 
 
 if __name__ == "__main__":

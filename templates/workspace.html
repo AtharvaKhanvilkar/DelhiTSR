@@ -1917,6 +1917,17 @@
           <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded sb-only-expanded">Live</span>
         </div>
 
+        <!-- Document Sorter (AI page classifier) -->
+        <div id="sidebar-sorter" onclick="switchMainTab('sorter')" class="sidebar-item flex items-center justify-between px-2 py-1 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded cursor-pointer font-medium text-[12px] transition-all group/link">
+          <div class="flex items-center gap-2 sb-row-content">
+            <span class="text-zinc-650 group-hover/link:text-indigo-500">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+            </span>
+            <span class="sb-label">Document Sorter</span>
+          </div>
+          <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 px-1 py-0.2 rounded sb-only-expanded">AI</span>
+        </div>
+
       </div> <!-- end sidebarMenu -->
 
 
@@ -2511,6 +2522,36 @@
         </div>
       </div>
       <!-- Dedicated Panel for Deed Document Scan Extractor (Native Custom UI) -->
+      <!-- Document Sorter Panel -->
+      <div class="panel" id="panel-sorter">
+        <div class="flex flex-col h-full bg-white p-6 overflow-y-auto">
+          <div class="mb-4">
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-zinc-900 tracking-tight">Document Sorter</h3>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-800 border border-zinc-200">
+                <span class="h-1.5 w-1.5 rounded-full bg-zinc-900"></span> AI Classifier
+              </span>
+            </div>
+            <p class="text-xs text-zinc-500 mt-0.5 max-w-xl">Upload a raw, uncleaned registration bundle. The AI separates the deed instrument from supporting documents (PAN, Aadhaar, bills, tax) and discards blank pages. Text-based PDFs only.</p>
+          </div>
+
+          <!-- Upload -->
+          <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/70 p-5 mb-5">
+            <div class="flex flex-wrap items-center gap-3">
+              <input type="file" id="sorter-file" accept="application/pdf" class="text-xs text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-zinc-800 file:cursor-pointer">
+              <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-zinc-900 text-xs font-bold text-zinc-50 hover:bg-zinc-800 transition-all cursor-pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+                <span>Sort Document</span>
+              </button>
+            </div>
+            <p id="sorter-status" class="text-[11px] text-zinc-500 mt-2 font-medium"></p>
+          </div>
+
+          <!-- Results -->
+          <div id="sorter-results" class="space-y-6"></div>
+        </div>
+      </div>
+
       <div class="panel" id="panel-deed-doc">
         <div class="flex flex-col space-y-6 h-full bg-white p-6 overflow-y-auto">
           
@@ -3640,6 +3681,10 @@
       initDoris();
     }
 
+    if (view === 'sorter') {
+      loadSavedSorterManifest();
+    }
+
     // 6. Update topbar breadcrumb tab name
     const topbarTabName = document.getElementById('topbar-tab-name');
     if (topbarTabName) {
@@ -3650,6 +3695,7 @@
       else if (activeKey === 'report') displayName = 'Audit Report';
       else if (activeKey === 'doris') displayName = 'DORIS Registry';
       else if (activeKey === 'ngdrs') displayName = 'NGDRS Portal';
+      else if (activeKey === 'sorter') displayName = 'Document Sorter';
       else if (activeKey === 'transactions') displayName = 'Document Viewer';
       topbarTabName.textContent = displayName;
     }
@@ -5141,7 +5187,7 @@
 
           html += `<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
 
-          sortFindings(activeFindings).forEach(err => { html += renderFindingCard(err, false); });
+          sortFindings(activeFindings.filter(f => f.category !== 'supporting_docs')).forEach(err => { html += renderFindingCard(err, false); });
 
           sortFindings(dismissedFindings).forEach(err => { html += renderFindingCard(err, true); });
 
@@ -5159,7 +5205,18 @@
 
           }
 
-          html += `</div></div>`;
+          html += `</div>`;
+
+          // Supporting Documents: annexed-document observations, kept separate
+          // from the core title/legal findings.
+          const _supp = sortFindings(activeFindings.filter(f => f.category === 'supporting_docs'));
+          if (_supp.length > 0) {
+            html += `<div class="mt-6 mb-2 flex items-center gap-2"><span class="text-sm font-semibold text-foreground">Supporting Documents</span><span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums text-secondary-foreground">${_supp.length}</span></div><p class="text-xs text-muted-foreground mb-2">Observations from annexed documents (ID proofs, tax receipt, utility bills, e-Stamp, payments) — separate from the title/legal findings.</p><div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
+            _supp.forEach(err => { html += renderFindingCard(err, false); });
+            html += `</div>`;
+          }
+
+          html += `</div>`;
 
         }
 
@@ -6502,7 +6559,25 @@
       'RELEASE_OVERFLOW':                'Discharge Amount Overflow',
       'LENDER_MISMATCH':                 'Lender Bank Mismatch',
       'RELEASE_LINK':                    'Linked Release Deed',
-      'RELEASE_LINK_A':                  'Linked Release Deed'
+      'RELEASE_LINK_A':                  'Linked Release Deed',
+      'ID_PROOF_PAN_MISMATCH':           'PAN vs ID Card Mismatch',
+      'ID_PROOF_DOB_MISMATCH':           'DOB vs ID Card Mismatch',
+      'ID_PROOF_MISSING':                'Missing Party ID Proof',
+      'INSUFFICIENT_WITNESSES':          'Insufficient Witnesses',
+      'WITNESS_IS_PARTY':                'Witness Is a Party',
+      'UTILITY_ARREARS_OUTSTANDING':     'Utility Arrears Outstanding',
+      'OCCUPANT_NOT_PARTY':              'Occupant Not a Party',
+      'PROPERTY_TAX_UNVERIFIED':         'Property Tax Unverified',
+      'PAYMENT_SUM_MISMATCH':            'Payments Do Not Total Price',
+      'ESTAMP_VALUE_MISMATCH':           'e-Stamp Value Mismatch',
+      'ESTAMP_DATE_ANOMALY':             'e-Stamp Date Anomaly',
+      'FORMA_CONSIDERATION_MISMATCH':    'Form-A Consideration Mismatch',
+      'CIRCLE_RATE_STATED_MISMATCH':     'Circle-Rate Arithmetic Error',
+      'TDS_194IA_SHORTFALL':             'TDS (194-IA) Shortfall',
+      'TDS_194IA_NOT_FOUND':             'TDS (194-IA) Not Found',
+      'NAME_ALIAS_ON_RECORD':            'Name Alias on Record',
+      'LEASEHOLD_UNCONVERTED':           'Leasehold Not Converted',
+      'RECITAL_CHAIN_GAP':               'Recited Chain Gap'
     };
 
     if (type && type.startsWith('NAME_DEVIATION_')) {
@@ -8692,19 +8767,21 @@
 
     function filterOptions(query) {
       const q = query.toLowerCase().trim();
+      // Always filter against the CURRENT option set (localOptions), which setOptions()
+      // keeps up to date — including live async suggestions from the portal.
       if (!q || (hidden.value !== '0' && q === input.value.toLowerCase().trim())) {
-        filtered = [...options];
+        filtered = [...localOptions];
       } else {
         const tokens = q.split(/\s+/).filter(t => t.length > 0);
-        filtered = options.filter(o => {
+        filtered = localOptions.filter(o => {
           const nameLower = String(o.name || o).toLowerCase();
           const idLower = String(o.id || o).toLowerCase();
           if (nameLower.includes(q) || idLower.includes(q)) return true;
           if (tokens.length > 0 && tokens.every(tok => nameLower.includes(tok))) return true;
           return false;
         });
-        if (filtered.length === 0 && options.length > 0) {
-          filtered = [...options]; // Fallback to all options so dropdown is never empty
+        if (filtered.length === 0 && localOptions.length > 0) {
+          filtered = [...localOptions]; // Fallback to all options so dropdown is never empty
         }
       }
       activeIdx = -1;
@@ -8732,12 +8809,12 @@
         // If the text doesn't match any option exactly, try to snap to best match
         if (hidden.value === '0' && input.value.trim()) {
           const q = input.value.toLowerCase().trim();
-          const exact = options.find(o => o.name.toLowerCase() === q);
+          const exact = localOptions.find(o => o.name.toLowerCase() === q);
           if (exact) {
             selectOption(exact);
           } else {
             // Find closest substring match
-            const best = options.find(o => o.name.toLowerCase().includes(q));
+            const best = localOptions.find(o => o.name.toLowerCase().includes(q));
             if (best) {
               selectOption(best);
             } else {
@@ -8797,6 +8874,12 @@
       setOptions: (newOptions) => {
         localOptions = [...(newOptions || [])];
         filtered = [...localOptions];
+        activeIdx = -1;
+        // If the dropdown is open (e.g. live locality autocomplete while typing),
+        // re-render immediately so fresh suggestions appear without an extra keystroke.
+        if (!list.classList.contains('hidden')) {
+          render(filtered);
+        }
       },
       setOnSelect: (newCb) => {
         currentOnSelect = newCb;
@@ -9889,6 +9972,238 @@
       out.innerHTML = `<div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-950 text-xs">Connection exception: ${err.message}</div>`;
     });
   }
+
+  // ── Document Sorter Logic ──
+  let _sorterFilename = null;
+  let _sorterInstrumentPages = [];
+  let _sorterCurrentManifest = null;
+
+  function loadSavedSorterManifest() {
+    fetch(`/sorter/manifest/${projectName}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.manifest) {
+          _sorterFilename = d.filename;
+          renderSorterManifest(d.manifest);
+        }
+      })
+      .catch(() => {});
+  }
+
+  function sorterUpload() {
+    const input   = document.getElementById('sorter-file');
+    const btn     = document.getElementById('sorter-upload-btn');
+    const status  = document.getElementById('sorter-status');
+    const results = document.getElementById('sorter-results');
+    if (!input || !input.files || !input.files[0]) {
+      if (status) status.textContent = 'Please choose a PDF first.';
+      return;
+    }
+    const fd = new FormData();
+    fd.append('bundle', input.files[0]);
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'Uploading…';
+    status.textContent = 'Uploading bundle…';
+    results.innerHTML = '';
+
+    fetch(`/sorter/upload/${projectName}`, { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) throw new Error(d.error || 'Upload failed');
+        _sorterFilename = d.filename;
+        status.textContent = 'Sorting pages with AI — this can take a moment…';
+        btn.querySelector('span').textContent = 'Sorting…';
+        return fetch(`/sorter/classify/${projectName}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: d.filename })
+        });
+      })
+      .then(r => r.json())
+      .then(d => {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Sort Document';
+        if (!d.ok) throw new Error(d.error || 'Classification failed');
+        status.textContent = '';
+        renderSorterManifest(d.manifest);
+      })
+      .catch(e => {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Sort Document';
+        status.textContent = e.message || 'Something went wrong.';
+      });
+  }
+
+  function renderSorterManifest(m) {
+    const results = document.getElementById('sorter-results');
+    if (!results || !m) return;
+    _sorterCurrentManifest = m;
+    _sorterInstrumentPages = (m.instrument && m.instrument.pages) || [];
+    const instr = m.instrument || {};
+    const supporting = m.supporting || [];
+    const pagesTxt = (arr) => (arr && arr.length ? (arr.length === 1 ? `Page ${arr[0]}` : `Pages ${arr.join(', ')}`) : '—');
+
+    let html = '';
+
+    // Summary Header Bar
+    html += `
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/70 text-xs text-zinc-700">
+        <div class="flex items-center gap-3">
+          <span class="font-bold text-zinc-900 flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${_sorterFilename || 'Bundle PDF'}
+          </span>
+          <span class="text-zinc-300">•</span>
+          <span>${m.total_pages} Total Page(s)</span>
+          ${m.blanks && m.blanks.length ? `<span class="text-zinc-300">•</span><span class="text-zinc-500">${m.blanks.length} Blank Page(s) Discarded</span>` : ''}
+        </div>
+        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-zinc-200/80 text-zinc-800">
+          AI Classified
+        </span>
+      </div>`;
+
+    // 1. Deed Instrument Card — Sleek Monochrome
+    html += `
+      <div class="rounded-xl border border-zinc-800 bg-zinc-900 text-white p-5 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <span class="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-zinc-800 text-zinc-100 shrink-0 border border-zinc-700">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </span>
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Primary Instrument</div>
+              <div class="text-base font-bold text-white mt-0.5">${instr.label || 'Deed Instrument'}</div>
+              <div class="text-[11px] text-zinc-400 mt-0.5">${_sorterInstrumentPages.length} page(s) • ${pagesTxt(_sorterInstrumentPages)}</div>
+            </div>
+          </div>
+          <button id="sorter-attach-deed-btn" onclick="sorterAttachDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}', 'sorter-attach-deed-btn')" ${_sorterInstrumentPages.length ? '' : 'disabled'} class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-white text-zinc-900 hover:bg-zinc-100 transition-all text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Attach Deed to Project</span>
+          </button>
+        </div>
+      </div>`;
+
+    // 2. Supporting Documents Section — All Extracts Viewable & Attachable!
+    html += `
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-xs font-bold uppercase tracking-wider text-zinc-800">Supporting Document Extracts (${supporting.length})</div>
+          <span class="text-[11px] text-zinc-400">Attach any extract to project attachments</span>
+        </div>`;
+
+    if (supporting.length === 0) {
+      html += `
+        <div class="text-xs text-zinc-500 italic p-4 rounded-xl border border-zinc-200 bg-zinc-50/50">
+          No supporting documents detected in this bundle.
+        </div>`;
+    } else {
+      html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+      supporting.forEach((s, idx) => {
+        const btnId = `sorter-attach-sup-${idx}`;
+        html += `
+          <div class="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 shadow-sm hover:border-zinc-300 transition-all">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="inline-flex items-center justify-center h-8 w-8 rounded-md bg-zinc-100 text-zinc-700 shrink-0 border border-zinc-200">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </span>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-zinc-900 truncate">${s.label}</div>
+                <div class="text-[11px] text-zinc-500 mt-0.5">${pagesTxt(s.pages)}</div>
+              </div>
+            </div>
+            <button id="${btnId}" onclick="sorterAttachDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}', '${btnId}')" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-zinc-900 text-white hover:bg-zinc-800 text-[11px] font-semibold transition-all cursor-pointer shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Attach Extract</span>
+            </button>
+          </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+
+    // 3. Full Per-Page Classification Matrix
+    if (m.pages && m.pages.length) {
+      html += `
+        <div class="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-sm">
+          <div class="flex items-center justify-between px-4 py-3 bg-zinc-50 border-b border-zinc-200">
+            <span class="text-xs font-bold uppercase tracking-wider text-zinc-800">Full Per-Page Classification Breakdown (${m.pages.length} Pages)</span>
+            <span class="text-[11px] text-zinc-500 font-medium">AI Decision Log</span>
+          </div>
+          <div class="divide-y divide-zinc-100 max-h-80 overflow-y-auto">`;
+
+      m.pages.forEach(p => {
+        let badgeClass = "bg-zinc-100 text-zinc-700 border-zinc-200";
+        if (p.is_deed_instrument) badgeClass = "bg-zinc-900 text-white border-zinc-900";
+        else if (p.is_blank) badgeClass = "bg-zinc-50 text-zinc-400 border-zinc-200";
+
+        const confPct = Math.round((p.confidence || 0) * 100);
+
+        html += `
+          <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 hover:bg-zinc-50/80 transition-all text-xs">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <span class="font-bold text-zinc-500 w-12 shrink-0">Page ${p.page}</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${badgeClass} shrink-0">
+                ${p.label}
+              </span>
+              <span class="text-zinc-600 truncate text-[11px] flex-1">${p.reason || 'No reasoning captured'}</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 text-[11px] text-zinc-400 font-medium">
+              <span>Conf ${confPct}%</span>
+            </div>
+          </div>`;
+      });
+
+      html += `
+          </div>
+        </div>`;
+    }
+
+    results.innerHTML = html;
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function sorterAttachDoc(pages, label, btnId) {
+    const btn = document.getElementById(btnId);
+    const status = document.getElementById('sorter-status');
+    if (!_sorterFilename || !pages || !pages.length) return;
+
+    if (btn) {
+      btn.disabled = true;
+      const span = btn.querySelector('span');
+      if (span) span.textContent = 'Attaching…';
+    }
+
+    fetch(`/sorter/attach/${projectName}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: _sorterFilename, pages: pages, doc_label: label })
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) throw new Error(d.error || 'Attach failed');
+        if (btn) {
+          const span = btn.querySelector('span');
+          if (span) span.textContent = 'Attached ✓';
+          btn.classList.remove('bg-zinc-900', 'bg-white', 'text-white', 'text-zinc-900');
+          btn.classList.add('bg-emerald-600', 'text-white');
+        }
+        if (status) status.textContent = `Attached "${d.filename}" (${d.page_count} pages) to project Attachments.`;
+        if (typeof showToast === 'function') showToast('Document Attached', `"${d.filename}" (${d.page_count} pages) added to project Attachments.`, 'success');
+        setTimeout(() => window.location.reload(), 1200);
+      })
+      .catch(e => {
+        if (btn) {
+          btn.disabled = false;
+          const span = btn.querySelector('span');
+          if (span) span.textContent = 'Attach Extract';
+        }
+        if (status) status.textContent = e.message;
+        if (typeof showToast === 'function') showToast('Attach Failed', e.message, 'error');
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSavedSorterManifest();
+  });
 
   // ── Deed Scan Portal Helper Logic ──
   function updateDeedDocHelperInfo() {
