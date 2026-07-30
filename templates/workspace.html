@@ -4685,9 +4685,9 @@
   function applyFindingsFilter(list) {
     return list.filter(f => {
       const sev = (f.severity || '').toUpperCase();
-      if (_findingsSeverityFilter === 'HIGH_RISK' && sev !== 'ERROR') return false;
-      if (_findingsSeverityFilter === 'MEDIUM_RISK' && sev !== 'WARNING') return false;
-      if (_findingsSeverityFilter === 'LOW_RISK' && sev !== 'INFO') return false;
+      if (_findingsSeverityFilter === 'TITLE_DEFECT' && sev !== 'ERROR') return false;
+      if (_findingsSeverityFilter === 'COMPLIANCE_ANOMALY' && sev !== 'WARNING') return false;
+      if (_findingsSeverityFilter === 'RECORD_OBSERVATION' && sev !== 'INFO') return false;
 
       if (_findingsCategoryFilter !== 'all') {
         const cat = f.category || '';
@@ -5232,17 +5232,17 @@
                     <span>All Severities</span>
                     <span class="${_findingsSeverityFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'HIGH_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔴 High Risk (Critical Defects)</span>
-                    <span class="${_findingsSeverityFilter === 'HIGH_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'TITLE_DEFECT')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔴 Marketability & Title Defect</span>
+                    <span class="${_findingsSeverityFilter === 'TITLE_DEFECT' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'MEDIUM_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟡 Medium Risk (Advisories)</span>
-                    <span class="${_findingsSeverityFilter === 'MEDIUM_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'COMPLIANCE_ANOMALY')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟡 Conveyancing & Compliance Anomaly</span>
+                    <span class="${_findingsSeverityFilter === 'COMPLIANCE_ANOMALY' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'LOW_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔵 Low Risk (Informational)</span>
-                    <span class="${_findingsSeverityFilter === 'LOW_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'RECORD_OBSERVATION')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔵 Recital & Record Observation</span>
+                    <span class="${_findingsSeverityFilter === 'RECORD_OBSERVATION' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
 
                   <div class="border-t border-slate-100 my-1"></div>
@@ -6853,13 +6853,13 @@
     let sevBadgeCls = 'border-slate-200 bg-white text-slate-700';
 
     if (rawSev === 'ERROR' || sev === 'voidance' || sev === 'dispute') {
-      sevLabel = 'High Risk';
+      sevLabel = 'Title Defect';
       sevBadgeCls = 'border-rose-200 bg-rose-50 text-rose-800 font-semibold';
     } else if (rawSev === 'WARNING' || sev === 'liability') {
-      sevLabel = 'Medium Risk';
+      sevLabel = 'Conveyancing Anomaly';
       sevBadgeCls = 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
     } else {
-      sevLabel = 'Low Risk';
+      sevLabel = 'Record Observation';
       sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-semibold';
     }
 
