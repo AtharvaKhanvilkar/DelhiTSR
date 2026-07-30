@@ -2524,55 +2524,33 @@
       <!-- Dedicated Panel for Deed Document Scan Extractor (Native Custom UI) -->
       <!-- Document Sorter Panel -->
       <div class="panel" id="panel-sorter">
-        <div class="flex flex-col h-full bg-slate-50/50 p-6 overflow-y-auto">
+        <div class="flex flex-col h-full bg-white p-6 overflow-y-auto">
           <!-- Header -->
-          <div class="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200/80 pb-4">
+          <div class="mb-5 flex items-center justify-between border-b border-zinc-100 pb-3.5">
             <div>
-              <div class="flex items-center gap-2.5">
-                <h3 class="text-lg font-bold text-zinc-900 tracking-tight">Document Sorter</h3>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> AI Bundle Classifier
-                </span>
-              </div>
-              <p class="text-xs text-zinc-500 mt-1 max-w-2xl">Upload a raw, uncleaned registration bundle. The AI separates the primary deed instrument from supporting extracts (PAN, Aadhaar, bills, tax) and discards blank pages. Text-based PDFs only.</p>
+              <h3 class="text-base font-bold text-zinc-900 tracking-tight">Document Sorter</h3>
+              <p class="text-xs text-zinc-500 mt-0.5">Upload an uncleaned bundle PDF to automatically separate the primary deed instrument from supporting extracts.</p>
             </div>
           </div>
 
-          <!-- Hero Upload Zone (Pre-Upload & Upload Control) -->
-          <div id="sorter-upload-card" class="rounded-2xl border-2 border-dashed border-zinc-300/80 bg-gradient-to-b from-zinc-50/90 via-white to-zinc-50/40 p-8 mb-6 shadow-sm hover:border-zinc-400 transition-all text-center relative overflow-hidden">
-            <div class="max-w-xl mx-auto flex flex-col items-center">
-              <div class="h-14 w-14 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shadow-lg shadow-zinc-900/10 mb-4 border border-zinc-800">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
-              </div>
-              <h4 class="text-sm font-bold text-zinc-900 tracking-tight">Upload Uncleaned Registration Bundle</h4>
-              <p class="text-xs text-zinc-500 mt-1 mb-5">Select a multi-document PDF bundle to auto-classify pages and extract clean documents.</p>
-
-              <div class="flex flex-wrap items-center justify-center gap-3 w-full max-w-md mb-4">
-                <label for="sorter-file" class="flex-1 flex items-center justify-between h-10 px-3.5 rounded-xl border border-zinc-200 bg-white text-xs text-zinc-700 cursor-pointer hover:border-zinc-300 transition-all shadow-2xs">
-                  <span id="sorter-file-name-display" class="truncate font-medium text-zinc-500">Choose PDF bundle file...</span>
-                  <span class="px-2 py-1 rounded-lg bg-zinc-100 text-zinc-800 font-semibold text-[11px] shrink-0">Browse</span>
-                  <input type="file" id="sorter-file" accept="application/pdf" class="hidden" onchange="onSorterFileSelected(this)">
-                </label>
-                <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl bg-zinc-900 text-xs font-bold text-white hover:bg-zinc-800 shadow-md shadow-zinc-900/10 transition-all cursor-pointer">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
-                  <span>Sort & Classify</span>
-                </button>
-              </div>
-
-              <p id="sorter-status" class="text-xs text-zinc-600 font-semibold mb-4 min-h-[1.25rem]"></p>
-
-              <!-- Capability Feature Badges -->
-              <div class="flex flex-wrap items-center justify-center gap-2 pt-4 border-t border-zinc-200/60 w-full text-[11px] text-zinc-500 font-medium">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/60"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Primary Instrument Extraction</span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/60"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>Identity & Tax Proofs</span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-200/60"><span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>Utility Bills & NOCs</span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200"><span class="h-1.5 w-1.5 rounded-full bg-zinc-400"></span>Blank Page Discard</span>
-              </div>
+          <!-- Minimalist Upload Control Card -->
+          <div id="sorter-upload-card" class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-5 mb-5 transition-all">
+            <div class="flex flex-wrap items-center gap-3">
+              <label for="sorter-file" class="flex-1 flex items-center justify-between h-9 px-3 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-700 cursor-pointer hover:border-zinc-300 transition-all shadow-2xs">
+                <span id="sorter-file-name-display" class="truncate font-medium text-zinc-500">Select raw PDF bundle file...</span>
+                <span class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 font-semibold text-[11px] shrink-0">Browse</span>
+                <input type="file" id="sorter-file" accept="application/pdf" class="hidden" onchange="onSorterFileSelected(this)">
+              </label>
+              <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800 transition-all cursor-pointer shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+                <span>Sort & Classify Document</span>
+              </button>
             </div>
+            <p id="sorter-status" class="text-xs text-zinc-600 font-medium mt-2 min-h-[1rem]"></p>
           </div>
 
           <!-- Results Section -->
-          <div id="sorter-results" class="space-y-6"></div>
+          <div id="sorter-results" class="space-y-5"></div>
         </div>
       </div>
 
@@ -10114,21 +10092,21 @@
   function getDocCategoryBadge(type, label) {
     const t = String(type || '').toUpperCase();
     if (['SALE_DEED', 'CONVEYANCE_DEED', 'GIFT_DEED', 'MORTGAGE_DEED', 'RELEASE_DEED', 'LEAVE_LICENSE', 'AGREEMENT_TO_SELL', 'GPA', 'E_STAMP', 'REGISTRATION_ENDORSEMENT'].includes(t)) {
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-800 border border-emerald-200">${label}</span>`;
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">${label}</span>`;
     }
     if (['PAN_CARD', 'AADHAAR_CARD', 'PASSPORT', 'VOTER_ID', 'DRIVING_LICENSE'].includes(t)) {
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-900 border border-amber-200">${label}</span>`;
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-900 border border-amber-200">${label}</span>`;
     }
     if (['ELECTRICITY_BILL', 'GAS_BILL', 'WATER_BILL'].includes(t)) {
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-900 border border-sky-200">${label}</span>`;
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-50 text-sky-900 border border-sky-200">${label}</span>`;
     }
     if (['PROPERTY_TAX_RECEIPT', 'FORM_A', 'MUTATION', 'NOC', 'SANCTION_PLAN', 'UNDERTAKING'].includes(t)) {
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-teal-500/10 text-teal-900 border border-teal-200">${label}</span>`;
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-800 border border-zinc-200">${label}</span>`;
     }
     if (t === 'BLANK') {
-      return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-400 border border-zinc-200">Blank</span>`;
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-zinc-50 text-zinc-400 border border-zinc-200">Blank</span>`;
     }
-    return `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-200">${label}</span>`;
+    return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-200">${label}</span>`;
   }
 
   function renderSorterManifest(m) {
@@ -10142,173 +10120,94 @@
 
     let html = '';
 
-    // 1. Executive Summary Stat Cards
+    // 1. Unified Minimal Summary Strip & Primary Deed Action
     html += `
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-2">
-        <div class="rounded-2xl border border-zinc-200/90 bg-white p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-zinc-400">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Total Bundle</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div class="mt-3">
-            <div class="text-xl font-bold text-zinc-900 tracking-tight">${m.total_pages} Pages</div>
-            <div class="text-[11px] text-zinc-500 font-medium truncate mt-0.5">${_sorterFilename || 'Uploaded PDF'}</div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-emerald-200/80 bg-emerald-50/20 p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-emerald-600">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Primary Instrument</span>
-            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-          </div>
-          <div class="mt-3">
-            <div class="text-xl font-bold text-emerald-950 tracking-tight">${instr.label || 'Deed'}</div>
-            <div class="text-[11px] text-emerald-700 font-semibold mt-0.5">${_sorterInstrumentPages.length} Page(s) • ${pagesTxt(_sorterInstrumentPages)}</div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-sky-200/80 bg-sky-50/20 p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-sky-600">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-800">Supporting Extracts</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          </div>
-          <div class="mt-3">
-            <div class="text-xl font-bold text-sky-950 tracking-tight">${supporting.length} Categories</div>
-            <div class="text-[11px] text-sky-700 font-medium mt-0.5">Identified & Separated</div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-zinc-200/90 bg-white p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-zinc-400">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Filtered Blanks</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-          </div>
-          <div class="mt-3">
-            <div class="text-xl font-bold text-zinc-900 tracking-tight">${m.blanks ? m.blanks.length : 0} Pages</div>
-            <div class="text-[11px] text-zinc-500 font-medium mt-0.5">Automatic Discard</div>
-          </div>
-        </div>
-      </div>`;
-
-    // 2. Primary Instrument Unit — Executive Dark Gradient Card
-    html += `
-      <div class="rounded-2xl bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 text-white p-6 shadow-xl border border-zinc-800 relative overflow-hidden">
-        <div class="absolute right-0 top-0 translate-x-4 -translate-y-4 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none"></div>
-        <div class="flex flex-wrap items-center justify-between gap-5 relative z-10">
-          <div class="flex items-center gap-4">
-            <div class="h-12 w-12 rounded-xl bg-zinc-800/90 border border-zinc-700/80 flex items-center justify-center shrink-0 shadow-inner">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-400"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div class="rounded-xl border border-zinc-200 bg-white p-4 shadow-2xs">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5 min-w-0">
+            <div class="h-10 w-10 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
-            <div>
+            <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-400">PRIMARY REGISTRABLE INSTRUMENT</span>
+                <span class="text-xs font-bold text-zinc-900 truncate">${instr.label || 'Deed Instrument'}</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-semibold text-[10px] border border-emerald-200">Primary Instrument</span>
               </div>
-              <h3 class="text-lg font-bold text-white mt-0.5 tracking-tight">${instr.label || 'Deed Instrument'}</h3>
-              <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-zinc-300">
-                <span class="font-medium">${_sorterInstrumentPages.length} Page(s)</span>
-                <span class="text-zinc-600">•</span>
-                <span class="px-2 py-0.5 rounded bg-zinc-800/80 border border-zinc-700/60 font-mono text-[11px] text-zinc-300">${pagesTxt(_sorterInstrumentPages)}</span>
+              <div class="text-[11px] text-zinc-500 mt-0.5 flex flex-wrap items-center gap-2">
+                <span>${_sorterInstrumentPages.length} Page(s) (${pagesTxt(_sorterInstrumentPages)})</span>
+                <span class="text-zinc-300">•</span>
+                <span>${m.total_pages} Total Bundle Pages</span>
+                ${m.blanks && m.blanks.length ? `<span class="text-zinc-300">•</span><span>${m.blanks.length} Blank Pages Filtered</span>` : ''}
               </div>
             </div>
           </div>
-          <button id="sorter-attach-deed-btn" onclick="sorterAttachDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}', 'sorter-attach-deed-btn')" ${_sorterInstrumentPages.length ? '' : 'disabled'} class="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-100 shadow-md font-bold text-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Attach Deed to Project</span>
+          <button id="sorter-attach-deed-btn" onclick="sorterAttachDoc(${JSON.stringify(_sorterInstrumentPages).replace(/"/g, '&quot;')}, '${instr.label || 'Deed'}', 'sorter-attach-deed-btn')" ${_sorterInstrumentPages.length ? '' : 'disabled'} class="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 font-semibold text-xs transition-all cursor-pointer disabled:opacity-40 shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Attach Primary Deed to Project</span>
           </button>
         </div>
       </div>`;
 
-    // 3. Supporting Document Extracts Section
-    html += `
-      <div>
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-3.5">
-          <div>
-            <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800">SUPPORTING DOCUMENT EXTRACTS (${supporting.length})</h4>
-            <p class="text-[11px] text-zinc-500">Individual documents separated and extracted by AI.</p>
-          </div>
-        </div>`;
-
-    if (supporting.length === 0) {
+    // 2. Supporting Document Extracts List (Clean Slate Cards)
+    if (supporting && supporting.length) {
       html += `
-        <div class="text-xs text-zinc-500 italic p-4 rounded-2xl border border-zinc-200/90 bg-white shadow-2xs">
-          No supporting documents detected in this bundle.
-        </div>`;
-    } else {
-      html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">`;
+        <div>
+          <h4 class="text-xs font-bold text-zinc-900 uppercase tracking-wider mb-2.5">Supporting Document Extracts (${supporting.length})</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">`;
+
       supporting.forEach((s, idx) => {
         const btnId = `sorter-attach-sup-${idx}`;
-        const t = String(s.type || '').toUpperCase();
-        let cardBg = "bg-white border-zinc-200/90";
-        let iconBg = "bg-zinc-100 text-zinc-700 border-zinc-200";
-
-        if (['PAN_CARD', 'AADHAAR_CARD', 'PASSPORT', 'VOTER_ID', 'DRIVING_LICENSE'].includes(t)) {
-          cardBg = "bg-amber-50/30 border-amber-200/70 hover:border-amber-300";
-          iconBg = "bg-amber-100/80 text-amber-800 border-amber-200/80";
-        } else if (['ELECTRICITY_BILL', 'GAS_BILL', 'WATER_BILL'].includes(t)) {
-          cardBg = "bg-sky-50/30 border-sky-200/70 hover:border-sky-300";
-          iconBg = "bg-sky-100/80 text-sky-800 border-sky-200/80";
-        } else if (['PROPERTY_TAX_RECEIPT', 'FORM_A', 'MUTATION', 'NOC', 'SANCTION_PLAN', 'UNDERTAKING'].includes(t)) {
-          cardBg = "bg-emerald-50/30 border-emerald-200/70 hover:border-emerald-300";
-          iconBg = "bg-emerald-100/80 text-emerald-800 border-emerald-200/80";
-        }
-
         html += `
-          <div class="flex items-center justify-between gap-3.5 rounded-2xl border ${cardBg} p-4 shadow-2xs hover:shadow-sm transition-all">
-            <div class="flex items-center gap-3.5 min-w-0 flex-1">
-              <div class="h-9 w-9 rounded-xl ${iconBg} border flex items-center justify-center shrink-0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              </div>
+          <div class="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-2xs hover:border-zinc-300 transition-all">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <span class="h-7 w-7 rounded bg-zinc-100 text-zinc-600 border border-zinc-200 flex items-center justify-center shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </span>
               <div class="min-w-0 flex-1">
-                <div class="text-xs font-bold text-zinc-900 truncate">${s.label}</div>
-                <div class="text-[11px] text-zinc-500 font-medium mt-0.5">${s.pages.length} Page(s) • ${pagesTxt(s.pages)}</div>
+                <div class="text-xs font-semibold text-zinc-900 truncate">${s.label}</div>
+                <div class="text-[11px] text-zinc-500 font-medium">${s.pages.length} Page(s) • ${pagesTxt(s.pages)}</div>
               </div>
             </div>
-            <button id="${btnId}" onclick="sorterAttachDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}', '${btnId}')" class="inline-flex items-center gap-1.5 h-8.5 px-3 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 text-[11px] font-semibold shadow-2xs transition-all cursor-pointer shrink-0">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>Attach Extract</span>
+            <button id="${btnId}" onclick="sorterAttachDoc(${JSON.stringify(s.pages).replace(/"/g, '&quot;')}, '${s.label}', '${btnId}')" class="inline-flex items-center gap-1.5 h-7.5 px-3 rounded bg-zinc-100 border border-zinc-200 text-zinc-800 hover:bg-zinc-200 text-[11px] font-semibold transition-all cursor-pointer shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Attach</span>
             </button>
           </div>`;
       });
-      html += `</div>`;
-    }
-    html += `</div>`;
 
-    // 4. Full Per-Page Classification Breakdown Matrix
+      html += `
+          </div>
+        </div>`;
+    }
+
+    // 3. Collapsible Per-Page Decision Log (Hidden by default to eliminate clutter!)
     if (m.pages && m.pages.length) {
       html += `
-        <div class="rounded-2xl border border-zinc-200/90 bg-white overflow-hidden shadow-sm">
-          <div class="flex items-center justify-between px-5 py-3.5 bg-zinc-50/80 border-b border-zinc-200/80">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-zinc-900">Per-Page Classification Decision Matrix (${m.pages.length} Pages)</span>
-            </div>
-            <span class="text-[11px] text-zinc-500 font-medium">AI Audit Trace</span>
-          </div>
-          <div class="divide-y divide-zinc-100 max-h-96 overflow-y-auto">`;
+        <details class="rounded-xl border border-zinc-200 bg-white overflow-hidden group">
+          <summary class="flex items-center justify-between px-4 py-3 bg-zinc-50/70 border-b border-zinc-200/80 cursor-pointer select-none">
+            <span class="text-xs font-semibold text-zinc-700">▶ Page-by-Page Classification Trace (${m.pages.length} Pages)</span>
+            <span class="text-[11px] text-zinc-400 font-normal">Click to expand AI decision log</span>
+          </summary>
+          <div class="divide-y divide-zinc-100 max-h-80 overflow-y-auto">`;
 
       m.pages.forEach(p => {
         const confPct = Math.round((p.confidence || 0) * 100);
         const badgeHtml = getDocCategoryBadge(p.type, p.label);
 
         html += `
-          <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 hover:bg-zinc-50/70 transition-all text-xs">
-            <div class="flex items-center gap-3.5 min-w-0 flex-1">
-              <span class="font-bold text-zinc-400 font-mono text-[11px] w-12 shrink-0">PG ${p.page}</span>
+          <div class="flex items-center justify-between gap-3 px-4 py-2 hover:bg-zinc-50/50 text-xs">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <span class="font-mono text-zinc-400 text-[11px] w-12 shrink-0">PG ${p.page}</span>
               <div class="shrink-0">${badgeHtml}</div>
-              <span class="text-zinc-600 truncate text-[11px] font-medium flex-1">${p.reason || 'No reasoning captured'}</span>
+              <span class="text-zinc-600 truncate text-[11px] flex-1">${p.reason || 'No reasoning captured'}</span>
             </div>
-            <div class="flex items-center gap-2 shrink-0 text-[11px] text-zinc-500 font-medium">
-              <div class="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden shrink-0 border border-zinc-200">
-                <div class="h-full ${p.is_deed_instrument ? 'bg-emerald-500' : 'bg-sky-500'}" style="width: ${confPct}%"></div>
-              </div>
-              <span class="font-mono text-zinc-400 text-[10px]">${confPct}%</span>
-            </div>
+            <span class="font-mono text-zinc-400 text-[10px] shrink-0">${confPct}%</span>
           </div>`;
       });
 
       html += `
           </div>
-        </div>`;
+        </details>`;
     }
 
     results.innerHTML = html;
@@ -10337,7 +10236,7 @@
         if (btn) {
           const span = btn.querySelector('span');
           if (span) span.textContent = 'Attached ✓';
-          btn.classList.remove('bg-zinc-900', 'bg-white', 'text-white', 'text-zinc-950');
+          btn.classList.remove('bg-zinc-900', 'bg-zinc-100', 'text-white', 'text-zinc-800');
           btn.classList.add('bg-emerald-600', 'text-white');
         }
         if (status) status.textContent = `✓ Attached "${d.filename}" (${d.page_count} pages) to project Attachments.`;
@@ -10348,7 +10247,7 @@
         if (btn) {
           btn.disabled = false;
           const span = btn.querySelector('span');
-          if (span) span.textContent = 'Attach Extract';
+          if (span) span.textContent = 'Attach';
         }
         if (status) status.textContent = e.message;
         if (typeof showToast === 'function') showToast('Attach Failed', e.message, 'error');
