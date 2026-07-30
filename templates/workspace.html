@@ -4682,12 +4682,44 @@
     }
   }
 
+  function getSeverityTier(finding) {
+    const sev = (finding.severity || '').toUpperCase();
+    const type = (finding.type || '').toUpperCase();
+
+    // Level 5: CRITICAL (Fatal Title Defect)
+    const criticalTypes = ['MINOR_PARTY_PROHIBITED', 'INVALID_NAME_PLACEHOLDER', 'CHAIN_BREAK', 'CHAIN_ERROR', 'GPA_POST_2011_INVALID', 'UNRESOLVED_MORTGAGE', 'ZERO_CONSIDERATION', 'INVALID_MORTGAGOR'];
+    if (criticalTypes.includes(type) || (sev === 'ERROR' && (type.includes('CHAIN') || type.includes('MINOR') || type.includes('PLACEHOLDER')))) {
+      return 'CRITICAL';
+    }
+
+    // Level 4: HIGH (Serious Legal Risk)
+    const highTypes = ['SRO_JURISDICTION_MISMATCH', 'VOID_DEED_WRONG_SRO', 'DEED_AADHAAR_NAME_MISMATCH', 'UNDER_CIRCLE_RATE_VALUATION', 'UNREGULARIZED_GPA_CHAIN', 'MISSING_GPA_AUTHORIZATION', 'WITNESS_IS_PARTY'];
+    if (highTypes.includes(type) || sev === 'ERROR') {
+      return 'HIGH';
+    }
+
+    // Level 3: MEDIUM (Compliance Discrepancy)
+    const mediumTypes = ['AGE_DOB_MISMATCH', 'INSUFFICIENT_STAMP_DUTY', 'INSUFFICIENT_REGISTRATION_FEE', 'AMOUNT_WORDS_FIGURES_MISMATCH', 'RELEASE_PARTY_MISMATCH', 'RELEASE_AMOUNT_MISMATCH', 'RELEASE_ORPHAN', 'INSUFFICIENT_WITNESSES'];
+    if (mediumTypes.includes(type) || (sev === 'WARNING' && !type.includes('FORMAT'))) {
+      return 'MEDIUM';
+    }
+
+    // Level 2: LOW (Formatting Anomaly)
+    const lowTypes = ['INVALID_AADHAAR_FORMAT', 'INVALID_PAN_FORMAT', 'INVALID_DATE_FORMAT', 'UTILITY_ARREARS_OUTSTANDING', 'PROPERTY_TAX_UNVERIFIED', 'FORMA_CONSIDERATION_MISMATCH'];
+    if (lowTypes.includes(type) || type.includes('FORMAT') || sev === 'WARNING') {
+      return 'LOW';
+    }
+
+    // Level 1: INFORMATIONAL (Recital Note)
+    return 'INFORMATIONAL';
+  }
+
   function applyFindingsFilter(list) {
     return list.filter(f => {
-      const sev = (f.severity || '').toUpperCase();
-      if (_findingsSeverityFilter === 'TITLE_DEFECT' && sev !== 'ERROR') return false;
-      if (_findingsSeverityFilter === 'COMPLIANCE_ANOMALY' && sev !== 'WARNING') return false;
-      if (_findingsSeverityFilter === 'RECORD_OBSERVATION' && sev !== 'INFO') return false;
+      if (_findingsSeverityFilter !== 'all') {
+        const tier = getSeverityTier(f);
+        if (_findingsSeverityFilter !== tier) return false;
+      }
 
       if (_findingsCategoryFilter !== 'all') {
         const cat = f.category || '';
@@ -5226,23 +5258,31 @@
                   <span id="findings-filter-badge" class="${_findingsSeverityFilter === 'all' && _findingsCategoryFilter === 'all' ? 'hidden' : ''} h-1.5 w-1.5 rounded-full bg-slate-700"></span>
                 </button>
 
-                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
-                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Audit Severity Ladder</div>
+                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-72 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">5-Tier Audit Severity Ladder</div>
                   <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
                     <span>All Severities</span>
                     <span class="${_findingsSeverityFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'TITLE_DEFECT')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔴 Marketability & Title Defect</span>
-                    <span class="${_findingsSeverityFilter === 'TITLE_DEFECT' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'CRITICAL')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔴 Level 5: Critical (Fatal Title Defect)</span>
+                    <span class="${_findingsSeverityFilter === 'CRITICAL' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'COMPLIANCE_ANOMALY')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟡 Conveyancing & Compliance Anomaly</span>
-                    <span class="${_findingsSeverityFilter === 'COMPLIANCE_ANOMALY' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'HIGH')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟠 Level 4: High (Serious Legal Risk)</span>
+                    <span class="${_findingsSeverityFilter === 'HIGH' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'RECORD_OBSERVATION')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔵 Recital & Record Observation</span>
-                    <span class="${_findingsSeverityFilter === 'RECORD_OBSERVATION' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'MEDIUM')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🟡 Level 3: Medium (Compliance Discrepancy)</span>
+                    <span class="${_findingsSeverityFilter === 'MEDIUM' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('severity', 'LOW')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>🔵 Level 2: Low (Formatting Anomaly)</span>
+                    <span class="${_findingsSeverityFilter === 'LOW' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  </button>
+                  <button onclick="setFindingsFilter('severity', 'INFORMATIONAL')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                    <span>⚪ Level 1: Informational (Recital Note)</span>
+                    <span class="${_findingsSeverityFilter === 'INFORMATIONAL' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
                   </button>
 
                   <div class="border-t border-slate-100 my-1"></div>
@@ -6848,19 +6888,22 @@
 
 
 
-    let rawSev = (err.severity || '').toUpperCase();
-    let sevLabel = 'Documentation Conflict';
-    let sevBadgeCls = 'border-slate-200 bg-white text-slate-700';
+    const tier = getSeverityTier(err);
+    let sevLabel = 'Level 1: Informational';
+    let sevBadgeCls = 'border-slate-200 bg-slate-50 text-slate-600 font-medium';
 
-    if (rawSev === 'ERROR' || sev === 'voidance' || sev === 'dispute') {
-      sevLabel = 'Title Defect';
-      sevBadgeCls = 'border-rose-200 bg-rose-50 text-rose-800 font-semibold';
-    } else if (rawSev === 'WARNING' || sev === 'liability') {
-      sevLabel = 'Conveyancing Anomaly';
+    if (tier === 'CRITICAL') {
+      sevLabel = 'Level 5: Critical';
+      sevBadgeCls = 'border-red-200 bg-red-50 text-red-800 font-bold';
+    } else if (tier === 'HIGH') {
+      sevLabel = 'Level 4: High';
+      sevBadgeCls = 'border-orange-200 bg-orange-50 text-orange-800 font-bold';
+    } else if (tier === 'MEDIUM') {
+      sevLabel = 'Level 3: Medium';
       sevBadgeCls = 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
-    } else {
-      sevLabel = 'Record Observation';
-      sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-semibold';
+    } else if (tier === 'LOW') {
+      sevLabel = 'Level 2: Low';
+      sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-medium';
     }
 
     if (isDismissed) {
