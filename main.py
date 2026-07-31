@@ -758,6 +758,17 @@ DOCUMENT:
         transferor_parties = ACT_data.get("transferor_parties") or []
         transferee_parties = ACT_data.get("transferee_parties") or []
 
+        # Fallback to general 'parties' list if transferor/transferee split lists are empty
+        all_parties = ACT_data.get("parties") or []
+        if isinstance(all_parties, list) and not transferor_parties and not transferee_parties:
+            for p in all_parties:
+                if isinstance(p, dict):
+                    role = str(p.get("role") or "").upper()
+                    if any(r in role for r in ["VENDOR", "SELLER", "DONOR", "LESSOR", "LICENSOR", "MORTGAGOR", "TRANSFEROR", "FIRST", "1ST"]):
+                        transferor_parties.append(p)
+                    elif any(r in role for r in ["VENDEE", "BUYER", "DONEE", "LESSEE", "LICENSEE", "MORTGAGEE", "TRANSFEREE", "SECOND", "2ND"]):
+                        transferee_parties.append(p)
+
         transferor_parties = [p for p in transferor_parties if isinstance(p, dict)]
         transferee_parties = [p for p in transferee_parties if isinstance(p, dict)]
 
