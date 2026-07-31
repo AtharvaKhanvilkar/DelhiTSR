@@ -4771,31 +4771,66 @@
 
   function applyFindingsFilter(list) {
     return list.filter(f => {
+      // 1. Severity Filter
       if (_findingsSeverityFilter !== 'all') {
         const tier = getSeverityTier(f);
         if (_findingsSeverityFilter !== tier) return false;
       }
 
+      // 2. Category Filter
       if (_findingsCategoryFilter !== 'all') {
-        const cat = f.category || '';
-        const type = f.type || '';
+        const cat = (f.category || '').toLowerCase();
+        const type = (f.type || '').toUpperCase();
+
         if (_findingsCategoryFilter === 'identity_age_id') {
-          const isIdentity = ['party_identity', 'age_validation', 'id_validation', 'date_validation'].includes(cat) ||
-            ['INVALID_NAME_PLACEHOLDER', 'DEED_AADHAAR_NAME_MISMATCH', 'MINOR_PARTY_PROHIBITED', 'AGE_DOB_MISMATCH', 'INVALID_AADHAAR_FORMAT', 'INVALID_PAN_FORMAT', 'INVALID_DATE_FORMAT'].includes(type);
-          if (!isIdentity) return false;
+          const identityCats = ['party_identity', 'age_validation', 'id_validation', 'date_validation', 'identity_age_id'];
+          const identityTypes = [
+            'INVALID_NAME_PLACEHOLDER', 'DEED_AADHAAR_NAME_MISMATCH', 'MINOR_PARTY_PROHIBITED',
+            'AGE_DOB_MISMATCH', 'ID_PROOF_DOB_MISMATCH', 'ID_PROOF_PAN_MISMATCH', 'ID_PROOF_MISSING',
+            'INVALID_AADHAAR_FORMAT', 'INVALID_PAN_FORMAT', 'INVALID_DATE_FORMAT',
+            'PAN_TRANSFEROR_TRANSFEREE_CLASH', 'NAME_ALIAS_ON_RECORD', 'WITNESS_IS_PARTY',
+            'INSUFFICIENT_WITNESSES', 'OCCUPANT_NOT_PARTY'
+          ];
+          if (!identityCats.includes(cat) && !identityTypes.includes(type)) return false;
         }
+
         if (_findingsCategoryFilter === 'title_chain') {
-          const isTitle = ['title_chain', 'ownership', 'sro_jurisdiction'].includes(cat) ||
-            ['RECITAL_CHAIN_GAP', 'SRO_JURISDICTION_MISMATCH', 'CHAIN_DISCONTINUITY', 'LEASEHOLD_UNCONVERTED'].includes(type);
-          if (!isTitle) return false;
+          const titleCats = ['title_chain', 'ownership', 'sro_jurisdiction', 'encumbrance'];
+          const titleTypes = [
+            'CHAIN_BREAK', 'CHAIN_DISCONTINUITY', 'RECITAL_CHAIN_GAP', 'SRO_JURISDICTION_MISMATCH',
+            'VOID_DEED_WRONG_SRO', 'LEASEHOLD_UNCONVERTED', 'UNRESOLVED_MORTGAGE', 'PARTIALLY_RELEASED',
+            'RELEASE_ORPHAN', 'RELEASE_PARTY_MISMATCH', 'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS',
+            'RELEASE_OVERFLOW', 'LENDER_MISMATCH', 'MORTGAGE_RESOLVED', 'MISSING_GPA_AUTHORIZATION',
+            'UNREGULARIZED_GPA_CHAIN', 'DATE_ORDER_DEVIATION', 'RECTIFICATION_APPLIED',
+            'AREA_MISMATCH', 'AREA_MISMATCH_MILD', 'SOCIETY_MISMATCH', 'ID_MISMATCH'
+          ];
+          if (!titleCats.includes(cat) && !titleTypes.includes(type)) return false;
         }
+
         if (_findingsCategoryFilter === 'financial') {
-          const isFin = ['financial', 'circle_rate', 'stamp_duty', 'tax'].includes(cat) ||
-            ['UNDER_CIRCLE_RATE_VALUATION', 'TDS_194IA_SHORTFALL', 'CIRCLE_RATE_STATED_MISMATCH', 'PROPERTY_TYPE_MISMATCH', 'ESTAMP_VALUE_MISMATCH'].includes(type);
-          if (!isFin) return false;
+          const finCats = ['financial', 'circle_rate', 'stamp_duty', 'tax', 'consideration'];
+          const finTypes = [
+            'UNDER_CIRCLE_RATE_VALUATION', 'TDS_194IA_SHORTFALL', 'CIRCLE_RATE_STATED_MISMATCH',
+            'PROPERTY_TYPE_MISMATCH', 'ESTAMP_VALUE_MISMATCH', 'ESTAMP_DATE_ANOMALY',
+            'ZERO_CONSIDERATION', 'GIFT_DEED_WITH_CONSIDERATION', 'INSUFFICIENT_STAMP_DUTY',
+            'INSUFFICIENT_REGISTRATION_FEE', 'AMOUNT_WORDS_FIGURES_MISMATCH', 'MISSING_SALE_CONSIDERATION',
+            'MISSING_MORTGAGE_VALUE', 'MISSING_RENTAL_CONSIDERATION', 'CONSIDERATION_ANOMALY',
+            'PAYMENT_SUM_MISMATCH', 'UTILITY_ARREARS_OUTSTANDING', 'PROPERTY_TAX_UNVERIFIED',
+            'FORMA_CONSIDERATION_MISMATCH'
+          ];
+          if (!finCats.includes(cat) && !finTypes.includes(type)) return false;
         }
-        if (_findingsCategoryFilter === 'supporting_docs' && cat !== 'supporting_docs') return false;
+
+        if (_findingsCategoryFilter === 'supporting_docs') {
+          const isSupp = cat === 'supporting_docs' || [
+            'ID_PROOF_MISSING', 'ID_PROOF_PAN_MISMATCH', 'ID_PROOF_DOB_MISMATCH',
+            'PROPERTY_TAX_UNVERIFIED', 'UTILITY_ARREARS_OUTSTANDING', 'ESTAMP_VALUE_MISMATCH',
+            'ESTAMP_DATE_ANOMALY', 'FORMA_CONSIDERATION_MISMATCH'
+          ].includes(type);
+          if (!isSupp) return false;
+        }
       }
+
       return true;
     });
   }
@@ -5393,9 +5428,11 @@
 
         } else {
 
-          html += `<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
+          const mainFindings = _findingsCategoryFilter !== 'all'
+            ? activeFindings
+            : activeFindings.filter(f => f.category !== 'supporting_docs');
 
-          sortFindings(activeFindings.filter(f => f.category !== 'supporting_docs')).forEach(err => { html += renderFindingCard(err, false); });
+          sortFindings(mainFindings).forEach(err => { html += renderFindingCard(err, false); });
 
           sortFindings(dismissedFindings).forEach(err => { html += renderFindingCard(err, true); });
 
@@ -5415,13 +5452,14 @@
 
           html += `</div>`;
 
-          // Supporting Documents: annexed-document observations, kept separate
-          // from the core title/legal findings.
-          const _supp = sortFindings(activeFindings.filter(f => f.category === 'supporting_docs'));
-          if (_supp.length > 0) {
-            html += `<div class="mt-6 mb-2 flex items-center gap-2"><span class="text-sm font-semibold text-foreground">Supporting Documents</span><span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums text-secondary-foreground">${_supp.length}</span></div><p class="text-xs text-muted-foreground mb-2">Observations from annexed documents (ID proofs, tax receipt, utility bills, e-Stamp, payments) — separate from the title/legal findings.</p><div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
-            _supp.forEach(err => { html += renderFindingCard(err, false); });
-            html += `</div>`;
+          // Supporting Documents sub-panel: shown only when viewing "All Categories"
+          if (_findingsCategoryFilter === 'all') {
+            const _supp = sortFindings(activeFindings.filter(f => f.category === 'supporting_docs'));
+            if (_supp.length > 0) {
+              html += `<div class="mt-6 mb-2 flex items-center gap-2"><span class="text-sm font-semibold text-foreground">Supporting Documents</span><span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium tabular-nums text-secondary-foreground">${_supp.length}</span></div><p class="text-xs text-muted-foreground mb-2">Observations from annexed documents (ID proofs, tax receipt, utility bills, e-Stamp, payments) — separate from the title/legal findings.</p><div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">`;
+              _supp.forEach(err => { html += renderFindingCard(err, false); });
+              html += `</div>`;
+            }
           }
 
           html += `</div>`;
