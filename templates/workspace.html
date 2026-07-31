@@ -4708,14 +4708,14 @@
     const type = (finding.type || '').toUpperCase();
 
     // ── Tier 5: VOIDANCE (Material Defect / Fatal Title Bar / Subsisting Mortgage Lien) ──
-    // Subsisting encumbrances, unreleased mortgage charges, void deeds, and broken title chain.
+    // Subsisting encumbrances, unresolved/partially released mortgage charges, void deeds, and broken title chain.
     const voidanceTypes = [
-      'UNRESOLVED_MORTGAGE', 'RELEASE_ORPHAN', 'RELEASE_PARTY_MISMATCH',
-      'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS', 'RELEASE_OVERFLOW',
-      'LENDER_MISMATCH', 'CHAIN_BREAK', 'MINOR_PARTY_PROHIBITED',
-      'INVALID_NAME_PLACEHOLDER', 'ZERO_CONSIDERATION',
-      'GIFT_DEED_WITH_CONSIDERATION', 'VOID_DEED_WRONG_SRO',
-      'PAN_TRANSFEROR_TRANSFEREE_CLASH'
+      'UNRESOLVED_MORTGAGE', 'PARTIALLY_RELEASED', 'RELEASE_ORPHAN',
+      'RELEASE_PARTY_MISMATCH', 'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS',
+      'RELEASE_OVERFLOW', 'LENDER_MISMATCH', 'CHAIN_BREAK',
+      'MINOR_PARTY_PROHIBITED', 'INVALID_NAME_PLACEHOLDER',
+      'ZERO_CONSIDERATION', 'GIFT_DEED_WITH_CONSIDERATION',
+      'VOID_DEED_WRONG_SRO', 'PAN_TRANSFEROR_TRANSFEREE_CLASH'
     ];
     if (voidanceTypes.includes(type)) return 'VOIDANCE';
 
@@ -4735,9 +4735,9 @@
     if (sev === 'ERROR') return 'SUBSTANTIVE_RISK';
 
     // ── Tier 3: REQUISITION (Statutory Requisition) ──
-    // Compliance gaps, stamp duty deficits, or partial releases requiring legal requisition.
+    // Compliance gaps, stamp duty deficits, or formal deficits requiring legal requisition.
     const requisitionTypes = [
-      'PARTIALLY_RELEASED', 'AGE_DOB_MISMATCH', 'INSUFFICIENT_STAMP_DUTY',
+      'AGE_DOB_MISMATCH', 'INSUFFICIENT_STAMP_DUTY',
       'INSUFFICIENT_REGISTRATION_FEE', 'AMOUNT_WORDS_FIGURES_MISMATCH',
       'INSUFFICIENT_WITNESSES', 'RECITAL_CHAIN_GAP',
       'CONSIDERATION_ANOMALY', 'PAYMENT_SUM_MISMATCH',
