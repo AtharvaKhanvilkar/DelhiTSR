@@ -4676,8 +4676,31 @@
     if (type === 'severity') _findingsSeverityFilter = value;
     if (type === 'category') _findingsCategoryFilter = value;
     const menu = document.getElementById('findings-filter-menu');
-    if (menu) menu.classList.add('hidden');
     loadEvents();
+  }
+
+  function highlightDocRow(docNo, ev) {
+    if (ev && ev.target && ev.target.closest('button')) return;
+    if (!docNo) return;
+
+    const targetDoc = String(docNo).trim().toLowerCase();
+    const rows = document.querySelectorAll('#eventsContent [data-doc-no]');
+    let matchedRow = null;
+
+    rows.forEach(r => {
+      const rDoc = String(r.dataset.docNo || '').trim().toLowerCase();
+      if (rDoc && (rDoc === targetDoc || rDoc.includes(targetDoc) || targetDoc.includes(rDoc))) {
+        matchedRow = r;
+      }
+    });
+
+    if (matchedRow) {
+      matchedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      matchedRow.classList.add('ring-2', 'ring-amber-400', 'bg-amber-50/80', 'transition-all', 'duration-300');
+      setTimeout(() => {
+        matchedRow.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-50/80');
+      }, 2200);
+    }
   }
 
   function getSeverityTier(finding) {
@@ -5239,7 +5262,7 @@
 
           html += `
 
-            <div onclick="openEventDetail(${idx})" data-event-idx="${idx}"
+            <div onclick="openEventDetail(${idx})" data-event-idx="${idx}" data-doc-no="${ev.event_doc_no || ''}"
 
                  class="grid grid-cols-[64px_120px_minmax(0,1fr)_175px_90px_20px] items-center px-6 py-3.5 ${isLast ? '' : 'border-b border-border'} hover:bg-muted/40 transition-colors gap-4 cursor-pointer group tl-row-enter" style="animation-delay: ${idx * 45}ms">
 
@@ -5302,27 +5325,27 @@
                     <span class="${_findingsSeverityFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'VOIDANCE')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
-                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#dc2626"/></svg>
-                    <span class="flex-1">Statutory Voidance / Fatal Defect</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span class="flex-1">Material Defect</span>
                     <span class="${_findingsSeverityFilter === 'VOIDANCE' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'SUBSTANTIVE_RISK')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
-                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#ea580c"/></svg>
-                    <span class="flex-1">Substantive Title Risk</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span class="flex-1">Substantive Defect</span>
                     <span class="${_findingsSeverityFilter === 'SUBSTANTIVE_RISK' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'REQUISITION')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
-                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#d97706"/></svg>
-                    <span class="flex-1">Legal Requisition / Compliance Gap</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="15"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    <span class="flex-1">Statutory Requisition</span>
                     <span class="${_findingsSeverityFilter === 'REQUISITION' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'PROCEDURAL_IRREGULARITY')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
-                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#0284c7"/></svg>
-                    <span class="flex-1">Procedural Irregularity</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span class="flex-1">Procedural Anomaly</span>
                     <span class="${_findingsSeverityFilter === 'PROCEDURAL_IRREGULARITY' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'RECORD_NOTATION')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
-                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#a1a1aa"/></svg>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                     <span class="flex-1">Record Notation</span>
                     <span class="${_findingsSeverityFilter === 'RECORD_NOTATION' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
@@ -6936,30 +6959,30 @@
 
     const tier = getSeverityTier(err);
     let sevLabel = 'Record Notation';
-    let sevDotColor = '#a1a1aa';
+    let sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`;
     let sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700';
 
     if (tier === 'VOIDANCE') {
-      sevLabel = 'Statutory Voidance';
-      sevDotColor = '#dc2626';
+      sevLabel = 'Material Defect';
+      sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
       sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-800 font-bold';
     } else if (tier === 'SUBSTANTIVE_RISK') {
-      sevLabel = 'Substantive Title Risk';
-      sevDotColor = '#ea580c';
+      sevLabel = 'Substantive Defect';
+      sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
       sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-800 font-semibold';
     } else if (tier === 'REQUISITION') {
-      sevLabel = 'Legal Requisition';
-      sevDotColor = '#d97706';
+      sevLabel = 'Statutory Requisition';
+      sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="15"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
       sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700 font-semibold';
     } else if (tier === 'PROCEDURAL_IRREGULARITY') {
-      sevLabel = 'Procedural Irregularity';
-      sevDotColor = '#0284c7';
+      sevLabel = 'Procedural Anomaly';
+      sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
       sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700';
     }
 
     if (isDismissed) {
       sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-400 line-through';
-      sevDotColor = '#d4d4d8';
+      sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`;
     }
 
 
@@ -7000,9 +7023,11 @@
 
 
 
+    const targetDocNo = err.doc_no || err.ref_doc_no || err.event_doc_no || '';
+
     return `
 
-      <div class="${rowClass}">
+      <div onclick="highlightDocRow('${targetDocNo}', event)" class="${rowClass} hover:bg-zinc-50/80 hover:border-zinc-300 transition-all duration-150 cursor-pointer group group/finding">
 
         <div class="flex items-start justify-between gap-4 mb-2">
 
@@ -7010,7 +7035,7 @@
 
             <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-800 ${isDismissed ? 'line-through decoration-1 text-zinc-400' : ''}">${label}</span>
 
-            <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs"><svg width="7" height="7" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="${sevDotColor}"/></svg>${sevLabel}</span>
+            <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs">${sevIconSvg}${sevLabel}</span>
 
             ${dismissedBadge}
 
