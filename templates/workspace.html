@@ -5256,54 +5256,63 @@
                   <span id="findings-filter-badge" class="${_findingsSeverityFilter === 'all' && _findingsCategoryFilter === 'all' ? 'hidden' : ''} h-1.5 w-1.5 rounded-full bg-slate-700"></span>
                 </button>
 
-                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-80 rounded-xl border border-slate-200 bg-white shadow-xl z-50 p-2 text-xs space-y-1">
-                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">TSR Legal Opinion Severity Ladder</div>
-                  <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                <div id="findings-filter-menu" class="hidden absolute right-0 mt-1.5 w-80 rounded-xl border border-zinc-200 bg-white shadow-xl z-50 p-2 text-xs space-y-0.5">
+                  <div class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Severity</div>
+                  <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center justify-between font-medium text-zinc-700">
                     <span>All Severities</span>
-                    <span class="${_findingsSeverityFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'VOIDANCE')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔴 Tier 5: Statutory Voidance / Fatal Defect</span>
-                    <span class="${_findingsSeverityFilter === 'VOIDANCE' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'VOIDANCE')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#dc2626"/></svg>
+                    <span class="flex-1">Statutory Voidance / Fatal Defect</span>
+                    <span class="${_findingsSeverityFilter === 'VOIDANCE' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'SUBSTANTIVE_RISK')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟠 Tier 4: Substantive Title Risk</span>
-                    <span class="${_findingsSeverityFilter === 'SUBSTANTIVE_RISK' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'SUBSTANTIVE_RISK')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#ea580c"/></svg>
+                    <span class="flex-1">Substantive Title Risk</span>
+                    <span class="${_findingsSeverityFilter === 'SUBSTANTIVE_RISK' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'REQUISITION')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🟡 Tier 3: Legal Requisition / Compliance Gap</span>
-                    <span class="${_findingsSeverityFilter === 'REQUISITION' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'REQUISITION')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#d97706"/></svg>
+                    <span class="flex-1">Legal Requisition / Compliance Gap</span>
+                    <span class="${_findingsSeverityFilter === 'REQUISITION' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'PROCEDURAL_IRREGULARITY')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>🔵 Tier 2: Procedural Irregularity</span>
-                    <span class="${_findingsSeverityFilter === 'PROCEDURAL_IRREGULARITY' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'PROCEDURAL_IRREGULARITY')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#0284c7"/></svg>
+                    <span class="flex-1">Procedural Irregularity</span>
+                    <span class="${_findingsSeverityFilter === 'PROCEDURAL_IRREGULARITY' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('severity', 'RECORD_NOTATION')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>⚪ Tier 1: Informational Record Notation</span>
-                    <span class="${_findingsSeverityFilter === 'RECORD_NOTATION' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('severity', 'RECORD_NOTATION')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="8" height="8" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="#a1a1aa"/></svg>
+                    <span class="flex-1">Record Notation</span>
+                    <span class="${_findingsSeverityFilter === 'RECORD_NOTATION' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
 
-                  <div class="border-t border-slate-100 my-1"></div>
-                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Legal Rule Category</div>
-                  <button onclick="setFindingsFilter('category', 'all')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
+                  <div class="border-t border-zinc-100 my-1.5"></div>
+                  <div class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Category</div>
+                  <button onclick="setFindingsFilter('category', 'all')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center justify-between font-medium text-zinc-700">
                     <span>All Categories</span>
-                    <span class="${_findingsCategoryFilter === 'all' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsCategoryFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'identity_age_id')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>👤 Identity, Age & ID Proofs</span>
-                    <span class="${_findingsCategoryFilter === 'identity_age_id' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'identity_age_id')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span class="flex-1">Identity, Age & ID Proofs</span>
+                    <span class="${_findingsCategoryFilter === 'identity_age_id' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'title_chain')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>📜 Title Chain & Ownership</span>
-                    <span class="${_findingsCategoryFilter === 'title_chain' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'title_chain')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    <span class="flex-1">Title Chain & Ownership</span>
+                    <span class="${_findingsCategoryFilter === 'title_chain' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'financial')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>💰 Financial & Valuation</span>
-                    <span class="${_findingsCategoryFilter === 'financial' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'financial')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span class="flex-1">Financial & Valuation</span>
+                    <span class="${_findingsCategoryFilter === 'financial' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
-                  <button onclick="setFindingsFilter('category', 'supporting_docs')" class="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-100 flex items-center justify-between font-medium text-slate-700">
-                    <span>📎 Supporting Documents</span>
-                    <span class="${_findingsCategoryFilter === 'supporting_docs' ? 'text-emerald-600 font-bold' : 'hidden'}">✓</span>
+                  <button onclick="setFindingsFilter('category', 'supporting_docs')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span class="flex-1">Supporting Documents</span>
+                    <span class="${_findingsCategoryFilter === 'supporting_docs' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
                   </button>
                 </div>
               </div>
@@ -6888,24 +6897,30 @@
 
     const tier = getSeverityTier(err);
     let sevLabel = 'Record Notation';
-    let sevBadgeCls = 'border-slate-200 bg-slate-50 text-slate-600 font-medium';
+    let sevDotColor = '#a1a1aa';
+    let sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700';
 
     if (tier === 'VOIDANCE') {
       sevLabel = 'Statutory Voidance';
-      sevBadgeCls = 'border-red-200 bg-red-50 text-red-800 font-bold';
+      sevDotColor = '#dc2626';
+      sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-800 font-bold';
     } else if (tier === 'SUBSTANTIVE_RISK') {
       sevLabel = 'Substantive Title Risk';
-      sevBadgeCls = 'border-orange-200 bg-orange-50 text-orange-800 font-bold';
+      sevDotColor = '#ea580c';
+      sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-800 font-semibold';
     } else if (tier === 'REQUISITION') {
       sevLabel = 'Legal Requisition';
-      sevBadgeCls = 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
+      sevDotColor = '#d97706';
+      sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700 font-semibold';
     } else if (tier === 'PROCEDURAL_IRREGULARITY') {
       sevLabel = 'Procedural Irregularity';
-      sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-medium';
+      sevDotColor = '#0284c7';
+      sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700';
     }
 
     if (isDismissed) {
-      sevBadgeCls = 'border-slate-200 bg-slate-50 text-slate-400 line-through';
+      sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-400 line-through';
+      sevDotColor = '#d4d4d8';
     }
 
 
@@ -6956,7 +6971,7 @@
 
             <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-800 ${isDismissed ? 'line-through decoration-1 text-zinc-400' : ''}">${label}</span>
 
-            <span class="inline-flex items-center rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs font-semibold">${sevLabel}</span>
+            <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs"><svg width="7" height="7" viewBox="0 0 8 8" class="shrink-0"><circle cx="4" cy="4" r="4" fill="${sevDotColor}"/></svg>${sevLabel}</span>
 
             ${dismissedBadge}
 
