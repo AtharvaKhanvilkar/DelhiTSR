@@ -563,7 +563,10 @@ E-STAMP CERTIFICATE  (only if an e-Stamp / stamp certificate page is present; el
 - estamp_first_party              (first party as printed on the certificate)
 - estamp_second_party             (second party as printed on the certificate)
 - estamp_duty_paid_by             (who paid the stamp duty, per the certificate)
-- estamp_description              (e.g. "Article 23 Sale")
+- estamp_description              (e.g. "Article 23 Sale" or "Article 40 Mortgage")
+- stamp_type                      ("E_STAMP", "PHYSICAL_STAMP", "FRANKING", "TREASURY_CHALLAN", or "NULL")
+- franking_machine_number         (franking machine registration number, if physical franking)
+- treasury_challan_grn            (Govt Treasury receipt/GRN number, if e-Challan)
 
 ═══════════════════════════════════════════════════════════
 REGISTRATION ENDORSEMENT  (the Sub-Registrar/DORIS registration page & Section-60 certificate)
@@ -597,10 +600,11 @@ VALUATION / SCHEDULE  (circle-rate computation block, if present; else null)
 - cost_of_land_stated             (numeric component, only if the deed shows the a+b+c breakdown)
 - cost_of_construction_stated     (numeric component)
 - cost_of_stilt_stated            (numeric component)
-- stamp_duty_rate                 (e.g. "3%")
+- stamp_duty_rate                 (e.g. "3%" or "6%")
 - corporation_tax_amount          (numeric, if stated)
 - corporation_tax_rate            (e.g. "3%")
 - total_non_judicial_stamp        (numeric total stamp-paper value, if stated)
+- mcd_upic                        (MCD Unique Property ID Code, e.g. "11009217001")
 
 ═══════════════════════════════════════════════════════════
 PAYMENT TRAIL  (how the consideration was paid — sale deeds; else empty list)
@@ -612,14 +616,16 @@ PAYMENT TRAIL  (how the consideration was paid — sale deeds; else empty list)
                                     {{"amount": <numeric>, "challan_no", "bsr_code", "serial_no", "date", "bank"}})
 
 ═══════════════════════════════════════════════════════════
-TITLE-CHAIN RECITALS  (prior instruments the deed NARRATES in its "Previous Facts"/"Whereas" text)
+TITLE-CHAIN RECITALS & STAMP RECITAL TEXT
 ═══════════════════════════════════════════════════════════
 - chain_recitals                  (list, ONE object per prior registered instrument the deed
                                     recites, each {{"instrument_type", "doc_no", "book_no", "volume",
                                     "pages", "sro", "execution_date", "registration_date",
                                     "from_parties", "to_parties"}})
-- title_root                      (root/origin of title if stated, e.g. "President of India / DDA")
+- title_root                      (root/origin of title if stated, e.g. "President of India / DDA Allotment")
+- is_root_deed                    (true / false — is this the original root allotment document?)
 - leasehold_to_freehold_converted (true / false / null — is a leasehold→freehold conversion recited?)
+- recited_stamp_duty_text         (verbatim text recital of stamp duty paid, e.g. "paid vide e-Stamp Cert IN-DL...")
 
 ═══════════════════════════════════════════════════════════
 WITNESSES  (the attesting witnesses to the deed; empty list if none present)
@@ -642,19 +648,15 @@ ANNEXED SUPPORTING DOCUMENTS  (ID proofs, tax receipt, utility bills, Form-A, un
 - undertaking                     (object {{"buyer_name", "property", "mobile", "serial_no", "sro"}} or null)
 
 ═══════════════════════════════════════════════════════════
-PARTIES — IDENTITY NUMBERS BOUND TO EACH PERSON
+PARTIES — IDENTITY NUMBERS & ROLES BOUND TO EACH PERSON
 ═══════════════════════════════════════════════════════════
-PAN and PIN are UNIQUE to each individual. You MUST bind each PAN/PIN
-to the specific person it belongs to — NEVER return them as detached
-lists, because that loses which number belongs to whom.
-
-Return TWO lists of party objects. Each object pairs ONE person with
-THEIR OWN identity numbers, exactly as the document associates them:
+Return BOTH split lists AND a unified 'parties' list of party objects. Each object pairs ONE person with THEIR OWN identity numbers and role:
 
 - transferor_parties              (list of objects, the GIVING side — sellers/donors/mortgagors/releasors/licensors)
-    each object: {{"name", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
+    each object: {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
 - transferee_parties              (list of objects, the RECEIVING side — buyers/donees/mortgagees/releasees/licensees)
-    each object: {{"name", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
+    each object: {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
+- parties                         (unified list of ALL party objects, each {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}})
     • age: this person's stated age as an integer (e.g. 35), or null if not explicitly recited.
     • dob: this person's date of birth as printed (DD-MM-YYYY or DD.MM.YYYY).
     • aadhaar: the 12-digit Aadhaar bound to THIS person, exactly as printed. If not clearly
