@@ -4707,38 +4707,37 @@
     const sev = (finding.severity || '').toUpperCase();
     const type = (finding.type || '').toUpperCase();
 
-    // ── Tier 5: VOIDANCE (Statutory Voidance / Fatal Title Defect) ──
-    // Findings that render title unmarketable or void ab initio.
+    // ── Tier 5: VOIDANCE (Material Defect / Fatal Title Bar / Subsisting Mortgage Lien) ──
+    // Subsisting encumbrances, unreleased mortgage charges, void deeds, and broken title chain.
     const voidanceTypes = [
-      'MINOR_PARTY_PROHIBITED', 'INVALID_NAME_PLACEHOLDER',
-      'CHAIN_BREAK', 'ZERO_CONSIDERATION',
-      'VOID_DEED_WRONG_SRO'
+      'UNRESOLVED_MORTGAGE', 'RELEASE_ORPHAN', 'RELEASE_PARTY_MISMATCH',
+      'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS', 'RELEASE_OVERFLOW',
+      'LENDER_MISMATCH', 'CHAIN_BREAK', 'MINOR_PARTY_PROHIBITED',
+      'INVALID_NAME_PLACEHOLDER', 'ZERO_CONSIDERATION',
+      'GIFT_DEED_WITH_CONSIDERATION', 'VOID_DEED_WRONG_SRO',
+      'PAN_TRANSFEROR_TRANSFEREE_CLASH'
     ];
     if (voidanceTypes.includes(type)) return 'VOIDANCE';
 
-    // ── Tier 4: SUBSTANTIVE_RISK (Substantive Title Risk) ──
-    // Serious defects risking litigation, regulatory breach, or disputed ownership.
+    // ── Tier 4: SUBSTANTIVE_RISK (Substantive Defect) ──
+    // Serious legal defects risking litigation, clouded ownership, or regulatory breach.
     const substantiveTypes = [
       'UNDER_CIRCLE_RATE_VALUATION', 'MISSING_GPA_AUTHORIZATION',
       'UNREGULARIZED_GPA_CHAIN', 'DEED_AADHAAR_NAME_MISMATCH',
       'WITNESS_IS_PARTY', 'ID_PROOF_PAN_MISMATCH',
-      'UNRESOLVED_MORTGAGE', 'MISSING_SALE_CONSIDERATION',
-      'MISSING_MORTGAGE_VALUE', 'GIFT_DEED_WITH_CONSIDERATION',
-      'PAN_TRANSFEROR_TRANSFEREE_CLASH', 'LENDER_MISMATCH',
-      'RELEASE_ORPHAN', 'RELEASE_PARTY_MISMATCH',
-      'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS', 'RELEASE_OVERFLOW',
+      'MISSING_SALE_CONSIDERATION', 'MISSING_MORTGAGE_VALUE',
       'AREA_MISMATCH', 'SOCIETY_MISMATCH', 'ID_MISMATCH',
       'LEASEHOLD_UNCONVERTED', 'OCCUPANT_NOT_PARTY',
-      'DATE_ORDER_DEVIATION'
+      'DATE_ORDER_DEVIATION', 'SRO_JURISDICTION_MISMATCH'
     ];
     if (substantiveTypes.includes(type)) return 'SUBSTANTIVE_RISK';
-    // Any remaining ERROR-severity type not explicitly placed → substantive risk
+    // Any remaining ERROR-severity type not explicitly placed → substantive defect
     if (sev === 'ERROR') return 'SUBSTANTIVE_RISK';
 
-    // ── Tier 3: REQUISITION (Legal Requisition / Compliance Gap) ──
-    // Discrepancies requiring clarification or rectification before closing.
+    // ── Tier 3: REQUISITION (Statutory Requisition) ──
+    // Compliance gaps, stamp duty deficits, or partial releases requiring legal requisition.
     const requisitionTypes = [
-      'AGE_DOB_MISMATCH', 'INSUFFICIENT_STAMP_DUTY',
+      'PARTIALLY_RELEASED', 'AGE_DOB_MISMATCH', 'INSUFFICIENT_STAMP_DUTY',
       'INSUFFICIENT_REGISTRATION_FEE', 'AMOUNT_WORDS_FIGURES_MISMATCH',
       'INSUFFICIENT_WITNESSES', 'RECITAL_CHAIN_GAP',
       'CONSIDERATION_ANOMALY', 'PAYMENT_SUM_MISMATCH',
@@ -4746,31 +4745,27 @@
       'MISSING_CRITICAL_FIELDS', 'PROPERTY_NOT_IN_DELHI',
       'ESTAMP_VALUE_MISMATCH', 'ESTAMP_DATE_ANOMALY',
       'CIRCLE_RATE_STATED_MISMATCH', 'PROPERTY_TYPE_MISMATCH',
-      'PARTIALLY_RELEASED',
       'METADATA_SRO_MISMATCH', 'METADATA_LOCALITY_MISMATCH',
       'METADATA_PROPERTY_ID_MISMATCH', 'METADATA_UPIC_MISMATCH',
       'METADATA_AUTHORITY_MISMATCH', 'METADATA_LAND_USE_MISMATCH'
     ];
     if (requisitionTypes.includes(type)) return 'REQUISITION';
 
-    // ── Tier 2: PROCEDURAL_IRREGULARITY (Formatting / Ancillary) ──
-    // Administrative or clerical errors, format violations, mild mismatches.
+    // ── Tier 2: PROCEDURAL_IRREGULARITY (Procedural Anomaly) ──
+    // Formatting errors, ID format issues, utility arrears, mild area rounding.
     const proceduralTypes = [
       'INVALID_AADHAAR_FORMAT', 'INVALID_PAN_FORMAT', 'INVALID_DATE_FORMAT',
       'UTILITY_ARREARS_OUTSTANDING', 'PROPERTY_TAX_UNVERIFIED',
-      'FORMA_CONSIDERATION_MISMATCH',
-      'AREA_MISMATCH_MILD',
+      'FORMA_CONSIDERATION_MISMATCH', 'AREA_MISMATCH_MILD',
       'METADATA_FLAT_MISMATCH', 'METADATA_FLOOR_MISMATCH',
       'METADATA_ADDRESS_MISMATCH'
     ];
     if (proceduralTypes.includes(type)) return 'PROCEDURAL_IRREGULARITY';
-    // Any remaining WARNING-severity type not explicitly placed → procedural
+    // Any remaining WARNING-severity type not explicitly placed → procedural anomaly
     if (sev === 'WARNING') return 'PROCEDURAL_IRREGULARITY';
 
-    // ── Tier 1: RECORD_NOTATION (Informational) ──
-    // Recital entries, observations, resolved items.
-    // Covers: NAME_ALIAS_ON_RECORD, ID_PROOF_MISSING, RECTIFICATION_APPLIED,
-    //         MORTGAGE_RESOLVED, and any INFO-severity type.
+    // ── Tier 1: RECORD_NOTATION (Record Notation) ──
+    // Recital notes, observations, resolved mortgages, and informational entries.
     return 'RECORD_NOTATION';
   }
 
