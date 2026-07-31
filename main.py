@@ -245,7 +245,7 @@ PAGES:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # DEED CLASSIFICATION TAXONOMY
-# Single source of truth for what deed sub-types UNISON recognizes.
+# Single source of truth for what deed sub-types DelhiTSR recognizes.
 # Synonyms cover the regional/legacy variants we've seen in Indian deeds.
 # ─────────────────────────────────────────────────────────────────────────────
 DEED_SUBTYPES = {
@@ -911,7 +911,7 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
         )
 
     system_instruction = (
-        "You are UNISON Assistant, a careful title-search analyst helping a "
+        "You are DelhiTSR Assistant, a careful title-search analyst helping a "
         "professional reviewer understand ONE specific property. You are given "
         "structured data extracted from that property's documents: per-document "
         "fields, the chronological events, the entity ledger (owners and their "

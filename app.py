@@ -151,8 +151,8 @@ def send_otp_email(email, otp_code):
     smtp_password = os.environ.get("SMTP_PASSWORD")
     sender_email = os.environ.get("SENDER_EMAIL")
 
-    subject = f"Your AutoTSR Verification Code: {otp_code}"
-    body = f"Hello,\n\nYour One-Time Password (OTP) for AutoTSR is: {otp_code}\n\nThis code will expire in 5 minutes.\n\nRegards,\nAutoTSR Team"
+    subject = f"Your DelhiTSR Verification Code: {otp_code}"
+    body = f"Hello,\n\nYour One-Time Password (OTP) for DelhiTSR is: {otp_code}\n\nThis code will expire in 5 minutes.\n\nRegards,\nDelhiTSR Team"
 
     if smtp_server and smtp_port and smtp_username and smtp_password and sender_email:
         try:

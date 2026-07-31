@@ -12,7 +12,7 @@ if not os.path.exists(PYTHON_EXE):
 
 def run_supervisor():
     print("========================================================")
-    print("  AutoTSR Engine Process Supervisor (Always-On Mode)")
+    print("  DelhiTSR Engine Process Supervisor (Always-On Mode)")
     print("========================================================")
     print(f"Project Directory: {PROJECT_DIR}")
     print(f"Python Executable: {PYTHON_EXE}")

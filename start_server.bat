@@ -1,12 +1,12 @@
 @echo off
-title AutoTSR Engine - Auto Restarting Server
+title DelhiTSR Engine - Auto Restarting Server
 echo ========================================================
-echo   AutoTSR Engine - Auto-Restarting Server Supervisor
+echo   DelhiTSR Engine - Auto-Restarting Server Supervisor
 echo ========================================================
 echo.
 
 :SERVER_LOOP
-echo [%date% %time%] Launching AutoTSR Flask Server (app.py)...
+echo [%date% %time%] Launching DelhiTSR Flask Server (app.py)...
 .venv\Scripts\python.exe app.py
 echo.
 echo [%date% %time%] WARNING: Server process exited with code %errorlevel%.
