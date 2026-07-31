@@ -5477,6 +5477,12 @@
 
         } else {
 
+          html += `<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border block w-full">`;
+
+          if (activeFindings.length === 0 && dismissedFindings.length > 0) {
+            html += `<div class="px-5 py-3 bg-muted/30 text-xs text-muted-foreground">All findings dismissed. Restore any below to re-surface it.</div>`;
+          }
+
           const mainFindings = _findingsCategoryFilter !== 'all'
             ? activeFindings
             : activeFindings.filter(f => f.category !== 'supporting_docs');
@@ -5484,20 +5490,6 @@
           sortFindings(mainFindings).forEach(err => { html += renderFindingCard(err, false); });
 
           sortFindings(dismissedFindings).forEach(err => { html += renderFindingCard(err, true); });
-
-
-
-          if (activeFindings.length === 0 && dismissedFindings.length > 0) {
-
-            html = html.replace(
-
-              '<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border">',
-
-              '<div class="rounded-lg border border-border bg-card shadow-sm overflow-hidden divide-y divide-border"><div class="px-5 py-3 bg-muted/30 text-xs text-muted-foreground">All findings dismissed. Restore any below to re-surface it.</div>'
-
-            );
-
-          }
 
           html += `</div>`;
 
@@ -7069,7 +7061,7 @@
 
 
 
-    const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30' : 'px-5 py-4';
+    const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30 w-full block' : 'px-5 py-4 w-full block';
 
     const dimText  = isDismissed ? 'text-muted-foreground' : 'text-foreground';
 
