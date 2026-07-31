@@ -101,11 +101,11 @@ def _teardown():
     _pw_page = None
 
 
-def _run_in_pw_thread(fn):
+def _run_in_pw_thread(fn, timeout=60):
     """Submit a function to the dedicated Playwright thread and wait for result.
     This ensures ALL Playwright calls happen on the same single thread."""
     future = _pw_executor.submit(fn)
-    return future.result(timeout=60)
+    return future.result(timeout=timeout)
 
 
 def reset_browser():
@@ -363,132 +363,329 @@ class DorisDocScraper:
             "message": "Portal uses autocomplete, not a dropdown. Use get_locality_suggestions(query) instead."
         }
 
-    # ── Deed Document Search & Extract ────────────────────────────────────
+    # ── Deed Document Search & Extract (persistent Playwright session) ─────
     def fetch_deed_document(self, locality, reg_no, reg_year, sro_name="", book_no="1"):
         """
-        Submits search request on SearchForm.aspx and extracts scan images.
-        Converts extracted scans into a stitched PDF.
+        Uses the SAME persistent, already-authenticated Playwright session (with the
+        locality → SRO cascade completed) to submit the deed search on
+        SearchForm.aspx and extract the scan image URLs from the result page.
+
+        Note: sro_name carries the SRO <option> value sent by the frontend hidden
+        field, so it is matched against the option value first, then its label.
         """
         try:
-            # Ensure session is active
-            res_form = self.session.get(SEARCH_URL, timeout=12)
-            if res_form.status_code != 200:
-                login_res = self.login()
-                if not login_res["ok"]:
-                    return login_res
-                res_form = self.session.get(SEARCH_URL, timeout=12)
+            def _do():
+                page, context = _ensure_browser()
 
-            soup = BeautifulSoup(res_form.text, 'html.parser')
-            vs = soup.find('input', {'id': '__VIEWSTATE'})
-            ev = soup.find('input', {'id': '__EVENTVALIDATION'})
+                # Session must be active on SearchForm.aspx
+                if "SearchForm.aspx" not in page.url:
+                    page.goto(SEARCH_URL, timeout=30000, wait_until="domcontentloaded")
 
-            vs_val = vs['value'] if vs else ""
-            ev_val = ev['value'] if ev else ""
+                if "login.aspx" in page.url.lower():
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                            "error": "Government portal session expired. Please sign in again."}
 
-            sro_val = "0"
-            sro_select = soup.find('select', {'id': re.compile(r'ddlSRO|ddl_Sro', re.I)})
-            if sro_select and sro_name:
-                for opt in sro_select.find_all('option'):
-                    if sro_name.lower() in opt.text.lower() or opt.text.lower() in sro_name.lower():
-                        sro_val = opt.get('value', '0')
-                        break
+                def _select(selector, wanted):
+                    """Select an <option> by value, then visible label, then fuzzy label."""
+                    if not wanted:
+                        return False
+                    for kwargs in ({"value": str(wanted)}, {"label": str(wanted)}):
+                        try:
+                            page.select_option(selector, **kwargs)
+                            return True
+                        except Exception:
+                            pass
+                    try:
+                        opts = page.eval_on_selector_all(
+                            f"{selector} option",
+                            "els => els.map(o => ({value: o.value, label: o.innerText.trim()}))"
+                        )
+                        w = str(wanted).lower()
+                        for o in opts:
+                            lbl = o["label"].lower()
+                            if lbl and (w in lbl or lbl in w):
+                                page.select_option(selector, value=o["value"])
+                                return True
+                    except Exception:
+                        pass
+                    return False
 
-            payload = {
-                "__VIEWSTATE": vs_val,
-                "__EVENTVALIDATION": ev_val,
-                "ctl00$ContentPlaceHolder1$GenerateTicket1$txtSearch": locality or "",
-                "ctl00$ContentPlaceHolder1$GenerateTicket1$ddl_Sro": sro_val,
-                "ctl00$ContentPlaceHolder1$GenerateTicket1$txt_Regno": str(reg_no),
-                "ctl00$ContentPlaceHolder1$GenerateTicket1$dd_regyear": str(reg_year),
-                "ctl00$ContentPlaceHolder1$GenerateTicket1$ddl_book": str(book_no),
-                "ctl00$ContentPlaceHolder1$GenerateTicket1$btnSearch": "Search"
-            }
+                # 1. Select the SRO office (value carried in sro_name)
+                if sro_name:
+                    _select(ID_DDL_SRO, sro_name)
+                    page.wait_for_timeout(500)
 
-            res_search = self.session.post(SEARCH_URL, data=payload, timeout=18)
-            if res_search.status_code != 200:
-                return {
-                    "ok": False,
-                    "diagnostic_code": "BACKEND_HTTP_ERROR",
-                    "error": f"Portal returned HTTP {res_search.status_code}."
-                }
+                # 2. Fill the registration number
+                page.fill(ID_TXT_REGNO, str(reg_no))
 
-            if "Logout" in res_search.url or "errorPage" in res_search.url or "Some Error occured" in res_search.text:
-                return {
-                    "ok": False,
-                    "diagnostic_code": "PORTAL_SESSION_EXPIRED",
-                    "error": "Government portal session expired or blocked automated login. Active session cookie required."
-                }
+                # 3. Select the registration year and book
+                _select(ID_DDL_REGYEAR, reg_year)
+                _select(ID_DDL_BOOK, book_no)
 
-            search_soup = BeautifulSoup(res_search.text, 'html.parser')
-            img_tags = search_soup.find_all('img', {'src': re.compile(r'\.(jpg|jpeg|png|tiff|gif|aspx)', re.I)})
-            
-            image_urls = []
-            for img in img_tags:
-                src = img.get('src', '')
-                if 'captcha' in src.lower() or 'logo' in src.lower() or 'banner' in src.lower():
-                    continue
-                if not src.startswith('http'):
-                    src = f"{BASE_URL}/{src.lstrip('/')}"
-                image_urls.append(src)
-
-            if not image_urls:
-                links = search_soup.find_all('a', {'href': re.compile(r'(View|Show|Doc|Page)', re.I)})
-                for a in links:
-                    href = a.get('href', '')
-                    if not href.startswith('http'):
-                        href = f"{BASE_URL}/{href.lstrip('/')}"
-                    image_urls.append(href)
-
-            if not image_urls:
-                if "Check Deed Doc" not in res_search.text and "No Record" in res_search.text:
-                    return {
-                        "ok": False,
-                        "diagnostic_code": "NO_RECORDS_ON_GOVT_SITE",
-                        "error": f"Government database has 0 scanned deed records for Reg No. {reg_no} ({reg_year})."
-                    }
-                else:
-                    return {
-                        "ok": False,
-                        "diagnostic_code": "NO_SCANNED_PAGES_FOUND",
-                        "error": f"Government portal returned 0 scanned pages for Reg No. {reg_no} in {reg_year}."
-                    }
-
-            return {
-                "ok": True,
-                "diagnostic_code": "SUCCESS",
-                "image_urls": image_urls,
-                "total_pages": len(image_urls),
-                "raw_html": res_search.text[:2000]
-            }
-
-        except Exception as e:
-            return {
-                "ok": False,
-                "diagnostic_code": "BACKEND_EXCEPTION",
-                "error": f"Deed document query exception: {str(e)}"
-            }
-
-    def generate_stitched_pdf(self, image_urls, output_pdf_path):
-        """Downloads images from image_urls, converts them to RGB, and stitches into a PDF."""
-        images = []
-        try:
-            for url in image_urls:
+                # 4. Submit the search and wait for the result table to render
+                page.click(ID_BTN_SEARCH)
                 try:
-                    resp = self.session.get(url, timeout=10)
-                    if resp.status_code == 200 and len(resp.content) > 100:
-                        img = Image.open(io.BytesIO(resp.content))
-                        if img.mode != 'RGB':
-                            img = img.convert('RGB')
-                        images.append(img)
-                except Exception as img_err:
-                    print(f"Skipping unreadable image {url}: {img_err}")
+                    page.wait_for_load_state("networkidle", timeout=20000)
+                except Exception:
+                    page.wait_for_timeout(3000)
+
+                html = page.content()
+                curr_url = page.url
+
+                if "login.aspx" in curr_url.lower():
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                            "error": "Government portal session expired during search. Please sign in again."}
+
+                if "Some Error occured" in html or "errorPage" in curr_url:
+                    return {"ok": False, "diagnostic_code": "PORTAL_SESSION_EXPIRED",
+                            "error": "Government portal returned an error. Session may have expired — please sign in again."}
+
+                # 5. The result table carries a "Check Deed Doc" button that opens the
+                #    scanned deed in a popup. If it is absent, there is no record.
+                deed_btn = page.locator(
+                    "input[value*='Check Deed' i], a:has-text('Check Deed'), "
+                    "button:has-text('Check Deed'), :text('Check Deed Doc')"
+                ).first
+                try:
+                    deed_btn.wait_for(state="visible", timeout=8000)
+                except Exception:
+                    if "No Record" in html or "not found" in html.lower():
+                        return {"ok": False, "diagnostic_code": "NO_RECORDS_ON_GOVT_SITE",
+                                "error": f"Government database has 0 scanned deed records for Reg No. {reg_no} ({reg_year})."}
+                    return {"ok": False, "diagnostic_code": "NO_SCANNED_PAGES_FOUND",
+                            "error": f"Could not find the 'Check Deed Doc' button for Reg No. {reg_no} ({reg_year})."}
+
+                # 6. Open the deed popup. The portal renders the deed as a real, complete
+                #    PDF (Chrome shows its PDF viewer with Save-as/Print). The best capture
+                #    is that PDF itself — far better than screenshotting page images.
+                #    We watch the network for the PDF response URL, and also handle the
+                #    cases where it opens in a new tab or inside an <embed>/<iframe>.
+                pdf_url_candidates = []
+
+                def _on_response(resp):
+                    try:
+                        u = resp.url
+                        ul = u.split("?")[0].lower()
+                        is_pdf = ul.endswith(".pdf")
+                        if not is_pdf:
+                            try:
+                                ct = (resp.headers or {}).get("content-type", "").lower()
+                                is_pdf = "application/pdf" in ct
+                            except Exception:
+                                is_pdf = False
+                        if is_pdf and u not in pdf_url_candidates:
+                            pdf_url_candidates.append(u)
+                    except Exception:
+                        pass
+
+                opened_pages = []
+                context.on("response", _on_response)
+                context.on("page", lambda p: opened_pages.append(p))
+
+                deed_btn.click()
+
+                # Wait for the PDF request to appear (or the popup/embed to render)
+                for _ in range(24):
+                    if pdf_url_candidates:
+                        break
+                    page.wait_for_timeout(500)
+
+                # Also collect a PDF URL from any newly-opened tab or from an embed/iframe
+                for np in opened_pages:
+                    try:
+                        np.wait_for_load_state("domcontentloaded", timeout=4000)
+                    except Exception:
+                        pass
+                    u = np.url or ""
+                    if ".pdf" in u.lower() and u not in pdf_url_candidates:
+                        pdf_url_candidates.append(u)
+
+                try:
+                    embed_src = page.evaluate("""() => {
+                        const els = Array.from(document.querySelectorAll('iframe,embed,object'));
+                        for (const e of els) {
+                            const s = e.src || e.data || '';
+                            if (s && /pdf/i.test(s)) return s;
+                        }
+                        return null;
+                    }""")
+                except Exception:
+                    embed_src = None
+                if embed_src:
+                    full = embed_src if embed_src.startswith("http") else f"{BASE_URL}/{embed_src.lstrip('/')}"
+                    if full not in pdf_url_candidates:
+                        pdf_url_candidates.append(full)
+
+                # Download the deed PDF using the authenticated session
+                pdf_body = None
+                for u in pdf_url_candidates:
+                    full = u if u.startswith("http") else f"{BASE_URL}/{u.lstrip('/')}"
+                    try:
+                        resp = context.request.get(full, timeout=30000)
+                        if resp.ok:
+                            body = resp.body()
+                            if body and body[:4] == b"%PDF":
+                                pdf_body = body
+                                break
+                    except Exception:
+                        continue
+
+                # Fallback: pull the bytes straight from an opened PDF tab (uses its session)
+                if not pdf_body:
+                    for np in opened_pages:
+                        if ".pdf" not in (np.url or "").lower():
+                            continue
+                        try:
+                            b64 = np.evaluate("""async () => {
+                                const r = await fetch(location.href);
+                                const buf = await r.arrayBuffer();
+                                const bytes = new Uint8Array(buf);
+                                let bin = '';
+                                const chunk = 0x8000;
+                                for (let i = 0; i < bytes.length; i += chunk) {
+                                    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+                                }
+                                return btoa(bin);
+                            }""")
+                            if b64:
+                                raw = base64.b64decode(b64)
+                                if raw[:4] == b"%PDF":
+                                    pdf_body = raw
+                                    break
+                        except Exception:
+                            continue
+
+                # Tidy up: stop listening and close any popup tabs
+                try:
+                    context.remove_listener("response", _on_response)
+                except Exception:
+                    pass
+                for np in opened_pages:
+                    try:
+                        if np != page:
+                            np.close()
+                    except Exception:
+                        pass
+
+                if pdf_body:
+                    try:
+                        pages = len(re.findall(rb'/Type\s*/Page[^s]', pdf_body)) or None
+                    except Exception:
+                        pages = None
+                    return {"ok": True, "diagnostic_code": "SUCCESS",
+                            "pdf_bytes_b64": base64.b64encode(pdf_body).decode("utf-8"),
+                            "total_pages": pages}
+
+                # ── Fallback: no downloadable PDF found → capture rendered scan images ──
+                page.wait_for_timeout(1500)
+
+                # JS that (a) scrolls every scrollable container one screen at a time to
+                # trigger lazy-loaded pages, and (b) tags every genuine deed scan image.
+                # Placeholders, logos and CAPTCHAs are filtered out by src + size.
+                tag_js = r"""() => {
+                    const bad = /wait|process|loading|spinner|logo|emblem|ashok|banner|header|captcha|jpegimage|\.gif/i;
+                    // Step forward through any scrollable panes to load more pages
+                    document.querySelectorAll('*').forEach(e => {
+                        const s = getComputedStyle(e);
+                        if ((s.overflowY === 'auto' || s.overflowY === 'scroll') &&
+                            e.scrollHeight > e.clientHeight + 20) {
+                            e.scrollTop = Math.min(e.scrollTop + e.clientHeight, e.scrollHeight);
+                        }
+                    });
+                    let n = 0;
+                    document.querySelectorAll('img').forEach(img => {
+                        img.removeAttribute('data-deedcap');
+                        const src = img.src || '';
+                        const bigEnough = img.naturalWidth > 150 && img.naturalHeight > 150;
+                        const rect = img.getBoundingClientRect();
+                        const shown = rect.width > 120 && rect.height > 120;
+                        if (bigEnough && shown && !bad.test(src)) {
+                            img.setAttribute('data-deedcap', '1');
+                            n++;
+                        }
+                    });
+                    return n;
+                }"""
+
+                deadline = time.time() + 35
+                last_count = -1
+                stable = 0
+                while time.time() < deadline:
+                    count = page.evaluate(tag_js)
+                    if count > 0 and count == last_count:
+                        stable += 1
+                        if stable >= 2:
+                            break
+                    else:
+                        stable = 0
+                    last_count = count
+                    page.wait_for_timeout(900)
+
+                # 7. Capture each tagged deed page. Prefer native-resolution bytes
+                #    (data: URI or the same-session image URL); fall back to a rendered
+                #    screenshot of the element if the bytes are unavailable.
+                handles = page.query_selector_all('img[data-deedcap="1"]')
+                page_images_b64 = []
+                for el in handles:
+                    src = el.get_attribute('src') or ''
+                    raw = None
+                    try:
+                        if src.startswith('data:image'):
+                            raw = base64.b64decode(src.split(',', 1)[1])
+                        elif src.startswith('http'):
+                            resp = context.request.get(src, timeout=15000)
+                            if resp.ok:
+                                raw = resp.body()
+                    except Exception:
+                        raw = None
+                    if not raw or len(raw) < 100:
+                        try:
+                            raw = el.screenshot()
+                        except Exception:
+                            raw = None
+                    if raw and len(raw) >= 100:
+                        page_images_b64.append(base64.b64encode(raw).decode('utf-8'))
+
+                if not page_images_b64:
+                    # Save a debug snapshot so the failure can be diagnosed
+                    try:
+                        with open(os.path.join(os.getcwd(), "deed_modal_debug.html"), "w", encoding="utf-8") as f:
+                            f.write(page.content())
+                        page.screenshot(path=os.path.join(os.getcwd(), "deed_modal_debug.png"), full_page=True)
+                    except Exception:
+                        pass
+                    return {"ok": False, "diagnostic_code": "NO_SCANNED_PAGES_FOUND",
+                            "error": (f"Opened the deed viewer but could not capture scan pages for "
+                                      f"Reg No. {reg_no} ({reg_year}). A debug snapshot was saved.")}
+
+                return {"ok": True, "diagnostic_code": "SUCCESS",
+                        "page_images_b64": page_images_b64, "total_pages": len(page_images_b64)}
+
+            return _run_in_pw_thread(_do, timeout=120)
+        except Exception as e:
+            return {"ok": False, "diagnostic_code": "BACKEND_EXCEPTION",
+                    "error": f"Deed document query exception: {str(e)}"}
+
+    def generate_stitched_pdf(self, page_images_b64, output_pdf_path):
+        """Stitches the captured deed page images (base64 PNG/JPEG strings) into one PDF."""
+        try:
+            images = []
+            for b64 in page_images_b64:
+                try:
+                    raw = base64.b64decode(b64)
+                    img = Image.open(io.BytesIO(raw))
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    images.append(img)
+                except Exception as e:
+                    print(f"Skipping undecodable page image: {e}")
                     continue
 
             if not images:
-                return {"ok": False, "error": "No valid document page scan images could be downloaded."}
+                return {"ok": False, "error": "No valid deed scan pages were captured."}
 
             os.makedirs(os.path.dirname(output_pdf_path), exist_ok=True)
-            images[0].save(output_pdf_path, save_all=True, append_images=images[1:], resolution=100.0, quality=90)
+            images[0].save(output_pdf_path, save_all=True, append_images=images[1:], resolution=150.0)
 
             return {
                 "ok": True,
