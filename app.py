@@ -3868,7 +3868,15 @@ def _build_events_and_errors(project_path):
             event["leave_license_months"] = data.get("leave_license_months")
 
         # Extract signatory for the event if it involves an institution/company
-        txt = pdf_text_lookup.get(source)
+        source_base = os.path.basename(source) if source else ""
+        txt = pdf_text_lookup.get(source) or pdf_text_lookup.get(source_base)
+        if not txt and source_base:
+            pdf_p = os.path.join(project_path, source_base)
+            if os.path.exists(pdf_p):
+                try:
+                    txt = extract_text_from_PDF(pdf_p)
+                except Exception:
+                    txt = None
         event["authorized_signatory"] = None
         if txt:
             all_parties = []
