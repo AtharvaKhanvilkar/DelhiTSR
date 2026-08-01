@@ -7,11 +7,10 @@
   "theme_color": "#ffffff",
   "orientation": "portrait",
   "icons": [
-  {
-    "src": "/static/unison-logo.png",
-    "sizes": "512x512",
-    "type": "image/png"
-  }
-]
-
+    {
+      "src": "/static/delhitsr-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
