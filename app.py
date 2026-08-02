@@ -244,6 +244,26 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 PROJECT_FOLDER = "workspaces"
 os.makedirs(PROJECT_FOLDER, exist_ok=True)
 
+def _get_project_path(project_name):
+    if not project_name:
+        return ""
+    exact_path = os.path.join(PROJECT_FOLDER, project_name)
+    if os.path.exists(exact_path):
+        return exact_path
+    
+    if os.path.exists(PROJECT_FOLDER):
+        for folder in os.listdir(PROJECT_FOLDER):
+            if folder.startswith(project_name + "_"):
+                target_path = os.path.join(PROJECT_FOLDER, folder)
+                if os.path.isdir(target_path):
+                    return target_path
+        for folder in os.listdir(PROJECT_FOLDER):
+            if folder.startswith(project_name):
+                target_path = os.path.join(PROJECT_FOLDER, folder)
+                if os.path.isdir(target_path):
+                    return target_path
+    return exact_path
+
 # PER BANK ALIASES 
 LENDER_ALIASES = {
     "state_bank_of_india": ["SBI", "State Bank of India", "State Bank", "S.B.I."],
@@ -1085,7 +1105,7 @@ def delete_project(project_name):
 def workspace(project_name):
     if not check_project_owner(project_name):
         abort(403)
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    project_path = _get_project_path(project_name)
     os.makedirs(project_path, exist_ok=True)
 
     if request.method == "POST":
@@ -1725,7 +1745,7 @@ def serve_pdf(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
     from flask import send_from_directory
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    project_path = _get_project_path(project_name)
     return send_from_directory(project_path, filename)
 
 
@@ -1736,8 +1756,9 @@ def load_result(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
     from flask import jsonify
+    project_path = _get_project_path(project_name)
     result_filename = os.path.splitext(filename)[0] + "_result.json"
-    result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
+    result_path = os.path.join(project_path, result_filename)
     if not os.path.exists(result_path):
         return jsonify({"exists": False})
     with open(result_path) as f:
@@ -3053,6 +3074,16 @@ def _build_events_and_errors(project_path):
                 doc_text = extract_text_from_PDF(pdf_path)
             except Exception:
                 pass
+
+        # Extract PDF text for detailed substring matches
+        pdf_path = os.path.join(project_path, source)
+        doc_text = ""
+        if os.path.exists(pdf_path):
+            try:
+                doc_text = extract_text_from_PDF(pdf_path)
+            except Exception:
+                pass
+        text_l = (doc_text or "").lower()
 
         # ── Project metadata reconciliation checks ─────────────────────
         if meta:
@@ -5091,7 +5122,8 @@ def _finding_id(err):
 
 
 def _dismissals_path(project_name):
-    return os.path.join(PROJECT_FOLDER, project_name, "_dismissed.json")
+    project_path = _get_project_path(project_name)
+    return os.path.join(project_path, "_dismissed.json")
 
 
 def _load_dismissals(project_name):
@@ -5122,7 +5154,7 @@ def get_events(project_name):
     if not check_project_owner(project_name):
         abort(403)
     from flask import jsonify
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    project_path = _get_project_path(project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
 
     # Attach a stable id + dismissed flag to every finding so the reviewer
@@ -5201,7 +5233,7 @@ def get_errors(project_name):
     if not check_project_owner(project_name):
         abort(403)
     from flask import jsonify
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    project_path = _get_project_path(project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
     return jsonify({"chain_errors": errors})
 
@@ -5213,7 +5245,7 @@ def get_entities(project_name):
     if not check_project_owner(project_name):
         abort(403)
     from flask import jsonify
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
+    project_path = _get_project_path(project_name)
     events, entities, errors, unresolved_mortgages = _build_events_and_errors(project_path)
     return jsonify(entities)  # already structured as {owners, encumbrances}
 
