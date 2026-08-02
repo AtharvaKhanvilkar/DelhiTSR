@@ -5874,10 +5874,11 @@
         </div>`;
     } else if (t.includes('RELEASE')) {
       const relAmt = Number(ev.released_amount) || 0;
+      const shareText = ev.released_share || (relAmt > 0 ? '₹' + relAmt.toLocaleString('en-IN') + ' (Mortgage Charge Released)' : 'All Right, Title & Interest (Undivided Share)');
       primaryMetricHtml = `
         <div class="pb-4 border-b border-zinc-100">
-          <span class="text-xs text-zinc-550 font-medium">Relinquished Interest / Amount</span>
-          <div class="text-lg font-semibold text-zinc-955 mt-0.5">${relAmt > 0 ? '₹' + relAmt.toLocaleString('en-IN') : 'Share Released'}</div>
+          <span class="text-xs text-zinc-550 font-medium">Relinquished Interest / Share</span>
+          <div class="text-lg font-semibold text-zinc-955 mt-0.5">${shareText}</div>
           ${circleRateTableHtml}
         </div>`;
     } else if (t.includes('GIFT')) {

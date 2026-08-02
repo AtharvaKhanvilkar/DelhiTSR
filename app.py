@@ -1920,11 +1920,48 @@ def _normalize_document_data(data, doc_text="", project_path=""):
         data["releasee_names"] = buyers
         data["licensee_name"] = buyers[0]
 
-    # 5. Extract Legal Clauses & Supporting Documents
+    # 5. Extract Relinquished Share & Legal Clauses & Supporting Documents
+    if txn_type == "RELEASE_DEED":
+        data["released_share_display"] = _extract_relinquished_share_text(doc_text, data)
+
     data["clauses"] = _extract_document_clauses(doc_text, data)
     data["supporting_documents"] = _build_supporting_docs_summary(data)
 
     return data
+
+def _extract_relinquished_share_text(doc_text, data):
+    cls_info = data.get("_classification") or {}
+    subtype = str(cls_info.get("subtype") or "").lower()
+    
+    # 1. Reconveyance / Mortgage release
+    if subtype == "release_mortgage" or data.get("released_mortgage_doc_no"):
+        rel_amt = data.get("released_amount_figures") or data.get("released_mortgage_principal_figures")
+        if rel_amt and isinstance(rel_amt, (int, float)) and rel_amt > 0:
+            return f"₹{int(rel_amt):,} (Mortgage Charge Released)"
+        return "Mortgage Charge Released"
+
+    # 2. Discrete JSON share fields
+    for k in ["relinquished_share", "relinquished_share_fraction", "released_share", "share_percentage"]:
+        val = data.get(k)
+        if val and str(val).strip().lower() not in ("null", "none", ""):
+            return str(val)
+
+    if not doc_text:
+        return "Undivided Share Relinquished (Gratuitous)"
+
+    # 3. Specific fraction / percentage in text
+    m_frac = re.search(r'(?:relinquish|release|surrender|transfer|give\s+up)[\w\s]{0,50}?(?:all\s+his|all\s+her|all\s+their|entire|undivided|1\/2|1\/3|1\/4|50%|33%|25%|half|one-half)\s+(?:undivided\s+)?(?:share|right|title|interest)', doc_text, re.I)
+    if m_frac:
+        matched = m_frac.group(0).strip()
+        matched = re.sub(r'[\r\n]+', ' ', matched)
+        return matched.title()
+
+    # 4. Full title & interest in text
+    m_all = re.search(r'all\s+(?:his|her|their)\s+right,\s*title,?\s*interest', doc_text, re.I)
+    if m_all:
+        return "All Right, Title & Interest (Undivided Share)"
+
+    return "Undivided Share Relinquished (Gratuitous)"
 
 def _extract_document_clauses(doc_text, data):
     clauses = []
@@ -4063,6 +4100,7 @@ def _build_events_and_errors(project_path):
             "transferee_parties": data.get("transferee_parties") or [],
             "clauses":            data.get("clauses") or [],
             "supporting_documents": data.get("supporting_documents") or [],
+            "released_share":      data.get("released_share_display") or data.get("released_share"),
         }
 
         # Only attach society/flat info for flats
