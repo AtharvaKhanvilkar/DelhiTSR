@@ -1835,7 +1835,9 @@ def _normalize_document_data(data, doc_text="", project_path=""):
     subtype = str(cls_info.get("subtype") or "").strip().upper()
 
     txn_type = "SALE_DEED"
-    if any(k in raw_doc_type or k in subtype for k in ["SALE", "CONVEYANCE"]):
+    if any(k in raw_doc_type or k in subtype for k in ["RELEASE", "RELINQUISHMENT", "RECONVEYANCE", "DISCHARGE"]):
+        txn_type = "RELEASE_DEED"
+    elif any(k in raw_doc_type or k in subtype for k in ["SALE", "CONVEYANCE"]):
         if "AGREEMENT" in raw_doc_type or "AGREEMENT" in subtype or "CONTRACT" in raw_doc_type:
             txn_type = "AGREEMENT_OF_SALE"
         elif "DDA" in raw_doc_type or "DDA" in subtype:
@@ -1849,8 +1851,6 @@ def _normalize_document_data(data, doc_text="", project_path=""):
             txn_type = "INTIMATION_OF_MORTGAGE"
         else:
             txn_type = "MORTGAGE_DEED"
-    elif any(k in raw_doc_type or k in subtype for k in ["RELEASE", "RELINQUISHMENT", "RECONVEYANCE", "DISCHARGE"]):
-        txn_type = "RELEASE_DEED"
     elif any(k in raw_doc_type or k in subtype for k in ["LEAVE", "LICENSE", "LEASE", "RENTAL", "TENANCY"]):
         txn_type = "LEAVE_AND_LICENSE"
     elif "PARTITION" in raw_doc_type or "PARTITION" in subtype:
@@ -3849,7 +3849,8 @@ def _build_events_and_errors(project_path):
         subtype = cls_info.get("subtype") or ""
         
         is_ownership_transfer = any(k in txn_upper for k in ["SALE", "GIFT", "AGREEMENT"]) or any(k in subtype for k in ["ats", "conveyance", "gift"])
-        is_mortgage = "MORTGAGE" in txn_upper or "mortgage" in subtype or "intimation" in subtype
+        is_release = "RELEASE" in txn_upper or "relinquishment" in subtype or "reconveyance" in subtype or subtype == "release_mortgage"
+        is_mortgage = ("MORTGAGE" in txn_upper or "mortgage" in subtype or "intimation" in subtype) and not is_release
         
         if is_ownership_transfer or is_mortgage:
             # Check Area
