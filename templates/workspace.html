@@ -3004,7 +3004,7 @@
 
   <div id="eventDrawer"
        onclick="event.stopPropagation()"
-       class="relative z-50 w-full max-w-2xl bg-white border border-zinc-200 rounded-2xl shadow-2xl opacity-0 scale-[0.97] translate-y-2 pointer-events-none transition-all duration-250 ease-out flex flex-col max-h-[85vh] overflow-hidden">
+       class="relative z-50 w-full max-w-3xl bg-white border border-zinc-200 rounded-2xl shadow-2xl opacity-0 scale-[0.97] translate-y-2 pointer-events-none transition-all duration-250 ease-out flex flex-col max-h-[85vh] overflow-hidden">
 
     <div id="eventDrawerContent" class="flex flex-col min-h-0 flex-1 overflow-hidden"></div>
 
@@ -6099,17 +6099,19 @@
           </div>
         </div>
 
-        <!-- Restrained Segmented Tab Switcher -->
-        <div class="flex items-center gap-1.5 pt-2 border-t border-zinc-100/80 select-none">
-          <button id="modalTabOverviewBtn" onclick="switchModalTab('overview')" class="modal-tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900 text-white transition-colors cursor-pointer">
-            Overview
-          </button>
-          <button id="modalTabClausesBtn" onclick="switchModalTab('clauses')" class="modal-tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">
-            Legal Clauses (${clausesList.length})
-          </button>
-          <button id="modalTabDocsBtn" onclick="switchModalTab('docs')" class="modal-tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">
-            Supporting Docs (${supDocsList.length})
-          </button>
+        <!-- Ultra-Clean Segmented Tab Switcher (Apple/Linear-style) -->
+        <div class="pt-2 border-t border-zinc-100/80">
+          <div class="inline-flex items-center p-1 bg-zinc-100/80 rounded-xl border border-zinc-200/50 select-none">
+            <button id="modalTabOverviewBtn" onclick="switchModalTab('overview')" class="px-3.5 py-1 text-xs font-semibold rounded-lg bg-white text-zinc-900 shadow-2xs border border-zinc-200/60 transition-all cursor-pointer">
+              Overview
+            </button>
+            <button id="modalTabClausesBtn" onclick="switchModalTab('clauses')" class="px-3.5 py-1 text-xs font-medium rounded-lg text-zinc-550 hover:text-zinc-900 transition-all cursor-pointer">
+              Legal Clauses (${clausesList.length})
+            </button>
+            <button id="modalTabDocsBtn" onclick="switchModalTab('docs')" class="px-3.5 py-1 text-xs font-medium rounded-lg text-zinc-550 hover:text-zinc-900 transition-all cursor-pointer">
+              Supporting Docs (${supDocsList.length})
+            </button>
+          </div>
         </div>
       </div>
 
@@ -6198,14 +6200,12 @@
       if (t === tabName) {
         if (view) view.classList.remove('hidden');
         if (btn) {
-          btn.classList.add('bg-zinc-900', 'text-white');
-          btn.classList.remove('text-zinc-500', 'hover:bg-zinc-100');
+          btn.className = 'px-3.5 py-1 text-xs font-semibold rounded-lg bg-white text-zinc-900 shadow-2xs border border-zinc-200/60 transition-all cursor-pointer';
         }
       } else {
         if (view) view.classList.add('hidden');
         if (btn) {
-          btn.classList.remove('bg-zinc-900', 'text-white');
-          btn.classList.add('text-zinc-500', 'hover:bg-zinc-100');
+          btn.className = 'px-3.5 py-1 text-xs font-medium rounded-lg text-zinc-550 hover:text-zinc-900 transition-all cursor-pointer';
         }
       }
     });
