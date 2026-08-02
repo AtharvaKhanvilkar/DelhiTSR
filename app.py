@@ -1920,25 +1920,118 @@ def _normalize_document_data(data, doc_text="", project_path=""):
         data["releasee_names"] = buyers
         data["licensee_name"] = buyers[0]
 
-    # 4. Property Locality & Plot Extraction Fallback
-    sched_text = data.get("property_schedule_text") or ""
-    if not data.get("village") and sched_text:
-        colony_keywords = [
-            "Chitra Vihar", "Preet Vihar", "Geeta Colony", "Mayur Vihar", "Vasundhara Enclave",
-            "Hauz Khas", "Vasant Kunj", "Saket", "Malviya Nagar", "Mehrauli", "Chhatarpur",
-            "Greater Kailash", "Lajpat Nagar", "Defence Colony", "Kalkaji", "Okhla", "Dwarka",
-            "Palam", "Najafgarh", "Janakpuri", "Vikaspuri", "Uttam Nagar", "Punjabi Bagh",
-            "Rajouri Garden", "Patel Nagar", "Karol Bagh", "Connaught Place", "Chanakyapuri",
-            "Pitampura", "Rohini", "Shalimar Bagh", "Paschim Vihar", "Siri Fort", "Gulmohar Park",
-            "Green Park", "Safdarjung"
-        ]
-        for c in colony_keywords:
-            if c.lower() in sched_text.lower():
-                data["village"] = c
-                data["locality"] = c
-                break
+    # 5. Extract Legal Clauses & Supporting Documents
+    data["clauses"] = _extract_document_clauses(doc_text, data)
+    data["supporting_documents"] = _build_supporting_docs_summary(data)
 
     return data
+
+def _extract_document_clauses(doc_text, data):
+    clauses = []
+    if not doc_text:
+        return clauses
+
+    # 1. Consideration & Payment Clause
+    m_cons = re.search(r'(?:CONSIDERATION|PAYMENT|SALE\s+PRICE|PURCHASE\s+PRICE|LOAN\s+AMOUNT)[\s\S]{20,600}?(?=\n\n|\n[A-Z\s]{4,}:|\Z)', doc_text, re.I)
+    if m_cons:
+        clauses.append({
+            'title': 'Consideration & Payment Clause',
+            'category': 'consideration',
+            'summary': m_cons.group(0).strip()[:400]
+        })
+
+    # 2. Encumbrance & Title Guarantee Clause
+    m_enc = re.search(r'(?:FREE\s+FROM\s+ALL|ENCUMBRANCE|TITLE\s+GUARANTEE|INDEMNITY|LIEN|CHARGE)[\s\S]{20,600}?(?=\n\n|\n[A-Z\s]{4,}:|\Z)', doc_text, re.I)
+    if m_enc:
+        clauses.append({
+            'title': 'Encumbrance Guarantee & Indemnity Clause',
+            'category': 'indemnity',
+            'summary': m_enc.group(0).strip()[:400]
+        })
+
+    # 3. Possession & Rights Clause
+    m_pos = re.search(r'(?:POSSESSION|DELIVERY\s+OF\s+POSSESSION|VACANT\s+POSSESSION|RIGHTS\s+AND\s+PRIVILEGES)[\s\S]{20,600}?(?=\n\n|\n[A-Z\s]{4,}:|\Z)', doc_text, re.I)
+    if m_pos:
+        clauses.append({
+            'title': 'Possession & Property Rights Clause',
+            'category': 'possession',
+            'summary': m_pos.group(0).strip()[:400]
+        })
+
+    # 4. Title Recitals & Root of Title Clause
+    m_rec = re.search(r'(?:WHEREAS\s+THE\s+VENDOR|WHEREAS\s+THE\s+EXECUTANT|TITLE\s+HISTORY|RECITALS)[\s\S]{20,600}?(?=\n\n|\n[A-Z\s]{4,}:|\Z)', doc_text, re.I)
+    if m_rec:
+        clauses.append({
+            'title': 'Title Recital & Root of Title Clause',
+            'category': 'recital',
+            'summary': m_rec.group(0).strip()[:400]
+        })
+
+    # 5. Covenant for Further Assurance
+    m_cov = re.search(r'(?:FURTHER\s+ASSURANCE|COVENANT|EXECUTE\s+SUCH\s+FURTHER)[\s\S]{20,600}?(?=\n\n|\n[A-Z\s]{4,}:|\Z)', doc_text, re.I)
+    if m_cov:
+        clauses.append({
+            'title': 'Covenant for Further Assurance Clause',
+            'category': 'covenant',
+            'summary': m_cov.group(0).strip()[:400]
+        })
+
+    return clauses
+
+
+def _build_supporting_docs_summary(data):
+    docs = []
+    
+    # 1. e-Stamp Certificate
+    if data.get("estamp_number"):
+        docs.append({
+            'type': 'e-Stamp Certificate',
+            'doc_no': data.get("estamp_number"),
+            'date': data.get("estamp_issued_datetime"),
+            'amount': data.get("estamp_amount"),
+            'status': 'VERIFIED',
+            'icon': 'stamp'
+        })
+        
+    # 2. Annexed ID Proofs (PAN, Aadhaar, Voters ID)
+    for idp in (data.get("annexed_id_proofs") or []):
+        if isinstance(idp, dict):
+            itype = idp.get("id_type") or "ID Card"
+            docs.append({
+                'type': f"{itype.upper()} Card",
+                'person_name': idp.get("person_name") or idp.get("name") or "Stated Party",
+                'doc_no': idp.get("id_value") or idp.get("number") or "—",
+                'dob': idp.get("dob"),
+                'status': 'VERIFIED',
+                'icon': 'id-card'
+            })
+            
+    # 3. Property Tax Receipt
+    ptax = data.get("property_tax")
+    if isinstance(ptax, dict) and any(ptax.get(k) for k in ("upic", "receipt_no", "amount")):
+        docs.append({
+            'type': 'Property Tax Receipt',
+            'doc_no': ptax.get("receipt_no") or ptax.get("upic") or "UPIC Receipt",
+            'date': ptax.get("paid_date"),
+            'amount': ptax.get("amount"),
+            'status': 'VERIFIED',
+            'icon': 'receipt'
+        })
+        
+    # 4. Utility Bills
+    for bill in (data.get("utility_bills") or []):
+        if isinstance(bill, dict):
+            btype = bill.get("utility_type") or "Electricity/Water Bill"
+            docs.append({
+                'type': f"{btype.capitalize()} Bill",
+                'consumer': bill.get("consumer_name"),
+                'doc_no': bill.get("ca_no") or bill.get("k_no") or "Bill Receipt",
+                'arrears': bill.get("arrears"),
+                'status': 'VERIFIED',
+                'icon': 'file-text'
+            })
+            
+    return docs
 
 def _parse_date(d):
     from datetime import datetime
@@ -2737,18 +2830,54 @@ def _phase1_supporting_checks(data, source):
         add("WARNING", "LEASEHOLD_UNCONVERTED",
             "The title root appears to be a government leasehold and the deed does not recite a leasehold→freehold conversion. Verify the freehold conveyance exists.")
 
-    # ===== Title-chain recital gap (conservative) =====
-    recitals = [r for r in (data.get("chain_recitals") or []) if isinstance(r, dict)]
-    for i in range(len(recitals) - 1):
-        cur_to = recitals[i].get("to_parties")
-        nxt_from = recitals[i + 1].get("from_parties")
-        cur_txt = " ".join(cur_to) if isinstance(cur_to, list) else str(cur_to or "")
-        nxt_txt = " ".join(nxt_from) if isinstance(nxt_from, list) else str(nxt_from or "")
-        ta, tb = name_tokens(cur_txt), name_tokens(nxt_txt)
-        if ta and tb and not (ta & tb):
-            add("WARNING", "RECITAL_CHAIN_GAP",
-                f"In the deed's recited history, ownership passes to '{cur_txt}' but the next step starts from '{nxt_txt}' — a possible gap. Verify the intermediate link.")
-            break
+    # ===== BATCH 1 SPECIFIC DEED TYPE AUDIT RULES =====
+    doc_txn = (data.get("txn_type") or data.get("document_type") or "").upper()
+
+    # 1. AGREEMENT_OF_SALE Specific Rules
+    if "AGREEMENT" in doc_txn or "ATS" in doc_txn:
+        add("INFO", "ATS_NON_TITLE_TRANSFER",
+            "An Agreement to Sell (ATS) creates an executory contract right, but does NOT convey absolute legal title under Section 54 of the Transfer of Property Act (Suraj Lamp & Industries v. State of Haryana). Verify a subsequent registered Sale Deed exists.",
+            category="title_rules")
+        
+        possession_given = data.get("possession_handed_over") or data.get("possession_status")
+        if possession_given in (True, "YES", "HANDED_OVER", "PRESENT"):
+            add("WARNING", "ATS_POSSESSION_STAMP_DUTY",
+                "Physical possession is recited as handed over under this Agreement to Sell. Under Article 23A of Delhi Stamp Rules, 90% of conveyance stamp duty is applicable.",
+                category="title_rules")
+
+        if exec_dt:
+            from datetime import datetime as _dt_now
+            now = _dt_now.now()
+            years_elapsed = now.year - exec_dt.year
+            if years_elapsed >= 3:
+                add("WARNING", "ATS_LAPSED_AGREEMENT",
+                    f"This Agreement to Sell was executed {years_elapsed} years ago ({data.get('date_of_execution')}). Under the Limitation Act, 1963, specific performance claims lapse after 3 years if no Sale Deed was executed.",
+                    category="title_rules")
+
+    # 2. GIFT_DEED Specific Rules
+    elif "GIFT" in doc_txn:
+        cons_val = num(data.get("consideration"))
+        if cons_val and cons_val > 0:
+            add("ERROR", "GIFT_DEED_CONSIDERATION_INVALID",
+                f"A Gift Deed must be executed without monetary consideration under Section 122 of the Transfer of Property Act. Stated consideration is ₹{cons_val:,.0f}.",
+                expected="₹0 consideration", actual=f"₹{cons_val:,.0f}", category="legal_rules")
+        
+        if data.get("donee_acceptance_signed") is False:
+            add("ERROR", "GIFT_MISSING_DONEE_ACCEPTANCE",
+                "A Gift Deed is legally void under Section 122 TPA unless accepted by the Donee during the Donor's lifetime.",
+                expected="Donee acceptance signature present", actual="Missing Donee signature", category="legal_rules")
+
+    # 3. EXCHANGE_DEED Specific Rules
+    elif "EXCHANGE" in doc_txn:
+        add("INFO", "EXCHANGE_DEED_DUAL_TRANSFER",
+            "This Exchange Deed mutually swaps ownership between two properties under Section 118 TPA. Both property titles must be verified for clear encumbrance-free title under Section 119 TPA.",
+            category="title_rules")
+
+    # 4. RELEASE_DEED Specific Rules
+    elif "RELEASE" in doc_txn or "RELINQUISHMENT" in doc_txn:
+        add("INFO", "RELEASE_DEED_COOWNERSHIP_CHECK",
+            "A Relinquishment / Release Deed can only surrender an undivided share in favor of an EXISTING co-owner or recorded legal heir. Relinquishment to a stranger is legally invalid and must be stamped as a Sale/Gift Deed.",
+            category="title_rules")
 
     return findings
 
@@ -3931,6 +4060,8 @@ def _build_events_and_errors(project_path):
             "expected_registration_fee": data.get("expected_registration_fee", 0.0),
             "transferor_parties": data.get("transferor_parties") or [],
             "transferee_parties": data.get("transferee_parties") or [],
+            "clauses":            data.get("clauses") or [],
+            "supporting_documents": data.get("supporting_documents") or [],
         }
 
         # Only attach society/flat info for flats

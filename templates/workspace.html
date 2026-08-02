@@ -6027,24 +6027,88 @@
         </div>`;
     }
 
+    // Extracted Clauses HTML
+    const clausesList = ev.clauses || [];
+    let clausesViewHtml = '';
+    if (clausesList.length > 0) {
+      clausesViewHtml = `<div class="space-y-3.5 select-text">`;
+      clausesList.forEach(c => {
+        clausesViewHtml += `
+          <div class="p-4 border border-zinc-200 bg-zinc-50/50 rounded-xl space-y-1.5 shadow-2xs">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-zinc-900">${c.title || 'Legal Clause'}</span>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200 uppercase tracking-wide">${c.category || 'CLAUSE'}</span>
+            </div>
+            <p class="text-xs text-zinc-650 leading-relaxed font-mono whitespace-pre-wrap pt-1.5 border-t border-zinc-200/60">${c.summary}</p>
+          </div>`;
+      });
+      clausesViewHtml += `</div>`;
+    } else {
+      clausesViewHtml = `<div class="p-8 text-center text-xs text-zinc-400 font-medium border border-dashed border-zinc-200 rounded-xl">No explicit legal clauses extracted for this document.</div>`;
+    }
+
+    // Supporting Documents HTML (PAN, Aadhaar, e-Stamp, Property Tax, Utility Bills)
+    const supDocsList = ev.supporting_documents || [];
+    let docsViewHtml = '';
+    if (supDocsList.length > 0) {
+      docsViewHtml = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 select-text">`;
+      supDocsList.forEach(d => {
+        docsViewHtml += `
+          <div class="p-4 border border-zinc-200 bg-white rounded-xl space-y-2 shadow-2xs">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="${d.icon || 'file-text'}" class="w-4 h-4 text-zinc-500 shrink-0"></i>
+                <span class="text-xs font-bold text-zinc-900">${d.type}</span>
+              </div>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">${d.status || 'VERIFIED'}</span>
+            </div>
+            <div class="space-y-1 text-xs pt-1 border-t border-zinc-100">
+              ${d.person_name ? `<div class="flex justify-between text-zinc-600"><span class="text-zinc-400">Name:</span> <span class="font-semibold text-zinc-900">${d.person_name}</span></div>` : ''}
+              ${d.doc_no ? `<div class="flex justify-between text-zinc-600"><span class="text-zinc-400">Document No:</span> <span class="font-mono font-semibold text-zinc-900">${d.doc_no}</span></div>` : ''}
+              ${d.date ? `<div class="flex justify-between text-zinc-600"><span class="text-zinc-400">Issue / Paid Date:</span> <span class="font-medium text-zinc-900">${d.date}</span></div>` : ''}
+              ${d.amount ? `<div class="flex justify-between text-zinc-600"><span class="text-zinc-400">Amount Paid:</span> <span class="font-semibold text-zinc-950">₹${Number(d.amount).toLocaleString('en-IN')}</span></div>` : ''}
+              ${d.arrears ? `<div class="flex justify-between text-zinc-600"><span class="text-zinc-400">Arrears:</span> <span class="font-semibold text-red-650">₹${Number(d.arrears).toLocaleString('en-IN')}</span></div>` : ''}
+            </div>
+          </div>`;
+      });
+      docsViewHtml += `</div>`;
+    } else {
+      docsViewHtml = `<div class="p-8 text-center text-xs text-zinc-400 font-medium border border-dashed border-zinc-200 rounded-xl">No annexed supporting ID cards or bills found for this document.</div>`;
+    }
+
     body.innerHTML = `
       <!-- Modal Header (Fixed at top) -->
-      <div class="flex items-center justify-between p-6 border-b border-zinc-100 shrink-0 bg-white">
-        <div class="space-y-1">
-          <h2 class="text-lg font-bold tracking-tight text-zinc-900">${typeLabel}</h2>
-          <p class="text-xs text-zinc-500 flex items-center gap-1.5">
-            <span class="font-semibold text-zinc-700">Doc ${ev.event_doc_no || '—'}</span>
-            <span class="text-zinc-300">•</span>
-            <span>Source:</span>
-            ${sourceLinkHtml}
-          </p>
+      <div class="flex flex-col p-6 border-b border-zinc-100 shrink-0 bg-white space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <h2 class="text-lg font-bold tracking-tight text-zinc-900">${typeLabel}</h2>
+            <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+              <span class="font-semibold text-zinc-700">Doc ${ev.event_doc_no || '—'}</span>
+              <span class="text-zinc-300">•</span>
+              <span>Source:</span>
+              ${sourceLinkHtml}
+            </p>
+          </div>
+          
+          <!-- Top Right Corner Emoji + Close Button -->
+          <div class="flex items-center gap-3">
+            ${emojiHtml}
+            <button onclick="closeEventDetail()" class="text-zinc-400 hover:text-zinc-900 p-1.5 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer" title="Close (Esc)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
         </div>
-        
-        <!-- Top Right Corner Emoji + Close Button -->
-        <div class="flex items-center gap-3">
-          ${emojiHtml}
-          <button onclick="closeEventDetail()" class="text-zinc-400 hover:text-zinc-900 p-1.5 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer" title="Close (Esc)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+
+        <!-- Restrained Segmented Tab Switcher -->
+        <div class="flex items-center gap-1.5 pt-2 border-t border-zinc-100/80 select-none">
+          <button id="modalTabOverviewBtn" onclick="switchModalTab('overview')" class="modal-tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900 text-white transition-colors cursor-pointer">
+            Overview
+          </button>
+          <button id="modalTabClausesBtn" onclick="switchModalTab('clauses')" class="modal-tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">
+            Legal Clauses (${clausesList.length})
+          </button>
+          <button id="modalTabDocsBtn" onclick="switchModalTab('docs')" class="modal-tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer">
+            Supporting Docs (${supDocsList.length})
           </button>
         </div>
       </div>
@@ -6052,40 +6116,53 @@
       <!-- Modal Body (Scrollable container strictly inside modal box) -->
       <div class="p-6 space-y-6 overflow-y-auto min-h-0 flex-1 bg-white">
         
-        <!-- Primary Metric Row -->
-        ${primaryMetricHtml}
+        <!-- Tab 1: Overview View (Default View) -->
+        <div id="modalViewOverview" class="space-y-6">
+          <!-- Primary Metric Row -->
+          ${primaryMetricHtml}
 
-        <!-- Parties Section -->
-        <div class="space-y-3">
-          <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-3.5 border border-zinc-200 bg-zinc-50/40 rounded-xl space-y-1">
-              <span class="text-[9px] font-bold text-zinc-400 block uppercase tracking-wider">${fromLabel}</span>
-              <span class="text-xs font-semibold text-zinc-950 block">${fromName}</span>
-              <span class="font-mono text-[10px] text-zinc-500 block">PAN: ${fromPan}</span>
-              ${authSignatoryFromHtml}
-            </div>
-            
-            <div class="p-3.5 border border-zinc-200 bg-zinc-50/40 rounded-xl space-y-1">
-              <span class="text-[9px] font-bold text-zinc-400 block uppercase tracking-wider">${toLabel}</span>
-              <div class="flex items-center gap-1.5">
-                ${bankLogoHtml}
-                <span class="text-xs font-semibold text-zinc-950 block">${toName}</span>
+          <!-- Parties Section -->
+          <div class="space-y-3">
+            <h3 class="text-xs font-semibold tracking-tight text-zinc-500 uppercase">Parties</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-3.5 border border-zinc-200 bg-zinc-50/40 rounded-xl space-y-1">
+                <span class="text-[9px] font-bold text-zinc-400 block uppercase tracking-wider">${fromLabel}</span>
+                <span class="text-xs font-semibold text-zinc-950 block">${fromName}</span>
+                <span class="font-mono text-[10px] text-zinc-500 block">PAN: ${fromPan}</span>
+                ${authSignatoryFromHtml}
               </div>
-              <span class="font-mono text-[10px] text-zinc-500 block">PAN: ${toPan}</span>
-              ${authSignatoryToHtml}
+              
+              <div class="p-3.5 border border-zinc-200 bg-zinc-50/40 rounded-xl space-y-1">
+                <span class="text-[9px] font-bold text-zinc-400 block uppercase tracking-wider">${toLabel}</span>
+                <div class="flex items-center gap-1.5">
+                  ${bankLogoHtml}
+                  <span class="text-xs font-semibold text-zinc-950 block">${toName}</span>
+                </div>
+                <span class="font-mono text-[10px] text-zinc-500 block">PAN: ${toPan}</span>
+                ${authSignatoryToHtml}
+              </div>
             </div>
           </div>
+
+          <!-- Registry & Property Grids -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            ${registryTableHtml}
+            ${releaseHistoryHtml ? releaseHistoryHtml : propertyTableHtml}
+          </div>
+
+          <!-- Footnote Signatory -->
+          ${signatoryHtml}
         </div>
 
-        <!-- Registry & Property Grids -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          ${registryTableHtml}
-          ${releaseHistoryHtml ? releaseHistoryHtml : propertyTableHtml}
+        <!-- Tab 2: Legal Clauses View -->
+        <div id="modalViewClauses" class="hidden">
+          ${clausesViewHtml}
         </div>
 
-        <!-- Footnote Signatory -->
-        ${signatoryHtml}
+        <!-- Tab 3: Supporting Documents View -->
+        <div id="modalViewDocs" class="hidden">
+          ${docsViewHtml}
+        </div>
 
       </div>`;
 
@@ -6111,6 +6188,28 @@
 
     backdrop.classList.remove('opacity-100');
 
+  }
+
+  function switchModalTab(tabName) {
+    const tabs = ['overview', 'clauses', 'docs'];
+    tabs.forEach(t => {
+      const view = document.getElementById('modalView' + t.charAt(0).toUpperCase() + t.slice(1));
+      const btn = document.getElementById('modalTab' + (t === 'overview' ? 'Overview' : (t === 'clauses' ? 'Clauses' : 'Docs')) + 'Btn');
+      if (t === tabName) {
+        if (view) view.classList.remove('hidden');
+        if (btn) {
+          btn.classList.add('bg-zinc-900', 'text-white');
+          btn.classList.remove('text-zinc-500', 'hover:bg-zinc-100');
+        }
+      } else {
+        if (view) view.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('bg-zinc-900', 'text-white');
+          btn.classList.add('text-zinc-500', 'hover:bg-zinc-100');
+        }
+      }
+    });
+    if (window.lucide) lucide.createIcons();
   }
 
   function toggleCardCollapsible(id) {
