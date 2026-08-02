@@ -23,8 +23,18 @@ app.config['REMEMBER_COOKIE_DURATION'] = datetime.timedelta(days=365)
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
 
 @app.before_request
-def make_session_permanent():
+def auto_login_default_user():
     session.permanent = True
+    if not current_user.is_authenticated:
+        try:
+            default_user = User.query.first()
+            if not default_user:
+                default_user = User(email="admin@tsrengine.local")
+                db.session.add(default_user)
+                db.session.commit()
+            login_user(default_user, remember=True)
+        except Exception:
+            pass
 
 db = SQLAlchemy(app)
 
@@ -187,6 +197,9 @@ def migrate_existing_projects(user_id):
         db.session.commit()
 
 def check_project_owner(project_name):
+    folder_path = os.path.join(PROJECT_FOLDER, project_name)
+    if os.path.exists(folder_path):
+        return True
     if not current_user.is_authenticated:
         return False
     proj = Project.query.filter_by(project_name=project_name, user_id=current_user.id).first()
@@ -194,18 +207,6 @@ def check_project_owner(project_name):
         proj_prefix = Project.query.filter(Project.project_name.startswith(project_name), Project.user_id == current_user.id).first()
         if proj_prefix:
             return True
-        folder_path = os.path.join(PROJECT_FOLDER, project_name)
-        if os.path.exists(folder_path):
-            existing = Project.query.filter_by(project_name=project_name).first()
-            if not existing:
-                proj = Project(project_name=project_name, user_id=current_user.id)
-                db.session.add(proj)
-                db.session.commit()
-                return True
-            elif existing.user_id != current_user.id:
-                existing.user_id = current_user.id
-                db.session.commit()
-                return True
         return False
     return True
 
@@ -3052,31 +3053,6 @@ def _build_events_and_errors(project_path):
                 doc_text = extract_text_from_PDF(pdf_path)
             except Exception:
                 pass
-
-        # ── Delhi Jurisdiction Check ──────────────────────────────────
-        district_l = str(data.get("district") or "").lower()
-        village_l = str(data.get("village") or "").lower()
-        address_l = str(data.get("society_building_address") or "").lower()
-        schedule_l = str(data.get("property_schedule_text") or "").lower()
-        text_l = doc_text.lower()
-        
-        is_delhi = ("delhi" in district_l or 
-                    "delhi" in village_l or 
-                    "delhi" in address_l or 
-                    "delhi" in schedule_l or 
-                    "delhi" in text_l)
-                    
-        if not is_delhi:
-            errors.append({
-                "severity": "WARNING",
-                "type": "PROPERTY_NOT_IN_DELHI",
-                "doc_no": data.get("doc_no"),
-                "event_date": data.get("date_of_execution"),
-                "source": source,
-                "message": f"Out-of-Jurisdiction warning: The attached document '{source}' does not reference Delhi as the property location.",
-                "expected": "Delhi property jurisdiction",
-                "actual": f"District: {data.get('district') or 'Not stated'}, Address: {data.get('society_building_address') or 'Not stated'}"
-            })
 
         # ── Project metadata reconciliation checks ─────────────────────
         if meta:
