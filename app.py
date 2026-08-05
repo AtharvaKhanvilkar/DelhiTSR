@@ -2938,6 +2938,59 @@ def _phase1_supporting_checks(data, source):
             "A Relinquishment / Release Deed can only surrender an undivided share in favor of an EXISTING co-owner or recorded legal heir. Relinquishment to a stranger is legally invalid and must be stamped as a Sale/Gift Deed.",
             category="title_rules")
 
+    # 5. MORTGAGE_DEED & INTIMATION_OF_MORTGAGE Specific Rules
+    elif "MORTGAGE" in doc_txn or "EQUITABLE" in doc_txn:
+        loan_amt = num(data.get("loan_amount")) or num(data.get("amount_secured")) or num(data.get("consideration"))
+        if loan_amt and loan_amt > 0:
+            add("INFO", "MORTGAGE_CHARGE_CREATED",
+                f"A financial charge / mortgage encumbrance of ₹{loan_amt:,.0f} is registered against this property in favor of the lender bank/institution.",
+                expected="Mortgage charge recorded", actual=f"₹{loan_amt:,.0f}", category="encumbrance_rules")
+        else:
+            add("WARNING", "MORTGAGE_AMOUNT_UNSPECIFIED",
+                "Mortgage deed registered but secured loan amount is unstated or zero — verify loan agreement and bank sanction letter.",
+                category="encumbrance_rules")
+
+        if "INTIMATION" in doc_txn or "MEMORANDUM" in doc_txn:
+            add("INFO", "INTIMATION_SEC89_RECORDED",
+                "Memorandum of Deposit of Title Deeds recorded under Section 89(4) of the Registration Act, 1908. Original title deeds are deposited with the mortgagee bank as security.",
+                category="encumbrance_rules")
+
+    # 6. RECONVEYANCE_DEED / MORTGAGE RELEASE Specific Rules
+    elif "RECONVEYANCE" in doc_txn or "DISCHARGE" in doc_txn or ("RELEASE" in doc_txn and (data.get("released_mortgage_doc") or data.get("loan_account_no"))):
+        ref_mort_doc = data.get("released_mortgage_doc") or data.get("mortgage_deed_no")
+        if ref_mort_doc:
+            add("INFO", "MORTGAGE_RELEASE_LINKED",
+                f"Reconveyance / Discharge Deed explicitly releases mortgage charge for prior Deed No. {ref_mort_doc}.",
+                actual=f"Deed No. {ref_mort_doc}", category="encumbrance_rules")
+        else:
+            add("INFO", "MORTGAGE_RELEASE_FULL_DISCHARGE",
+                "Reconveyance Deed confirms complete repayment of debt and full discharge of bank encumbrance on property.",
+                category="encumbrance_rules")
+
+    # 7. LEAVE_AND_LICENSE / LEASE Specific Rules
+    elif "LEAVE" in doc_txn or "LICENSE" in doc_txn or "LEASE" in doc_txn:
+        add("INFO", "LEASE_NON_TITLE_TRANSFER",
+            "A Leave & License / Lease Agreement grants permissive occupation/possessory rights only, and does NOT transfer ownership or title under Section 105 of the Transfer of Property Act.",
+            category="title_rules")
+        
+        license_months = data.get("license_duration_months") or data.get("lease_term_months")
+        if license_months and license_months > 11:
+            add("WARNING", "LONG_TERM_LEASE_REGISTRATION_CHECK",
+                f"Lease/License term is {license_months} months (>11 months). Under Section 107 TPA and Section 17 Registration Act, leases exceeding 1 year require compulsory registration and appropriate stamp duty.",
+                expected="Registered Lease Deed", actual=f"{license_months} months", category="legal_rules")
+
+    # 8. DDA_CONVEYANCE Specific Rules
+    elif "DDA" in doc_txn or "ALLOTMENT" in doc_txn:
+        add("INFO", "DDA_FREEHOLD_CONVEYANCE",
+            "Delhi Development Authority (DDA) Conveyance Deed converts government leasehold title into absolute Freehold ownership, granting clear alienable title.",
+            category="title_rules")
+        
+        allotment_no = data.get("dda_allotment_no") or data.get("allotment_letter_no")
+        if allotment_no:
+            add("INFO", "DDA_ALLOTMENT_LINKED",
+                f"Conveyance Deed executed pursuant to DDA Allotment / File No. {allotment_no}.",
+                actual=f"File No. {allotment_no}", category="title_rules")
+
     return findings
 
 
