@@ -2167,9 +2167,83 @@
 
 
 
-            <!-- CUSTOM MINIMAL PDF VIEW -->
-            <div id="pdfViewer-custom" class="hidden w-full h-full flex overflow-hidden relative">
-              <div id="pdf-viewer-root" class="w-full h-full"></div>
+            <!-- CUSTOM PRODUCTION-LEVEL LEGAL PDF ENGINE -->
+            <div id="pdfViewer-custom" class="hidden w-full h-full flex flex-col overflow-hidden relative bg-zinc-100">
+              
+              <!-- PDF Top Action & Navigation Control Bar -->
+              <div class="h-10 shrink-0 border-b border-zinc-200 bg-white px-3 flex items-center justify-between select-none shadow-2xs z-20">
+                <!-- Left: Thumbnails Toggle & Page Navigation -->
+                <div class="flex items-center gap-2">
+                  <button onclick="togglePdfCustomSidebar()" title="Toggle Page Previews Drawer" class="p-1 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 border border-zinc-200 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="9" y1="3" x2="9" y2="21"/>
+                    </svg>
+                  </button>
+
+                  <div class="h-4 w-px bg-zinc-200 mx-0.5"></div>
+
+                  <button onclick="pdfCustomPrevPage()" title="Previous Page" class="p-1 rounded hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <span id="pdfCustomPageIndicator" class="text-xs font-semibold text-zinc-700 min-w-[70px] text-center">Page 1 of 1</span>
+                  <button onclick="pdfCustomNextPage()" title="Next Page" class="p-1 rounded hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </div>
+
+                <!-- Center: In-Viewer Full-Text Search -->
+                <div class="flex items-center gap-1.5 bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-0.5 max-w-[280px]">
+                  <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input type="text" id="pdfCustomSearchInput" placeholder="Search in document..." onkeyup="onPdfSearchKey(event)" class="bg-transparent text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none w-32 font-sans">
+                  <span id="pdfCustomSearchCount" class="text-[10px] font-bold text-zinc-400 min-w-[50px] text-right">0 matches</span>
+                  <button onclick="navigatePdfSearch(-1)" title="Previous Match" class="p-0.5 text-zinc-400 hover:text-zinc-800"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
+                  <button onclick="navigatePdfSearch(1)" title="Next Match" class="p-0.5 text-zinc-400 hover:text-zinc-800"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+                </div>
+
+                <!-- Right: Zoom, Rotation & Legibility Enhancer -->
+                <div class="flex items-center gap-1.5">
+                  <!-- Legibility / Invert Contrast Mode -->
+                  <button onclick="togglePdfContrastEnhancer()" title="Enhance Scanned Deed Legibility (High Contrast Invert)" class="p-1 rounded border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors text-xs font-medium flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20z"/></svg>
+                    <span class="text-[11px]">Contrast</span>
+                  </button>
+
+                  <!-- 90° Rotation -->
+                  <button onclick="rotatePdfCustom()" title="Rotate 90° Clockwise" class="p-1.5 rounded border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  </button>
+
+                  <div class="h-4 w-px bg-zinc-200 mx-0.5"></div>
+
+                  <!-- Zoom Controls -->
+                  <button onclick="pdfCustomZoomOut()" title="Zoom Out" class="p-1 rounded border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 transition-colors">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                  <span id="pdfCustomZoomLevel" class="text-xs font-semibold text-zinc-700 min-w-[38px] text-center">100%</span>
+                  <button onclick="pdfCustomZoomIn()" title="Zoom In" class="p-1 rounded border border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-700 transition-colors">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                  <button onclick="togglePdfCustomFitToWidth()" title="Fit to Width" class="p-1 px-2 rounded border border-zinc-200 bg-white hover:bg-zinc-100 text-[11px] font-semibold text-zinc-700 transition-colors">Fit</button>
+                </div>
+              </div>
+
+              <!-- Main Viewer Split Layout (Thumbnail Rail + Virtualized Page Container) -->
+              <div class="flex-1 flex overflow-hidden relative w-full h-full">
+                <!-- Page Thumbnail Rail -->
+                <div id="pdfCustomSidebar" class="w-36 shrink-0 border-r border-zinc-200 bg-white overflow-y-auto p-2 space-y-3 transition-all duration-300 opacity-100 select-none shadow-2xs">
+                  <div class="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider px-1 pb-1 flex items-center justify-between">
+                    <span>Thumbnails</span>
+                    <span id="pdfCustomTotalPages" class="text-zinc-500 font-normal">0 Total</span>
+                  </div>
+                  <div id="pdfCustomThumbnails" class="space-y-3"></div>
+                </div>
+
+                <!-- Main Scrollable Canvas Pages Container -->
+                <div id="pdfCustomPagesContainer" class="flex-1 overflow-y-auto overflow-x-auto p-6 flex flex-col items-center gap-6 bg-zinc-100 relative h-full">
+                  <div class="text-zinc-500 font-sans text-xs select-none">Loading PDF...</div>
+                </div>
+              </div>
             </div>
 
           {% else %}
@@ -3013,7 +3087,7 @@
 
   // ════════════════════════════════════════════════════════════
 
-  const CONFIG_USE_CUSTOM_PDF_VIEWER = false;
+  const CONFIG_USE_CUSTOM_PDF_VIEWER = true;
 
   if (typeof pdfjsLib !== 'undefined') {
 
@@ -8838,11 +8912,89 @@
 
 
   function togglePdfCustomFitToWidth() {
-
     pdfCustomIsFitToWidth = !pdfCustomIsFitToWidth;
-
     pdfCustomApplyZoom();
+  }
 
+  // ── IN-VIEWER FULL-TEXT SEARCH ──
+  let pdfSearchMatches = [];
+  let pdfSearchCurrentIdx = -1;
+
+  function onPdfSearchKey(e) {
+    if (e.key === 'Enter') {
+      if (e.shiftKey) navigatePdfSearch(-1);
+      else navigatePdfSearch(1);
+    } else {
+      executePdfSearch();
+    }
+  }
+
+  function executePdfSearch() {
+    const query = (document.getElementById('pdfCustomSearchInput').value || '').trim().toLowerCase();
+    pdfSearchMatches = [];
+    pdfSearchCurrentIdx = -1;
+    const countEl = document.getElementById('pdfCustomSearchCount');
+
+    if (!query || !pdfCustomCurrentDoc) {
+      if (countEl) countEl.textContent = '0 matches';
+      return;
+    }
+
+    let searchPromises = [];
+    for (let p = 1; p <= pdfCustomCurrentDoc.numPages; p++) {
+      searchPromises.push(
+        pdfCustomCurrentDoc.getPage(p).then(page => {
+          return page.getTextContent().then(tc => {
+            let fullPageStr = tc.items.map(i => i.str).join(' ').toLowerCase();
+            if (fullPageStr.includes(query)) {
+              pdfSearchMatches.push({ pageNum: p });
+            }
+          });
+        })
+      );
+    }
+
+    Promise.all(searchPromises).then(() => {
+      pdfSearchMatches.sort((a, b) => a.pageNum - b.pageNum);
+      if (countEl) {
+        countEl.textContent = pdfSearchMatches.length > 0 ? `${pdfSearchMatches.length} matches` : '0 matches';
+      }
+      if (pdfSearchMatches.length > 0) {
+        navigatePdfSearch(1);
+      }
+    });
+  }
+
+  function navigatePdfSearch(dir) {
+    if (!pdfSearchMatches || pdfSearchMatches.length === 0) return;
+    pdfSearchCurrentIdx = (pdfSearchCurrentIdx + dir + pdfSearchMatches.length) % pdfSearchMatches.length;
+    const match = pdfSearchMatches[pdfSearchCurrentIdx];
+    pdfCustomGoToPage(match.pageNum);
+    const countEl = document.getElementById('pdfCustomSearchCount');
+    if (countEl) {
+      countEl.textContent = `${pdfSearchCurrentIdx + 1} of ${pdfSearchMatches.length}`;
+    }
+  }
+
+  // ── ROTATION & LEGIBILITY CONTRAST ENHANCER ──
+  let pdfCustomRotation = 0;
+  let pdfCustomIsHighContrast = false;
+
+  function rotatePdfCustom() {
+    pdfCustomRotation = (pdfCustomRotation + 90) % 360;
+    pdfCustomRedrawCanvases();
+  }
+
+  function togglePdfContrastEnhancer() {
+    pdfCustomIsHighContrast = !pdfCustomIsHighContrast;
+    const container = document.getElementById('pdfCustomPagesContainer');
+    if (container) {
+      if (pdfCustomIsHighContrast) {
+        container.style.filter = 'invert(0.92) hue-rotate(180deg) contrast(1.4)';
+      } else {
+        container.style.filter = 'none';
+      }
+    }
   }
 
 
