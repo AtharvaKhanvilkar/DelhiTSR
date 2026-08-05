@@ -2111,9 +2111,9 @@
 
 
 
-    <!-- Floating Top-Center Switcher & Analyze Button Menu -->
+    <!-- Floating Top-Right Switcher & Analyze Button Menu -->
 
-    <div id="doc-view-switcher" class="absolute left-1/2 top-4 -translate-x-1/2 z-30 flex items-center gap-2">
+    <div id="doc-view-switcher" class="absolute right-6 top-1 z-30 flex items-center gap-2">
 
       <div class="flex items-center bg-zinc-100 p-0.5 rounded-full border border-zinc-200/60 shadow-sm h-8">
 
@@ -2183,11 +2183,11 @@
 
                   <div class="h-4 w-px bg-zinc-200 mx-0.5"></div>
 
-                  <button onclick="pdfCustomPrevPage()" title="Previous Page" class="p-1 rounded hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
+                  <button id="btnPrevPage" onclick="pdfCustomPrevPage()" title="Previous Page" class="p-1 rounded hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                   </button>
                   <span id="pdfCustomPageIndicator" class="text-xs font-semibold text-zinc-700 min-w-[70px] text-center">Page 1 of 1</span>
-                  <button onclick="pdfCustomNextPage()" title="Next Page" class="p-1 rounded hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
+                  <button id="btnNextPage" onclick="pdfCustomNextPage()" title="Next Page" class="p-1 rounded hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                   </button>
                 </div>
@@ -9012,16 +9012,15 @@
 
 
   function pdfCustomUpdatePageIndicator() {
-
     if (!pdfCustomCurrentDoc) return;
-
     const numPages = pdfCustomCurrentDoc.numPages;
-
-    document.getElementById('pdfCustomPageIndicator').textContent = `${pdfCustomActivePage} / ${numPages}`;
-
-    document.getElementById('btnPrevPage').disabled = (pdfCustomActivePage === 1);
-
-    document.getElementById('btnNextPage').disabled = (pdfCustomActivePage === numPages);
+    const pageInd = document.getElementById('pdfCustomPageIndicator');
+    if (pageInd) pageInd.textContent = `Page ${pdfCustomActivePage} of ${numPages}`;
+    
+    const prevBtn = document.getElementById('btnPrevPage');
+    const nextBtn = document.getElementById('btnNextPage');
+    if (prevBtn) prevBtn.disabled = (pdfCustomActivePage === 1);
+    if (nextBtn) nextBtn.disabled = (pdfCustomActivePage === numPages);
 
     
 
