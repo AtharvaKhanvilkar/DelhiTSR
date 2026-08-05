@@ -11351,7 +11351,7 @@ if ('serviceWorker' in navigator) {
     }
 
     function initAppTheme() {
-      const savedTheme = localStorage.getItem('tsr_theme') || 'dark';
+      const savedTheme = localStorage.getItem('tsr_theme') || 'light';
       const isDark = savedTheme === 'dark';
       if (isDark) {
         document.body.classList.add('dark-mode');
