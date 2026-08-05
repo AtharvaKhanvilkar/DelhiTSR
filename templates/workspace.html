@@ -1568,10 +1568,6 @@
       border-left: 2px solid #e4e4e7;
       margin-left: 0.75rem;
       padding-left: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
     .timeline-step {
       position: relative;
     }
@@ -1597,179 +1593,21 @@
       border-color: #f59e0b;
       background-color: #fef3c7;
     }
-
-    /* -------------------------------------------------- */
-    /* TRUE NEUTRAL DARK MODE (NO BLUE TINTS)              */
-    /* -------------------------------------------------- */
-    body.dark-mode, body.dark-mode body, html.dark-mode {
-      background-color: #09090b !important;
-      color: #f4f4f5 !important;
-    }
-
-    body.dark-mode .bg-white,
-    body.dark-mode .bg-\[\#ffffff\],
-    body.dark-mode .bg-zinc-50,
-    body.dark-mode .bg-zinc-100\/80,
-    body.dark-mode .bg-zinc-100 {
-      background-color: #0d0d10 !important;
-    }
-
-    body.dark-mode aside#appSidebar {
-      background-color: #121215 !important;
-      border-color: #27272a !important;
-    }
-
-    body.dark-mode header {
-      background-color: #141417 !important;
-      border-color: #27272a !important;
-    }
-
-    body.dark-mode main {
-      background-color: #09090b !important;
-    }
-
-    body.dark-mode .sidebar-header {
-      background-color: #0f0f12 !important;
-      border-color: #27272a !important;
-    }
-
-    body.dark-mode .sidebar-item {
-      color: #a1a1aa !important;
-    }
-    body.dark-mode .sidebar-item:hover {
-      background-color: #27272a !important;
-      color: #ffffff !important;
-    }
-    body.dark-mode .sidebar-item.active-tab {
-      background-color: #27272a !important;
-      color: #ffffff !important;
-      border-left: 2px solid #e4e4e7 !important;
-    }
-
-    /* Text color overrides */
-    body.dark-mode .text-zinc-900,
-    body.dark-mode .text-zinc-950,
-    body.dark-mode .text-zinc-955,
-    body.dark-mode .text-zinc-850,
-    body.dark-mode .text-zinc-800 {
-      color: #ffffff !important;
-    }
-
-    body.dark-mode .text-zinc-700,
-    body.dark-mode .text-zinc-650,
-    body.dark-mode .text-zinc-600,
-    body.dark-mode .text-zinc-550,
-    body.dark-mode .text-zinc-500 {
-      color: #a1a1aa !important;
-    }
-
-    body.dark-mode .text-zinc-400 {
-      color: #71717a !important;
-    }
-
-    /* Borders */
-    body.dark-mode .border-zinc-100,
-    body.dark-mode .border-zinc-200,
-    body.dark-mode .border-zinc-300,
-    body.dark-mode .border-border {
-      border-color: #27272a !important;
-    }
-
-    /* Card Surfaces & Containers */
-    body.dark-mode .bg-card,
-    body.dark-mode .p-6,
-    body.dark-mode .rounded-xl,
-    body.dark-mode .rounded-2xl,
-    body.dark-mode .panel,
-    body.dark-mode #eventDrawer,
-    body.dark-mode #editProjectModal > div,
-    body.dark-mode #settingsModal > div {
-      background-color: #18181b !important;
-      border-color: #27272a !important;
-      color: #f4f4f5 !important;
-    }
-
-    body.dark-mode .bg-zinc-50\/40,
-    body.dark-mode .bg-zinc-50\/60,
-    body.dark-mode .bg-zinc-50 {
-      background-color: #202024 !important;
-      border-color: #27272a !important;
-    }
-
-    /* Timeline Node */
-    body.dark-mode .timeline-steps {
-      border-left-color: #3f3f46 !important;
-    }
-    body.dark-mode .timeline-node {
-      background-color: #27272a !important;
-      border-color: #52525b !important;
-    }
-    body.dark-mode .timeline-step.active .timeline-node {
-      border-color: #10b981 !important;
-      background-color: #064e3b !important;
-    }
-
-    /* Collapsible trigger buttons */
-    body.dark-mode .collapsible-trigger-btn {
-      background-color: #202024 !important;
-      border-color: #27272a !important;
-      color: #d4d4d8 !important;
-    }
-    body.dark-mode .collapsible-trigger-btn:hover {
-      background-color: #27272a !important;
-      color: #ffffff !important;
-    }
-
-    /* Typeahead lists & Inputs */
-    body.dark-mode input[type="text"],
-    body.dark-mode select,
-    body.dark-mode textarea {
-      background-color: #121215 !important;
-      border-color: #3f3f46 !important;
-      color: #ffffff !important;
-    }
-    body.dark-mode .doris-typeahead-list {
-      background-color: #18181b !important;
-      border-color: #3f3f46 !important;
-    }
-    body.dark-mode .doris-typeahead-item {
-      color: #d4d4d8 !important;
-    }
-    body.dark-mode .doris-typeahead-item:hover,
-    body.dark-mode .doris-typeahead-item.active {
-      background-color: #27272a !important;
-      color: #ffffff !important;
-    }
-
-    /* Modal Segmented Tab Switcher in Dark Mode */
-    body.dark-mode .bg-zinc-100\/80 {
-      background-color: #27272a !important;
-      border-color: #3f3f46 !important;
-    }
-    body.dark-mode #modalTabOverviewBtn.bg-white,
-    body.dark-mode #modalTabClausesBtn.bg-white,
-    body.dark-mode #modalTabDocsBtn.bg-white {
-      background-color: #3f3f46 !important;
-      color: #ffffff !important;
-      border-color: #52525b !important;
-    }
 </style>
 
 </head>
 
 <body class="bg-[#ffffff] text-zinc-900 antialiased font-sans">
 
-
-
 <div class="flex h-screen w-screen overflow-hidden bg-white">
-<aside id="appSidebar" class="relative w-[260px] shrink-0 border-r border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#121215] flex flex-col h-full select-none">
+<aside id="appSidebar" class="relative w-[260px] shrink-0 border-r border-zinc-300 bg-white flex flex-col h-full select-none">
 
       <!-- Sidebar Header Row (Interior Collapse Button) -->
-      <div class="sidebar-header flex flex-col gap-2 p-2 select-none border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-[#0f0f12]">
+      <div class="sidebar-header flex flex-col gap-2 p-2 select-none border-b border-zinc-200 shrink-0 bg-white">
         <!-- Back to Projects Button -->
-        <a href="/projects" class="flex w-full items-center justify-between px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg transition-all duration-200 select-none shadow-sm shrink-0 group">
+        <a href="/projects" class="flex w-full items-center justify-between px-2.5 py-1.5 text-[11px] font-semibold text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 border border-zinc-200 rounded-lg transition-all duration-200 select-none shadow-sm shrink-0 group">
           <div class="flex items-center gap-2">
-            <svg class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-900 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M19 12H5"/>
               <path d="M12 19l-7-7 7-7"/>
             </svg>
@@ -1779,9 +1617,9 @@
 
         <!-- Collapse Sidebar Button -->
         <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
-                class="flex w-full items-center justify-between px-2.5 py-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 rounded-lg transition-all duration-200 select-none shadow-sm shrink-0">
-          <span class="sb-only-expanded text-[11px] font-medium text-zinc-600 dark:text-zinc-400">Collapse Sidebar</span>
-          <svg class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
+                class="flex w-full items-center justify-between px-2.5 py-1.5 text-[11px] font-medium text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 border border-zinc-200 rounded-lg transition-all duration-200 select-none shadow-sm shrink-0">
+          <span class="sb-only-expanded text-[11px] font-medium text-zinc-600">Collapse Sidebar</span>
+          <svg class="w-3.5 h-3.5 text-zinc-500 hover:text-zinc-900 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
@@ -1792,18 +1630,18 @@
 
         <!-- SECTION 1: DOCUMENTS -->
         <div class="space-y-1">
-          <div class="px-2 pb-1 text-[9.5px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase sb-only-expanded">Documents & Files</div>
+          <div class="px-2 pb-1 text-[9.5px] font-bold tracking-wider text-zinc-400 uppercase sb-only-expanded">Documents & Files</div>
           
-          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-955 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
               </span>
               <span class="sb-label">Attachments</span>
             </div>
-            <button onclick="event.stopPropagation(); document.getElementById('fileInput').click()" title="Attach PDF file" class="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white p-1 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700/60 transition-all shrink-0 sb-only-expanded">
+            <button onclick="event.stopPropagation(); document.getElementById('fileInput').click()" title="Attach PDF file" class="text-zinc-500 hover:text-zinc-900 p-1 rounded-md hover:bg-zinc-200 transition-all shrink-0 sb-only-expanded">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -1815,21 +1653,21 @@
           <div class="sb-only-expanded ml-[16px] space-y-0.5 max-h-[260px] overflow-y-auto pr-1" id="fileTree">
             {% if index_iis %}
               {% for pdf in index_iis %}
-                <div class="group relative flex items-center justify-between pl-[14px] pr-2 py-1.5 rounded-md cursor-pointer text-zinc-700 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 hover:text-zinc-950 dark:hover:text-zinc-100 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/60 dark:bg-zinc-800/80 font-semibold text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700/50{% endif %}" 
+                <div class="group relative flex items-center justify-between pl-[14px] pr-2 py-1.5 rounded-md cursor-pointer text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 text-[11px] transition-colors {% if loop.first %}bg-zinc-200/60 font-semibold text-zinc-900 border border-zinc-300{% endif %}" 
                      onclick="selectFile(this, '{{ pdf }}')" 
                      data-file-row="{{ pdf }}" 
                      data-parse-status="unknown">
-                  <div class="absolute left-0 top-0 {% if loop.last %}h-[14px]{% else %}bottom-0{% endif %} border-l border-zinc-300 dark:border-zinc-700/60"></div>
-                  <div class="absolute left-0 top-[14px] w-[10px] border-t border-zinc-300 dark:border-zinc-700/60"></div>
+                  <div class="absolute left-0 top-0 {% if loop.last %}h-[14px]{% else %}bottom-0{% endif %} border-l border-zinc-300"></div>
+                  <div class="absolute left-0 top-[14px] w-[10px] border-t border-zinc-300"></div>
                   <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                    <svg class="w-3 h-3 text-zinc-500 dark:text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="w-3 h-3 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
                       <polyline points="14 2 14 8 20 8"/>
                     </svg>
                     <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
                   </div>
                   <div class="relative shrink-0 ml-1">
-                    <button class="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors" 
+                    <button class="p-1 hover:bg-zinc-200 rounded text-zinc-500 hover:text-zinc-900 flex items-center justify-center transition-colors" 
                             onclick="event.stopPropagation(); toggleDocDropdown(this, '{{ pdf }}')"
                             title="Options">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1842,19 +1680,19 @@
                 </div>
               {% endfor %}
             {% else %}
-              <div class="pl-3 py-1 text-[10px] text-zinc-500 dark:text-zinc-500 italic">No files attached</div>
+              <div class="pl-3 py-1 text-[10px] text-zinc-500 italic">No files attached</div>
             {% endif %}
           </div>
         </div>
 
         <!-- SECTION 2: TITLE INTELLIGENCE -->
         <div class="space-y-1">
-          <div class="px-2 pb-1 text-[9.5px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase sb-only-expanded">Title Intelligence</div>
+          <div class="px-2 pb-1 text-[9.5px] font-bold tracking-wider text-zinc-400 uppercase sb-only-expanded">Title Intelligence</div>
 
           <!-- Events & Findings -->
-          <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-955 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                   <line x1="16" y1="2" x2="16" y2="6"/>
@@ -1864,7 +1702,7 @@
               </span>
               <span class="sb-label">Events & Findings</span>
             </div>
-            <span class="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 sb-only-expanded">
+            <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -1872,9 +1710,9 @@
           </div>
 
           <!-- Entities -->
-          <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-955 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
@@ -1884,7 +1722,7 @@
               </span>
               <span class="sb-label">Chain & Entities</span>
             </div>
-            <span class="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 sb-only-expanded">
+            <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -1892,16 +1730,16 @@
           </div>
 
           <!-- AI Assistant -->
-          <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-955 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
               </span>
               <span class="sb-label">AI Assistant</span>
             </div>
-            <span class="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 sb-only-expanded">
+            <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -1909,9 +1747,9 @@
           </div>
 
           <!-- Audit Report -->
-          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-955 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-955 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
@@ -1921,7 +1759,7 @@
               </span>
               <span class="sb-label">Audit Report</span>
             </div>
-            <span class="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 sb-only-expanded">
+            <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -1931,12 +1769,12 @@
 
         <!-- SECTION 3: INTEGRATIONS & TOOLS -->
         <div class="space-y-1">
-          <div class="px-2 pb-1 text-[9.5px] font-bold tracking-wider text-zinc-400 dark:text-zinc-500 uppercase sb-only-expanded">Integrations & Tools</div>
+          <div class="px-2 pb-1 text-[9.5px] font-bold tracking-wider text-zinc-400 uppercase sb-only-expanded">Integrations & Tools</div>
 
           <!-- DORIS -->
-          <div id="sidebar-doris" onclick="switchMainTab('doris')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-950 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-doris" onclick="switchMainTab('doris')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
                   <line x1="2" y1="10" x2="22" y2="10"/>
@@ -1946,7 +1784,7 @@
               </span>
               <span class="sb-label">DORIS Registry</span>
             </div>
-            <span class="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white sb-only-expanded">
+            <span class="text-zinc-400 group-hover:text-zinc-900 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>
               </svg>
@@ -1954,9 +1792,9 @@
           </div>
 
           <!-- NGDRS -->
-          <div id="sidebar-ngdrs" onclick="switchMainTab('ngdrs')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-950 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-ngdrs" onclick="switchMainTab('ngdrs')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
@@ -1965,7 +1803,7 @@
               </span>
               <span class="sb-label">NGDRS Portal</span>
             </div>
-            <span class="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white sb-only-expanded">
+            <span class="text-zinc-400 group-hover:text-zinc-900 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6H5V6h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>
               </svg>
@@ -1973,32 +1811,32 @@
           </div>
 
           <!-- Deed Scan Portal -->
-          <div id="sidebar-deed-doc" onclick="switchMainTab('deed-doc')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-emerald-600 dark:hover:text-emerald-300 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-deed-doc" onclick="switchMainTab('deed-doc')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-emerald-600 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+              <span class="text-zinc-600 group-hover:text-emerald-600 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
               </span>
               <span class="sb-label">Deed Scan Portal</span>
             </div>
-            <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-1.5 py-0.5 rounded-full sb-only-expanded">Live</span>
+            <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full sb-only-expanded">Live</span>
           </div>
 
           <!-- Document Sorter -->
-          <div id="sidebar-sorter" onclick="switchMainTab('sorter')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:text-zinc-950 dark:hover:text-white rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
+          <div id="sidebar-sorter" onclick="switchMainTab('sorter')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-950 rounded-lg cursor-pointer font-medium text-[12px] transition-all group">
             <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+              <span class="text-zinc-600 group-hover:text-zinc-900 transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
               </span>
               <span class="sb-label">Document Sorter</span>
             </div>
-            <span class="text-[9px] font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-1.5 py-0.5 rounded-full sb-only-expanded">AI</span>
+            <span class="text-[9px] font-bold text-zinc-700 bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded-full sb-only-expanded">AI</span>
           </div>
         </div>
 
       </div> <!-- end sidebarMenu -->
 
       <!-- Footer: User profile info -->
-      <div class="shrink-0 border-t border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0f12] p-3">
+      <div class="shrink-0 border-t border-zinc-200 bg-white p-3">
         <!-- Hidden status hooks -->
         <div style="display: none;">
           <span id="sbDocCount">{{ index_iis|length if index_iis else 0 }}</span>
@@ -2007,7 +1845,7 @@
 
         <div class="flex items-center gap-3">
           <!-- Initials Avatar -->
-          <div class="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-[11px] font-bold text-zinc-800 dark:text-zinc-200 shrink-0 select-none shadow-sm"
+          <div class="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-[11px] font-bold text-zinc-800 shrink-0 select-none shadow-sm"
                title="{{ current_user.email }}">
             {{ current_user.email[0].upper() if current_user.email else 'U' }}
           </div>
@@ -2015,13 +1853,26 @@
           <!-- User Details -->
           <div class="flex-1 min-w-0 sb-only-expanded flex items-center justify-between gap-2">
             <div class="flex flex-col min-w-0">
-              <span class="text-[11.5px] font-semibold text-zinc-900 dark:text-zinc-200 truncate" title="{{ current_user.email }}">
+              <span class="text-[11.5px] font-semibold text-zinc-900 truncate" title="{{ current_user.email }}">
                 {{ current_user.email.split('@')[0] if current_user.email else 'Operator' }}
               </span>
-              <span class="text-[9.5px] text-zinc-500 dark:text-zinc-500 truncate flex items-center gap-1.5">
+              <span class="text-[9.5px] text-zinc-500 truncate flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
                 <span>Title Analyst</span>
               </span>
+            </div>
+
+            <!-- Muted Logout button -->
+            <a href="/logout" class="p-1.5 rounded-md hover:bg-red-50 hover:text-red-600 text-zinc-400 transition-colors flex items-center justify-center shrink-0" title="Logout">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </aside>    </span>
             </div>
 
             <!-- Muted Logout button -->
@@ -2190,12 +2041,9 @@
 
     <div class="flex items-center gap-2">
 
-      <!-- Theme Toggle Button -->
-      <button onclick="toggleAppTheme()" id="themeToggleBtn" class="inline-flex items-center gap-1.5 rounded border border-zinc-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-700/80 transition-colors cursor-pointer" title="Toggle Light/Dark Theme">
-        <svg id="themeMoonIcon" class="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-        <svg id="themeSunIcon" class="w-3.5 h-3.5 text-amber-400 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Theme Badge -->
+      <div class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 select-none shadow-2xs">
+        <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"></circle>
           <line x1="12" y1="1" x2="12" y2="3"></line>
           <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -2206,20 +2054,20 @@
           <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
           <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>
-        <span id="themeToggleLabel">Theme</span>
-      </button>
+        <span>Light Mode</span>
+      </div>
 
       <!-- Refresh Data Button -->
-      <button onclick="refreshWorkspaceData()" class="inline-flex items-center gap-1.5 rounded border border-zinc-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-zinc-700 dark:text-slate-300 hover:bg-zinc-100 dark:hover:bg-slate-700/80 transition-colors">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button onclick="refreshWorkspaceData()" class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 transition-colors shadow-2xs cursor-pointer">
+        <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
         </svg>
         <span>Refresh</span>
       </button>
 
       <!-- Settings Gear Button -->
-      <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 rounded border border-zinc-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 dark:text-slate-200 hover:bg-zinc-100 dark:hover:bg-slate-700/80 transition-colors cursor-pointer" title="Configure Portal Credentials & System Settings">
-        <svg class="w-3.5 h-3.5 text-zinc-600 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer shadow-2xs" title="Configure Portal Credentials & System Settings">
+        <svg class="w-3.5 h-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
@@ -11351,16 +11199,13 @@ if ('serviceWorker' in navigator) {
     }
 
     function initAppTheme() {
-      const savedTheme = localStorage.getItem('tsr_theme') || 'light';
-      const isDark = savedTheme === 'dark';
-      if (isDark) {
-        document.body.classList.add('dark-mode');
-        document.documentElement.classList.add('dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-        document.documentElement.classList.remove('dark-mode');
-      }
-      updateThemeUI(isDark);
+      // Force reset to Light Mode
+      localStorage.setItem('tsr_theme', 'light');
+      document.body.classList.remove('dark-mode');
+      document.documentElement.classList.remove('dark-mode');
+      document.body.classList.remove('dark');
+      document.documentElement.classList.remove('dark');
+      updateThemeUI(false);
     }
 
     function updateThemeUI(isDark) {
@@ -11368,15 +11213,9 @@ if ('serviceWorker' in navigator) {
       const sun = document.getElementById('themeSunIcon');
       const label = document.getElementById('themeToggleLabel');
       if (moon && sun && label) {
-        if (isDark) {
-          moon.classList.add('hidden');
-          sun.classList.remove('hidden');
-          label.textContent = 'Light';
-        } else {
-          sun.classList.add('hidden');
-          moon.classList.remove('hidden');
-          label.textContent = 'Dark';
-        }
+        sun.classList.add('hidden');
+        moon.classList.remove('hidden');
+        label.textContent = 'Light Mode';
       }
     }
 
