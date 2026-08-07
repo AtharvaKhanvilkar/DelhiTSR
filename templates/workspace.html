@@ -248,12 +248,14 @@
 
     /* Tab content visibility with fade-in and subtle lift animation */
 
-    .panel              { display: none !important; min-height: 0; flex: 1 1 0%; overflow: hidden; opacity: 0; }
+    .panel              { display: none !important; height: 100%; width: 100%; min-height: 0; flex: 1 1 0%; overflow: hidden; opacity: 0; }
 
     .panel.active       { 
       display: flex !important; 
       flex-direction: column; 
       flex: 1 1 0%;
+      height: 100%;
+      width: 100%;
       min-height: 0;
       overflow: hidden;
       animation: panelFadeIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -1894,7 +1896,7 @@
     <input type="file" name="index_ii" id="fileInput" accept=".pdf" onchange="this.form.submit()"/>
 
   </form>
-  <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
+  <div class="flex-1 flex flex-col h-full overflow-hidden">
 
 
 
@@ -2144,13 +2146,13 @@
 
     <!-- Panel Content viewport -->
 
-    <div class="flex-1 overflow-hidden min-h-0">
+    <div class="flex-1 flex flex-col overflow-hidden min-h-0">
 
 
 
       <!-- PDF Panel -->
-      <div class="panel active flex-1 overflow-hidden min-h-0" id="panel-pdf">
-        <div class="flex-1 bg-zinc-50 flex overflow-hidden relative min-h-0" id="pdfViewer">
+      <div class="panel active" id="panel-pdf">
+        <div class="flex-1 bg-zinc-50 flex overflow-hidden relative w-full h-full min-h-0" id="pdfViewer">
           {% if index_iis %}
             <!-- NATIVE IFRAME VIEW (Fallback / Revert target) -->
             <div id="pdfViewer-native" class="w-full h-full">
@@ -2160,7 +2162,7 @@
             </div>
 
             <!-- CUSTOM PRODUCTION-LEVEL LEGAL PDF ENGINE -->
-            <div id="pdfViewer-custom" class="hidden flex-1 flex flex-col overflow-hidden relative bg-zinc-100 min-h-0">
+            <div id="pdfViewer-custom" class="hidden w-full h-full flex-1 flex flex-col overflow-hidden relative bg-zinc-100 min-h-0">
               
               <!-- PDF Top Action & Navigation Control Bar -->
               <div class="h-10 shrink-0 border-b border-zinc-200 bg-white px-3 flex items-center justify-between select-none shadow-2xs z-20">
@@ -2221,7 +2223,7 @@
               </div>
 
               <!-- Main Viewer Split Layout (Thumbnail Rail + Virtualized Page Container) -->
-              <div class="flex-1 flex overflow-hidden relative min-h-0">
+              <div class="flex-1 flex overflow-hidden relative w-full h-full min-h-0">
                 <!-- Page Thumbnail Rail -->
                 <div id="pdfCustomSidebar" class="w-36 shrink-0 border-r border-zinc-200 bg-white overflow-y-auto p-2 space-y-3 transition-all duration-300 opacity-100 select-none shadow-2xs">
                   <div class="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider px-1 pb-1 flex items-center justify-between">
@@ -2232,7 +2234,7 @@
                 </div>
 
                 <!-- Main Scrollable Canvas Pages Container -->
-                <div id="pdfCustomPagesContainer" class="flex-1 overflow-y-auto overflow-x-auto p-6 flex flex-col items-center gap-6 bg-zinc-100 relative min-h-0">
+                <div id="pdfCustomPagesContainer" class="flex-1 overflow-y-auto overflow-x-auto p-6 flex flex-col items-center gap-6 bg-zinc-100 relative h-full min-h-0">
                   <div class="text-zinc-500 font-sans text-xs select-none">Loading PDF...</div>
                 </div>
               </div>
