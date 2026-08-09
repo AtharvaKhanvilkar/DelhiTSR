@@ -1991,10 +1991,63 @@
           </div>
         </div>
 
-        <!-- Chat Scroll Body (Framer AI Wide Layout) -->
-        <main class="flex-1 overflow-y-auto px-6 py-8 scroll-smooth flex flex-col" id="chatScroll">
+        <!-- Scrollable Chat Stream Canvas -->
+        <main class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth flex flex-col" id="chatScroll">
           <div class="max-w-4xl mx-auto w-full my-auto space-y-6" id="chatMessages"></div>
         </main>
+
+        <!-- PINNED BOTTOM COMPOSER AREA (ChatGPT / Claude / Vercel v0 Style) -->
+        <div class="shrink-0 bg-gradient-to-t from-[#f9f9fb] via-[#f9f9fb] to-transparent pt-3 pb-5 px-6 z-10">
+          <div class="max-w-4xl mx-auto w-full">
+            <div class="relative rounded-[24px] border border-zinc-200/90 bg-white p-3.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06)] focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400 transition-all space-y-2">
+              <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[46px] max-h-[140px]" id="chatInput" rows="1" placeholder="What do you want to analyze about this property's title deeds?" onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
+
+              <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
+                <!-- Left Controls: Attachment & Filter Pill -->
+                <div class="flex items-center gap-2">
+                  <button type="button" class="w-8 h-8 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer" title="Attach document context">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                  </button>
+
+                  <div class="relative">
+                    <button type="button" onclick="toggleScopeDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="scopeBtn">
+                      <span id="scopeBtnLabel">Filter: All Documents</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-52 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
+                      <button type="button" onclick="selectScope('all','All Documents',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">All Documents</button>
+                      <button type="button" onclick="selectScope('findings','Findings Only',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Findings Only</button>
+                      <button type="button" onclick="selectScope('events','Timeline Events',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Timeline Events</button>
+                      <button type="button" onclick="selectScope('chain','Deed Chain',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Deed Chain</button>
+                      <button type="button" onclick="selectScope('mortgages','Mortgage Liens',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Mortgage Liens</button>
+                      <button type="button" onclick="selectScope('sro','SRO Records',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">SRO Records</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Controls: Model Pill & Black Audio Waves Send Button -->
+                <div class="flex items-center gap-2">
+                  <div class="relative">
+                    <button type="button" onclick="toggleModelDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="modelBtn">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                      <span id="modelLabel">Gemini 2.5 Flash</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="modelMenu" class="hidden absolute bottom-full mb-2 right-0 w-44 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
+                      <button type="button" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Gemini 2.5 Flash</button>
+                      <button type="button" onclick="selectModel('gemini-2.5-pro', 'Gemini 2.5 Pro')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Gemini 2.5 Pro</button>
+                    </div>
+                  </div>
+
+                  <button type="button" id="runBtn" onclick="sendChat()" class="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer" title="Send query">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="text-[11px] text-zinc-400 text-center mt-2 font-normal">Answers are generated exclusively from analyzed property title deeds.</p>
+          </div>
+        </div>
       </div>
 
       <!-- TSR Report Panel -->
@@ -6917,85 +6970,38 @@
     const box = document.getElementById('chatMessages');
     if (!box) return;
     box.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-6 text-center max-w-4xl mx-auto w-full my-auto animate-in fade-in duration-300 select-none">
+      <div class="flex flex-col items-center justify-center py-10 text-center max-w-4xl mx-auto w-full my-auto animate-in fade-in duration-300 select-none space-y-6">
         
-        <!-- Hero Header (Framer AI Style) -->
-        <div class="w-full text-center py-4 mb-2">
+        <!-- Hero Header -->
+        <div class="w-full text-center">
           <h1 class="text-3xl font-extrabold text-zinc-900 tracking-tight font-sans">
             Turn your <span class="font-black text-black">deeds</span> into <span class="font-black text-black">title insights</span>
           </h1>
+          <p class="text-xs text-zinc-500 mt-1.5 font-medium">Ask questions about registered owners, encumbrances, deed continuity, or SRO records.</p>
         </div>
 
-        <!-- Framer AI Style Input Composer Box (Wider max-w-4xl Layout) -->
-        <div class="relative w-full rounded-[26px] border border-zinc-200/90 bg-white p-4 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.08)] transition-all space-y-3 mb-4 text-left">
-          <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[52px] max-h-[140px]" id="chatInput" rows="2" placeholder="What do you want to analyze about this property's title deeds?" onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
-          
-          <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
-            <!-- Left Controls: Attachment, Title Scope, Ideas Pill -->
-            <div class="flex items-center gap-2">
-              <button type="button" class="w-8 h-8 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer" title="Attach document context">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-              </button>
-
-              <div class="relative">
-                <button type="button" onclick="toggleScopeDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="scopeBtn">
-                  <span id="scopeBtnLabel">Filter: All Documents</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-52 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
-                  <button type="button" onclick="selectScope('all','All Documents',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">All Documents</button>
-                  <button type="button" onclick="selectScope('findings','Findings Only',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Findings Only</button>
-                  <button type="button" onclick="selectScope('events','Timeline Events',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Timeline Events</button>
-                  <button type="button" onclick="selectScope('chain','Deed Chain',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Deed Chain</button>
-                  <button type="button" onclick="selectScope('mortgages','Mortgage Liens',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Mortgage Liens</button>
-                  <button type="button" onclick="selectScope('sro','SRO Records',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">SRO Records</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right Controls: Model Pill & Black Audio Waves Button -->
-            <div class="flex items-center gap-2">
-              <div class="relative">
-                <button type="button" onclick="toggleModelDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="modelBtn">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                  <span id="modelLabel">Gemini 2.5 Flash</span>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div id="modelMenu" class="hidden absolute bottom-full mb-2 right-0 w-44 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
-                  <button type="button" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Gemini 2.5 Flash</button>
-                  <button type="button" onclick="selectModel('gemini-2.5-pro', 'Gemini 2.5 Pro')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Gemini 2.5 Pro</button>
-                </div>
-              </div>
-
-              <button type="button" id="runBtn" onclick="sendChat()" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer" title="Send query">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Framer AI Category Tabs (Wider max-w-4xl Layout) -->
-        <div class="flex items-center gap-2 max-w-4xl mx-auto w-full pt-1 pb-3 overflow-x-auto select-none">
-          <button type="button" class="h-8 px-4 rounded-2xl bg-zinc-200/80 text-zinc-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+        <!-- Framer AI Category Tabs -->
+        <div class="flex items-center justify-center gap-2 max-w-4xl mx-auto w-full pt-1 pb-1 overflow-x-auto select-none">
+          <button type="button" onclick="selectScope('all','All Documents',null)" class="h-8 px-4 rounded-2xl bg-zinc-200/80 text-zinc-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
             <span>Suggested</span>
           </button>
-          <button type="button" onclick="askSuggested('Show me all deed chain transfers and dates')" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+          <button type="button" onclick="selectScope('chain','Deed Chain',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
             <span>Deed Chain</span>
           </button>
-          <button type="button" onclick="askSuggested('Check mortgage and bank encumbrances')" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+          <button type="button" onclick="selectScope('mortgages','Mortgage Liens',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
             <span>Mortgages</span>
           </button>
-          <button type="button" onclick="askSuggested('Verify SRO registration records')" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+          <button type="button" onclick="selectScope('sro','SRO Records',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
             <span>SRO Records</span>
           </button>
         </div>
 
-        <!-- Framer AI Interactive Prompts List (Wider max-w-4xl Layout) -->
-        <div class="max-w-4xl mx-auto w-full space-y-2.5 pt-1 text-left">
+        <!-- Framer AI Interactive Prompts List -->
+        <div class="max-w-4xl mx-auto w-full space-y-2.5 text-left">
           <div onclick="askSuggested('Who is the current registered title owner and seller in the latest conveyance deed?')" class="group flex items-center justify-between p-4 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
             <div class="flex items-center gap-3">
               <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
@@ -7004,15 +7010,12 @@
             <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
 
-          <div onclick="askSuggested('Are there any unresolved mortgage liabilities or bank encumbrances on record?')" class="group flex items-center justify-between p-4 rounded-2xl bg-zinc-100/90 border border-zinc-200/90 transition-all cursor-pointer shadow-2xs">
+          <div onclick="askSuggested('Are there any unresolved mortgage liabilities or bank encumbrances on record?')" class="group flex items-center justify-between p-4 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
             <div class="flex items-center gap-3">
-              <svg class="w-4 h-4 text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span class="text-xs font-bold text-zinc-900">Are there any unresolved mortgage liabilities or bank encumbrances on record?</span>
+              <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-950">Are there any unresolved mortgage liabilities or bank encumbrances on record?</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-zinc-500 text-xs">👆</span>
-              <svg class="w-4 h-4 text-zinc-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
+            <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
 
           <div onclick="askSuggested('Check for missing intermediate deeds or title chain discontinuities across 30 years.')" class="group flex items-center justify-between p-4 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
