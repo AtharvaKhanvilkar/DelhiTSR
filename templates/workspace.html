@@ -275,8 +275,23 @@
       background-color: rgba(79, 70, 229, 0.05) !important;
       box-shadow: inset 4px 0 0 0 #4f46e5, 0 0 0 1px rgba(79, 70, 229, 0.2), 0 4px 14px -2px rgba(79, 70, 229, 0.08) !important;
       border-radius: 6px;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
       animation: rowSpotlightSweep 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .row-highlight-fading {
+      background-color: transparent !important;
+      box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent !important;
+      transition: background-color 0.6s ease, box-shadow 0.6s ease !important;
+    }
+
+    .row-linked-tag {
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .row-linked-tag.tag-fading {
+      opacity: 0 !important;
+      transform: scale(0.9) !important;
     }
 
     @keyframes rowSpotlightSweep {
@@ -299,7 +314,14 @@
       border-color: rgba(79, 70, 229, 0.45) !important;
       background-color: rgba(79, 70, 229, 0.035) !important;
       box-shadow: 0 0 0 1.5px rgba(79, 70, 229, 0.25), 0 4px 16px -3px rgba(79, 70, 229, 0.09) !important;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .finding-card-fading {
+      border-color: rgba(228, 228, 231, 1) !important;
+      background-color: transparent !important;
+      box-shadow: none !important;
+      transition: all 0.6s ease !important;
     }
 
 
@@ -2599,7 +2621,7 @@
             </div>
             <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition-all cursor-pointer shadow-2xs">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Portal Credentials ⚙️</span>
+              <span>Portal Credentials </span>
             </button>
           </div>
 
@@ -4696,14 +4718,20 @@
     loadEvents();
   }
 
+  let _highlightTimeout = null;
+
   function clearAllHighlights() {
-    document.querySelectorAll('.row-highlight-active').forEach(el => {
-      el.classList.remove('row-highlight-active');
+    if (_highlightTimeout) {
+      clearTimeout(_highlightTimeout);
+      _highlightTimeout = null;
+    }
+    document.querySelectorAll('.row-highlight-active, .row-highlight-fading').forEach(el => {
+      el.classList.remove('row-highlight-active', 'row-highlight-fading');
       const tag = el.querySelector('.row-linked-tag');
       if (tag) tag.remove();
     });
-    document.querySelectorAll('.finding-card-active').forEach(el => {
-      el.classList.remove('finding-card-active');
+    document.querySelectorAll('.finding-card-active, .finding-card-fading').forEach(el => {
+      el.classList.remove('finding-card-active', 'finding-card-fading');
     });
   }
 
@@ -4715,10 +4743,11 @@
     clearAllHighlights();
 
     // Highlight the clicked finding card if event originated from a finding card
+    let targetCard = null;
     if (ev && ev.currentTarget) {
-      const card = ev.currentTarget.closest('[data-finding-id]');
-      if (card) {
-        card.classList.add('finding-card-active');
+      targetCard = ev.currentTarget.closest('[data-finding-id]');
+      if (targetCard) {
+        targetCard.classList.add('finding-card-active');
       }
     }
 
@@ -4737,11 +4766,12 @@
       matchedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
       matchedRow.classList.add('row-highlight-active');
 
-      // Inject floating link badge indicator if not present
-      if (!matchedRow.querySelector('.row-linked-tag')) {
-        const badge = document.createElement('span');
-        badge.className = 'row-linked-tag inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-900 text-white shadow-2xs justify-self-end shrink-0 transition-all duration-200';
-        badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Linked Finding`;
+      // Inject floating link badge indicator with clean SVG vector icon
+      let badge = matchedRow.querySelector('.row-linked-tag');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'row-linked-tag inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-900 text-white shadow-2xs justify-self-end shrink-0 transition-all duration-300';
+        badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Linked Finding`;
         
         // Insert right before final chevron arrow in row grid
         const chevron = matchedRow.querySelector('svg:last-child');
@@ -4751,6 +4781,16 @@
           matchedRow.appendChild(badge);
         }
       }
+
+      // Smooth graceful fade-out after 2.8 seconds
+      _highlightTimeout = setTimeout(() => {
+        if (matchedRow) matchedRow.classList.add('row-highlight-fading');
+        if (targetCard) targetCard.classList.add('finding-card-fading');
+        if (badge) badge.classList.add('tag-fading');
+        setTimeout(() => {
+          clearAllHighlights();
+        }, 650);
+      }, 2800);
     }
   }
 
@@ -4760,20 +4800,32 @@
 
     clearAllHighlights();
 
-    // Highlight the clicked event row
+    let matchedRow = null;
     if (ev && ev.currentTarget) {
-      ev.currentTarget.classList.add('row-highlight-active');
+      matchedRow = ev.currentTarget;
+      matchedRow.classList.add('row-highlight-active');
     }
 
-    // Highlight matching finding cards
     const targetDoc = String(docNo).trim().toLowerCase();
     const cards = document.querySelectorAll('#eventsContent [data-finding-doc]');
+    const matchedCards = [];
     cards.forEach(c => {
       const cDoc = String(c.dataset.findingDoc || '').trim().toLowerCase();
       if (cDoc && (cDoc === targetDoc || cDoc.includes(targetDoc) || targetDoc.includes(cDoc))) {
         c.classList.add('finding-card-active');
+        matchedCards.push(c);
       }
     });
+
+    if (matchedRow || matchedCards.length) {
+      _highlightTimeout = setTimeout(() => {
+        if (matchedRow) matchedRow.classList.add('row-highlight-fading');
+        matchedCards.forEach(c => c.classList.add('finding-card-fading'));
+        setTimeout(() => {
+          clearAllHighlights();
+        }, 650);
+      }, 2800);
+    }
   }
 
   function getSeverityTier(finding) {
@@ -5474,59 +5526,59 @@
                   <div class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Severity</div>
                   <button onclick="setFindingsFilter('severity', 'all')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center justify-between font-medium text-zinc-700">
                     <span>All Severities</span>
-                    <span class="${_findingsSeverityFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'VOIDANCE')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     <span class="flex-1">Material Defect</span>
-                    <span class="${_findingsSeverityFilter === 'VOIDANCE' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'VOIDANCE' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'SUBSTANTIVE_RISK')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     <span class="flex-1">Substantive Defect</span>
-                    <span class="${_findingsSeverityFilter === 'SUBSTANTIVE_RISK' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'SUBSTANTIVE_RISK' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'REQUISITION')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.25 16.25 15 18"/></svg>
                     <span class="flex-1">Statutory Requisition</span>
-                    <span class="${_findingsSeverityFilter === 'REQUISITION' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'REQUISITION' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'PROCEDURAL_IRREGULARITY')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                     <span class="flex-1">Procedural Anomaly</span>
-                    <span class="${_findingsSeverityFilter === 'PROCEDURAL_IRREGULARITY' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'PROCEDURAL_IRREGULARITY' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('severity', 'RECORD_NOTATION')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                     <span class="flex-1">Record Notation</span>
-                    <span class="${_findingsSeverityFilter === 'RECORD_NOTATION' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsSeverityFilter === 'RECORD_NOTATION' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
 
                   <div class="border-t border-zinc-100 my-1.5"></div>
                   <div class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Category</div>
                   <button onclick="setFindingsFilter('category', 'all')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center justify-between font-medium text-zinc-700">
                     <span>All Categories</span>
-                    <span class="${_findingsCategoryFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsCategoryFilter === 'all' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('category', 'identity_age_id')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     <span class="flex-1">Identity, Age & ID Proofs</span>
-                    <span class="${_findingsCategoryFilter === 'identity_age_id' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsCategoryFilter === 'identity_age_id' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('category', 'title_chain')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                     <span class="flex-1">Title Chain & Ownership</span>
-                    <span class="${_findingsCategoryFilter === 'title_chain' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsCategoryFilter === 'title_chain' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('category', 'financial')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                     <span class="flex-1">Financial & Valuation</span>
-                    <span class="${_findingsCategoryFilter === 'financial' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsCategoryFilter === 'financial' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                   <button onclick="setFindingsFilter('category', 'supporting_docs')" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-50 flex items-center gap-2 font-medium text-zinc-700">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
                     <span class="flex-1">Supporting Documents</span>
-                    <span class="${_findingsCategoryFilter === 'supporting_docs' ? 'text-zinc-800 font-bold' : 'hidden'}">✓</span>
+                    <span class="${_findingsCategoryFilter === 'supporting_docs' ? 'text-zinc-800 font-bold' : 'hidden'}">•</span>
                   </button>
                 </div>
               </div>
@@ -10315,7 +10367,7 @@
         if (data.diagnostic_code === 'NO_RECORDS_ON_GOVT_SITE') {
           showToast('Govt Database Result: 0 Scans', `Government portal searched OK, but returned 0 scanned deed pages for Reg No. ${rec.reg_no} (${yrText}).`, 'warning');
         } else if (data.diagnostic_code === 'PORTAL_SESSION_EXPIRED') {
-          showToast('Government Session Expired', 'Portal session expired. Click Settings ⚙️ to update session cookie.', 'error');
+          showToast('Government Session Expired', 'Portal session expired. Click Settings  to update session cookie.', 'error');
         } else {
           showToast('Download Status', data.error || 'Failed to fetch deed scans', 'error');
         }
@@ -10387,7 +10439,7 @@
       if (data.ok) {
         if (badge) {
           badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200';
-          badge.textContent = '🟢 Session Active';
+          badge.textContent = 'Session Active';
         }
         // Unlock search parameters form
         const searchCard = document.getElementById('deed-search-params-card');
@@ -10545,10 +10597,10 @@
             <p class="text-[11px] text-emerald-800">Saved file: <strong>${data.filename}</strong> (${Math.round(data.file_size_bytes / 1024)} KB)</p>
             <div class="flex items-center gap-3 pt-1">
               <button onclick="switchMainTab('pdf'); selectFile('${data.filename}');" class="px-3 py-1.5 rounded bg-emerald-700 text-white font-bold text-xs hover:bg-emerald-800 transition-all cursor-pointer">
-                👁️ View PDF in Reader
+                View PDF in Reader
               </button>
               <a href="/pdf/${projectName}/${data.filename}" target="_blank" class="px-3 py-1.5 rounded bg-white border border-emerald-300 text-emerald-900 font-bold text-xs hover:bg-emerald-100 transition-all">
-                📥 Download PDF File
+                Download PDF File
               </a>
             </div>
           </div>
@@ -10573,9 +10625,9 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-red-600"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <span>Government Session Expired / Blocked</span>
               </div>
-              <p class="text-[11px] text-red-800">ASP.NET session expired. Click Settings ⚙️ above to update your active browser session cookie.</p>
+              <p class="text-[11px] text-red-800">ASP.NET session expired. Click Settings  above to update your active browser session cookie.</p>
               <button onclick="openSettingsModal()" class="px-3 py-1 rounded bg-red-800 text-white font-bold text-xs hover:bg-red-900 transition-all cursor-pointer">
-                ⚙️ Configure Credentials & Cookie
+                 Configure Credentials & Cookie
               </button>
             </div>
           `;
@@ -10669,7 +10721,7 @@
         btn.disabled = false;
         btn.querySelector('span').textContent = 'Sort & Classify';
         if (!d.ok) throw new Error(d.error || 'Classification failed');
-        status.textContent = '✓ Document successfully classified & saved.';
+        status.textContent = 'Document successfully classified & saved.';
         renderSorterManifest(d.manifest);
       })
       .catch(e => {
@@ -10936,11 +10988,11 @@
         if (!d.ok) throw new Error(d.error || 'Attach failed');
         if (btn) {
           const span = btn.querySelector('span');
-          if (span) span.textContent = 'Attached ✓';
+          if (span) span.textContent = 'Attached';
           btn.classList.remove('bg-slate-700', 'bg-slate-100', 'text-white', 'text-slate-800');
           btn.classList.add('bg-emerald-600', 'text-white');
         }
-        if (status) status.textContent = `✓ Attached "${d.filename}" (${d.page_count} pages) to project Attachments.`;
+        if (status) status.textContent = `Attached "${d.filename}" (${d.page_count} pages) to project Attachments.`;
         if (typeof showToast === 'function') showToast('Document Attached', `"${d.filename}" (${d.page_count} pages) added to project Attachments.`, 'success');
         setTimeout(() => window.location.reload(), 1200);
       })
