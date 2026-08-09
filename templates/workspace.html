@@ -269,6 +269,39 @@
 
     }
 
+    /* Modern Monochromatic & Indigo Spotlight Row Focus System */
+    .row-highlight-active {
+      position: relative;
+      background-color: rgba(79, 70, 229, 0.05) !important;
+      box-shadow: inset 4px 0 0 0 #4f46e5, 0 0 0 1px rgba(79, 70, 229, 0.2), 0 4px 14px -2px rgba(79, 70, 229, 0.08) !important;
+      border-radius: 6px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: rowSpotlightSweep 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes rowSpotlightSweep {
+      0% {
+        background-color: rgba(99, 102, 241, 0.16);
+        box-shadow: inset 6px 0 0 0 #4338ca, 0 0 0 2px rgba(99, 102, 241, 0.4), 0 8px 24px -4px rgba(99, 102, 241, 0.2);
+        transform: scale(1.004);
+      }
+      60% {
+        background-color: rgba(79, 70, 229, 0.08);
+        transform: scale(1.001);
+      }
+      100% {
+        background-color: rgba(79, 70, 229, 0.05);
+        transform: scale(1);
+      }
+    }
+
+    .finding-card-active {
+      border-color: rgba(79, 70, 229, 0.45) !important;
+      background-color: rgba(79, 70, 229, 0.035) !important;
+      box-shadow: 0 0 0 1.5px rgba(79, 70, 229, 0.25), 0 4px 16px -3px rgba(79, 70, 229, 0.09) !important;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
 
 
     /* Spinner */
@@ -4663,9 +4696,31 @@
     loadEvents();
   }
 
+  function clearAllHighlights() {
+    document.querySelectorAll('.row-highlight-active').forEach(el => {
+      el.classList.remove('row-highlight-active');
+      const tag = el.querySelector('.row-linked-tag');
+      if (tag) tag.remove();
+    });
+    document.querySelectorAll('.finding-card-active').forEach(el => {
+      el.classList.remove('finding-card-active');
+    });
+  }
+
   function highlightDocRow(docNo, ev) {
     if (ev && ev.target && ev.target.closest('button')) return;
     if (!docNo) return;
+
+    // Clear existing active highlights
+    clearAllHighlights();
+
+    // Highlight the clicked finding card if event originated from a finding card
+    if (ev && ev.currentTarget) {
+      const card = ev.currentTarget.closest('[data-finding-id]');
+      if (card) {
+        card.classList.add('finding-card-active');
+      }
+    }
 
     const targetDoc = String(docNo).trim().toLowerCase();
     const rows = document.querySelectorAll('#eventsContent [data-doc-no]');
@@ -4680,11 +4735,45 @@
 
     if (matchedRow) {
       matchedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      matchedRow.classList.add('ring-2', 'ring-amber-400', 'bg-amber-50/80', 'transition-all', 'duration-300');
-      setTimeout(() => {
-        matchedRow.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-50/80');
-      }, 2200);
+      matchedRow.classList.add('row-highlight-active');
+
+      // Inject floating link badge indicator if not present
+      if (!matchedRow.querySelector('.row-linked-tag')) {
+        const badge = document.createElement('span');
+        badge.className = 'row-linked-tag inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-900 text-white shadow-2xs justify-self-end shrink-0 transition-all duration-200';
+        badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Linked Finding`;
+        
+        // Insert right before final chevron arrow in row grid
+        const chevron = matchedRow.querySelector('svg:last-child');
+        if (chevron && chevron.parentNode === matchedRow) {
+          matchedRow.insertBefore(badge, chevron);
+        } else {
+          matchedRow.appendChild(badge);
+        }
+      }
     }
+  }
+
+  function highlightFindingFromRow(docNo, ev) {
+    if (ev && ev.target && ev.target.closest('button')) return;
+    if (!docNo) return;
+
+    clearAllHighlights();
+
+    // Highlight the clicked event row
+    if (ev && ev.currentTarget) {
+      ev.currentTarget.classList.add('row-highlight-active');
+    }
+
+    // Highlight matching finding cards
+    const targetDoc = String(docNo).trim().toLowerCase();
+    const cards = document.querySelectorAll('#eventsContent [data-finding-doc]');
+    cards.forEach(c => {
+      const cDoc = String(c.dataset.findingDoc || '').trim().toLowerCase();
+      if (cDoc && (cDoc === targetDoc || cDoc.includes(targetDoc) || targetDoc.includes(cDoc))) {
+        c.classList.add('finding-card-active');
+      }
+    });
   }
 
   function getSeverityTier(finding) {
@@ -5280,7 +5369,7 @@
 
           html += `
 
-            <div onclick="openEventDetail(${idx})" data-event-idx="${idx}" data-doc-no="${ev.event_doc_no || ''}"
+            <div onclick="openEventDetail(${idx}); highlightFindingFromRow('${ev.event_doc_no || ''}', event);" data-event-idx="${idx}" data-doc-no="${ev.event_doc_no || ''}"
 
                  class="grid grid-cols-[64px_120px_minmax(0,1fr)_175px_90px_20px] items-center px-6 py-3.5 ${isLast ? '' : 'border-b border-border'} hover:bg-muted/40 transition-colors gap-4 cursor-pointer group tl-row-enter" style="animation-delay: ${idx * 45}ms">
 
@@ -7220,7 +7309,7 @@
 
     return `
 
-      <div onclick="highlightDocRow('${targetDocNo}', event)" class="${rowClass} hover:bg-zinc-50/80 hover:border-zinc-300 transition-all duration-150 cursor-pointer group group/finding">
+      <div data-finding-id="${fid}" data-finding-doc="${targetDocNo}" onclick="highlightDocRow('${targetDocNo}', event)" class="${rowClass} hover:bg-zinc-50/80 hover:border-zinc-300 transition-all duration-150 cursor-pointer group group/finding">
 
         <div class="flex items-start justify-between gap-4 mb-2">
 
