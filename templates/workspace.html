@@ -2015,74 +2015,93 @@
 
       <!-- AI Assistant Panel -->
 
-              <div class="panel flex flex-col h-full bg-zinc-50/50" id="panel-assistant">
-        <!-- Top Navigation Bar (shadcn Card Header) -->
-        <div class="h-12 border-b border-zinc-200/90 bg-white flex items-center justify-between px-5 shrink-0 select-none z-10">
+      <div class="panel flex flex-col h-full bg-white relative overflow-hidden" id="panel-assistant">
+        <!-- Minimalist Header Bar (ChatGPT / Claude Style) -->
+        <div class="h-13 border-b border-zinc-100 bg-white flex items-center justify-between px-6 shrink-0 z-20 select-none">
           <div class="flex items-center gap-2.5">
-            <div class="p-1.5 rounded-lg bg-zinc-100 text-zinc-900 border border-zinc-200/80 shadow-2xs">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M4 11a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7Z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
+            <div class="w-7 h-7 rounded-lg bg-zinc-900 text-white flex items-center justify-center shadow-2xs">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             </div>
             <div>
-              <h2 class="text-xs font-bold text-zinc-900 tracking-tight leading-none">AI Legal Assistant</h2>
-              <p class="text-[10px] text-zinc-500 font-medium mt-0.5">Title Intelligence & Document Chain Query</p>
+              <h2 class="text-xs font-bold text-zinc-900 tracking-tight leading-none">Title Intelligence AI</h2>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="clearChat()" class="h-7 px-2.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
+            <button type="button" onclick="clearChat()" class="h-7 px-2.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-              Clear Session
+              <span>Clear Chat</span>
             </button>
           </div>
         </div>
 
-        <!-- Chat Stream Body -->
-        <main class="flex-1 overflow-y-auto p-6 scroll-smooth" id="chatScroll">
-          <div class="max-w-3xl mx-auto space-y-4" id="chatMessages"></div>
+        <!-- Chat Stream Body (Centered 768px Column like ChatGPT/Claude) -->
+        <main class="flex-1 overflow-y-auto px-4 py-6 scroll-smooth flex flex-col" id="chatScroll">
+          <div class="max-w-2xl mx-auto w-full my-auto space-y-6" id="chatMessages"></div>
         </main>
 
-        <!-- Floating Chat Composer Box -->
-        <div class="p-4 shrink-0 bg-white/80 backdrop-blur-xs border-t border-zinc-200/90">
-          <div class="max-w-3xl mx-auto rounded-2xl border border-zinc-200 bg-white p-3.5 shadow-sm focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all space-y-2.5">
-            
-            <!-- Active Filter Chip -->
-            <div class="scope-chip hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-[11px] font-semibold text-zinc-800" id="scopeChip">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              <span id="scopeChipLabel">Findings</span>
-              <button onclick="selectScope('all','General',null)" class="text-zinc-400 hover:text-zinc-900 ml-1 cursor-pointer" aria-label="Clear filter"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-            </div>
-
-            <!-- Text Input Area -->
-            <textarea class="w-full bg-transparent border-0 outline-none resize-none text-xs font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed min-h-[44px] max-h-[160px]" id="chatInput" rows="1" placeholder="Ask a question about this property's title deeds, owners, or liabilities..." onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
-
-            <!-- Bottom Controls Bar -->
-            <div class="flex items-center justify-between border-t border-zinc-100 pt-2.5">
-              <!-- Left Menu Pill Controls -->
-              <div class="flex items-center gap-2">
-                <!-- Model Selector Dropdown -->
-                <div class="relative">
-                  <button class="h-7 px-2.5 rounded-lg border border-zinc-200 bg-zinc-50 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors flex items-center gap-1.5 cursor-pointer" id="modelBtn" onclick="initModelSwitch(); document.getElementById('modelMenu').classList.toggle('hidden');">
-                    <span id="modelLabel">Gemini 2.5 Flash</span>
-                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                  </div>
-
-                </div>
-
-                <button class="composer-icon-btn" id="micBtn" aria-label="Use microphone" title="Speak your question" onclick="toggleVoice()">
-                  <span class="material-symbols-outlined">mic</span>
-                </button>
-
-                <button class="run-btn" id="runBtn" onclick="sendChat()">
-                  Run
-                  <span class="run-shortcut">
-                    Ctrl
-                    <span class="material-symbols-outlined">keyboard_return</span>
-                  </span>
+        <!-- ChatGPT/v0 Style Floating Pill Input Area -->
+        <div class="shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-4 pb-6 px-4">
+          <div class="max-w-2xl mx-auto w-full">
+            <div class="rounded-3xl border border-zinc-200 bg-white p-3 shadow-lg focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400 transition-all">
+              
+              <!-- Active Filter Badge if set -->
+              <div class="scope-chip hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-[11px] font-medium text-zinc-700 mb-1" id="scopeChip">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <span id="scopeChipLabel">Findings</span>
+                <button type="button" onclick="selectScope('all','General',null)" class="text-zinc-400 hover:text-zinc-900 ml-1 cursor-pointer" aria-label="Clear filter">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
+
+              <!-- Textarea -->
+              <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[44px] max-h-[160px]" id="chatInput" rows="1" placeholder="Message Title Intelligence AI..." onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
+
+              <!-- Bottom Controls Bar inside Input Card -->
+              <div class="flex items-center justify-between pt-2 px-1 border-t border-zinc-100/60 mt-1">
+                <!-- Left Controls (Model Pill & Scope Pill) -->
+                <div class="flex items-center gap-2">
+                  <!-- Model Switch Dropdown Pill -->
+                  <div class="relative">
+                    <button type="button" class="h-7 px-2.5 rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs" id="modelBtn" onclick="toggleModelDropdown(event)">
+                      <span id="modelLabel">Gemini 2.5 Flash</span>
+                      <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="modelMenu" class="hidden absolute bottom-full mb-2 left-0 w-44 bg-white border border-zinc-200 rounded-xl shadow-xl p-1 z-50 space-y-0.5">
+                      <button type="button" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-lg flex items-center justify-between cursor-pointer">
+                        <span>Gemini 2.5 Flash</span>
+                      </button>
+                      <button type="button" onclick="selectModel('gemini-2.5-pro', 'Gemini 2.5 Pro')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-lg flex items-center justify-between cursor-pointer">
+                        <span>Gemini 2.5 Pro</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Context Scope Switch Dropdown Pill -->
+                  <div class="relative">
+                    <button type="button" class="h-7 px-2.5 rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs" id="scopeBtn" onclick="toggleScopeDropdown(event)">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                      <span id="scopeBtnLabel">Search: All</span>
+                    </button>
+                    <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-44 bg-white border border-zinc-200 rounded-xl shadow-xl p-1 z-50 space-y-0.5">
+                      <button type="button" onclick="selectScope('all','General',this); hideScopeDropdown();" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-lg cursor-pointer">All Documents</button>
+                      <button type="button" onclick="selectScope('findings','Findings',this); hideScopeDropdown();" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-lg cursor-pointer">Findings Only</button>
+                      <button type="button" onclick="selectScope('events','Events',this); hideScopeDropdown();" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-lg cursor-pointer">Timeline Events</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Controls (Voice & Round Send Arrow Button) -->
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="toggleVoice()" id="micBtn" class="h-8 w-8 rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors flex items-center justify-center cursor-pointer shadow-2xs" title="Voice input">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  </button>
+                  <button type="button" id="runBtn" onclick="sendChat()" class="h-8 w-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40" title="Send message">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                  </button>
+                </div>
+              </div>
             </div>
+            <p class="text-[11px] text-zinc-400 text-center mt-2 font-normal">Answers are generated exclusively from analyzed property title deeds.</p>
           </div>
         </div>
       </div>
@@ -7007,32 +7026,37 @@
     const box = document.getElementById('chatMessages');
     if (!box) return;
     box.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-12 text-center max-w-xl mx-auto space-y-4 my-auto">
-        <div class="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-900 shadow-2xs">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+      <div class="flex flex-col items-center justify-center py-16 text-center space-y-6 max-w-lg mx-auto my-auto animate-in fade-in duration-300">
+        <div class="w-12 h-12 rounded-2xl bg-zinc-900 text-white flex items-center justify-center shadow-sm">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         </div>
         <div class="space-y-1">
-          <h3 class="text-sm font-bold text-zinc-900 tracking-tight">Title Search Legal Assistant</h3>
-          <p class="text-xs text-zinc-500 max-w-md leading-relaxed">Ask anything about property ownership, title chain continuity, encumbrances, SRO records, or recital discrepancies.</p>
+          <h3 class="text-xl font-bold text-zinc-900 tracking-tight">What can I help with today?</h3>
+          <p class="text-xs text-zinc-500">Ask questions about property ownership, title deeds, encumbrances, or SRO records.</p>
         </div>
-        <div class="pt-2 flex flex-wrap justify-center gap-2 max-w-lg">
-          <button onclick="askSuggested('Who is the current registered title owner?')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
-            Who is the current title owner?
+        <div class="grid grid-cols-2 gap-2.5 w-full pt-2">
+          <button type="button" onclick="askSuggested('Who is the current registered title owner?')" class="rounded-xl border border-zinc-200 bg-white p-3 text-left hover:border-zinc-300 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs group">
+            <p class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-900">Registered Owner</p>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Who holds current title interest?</p>
           </button>
-          <button onclick="askSuggested('Are there any unresolved mortgage liens?')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
-            Are there unresolved mortgage liens?
+          <button type="button" onclick="askSuggested('Are there any unresolved mortgage liens?')" class="rounded-xl border border-zinc-200 bg-white p-3 text-left hover:border-zinc-300 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs group">
+            <p class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-900">Mortgage Liens</p>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Check for bank encumbrances</p>
           </button>
-          <button onclick="askSuggested('Check for chain of title gaps or missing deeds.')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
-            Check for title chain gaps
+          <button type="button" onclick="askSuggested('Check for chain of title gaps or missing deeds.')" class="rounded-xl border border-zinc-200 bg-white p-3 text-left hover:border-zinc-300 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs group">
+            <p class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-900">Title Chain Gaps</p>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Verify unbroken deed continuity</p>
           </button>
-          <button onclick="askSuggested('Verify SRO jurisdiction for this property.')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
-            Verify SRO jurisdiction
+          <button type="button" onclick="askSuggested('Verify SRO jurisdiction for this property.')" class="rounded-xl border border-zinc-200 bg-white p-3 text-left hover:border-zinc-300 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs group">
+            <p class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-900">SRO Jurisdiction</p>
+            <p class="text-[11px] text-zinc-400 mt-0.5">Validate sub-registrar office</p>
           </button>
         </div>
       </div>`;
   }
 
   function composerInput(el) {
+    if (!el) return;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 180) + 'px';
   }
@@ -7040,7 +7064,7 @@
   function autoGrowChat(el) { composerInput(el); }
 
   function chatKeydown(e) {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendChat(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
   }
 
   function askSuggested(text) {
