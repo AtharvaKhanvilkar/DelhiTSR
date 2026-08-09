@@ -269,59 +269,27 @@
 
     }
 
-    /* Modern Monochromatic & Indigo Spotlight Row Focus System */
+    /* Clean Soft Row & Finding Highlight (Zero layout shifts, No left borders, No DOM modification) */
     .row-highlight-active {
-      position: relative;
-      background-color: rgba(79, 70, 229, 0.05) !important;
-      box-shadow: inset 4px 0 0 0 #4f46e5, 0 0 0 1px rgba(79, 70, 229, 0.2), 0 4px 14px -2px rgba(79, 70, 229, 0.08) !important;
-      border-radius: 6px;
-      transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      animation: rowSpotlightSweep 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      background-color: rgba(99, 102, 241, 0.08) !important;
+      transition: background-color 0.15s ease !important;
     }
 
     .row-highlight-fading {
       background-color: transparent !important;
-      box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent !important;
-      transition: background-color 0.6s ease, box-shadow 0.6s ease !important;
-    }
-
-    .row-linked-tag {
-      transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-
-    .row-linked-tag.tag-fading {
-      opacity: 0 !important;
-      transform: scale(0.9) !important;
-    }
-
-    @keyframes rowSpotlightSweep {
-      0% {
-        background-color: rgba(99, 102, 241, 0.16);
-        box-shadow: inset 6px 0 0 0 #4338ca, 0 0 0 2px rgba(99, 102, 241, 0.4), 0 8px 24px -4px rgba(99, 102, 241, 0.2);
-        transform: scale(1.004);
-      }
-      60% {
-        background-color: rgba(79, 70, 229, 0.08);
-        transform: scale(1.001);
-      }
-      100% {
-        background-color: rgba(79, 70, 229, 0.05);
-        transform: scale(1);
-      }
+      transition: background-color 0.5s ease-out !important;
     }
 
     .finding-card-active {
-      border-color: rgba(79, 70, 229, 0.45) !important;
-      background-color: rgba(79, 70, 229, 0.035) !important;
-      box-shadow: 0 0 0 1.5px rgba(79, 70, 229, 0.25), 0 4px 16px -3px rgba(79, 70, 229, 0.09) !important;
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      border-color: rgba(99, 102, 241, 0.4) !important;
+      background-color: rgba(99, 102, 241, 0.04) !important;
+      transition: all 0.15s ease !important;
     }
 
     .finding-card-fading {
       border-color: rgba(228, 228, 231, 1) !important;
       background-color: transparent !important;
-      box-shadow: none !important;
-      transition: all 0.6s ease !important;
+      transition: all 0.5s ease-out !important;
     }
 
 
@@ -4739,10 +4707,8 @@
     if (ev && ev.target && ev.target.closest('button')) return;
     if (!docNo) return;
 
-    // Clear existing active highlights
     clearAllHighlights();
 
-    // Highlight the clicked finding card if event originated from a finding card
     let targetCard = null;
     if (ev && ev.currentTarget) {
       targetCard = ev.currentTarget.closest('[data-finding-id]');
@@ -4766,31 +4732,13 @@
       matchedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
       matchedRow.classList.add('row-highlight-active');
 
-      // Inject floating link badge indicator with clean SVG vector icon
-      let badge = matchedRow.querySelector('.row-linked-tag');
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'row-linked-tag inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-900 text-white shadow-2xs justify-self-end shrink-0 transition-all duration-300';
-        badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Linked Finding`;
-        
-        // Insert right before final chevron arrow in row grid
-        const chevron = matchedRow.querySelector('svg:last-child');
-        if (chevron && chevron.parentNode === matchedRow) {
-          matchedRow.insertBefore(badge, chevron);
-        } else {
-          matchedRow.appendChild(badge);
-        }
-      }
-
-      // Smooth graceful fade-out after 2.8 seconds
       _highlightTimeout = setTimeout(() => {
         if (matchedRow) matchedRow.classList.add('row-highlight-fading');
         if (targetCard) targetCard.classList.add('finding-card-fading');
-        if (badge) badge.classList.add('tag-fading');
         setTimeout(() => {
           clearAllHighlights();
-        }, 650);
-      }, 2800);
+        }, 550);
+      }, 2200);
     }
   }
 
@@ -4823,8 +4771,8 @@
         matchedCards.forEach(c => c.classList.add('finding-card-fading'));
         setTimeout(() => {
           clearAllHighlights();
-        }, 650);
-      }, 2800);
+        }, 550);
+      }, 2200);
     }
   }
 
