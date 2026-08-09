@@ -6578,6 +6578,69 @@
 
   // ─────────────────────────────────────────────────────────
 
+  function errorSeverity(type, severity) {
+    const t = (type || '').toUpperCase();
+    const s = (severity || '').toUpperCase();
+    const voidanceTypes = [
+      'UNRESOLVED_MORTGAGE', 'PARTIALLY_RELEASED', 'RELEASE_ORPHAN',
+      'RELEASE_PARTY_MISMATCH', 'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS',
+      'RELEASE_OVERFLOW', 'LENDER_MISMATCH', 'CHAIN_BREAK',
+      'MINOR_PARTY_PROHIBITED', 'INVALID_NAME_PLACEHOLDER',
+      'ZERO_CONSIDERATION', 'GIFT_DEED_WITH_CONSIDERATION',
+      'VOID_DEED_WRONG_SRO', 'PAN_TRANSFEROR_TRANSFEREE_CLASH',
+      'RECITAL_LEGAL_HEIR_GAP', 'RECITAL_MORTGAGE_CONTRADICTION'
+    ];
+    if (voidanceTypes.includes(t)) return 'voidance';
+    const disputeTypes = [
+      'UNDER_CIRCLE_RATE_VALUATION', 'MISSING_GPA_AUTHORIZATION',
+      'UNREGULARIZED_GPA_CHAIN', 'DEED_AADHAAR_NAME_MISMATCH',
+      'WITNESS_IS_PARTY', 'ID_PROOF_PAN_MISMATCH',
+      'MISSING_SALE_CONSIDERATION', 'MISSING_MORTGAGE_VALUE',
+      'AREA_MISMATCH', 'SOCIETY_MISMATCH', 'ID_MISMATCH',
+      'LEASEHOLD_UNCONVERTED', 'OCCUPANT_NOT_PARTY',
+      'DATE_ORDER_DEVIATION', 'SRO_JURISDICTION_MISMATCH'
+    ];
+    if (disputeTypes.includes(t)) return 'dispute';
+    if (s === 'ERROR') return 'dispute';
+    const liabilityTypes = [
+      'AGE_DOB_MISMATCH', 'INSUFFICIENT_STAMP_DUTY',
+      'INSUFFICIENT_REGISTRATION_FEE', 'AMOUNT_WORDS_FIGURES_MISMATCH',
+      'INSUFFICIENT_WITNESSES', 'RECITAL_CHAIN_GAP',
+      'CONSIDERATION_ANOMALY', 'PAYMENT_SUM_MISMATCH',
+      'ID_PROOF_DOB_MISMATCH', 'MISSING_RENTAL_CONSIDERATION',
+      'MISSING_CRITICAL_FIELDS', 'PROPERTY_NOT_IN_DELHI'
+    ];
+    if (liabilityTypes.includes(t)) return 'liability';
+    const conflictTypes = [
+      'INVALID_AADHAAR_FORMAT', 'INVALID_PAN_FORMAT', 'INVALID_DATE_FORMAT',
+      'UTILITY_ARREARS_OUTSTANDING', 'PROPERTY_TAX_UNVERIFIED',
+      'AREA_MISMATCH_MILD', 'METADATA_FLAT_MISMATCH', 'METADATA_FLOOR_MISMATCH',
+      'METADATA_ADDRESS_MISMATCH'
+    ];
+    if (conflictTypes.includes(t)) return 'conflict';
+    if (s === 'WARNING') return 'conflict';
+    return 'informational';
+  }
+
+  function animateCountUp(el, duration) {
+    if (!el) return;
+    const text = el.textContent.trim();
+    const target = parseInt(text.replace(/[^0-9]/g, ''), 10);
+    if (isNaN(target) || target === 0) return;
+    const prefix = text.match(/^[^0-9]*/)?.[0] || '';
+    const suffix = text.match(/[^0-9]*$/)?.[0] || '';
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(target * eased);
+      el.textContent = prefix + current.toLocaleString('en-IN') + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function errorBadgeLabel(type) {
     const map = {
       'DATE_ORDER_ERROR':                'Date Order Out of Sequence',
