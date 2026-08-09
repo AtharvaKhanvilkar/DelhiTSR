@@ -3154,28 +3154,21 @@
 
 
     // 5. Trigger load hooks
-
     if (view === 'events') {
-
-      loadEvents();
-
+      if (typeof loadEvents === 'function') loadEvents();
     }
-
     if (view === 'entities') {
-      loadEntities();
+      if (typeof loadEntities === 'function') loadEntities();
     }
-
     if (view === 'assistant') {
-      if (_chatHistory.length === 0) renderChatGreeting();
+      if (typeof renderChatGreeting === 'function' && (!window._chatHistory || window._chatHistory.length === 0)) renderChatGreeting();
       setTimeout(() => { const i = document.getElementById('chatInput'); if (i) i.focus(); }, 100);
     }
-
-    if (view === 'doris') {
-      initDoris();
+    if (view === 'report') {
+      if (typeof loadTsrReport === 'function') loadTsrReport();
     }
-
     if (view === 'sorter') {
-      loadSavedSorterManifest();
+      if (typeof loadSavedSorterManifest === 'function') loadSavedSorterManifest();
     }
 
     // 6. Update topbar breadcrumb tab name
@@ -3186,8 +3179,6 @@
       else if (activeKey === 'entities') displayName = 'Chain & Entities';
       else if (activeKey === 'assistant') displayName = 'AI Assistant';
       else if (activeKey === 'report') displayName = 'Audit Report';
-      else if (activeKey === 'doris') displayName = 'DORIS Registry';
-      else if (activeKey === 'ngdrs') displayName = 'NGDRS Portal';
       else if (activeKey === 'sorter') displayName = 'Document Sorter';
       else if (activeKey === 'transactions') displayName = 'Document Viewer';
       topbarTabName.textContent = displayName;
@@ -3296,53 +3287,41 @@
   // ─────────────────────────────────────────────────────────
 
   function selectFile(el, filename) {
+    if (typeof el === 'string' && (!filename || filename === 'undefined')) {
+      filename = el;
+      el = document.querySelector(`[data-file-row="${filename}"]`) || document.querySelector('#fileTree > div');
+    }
+    if (!el) {
+      el = document.querySelector('#fileTree > div');
+    }
 
     document.querySelectorAll('#fileTree > div').forEach(t => {
-
-      t.classList.remove('bg-zinc-200/50', 'font-semibold', 'text-zinc-950');
-
+      t.classList.remove('bg-zinc-200/50', 'bg-zinc-200/60', 'font-semibold', 'text-zinc-950');
       t.classList.add('text-zinc-800');
-
     });
 
-    
-
-    el.classList.add('bg-zinc-200/50', 'font-semibold', 'text-zinc-950');
-
-    el.classList.remove('text-zinc-800');
-
-    selectedFile = filename;
-
-    
-
-    if (CONFIG_USE_CUSTOM_PDF_VIEWER) {
-
-      loadCustomPdf(filename);
-
-    } else {
-
-      const frame = document.getElementById('pdfFrame');
-
-      if (frame) {
-
-        frame.src = '/pdf/{{ project_name }}/' + filename;
-
-      }
-
+    if (el && el.classList) {
+      el.classList.add('bg-zinc-200/50', 'font-semibold', 'text-zinc-950');
+      el.classList.remove('text-zinc-800');
     }
+    
+    selectedFile = filename || (el ? el.getAttribute('data-file-row') : '');
 
-    loadJsonForSelected(filename);
-
-
-
-    // Automatically transition focus back to standard document panel if outside of it
+    if (selectedFile) {
+      if (CONFIG_USE_CUSTOM_PDF_VIEWER) {
+        loadCustomPdf(selectedFile);
+      } else {
+        const frame = document.getElementById('pdfFrame');
+        if (frame) {
+          frame.src = '/pdf/{{ project_name }}/' + selectedFile;
+        }
+      }
+      loadJsonForSelected(selectedFile);
+    }
 
     if (activeMainView !== 'pdf' && activeMainView !== 'json') {
-
       switchMainTab('pdf');
-
     }
-
   }
 
 
