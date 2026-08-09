@@ -5780,19 +5780,142 @@
     if (window.lucide) lucide.createIcons();
   }
   function closeEventDetail() {
+    const drawer   = document.getElementById('eventDrawer');
+    const backdrop = document.getElementById('eventDrawerBackdrop');
+    drawer.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+    drawer.classList.remove('opacity-100', 'scale-100');
+    backdrop.classList.add('opacity-0', 'pointer-events-none');
+    backdrop.classList.remove('opacity-100');
+  }
+
+  function openFindingDetail(fid) {
+    const err = (window._allFindingsMap && window._allFindingsMap[fid]) ? window._allFindingsMap[fid] : null;
+    if (!err) return;
 
     const drawer   = document.getElementById('eventDrawer');
-
     const backdrop = document.getElementById('eventDrawerBackdrop');
+    const body     = document.getElementById('eventDrawerBody');
+    if (!drawer || !backdrop || !body) return;
 
-    drawer.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+    const label = errorBadgeLabel(err.type);
+    const tier  = getSeverityTier(err);
+    
+    let sevLabel = 'Record Notation';
+    let sevIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`;
+    let sevBadgeCls = 'border-zinc-200 bg-zinc-50 text-zinc-700';
 
-    drawer.classList.remove('opacity-100', 'scale-100');
+    if (tier === 'VOIDANCE') {
+      sevLabel = 'Material Defect';
+      sevIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+      sevBadgeCls = 'border-red-200 bg-red-50 text-red-700 font-bold';
+    } else if (tier === 'SUBSTANTIVE_RISK') {
+      sevLabel = 'Substantive Defect';
+      sevIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      sevBadgeCls = 'border-orange-200 bg-orange-50 text-orange-800 font-semibold';
+    } else if (tier === 'REQUISITION') {
+      sevLabel = 'Statutory Requisition';
+      sevIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.25 16.25 15 18"/></svg>`;
+      sevBadgeCls = 'border-amber-200 bg-amber-50 text-amber-800 font-semibold';
+    } else if (tier === 'PROCEDURAL_IRREGULARITY') {
+      sevLabel = 'Procedural Anomaly';
+      sevIconSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+      sevBadgeCls = 'border-sky-200 bg-sky-50 text-sky-800 font-semibold';
+    }
 
-    backdrop.classList.add('opacity-0', 'pointer-events-none');
+    const docNo = err.doc_no || err.ref_doc_no || err.event_doc_no || 'N/A';
+    const dateVal = err.event_date || 'N/A';
 
-    backdrop.classList.remove('opacity-100');
+    const expectedLbl = err.type === 'CHAIN_ERROR' ? 'Expected Sellers' : 'Expected Record State';
+    const actualLbl = err.type === 'CHAIN_ERROR' ? 'Actual Sellers' : 'Actual Recorded State';
+    const expectedVal = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
+    const actualVal = Array.isArray(err.actual) ? err.actual.join(', ') : (err.actual || '—');
+    const hasDetail = (err.expected !== undefined && err.expected !== null) || (err.actual !== undefined && err.actual !== null);
 
+    let legalRationale = "This observation represents a structural title discrepancy. It should be evaluated against registered property records to ensure clear, marketable, and unencumbered title.";
+    let actionSteps = "1. Requisition certified copy of title deed from Sub-Registrar.\n2. Obtain 30-year non-encumbrance certificate (Form 15/16).\n3. Requisition original title deeds from vendor or mortgaging bank.";
+
+    if (err.type === 'CHAIN_ERROR' || label.includes('Chain')) {
+      legalRationale = "Under the Indian Transfer of Property Act, 1882 (Principle of *Nemo dat quod non habet*), a transferor cannot convey a title or ownership share greater than what they lawfully hold on record. Since Mr. Vikram Singh Chauhan gifted away 100% of his share via Gift Deed in 2015, his subsequent transfer in 2026 holds 0% share on record and is legally void *ab initio*.";
+      actionSteps = "1. Requisition complete intermediate title deeds across 30 years.\n2. Obtain certified copy of Gift Deed Doc 2891/2015 from Sub-Registrar.\n3. Verify if Mrs. Priya Vikram Chauhan executed any subsequent deed or consent.";
+    } else if (err.type === 'MORTGAGE_UNRELEASED' || label.includes('Mortgage') || label.includes('Charge')) {
+      legalRationale = "Under Section 58 of the Transfer of Property Act, 1882, a registered mortgage creates a legal charge on immovable property in favor of the lender. Until a formal Deed of Release / Reconveyance is registered with the Sub-Registrar, the outstanding financial charge remains active and binding on future purchasers.";
+      actionSteps = "1. Requisition Bank No-Dues Certificate (NOC) and registered Release Deed.\n2. Verify SRO index-II entries for discharge endorsement.\n3. Check CERSAI registry for outstanding security interest assets.";
+    } else if (label.includes('Lease') || err.type === 'LEASE_NON_TRANSFER') {
+      legalRationale = "Under Section 105 of the Transfer of Property Act, 1882, a Lease or Leave & License agreement grants possessory or occupational rights only. It does NOT transfer proprietary ownership or legal title.";
+      actionSteps = "1. Confirm lease term expiry and physical possession status.\n2. Ensure no statutory tenancy or perpetual lease rights are claimed.";
+    } else if (label.includes('Release') || label.includes('Relinquishment')) {
+      legalRationale = "A Relinquishment or Release Deed is valid only when executed in favor of an existing recorded co-owner or legal heir. A release executed in favor of a third-party stranger is legally invalid as a release and must be stamped and registered as a Sale or Gift Deed.";
+      actionSteps = "1. Verify legal heirship certificate or pedigree tree.\n2. Confirm co-ownership status at the time of deed execution.";
+    }
+
+    body.innerHTML = `
+      <!-- Modal Header -->
+      <div class="flex flex-col p-6 border-b border-zinc-100 shrink-0 bg-white space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-lg font-bold tracking-tight text-zinc-900">${label}</h2>
+              <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2.5 py-0.5 text-xs">${sevIconSvg}${sevLabel}</span>
+            </div>
+            <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+              <span class="font-semibold text-zinc-700">Doc ${docNo}</span>
+              <span class="text-zinc-300">•</span>
+              <span>Registered: <strong class="text-zinc-700">${dateVal}</strong></span>
+            </p>
+          </div>
+          
+          <button onclick="closeEventDetail()" class="text-zinc-400 hover:text-zinc-900 p-1.5 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer" title="Close (Esc)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-6 overflow-y-auto min-h-0 flex-1 bg-white">
+        <!-- Discrepancy Observation Card -->
+        <div class="p-4 border border-zinc-200/90 bg-zinc-50/60 rounded-xl space-y-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Finding Observation</h3>
+          <p class="text-xs text-zinc-900 leading-relaxed font-medium">${formatBankNamesHtml(err.message || '')}</p>
+        </div>
+
+        ${hasDetail ? `
+        <!-- Expected vs Actual Comparison -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Record Verification State</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 border border-zinc-200 bg-white rounded-xl space-y-1 shadow-2xs">
+              <span class="text-[10px] font-bold text-zinc-400 block uppercase tracking-wider">${expectedLbl}</span>
+              <span class="text-xs font-semibold text-zinc-900 block leading-relaxed">${formatBankNamesHtml(expectedVal)}</span>
+            </div>
+            
+            <div class="p-3.5 border border-amber-200/80 bg-amber-50/30 rounded-xl space-y-1 shadow-2xs">
+              <span class="text-[10px] font-bold text-amber-700 block uppercase tracking-wider">${actualLbl}</span>
+              <span class="text-xs font-bold text-zinc-950 block leading-relaxed">${formatBankNamesHtml(actualVal)}</span>
+            </div>
+          </div>
+        </div>` : ''}
+
+        <!-- Legal Principles & Title Impact -->
+        <div class="p-4 border border-zinc-200 bg-white rounded-xl space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27272a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">Legal Principles & Title Impact</h3>
+          </div>
+          <p class="text-xs text-zinc-700 leading-relaxed">${legalRationale}</p>
+        </div>
+
+        <!-- Recommended Requisition & Action Steps -->
+        <div class="p-4 border border-zinc-200/90 bg-zinc-50/80 rounded-xl space-y-2">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-600">Recommended Advocate Action</h3>
+          <div class="text-xs text-zinc-800 leading-relaxed font-mono whitespace-pre-line">${actionSteps}</div>
+        </div>
+      </div>
+    `;
+
+    backdrop.classList.remove('opacity-0', 'pointer-events-none');
+    backdrop.classList.add('opacity-100');
+    drawer.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+    drawer.classList.add('opacity-100', 'scale-100');
   }
 
   function switchModalTab(tabName) {
@@ -6571,81 +6694,7 @@
       'INSUFFICIENT_STAMP_DUTY':         'Stamp Duty Deficit',
       'INSUFFICIENT_REGISTRATION_FEE':   'Registration Fee Deficit',
       'AMOUNT_WORDS_FIGURES_MISMATCH':   'Words vs Figures Value Clash',
-      'RECTIFICATION_APPLIED':           'Rectified Discrepancy',
-      'RELEASE_ORPHAN':                  'Unlinked Discharge Instrument',
-      'RELEASE_AMBIGUOUS':               'Ambiguous Release Instrument',
-      'RELEASE_PARTY_MISMATCH':          'Discharge Party Discrepancy',
-      'RELEASE_AMOUNT_MISMATCH':         'Discharge Valuation Conflict',
-      'RELEASE_OVERFLOW':                'Discharge Amount Overflow',
-      'LENDER_MISMATCH':                 'Lender Bank Mismatch',
-      'RELEASE_LINK':                    'Linked Release Deed',
-      'RELEASE_LINK_A':                  'Linked Release Deed',
-      'ID_PROOF_PAN_MISMATCH':           'PAN vs ID Card Mismatch',
-      'ID_PROOF_DOB_MISMATCH':           'DOB vs ID Card Mismatch',
-      'ID_PROOF_MISSING':                'Missing Party ID Proof',
-      'INSUFFICIENT_WITNESSES':          'Insufficient Witnesses',
-      'WITNESS_IS_PARTY':                'Witness Is a Party',
-      'UTILITY_ARREARS_OUTSTANDING':     'Utility Arrears Outstanding',
-      'OCCUPANT_NOT_PARTY':              'Occupant Not a Party',
-      'PROPERTY_TAX_UNVERIFIED':         'Property Tax Unverified',
-      'PAYMENT_SUM_MISMATCH':            'Payments Do Not Total Price',
-      'ESTAMP_VALUE_MISMATCH':           'e-Stamp Value Mismatch',
-      'ESTAMP_DATE_ANOMALY':             'e-Stamp Date Anomaly',
-      'FORMA_CONSIDERATION_MISMATCH':    'Form-A Consideration Mismatch',
-      'CIRCLE_RATE_STATED_MISMATCH':     'Circle-Rate Arithmetic Error',
-      'TDS_194IA_SHORTFALL':             'TDS (194-IA) Shortfall',
-      'TDS_194IA_NOT_FOUND':             'TDS (194-IA) Not Found',
-      'NAME_ALIAS_ON_RECORD':            'Name Alias on Record',
-      'LEASEHOLD_UNCONVERTED':           'Leasehold Not Converted',
-      'RECITAL_CHAIN_GAP':               'Recited Chain Gap'
-    };
-
-    if (type && type.startsWith('NAME_DEVIATION_')) {
-      return 'Party Name Deviation';
-    }
-
-    return map[type] || type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  }
-
-
-
-  function discrepancyRank(type) {
-
-    const critical = [
-
-      'CHAIN_ERROR', 'INVALID_MORTGAGOR', 'UNKNOWN_MORTGAGOR', 'ZERO_CONSIDERATION',
-      'UNRESOLVED_MORTGAGE', 'PARTIALLY_RELEASED', 'RELEASE_OVERFLOW', 
-      'RELEASE_AMBIGUOUS', 'RELEASE_PARTY_MISMATCH', 'LENDER_MISMATCH',
-      'GPA_POST_2011_INVALID', 'MISSING_GPA_AUTHORIZATION'
-
-    ];
-
-    const moderate = [
-
-      'DATE_ORDER_ERROR', 'AREA_MISMATCH', 'SOCIETY_MISMATCH', 'ID_MISMATCH',
-
-      'CONSIDERATION_ANOMALY', 'NAME_SPELLING_VARIATION',
-
-      'METADATA_LOCALITY_MISMATCH', 'METADATA_SRO_MISMATCH', 'METADATA_AUTHORITY_MISMATCH',
-
-      'METADATA_LAND_USE_MISMATCH', 'METADATA_FLAT_MISMATCH', 'METADATA_FLOOR_MISMATCH',
-
-      'METADATA_PROPERTY_ID_MISMATCH', 'METADATA_UPIC_MISMATCH', 'METADATA_ADDRESS_MISMATCH',
-
-      'PROPERTY_NOT_IN_DELHI', 'RELEASE_ORPHAN', 'RELEASE_AMOUNT_MISMATCH',
-      'UNREGULARIZED_GPA_CHAIN', 'MISSING_CRITICAL_FIELDS'
-
-    ];
-
-    if (critical.includes(type)) return 'critical';
-
-    if (moderate.includes(type)) return 'moderate';
-
-    return 'low';
-
-  }
-
-  function sortFindings(findingsList) {
+      'RECTIFICATION_APPLIED':           'Rec  function sortFindings(findingsList) {
     return [...findingsList].sort((a, b) => {
       const aIsMissing = a.type === 'MISSING_CRITICAL_FIELDS';
       const bIsMissing = b.type === 'MISSING_CRITICAL_FIELDS';
@@ -6660,109 +6709,19 @@
     });
   }
 
-
-
-
-  /* ── Stat counter roll-up animation ── */
-  function animateCountUp(el, duration) {
-    const originalText = el.textContent.trim();
-    const regex = /(\d+)/g;
-    const matches = [];
-    let match;
-    while ((match = regex.exec(originalText)) !== null) {
-      matches.push({
-        index: match.index,
-        value: parseInt(match[0], 10),
-        length: match[0].length
-      });
-    }
-    if (matches.length === 0) return;
-
-    const start = performance.now();
-    function step(now) {
-      const p = Math.min((now - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - p, 3); // ease-out cubic
-      
-      let newText = '';
-      let lastIdx = 0;
-      for (const m of matches) {
-        newText += originalText.substring(lastIdx, m.index);
-        newText += Math.round(ease * m.value);
-        lastIdx = m.index + m.length;
-      }
-      newText += originalText.substring(lastIdx);
-      el.textContent = newText;
-
-      if (p < 1) requestAnimationFrame(step);
-      else el.textContent = originalText;
-    }
-    
-    let initialText = '';
-    let lastIdx = 0;
-    for (const m of matches) {
-      initialText += originalText.substring(lastIdx, m.index);
-      initialText += '0';
-      lastIdx = m.index + m.length;
-    }
-    initialText += originalText.substring(lastIdx);
-    el.textContent = initialText;
-
-    requestAnimationFrame(step);
-  }
-
-  function errorSeverity(type, severity) {
-    if (severity) {
-      const s = severity.toLowerCase();
-      if (s === 'info' || s === 'note') return 'informational';
-      if (s === 'warning') return 'liability';
-    }
-
-    const voidances = [
-      'VOID_DEED_WRONG_SRO', 'GPA_POST_2011_INVALID'
-    ];
-    if (voidances.includes(type)) return 'voidance';
-
-    const disputes = [
-      'CHAIN_BREAK', 'CHAIN_ERROR', 'GPA_POST_2011_INVALID',
-      'UNREGULARIZED_GPA_CHAIN', 'MISSING_GPA_AUTHORIZATION'
-    ];
-    if (disputes.includes(type)) return 'dispute';
-
-    const liabilities = [
-      'UNRESOLVED_MORTGAGE', 'PARTIAL_RELEASE', 'UNDER_CIRCLE_RATE_VALUATION',
-      'INSUFFICIENT_STAMP_DUTY', 'INSUFFICIENT_REGISTRATION_FEE'
-    ];
-    if (liabilities.includes(type)) return 'liability';
-
-    const informational = [
-      'RELEASE_LINK', 'RELEASE_LINK_A'
-    ];
-    if (informational.includes(type)) return 'informational';
-
-    return 'conflict';
-  }
-
   function renderFindingCard(err, isDismissed) {
-
     const label       = errorBadgeLabel(err.type);
-
     const sev         = errorSeverity(err.type, err.severity);
-
     const expectedLbl = err.type === 'CHAIN_ERROR' ? 'Expected sellers' : 'Expected';
-
     const actualLbl   = err.type === 'CHAIN_ERROR' ? 'Actual sellers'   : 'Actual';
-
     const expectedVal = Array.isArray(err.expected) ? err.expected.join(', ') : (err.expected || '—');
-
     const actualVal   = Array.isArray(err.actual)   ? err.actual.join(', ')   : (err.actual   || '—');
-
     const hasDetail   = (err.expected !== undefined && err.expected !== null) ||
-
                         (err.actual   !== undefined && err.actual   !== null);
-
     const fid         = err.finding_id;
 
-
+    if (!window._allFindingsMap) window._allFindingsMap = {};
+    if (fid) window._allFindingsMap[fid] = err;
 
     const tier = getSeverityTier(err);
     let sevLabel = 'Record Notation';
@@ -6792,7 +6751,63 @@
       sevIconSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`;
     }
 
+    const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30 w-full block' : 'px-5 py-4 w-full block';
+    const dimText  = isDismissed ? 'text-muted-foreground' : 'text-foreground';
+    const dimMsg   = isDismissed ? 'text-muted-foreground' : 'text-foreground';
 
+    const detailsBtn = `<button type="button" onclick="event.stopPropagation(); openFindingDetail('${fid}')" class="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0 cursor-pointer shadow-2xs">
+         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+         <span>Details</span>
+       </button>`;
+
+    const actionBtn = isDismissed
+      ? `<button type="button" onclick="restoreFinding('${fid}')" class="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shrink-0 cursor-pointer">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+           <span>Restore</span>
+         </button>`
+      : `<button type="button" onclick="dismissFinding('${fid}')" class="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0 cursor-pointer">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+           <span>Dismiss</span>
+         </button>`;
+
+    const dismissedBadge = isDismissed
+      ? '<span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Dismissed</span>'
+      : '';
+
+    const targetDocNo = err.doc_no || err.ref_doc_no || err.event_doc_no || '';
+
+    return `
+      <div data-finding-id="${fid}" data-finding-doc="${targetDocNo}" onclick="highlightDocRow('${targetDocNo}', event)" class="${rowClass} hover:bg-zinc-50/80 hover:border-zinc-300 transition-all duration-150 cursor-pointer group group/finding">
+        <div class="flex items-start justify-between gap-4 mb-2">
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-800 ${isDismissed ? 'line-through decoration-1 text-zinc-400' : ''}">${label}</span>
+            <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs">${sevIconSvg}${sevLabel}</span>
+            ${dismissedBadge}
+          </div>
+
+          <div class="flex items-center gap-2.5 shrink-0">
+            <div class="text-xs text-muted-foreground tabular-nums mr-1">${(() => {
+              const parts = [];
+              if (err.ref_doc_no && err.ref_doc_no !== err.doc_no) parts.push('Doc ' + err.ref_doc_no);
+              if (err.doc_no) parts.push('Doc ' + err.doc_no);
+              return parts.length ? parts.join(' &amp; ') : '';
+            })()}${err.event_date ? (err.doc_no || err.ref_doc_no ? ' · ' : '') + err.event_date : ''}</div>
+            ${detailsBtn}
+            ${actionBtn}
+          </div>
+        </div>
+
+        <p class="text-sm ${dimMsg} leading-relaxed ${hasDetail ? 'mb-3' : ''}">${formatBankNamesHtml(err.message || '')}</p>
+
+        ${hasDetail ? `
+          <div class="grid grid-cols-[110px_1fr] gap-y-2 gap-x-4 text-xs pt-3 border-t border-border">
+            <div class="font-medium uppercase tracking-wider text-muted-foreground">${expectedLbl}</div>
+            <div class="${dimText}">${formatBankNamesHtml(expectedVal)}</div>
+            <div class="font-medium uppercase tracking-wider text-muted-foreground">${actualLbl}</div>
+            <div class="${dimText}">${formatBankNamesHtml(actualVal)}</div>
+          </div>` : ''}
+      </div>`;
+  }
 
     const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30 w-full block' : 'px-5 py-4 w-full block';
 
