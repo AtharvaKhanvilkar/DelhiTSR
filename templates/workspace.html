@@ -1991,9 +1991,9 @@
           </div>
         </div>
 
-        <!-- Chat Scroll Body (Framer AI Layout) -->
-        <main class="flex-1 overflow-y-auto px-4 py-6 scroll-smooth flex flex-col" id="chatScroll">
-          <div class="max-w-2xl mx-auto w-full my-auto space-y-6" id="chatMessages"></div>
+        <!-- Chat Scroll Body (Framer AI Wide Layout) -->
+        <main class="flex-1 overflow-y-auto px-6 py-8 scroll-smooth flex flex-col" id="chatScroll">
+          <div class="max-w-4xl mx-auto w-full my-auto space-y-6" id="chatMessages"></div>
         </main>
       </div>
 
@@ -6917,7 +6917,7 @@
     const box = document.getElementById('chatMessages');
     if (!box) return;
     box.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-6 text-center max-w-xl mx-auto w-full my-auto animate-in fade-in duration-300 select-none">
+      <div class="flex flex-col items-center justify-center py-6 text-center max-w-4xl mx-auto w-full my-auto animate-in fade-in duration-300 select-none">
         
         <!-- Hero Header (Framer AI Style) -->
         <div class="w-full text-center py-4 mb-2">
@@ -6926,9 +6926,9 @@
           </h1>
         </div>
 
-        <!-- Framer AI Style Input Composer Box (Exact Replica of Screenshot) -->
+        <!-- Framer AI Style Input Composer Box (Wider max-w-4xl Layout) -->
         <div class="relative w-full rounded-[26px] border border-zinc-200/90 bg-white p-4 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.08)] transition-all space-y-3 mb-4 text-left">
-          <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[50px] max-h-[140px]" id="chatInput" rows="2" placeholder="What do you want to analyze?" onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
+          <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[52px] max-h-[140px]" id="chatInput" rows="2" placeholder="What do you want to analyze about this property's title deeds?" onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
           
           <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
             <!-- Left Controls: Attachment, Title Scope, Ideas Pill -->
@@ -6939,20 +6939,18 @@
 
               <div class="relative">
                 <button type="button" onclick="toggleScopeDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="scopeBtn">
-                  <span id="scopeBtnLabel">Title Scope</span>
+                  <span id="scopeBtnLabel">Filter: All Documents</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-48 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
-                  <button type="button" onclick="selectScope('all','All Documents',this); hideScopeDropdown();" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">All Documents</button>
-                  <button type="button" onclick="selectScope('findings','Findings Only',this); hideScopeDropdown();" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Findings Only</button>
-                  <button type="button" onclick="selectScope('events','Timeline Events',this); hideScopeDropdown();" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Timeline Events</button>
+                <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-52 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
+                  <button type="button" onclick="selectScope('all','All Documents',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">All Documents</button>
+                  <button type="button" onclick="selectScope('findings','Findings Only',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Findings Only</button>
+                  <button type="button" onclick="selectScope('events','Timeline Events',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Timeline Events</button>
+                  <button type="button" onclick="selectScope('chain','Deed Chain',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Deed Chain</button>
+                  <button type="button" onclick="selectScope('mortgages','Mortgage Liens',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Mortgage Liens</button>
+                  <button type="button" onclick="selectScope('sro','SRO Records',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">SRO Records</button>
                 </div>
               </div>
-
-              <button type="button" onclick="askSuggested('Analyze overall legal risk and encumbrance status')" class="h-8 px-3.5 rounded-full bg-blue-50/80 hover:bg-blue-100/80 text-blue-600 border border-blue-200/60 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
-                <span>Ideas</span>
-              </button>
             </div>
 
             <!-- Right Controls: Model Pill & Black Audio Waves Button -->
@@ -6976,8 +6974,8 @@
           </div>
         </div>
 
-        <!-- Framer AI Category Tabs (Exact Replica of Screenshot) -->
-        <div class="flex items-center gap-2 max-w-xl mx-auto w-full pt-1 pb-3 overflow-x-auto select-none">
+        <!-- Framer AI Category Tabs (Wider max-w-4xl Layout) -->
+        <div class="flex items-center gap-2 max-w-4xl mx-auto w-full pt-1 pb-3 overflow-x-auto select-none">
           <button type="button" class="h-8 px-4 rounded-2xl bg-zinc-200/80 text-zinc-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
             <span>Suggested</span>
@@ -6996,9 +6994,9 @@
           </button>
         </div>
 
-        <!-- Framer AI Interactive Prompts List (Exact Replica of Screenshot) -->
-        <div class="max-w-xl mx-auto w-full space-y-2 pt-1 text-left">
-          <div onclick="askSuggested('Who is the current registered title owner and seller in the latest conveyance deed?')" class="group flex items-center justify-between p-3.5 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
+        <!-- Framer AI Interactive Prompts List (Wider max-w-4xl Layout) -->
+        <div class="max-w-4xl mx-auto w-full space-y-2.5 pt-1 text-left">
+          <div onclick="askSuggested('Who is the current registered title owner and seller in the latest conveyance deed?')" class="group flex items-center justify-between p-4 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
             <div class="flex items-center gap-3">
               <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
               <span class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-950">Who is the current registered title owner and seller in the latest conveyance deed?</span>
@@ -7006,7 +7004,7 @@
             <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
 
-          <div onclick="askSuggested('Are there any unresolved mortgage liabilities or bank encumbrances on record?')" class="group flex items-center justify-between p-3.5 rounded-2xl bg-zinc-100/90 border border-zinc-200/90 transition-all cursor-pointer shadow-2xs">
+          <div onclick="askSuggested('Are there any unresolved mortgage liabilities or bank encumbrances on record?')" class="group flex items-center justify-between p-4 rounded-2xl bg-zinc-100/90 border border-zinc-200/90 transition-all cursor-pointer shadow-2xs">
             <div class="flex items-center gap-3">
               <svg class="w-4 h-4 text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               <span class="text-xs font-bold text-zinc-900">Are there any unresolved mortgage liabilities or bank encumbrances on record?</span>
@@ -7017,7 +7015,7 @@
             </div>
           </div>
 
-          <div onclick="askSuggested('Check for missing intermediate deeds or title chain discontinuities across 30 years.')" class="group flex items-center justify-between p-3.5 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
+          <div onclick="askSuggested('Check for missing intermediate deeds or title chain discontinuities across 30 years.')" class="group flex items-center justify-between p-4 rounded-2xl bg-white border border-zinc-200/80 hover:bg-zinc-50 transition-all cursor-pointer shadow-2xs">
             <div class="flex items-center gap-3">
               <svg class="w-4 h-4 text-zinc-400 group-hover:text-zinc-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
               <span class="text-xs font-semibold text-zinc-800 group-hover:text-zinc-950">Check for missing intermediate deeds or title chain discontinuities across 30 years.</span>
@@ -7061,7 +7059,7 @@
 
   function clearGreetingIfPresent() {
     const box = document.getElementById('chatMessages');
-    if (box && box.querySelector('.max-w-xl') && _chatHistory.length === 0) {
+    if (box && (box.querySelector('.max-w-4xl') || box.querySelector('.max-w-xl')) && _chatHistory.length === 0) {
       box.innerHTML = '';
     }
   }
@@ -7359,50 +7357,42 @@
 
 
 
-  function selectScope(scope, label, el) {
-
-    _chatScope = scope;
-
-    document.querySelectorAll('#scopeMenu .scope-item').forEach(i => i.classList.remove('selected'));
-
-    const item = el || document.querySelector(`#scopeMenu .scope-item[data-scope="${scope}"]`);
-
-    if (item) item.classList.add('selected');
-
-
-
-    const btn  = document.getElementById('scopeBtn');
-
-    const chip = document.getElementById('scopeChip');
-
-    if (scope === 'all') {
-
-      btn.classList.remove('scope-active');
-
-      document.getElementById('scopeIcon').textContent = 'add';
-
-      chip.classList.remove('show');
-
-    } else {
-
-      btn.classList.add('scope-active');
-
-      document.getElementById('scopeIcon').textContent = 'filter_alt';
-
-      const icons = { json: 'data_object', events: 'timeline', findings: 'flag' };
-
-      document.getElementById('scopeChipIcon').textContent = icons[scope] || 'filter_alt';
-
-      document.getElementById('scopeChipLabel').textContent = label;
-
-      chip.classList.add('show');
-
+  function toggleScopeDropdown(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('scopeMenu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+    const closeOut = (ev) => {
+      if (!menu.contains(ev.target) && ev.target.id !== 'scopeBtn' && !ev.target.closest('#scopeBtn')) {
+        menu.classList.add('hidden');
+        document.removeEventListener('click', closeOut);
+      }
+    };
+    if (!menu.classList.contains('hidden')) {
+      setTimeout(() => document.addEventListener('click', closeOut), 0);
     }
+  }
 
-    document.getElementById('scopeMenu').classList.remove('open');
+  function hideScopeDropdown() {
+    const menu = document.getElementById('scopeMenu');
+    if (menu) menu.classList.add('hidden');
+  }
 
+  function selectScope(scope, label, el) {
+    _chatScope = scope;
+    const btn = document.getElementById('scopeBtn');
+    const lbl = document.getElementById('scopeBtnLabel');
+    
+    if (scope === 'all' || !scope) {
+      _chatScope = 'all';
+      if (lbl) lbl.innerHTML = `Filter: All Documents`;
+      if (btn) btn.className = "h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer";
+    } else {
+      if (lbl) lbl.innerHTML = `<span class="inline-flex items-center gap-1">Filter: <strong class="text-zinc-950">${label}</strong><span onclick="event.stopPropagation(); selectScope('all','All Documents',null);" class="hover:text-zinc-950 text-zinc-400 font-bold ml-1 text-xs" title="Clear filter">✕</span></span>`;
+      if (btn) btn.className = "h-8 px-3.5 rounded-full border border-zinc-300 bg-zinc-100/90 text-xs font-semibold text-zinc-900 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer";
+    }
+    hideScopeDropdown();
     const i = document.getElementById('chatInput'); if (i) i.focus();
-
   }
 
 
