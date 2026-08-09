@@ -6744,108 +6744,6 @@
       </div>`;
   }
 
-    const rowClass = isDismissed ? 'px-5 py-4 bg-muted/30 w-full block' : 'px-5 py-4 w-full block';
-
-    const dimText  = isDismissed ? 'text-muted-foreground' : 'text-foreground';
-
-    const dimMsg   = isDismissed ? 'text-muted-foreground' : 'text-foreground';
-
-
-
-    const actionBtn = isDismissed
-
-      ? `<button onclick="restoreFinding('${fid}')" class="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shrink-0">
-
-           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-
-           Restore
-
-         </button>`
-
-      : `<button onclick="dismissFinding('${fid}')" class="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0">
-
-           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-
-           Dismiss
-
-         </button>`;
-
-
-
-    const dismissedBadge = isDismissed
-
-      ? '<span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Dismissed</span>'
-
-      : '';
-
-
-
-    const targetDocNo = err.doc_no || err.ref_doc_no || err.event_doc_no || '';
-
-    return `
-
-      <div data-finding-id="${fid}" data-finding-doc="${targetDocNo}" onclick="highlightDocRow('${targetDocNo}', event)" class="${rowClass} hover:bg-zinc-50/80 hover:border-zinc-300 transition-all duration-150 cursor-pointer group group/finding">
-
-        <div class="flex items-start justify-between gap-4 mb-2">
-
-          <div class="flex items-center gap-2.5 flex-wrap">
-
-            <span class="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-800 ${isDismissed ? 'line-through decoration-1 text-zinc-400' : ''}">${label}</span>
-
-            <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2 py-0.5 text-xs">${sevIconSvg}${sevLabel}</span>
-
-            ${dismissedBadge}
-
-          </div>
-
-          <div class="flex items-center gap-3 shrink-0">
-
-            <div class="text-xs text-muted-foreground tabular-nums">${(() => {
-
-              const parts = [];
-
-              if (err.ref_doc_no && err.ref_doc_no !== err.doc_no) {
-
-                parts.push('Doc ' + err.ref_doc_no);
-
-              }
-
-              if (err.doc_no) {
-
-                parts.push('Doc ' + err.doc_no);
-
-              }
-
-              return parts.length ? parts.join(' &amp; ') : '';
-
-            })()}${err.event_date ? (err.doc_no || err.ref_doc_no ? ' · ' : '') + err.event_date : ''}</div>
-
-            ${actionBtn}
-
-          </div>
-
-        </div>
-
-        <p class="text-sm ${dimMsg} leading-relaxed ${hasDetail ? 'mb-3' : ''}">${formatBankNamesHtml(err.message || '')}</p>
-
-        ${hasDetail ? `
-
-          <div class="grid grid-cols-[110px_1fr] gap-y-2 gap-x-4 text-xs pt-3 border-t border-border">
-
-            <div class="font-medium uppercase tracking-wider text-muted-foreground">${expectedLbl}</div>
-
-            <div class="${dimText}">${formatBankNamesHtml(expectedVal)}</div>
-
-            <div class="font-medium uppercase tracking-wider text-muted-foreground">${actualLbl}</div>
-
-            <div class="${dimText}">${formatBankNamesHtml(actualVal)}</div>
-
-          </div>` : ''}
-
-      </div>`;
-
-  }
-
 
 
   function dismissFinding(fid) {
@@ -6894,7 +6792,7 @@
 
 
 
-  const SPARK_SVG = `<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10 17.5833C10 16.5278 9.79861 15.5417 9.39583 14.625C9.00694 13.7083 8.46528 12.9097 7.77083 12.2292C7.09028 11.5347 6.29167 10.9931 5.375 10.6042C4.45833 10.2014 3.47222 10 2.41667 10C3.47222 10 4.45833 9.80556 5.375 9.41667C6.29167 9.01389 7.09028 8.47222 7.77083 7.79167C8.46528 7.09722 9.00694 6.29167 9.39583 5.375C9.79861 4.44444 10 3.45833 10 2.41667C10 3.45833 10.1944 4.44444 10.5833 5.375C10.9861 6.29167 11.5278 7.09722 12.2083 7.79167C12.9028 8.47222 13.7083 9.01389 14.625 9.41667C15.5556 9.80556 16.5417 10 17.5833 10C16.5417 10 15.5556 10.2014 14.625 10.6042C13.7083 10.9931 12.9028 11.5347 12.2083 12.2292C11.5278 12.9097 10.9861 13.7083 10.5833 14.625C10.1944 15.5417 10 16.5278 10 17.5833Z\" fill=\"url(#sparkGrad)\"/><defs><linearGradient id=\"sparkGrad\" x1=\"10\" y1=\"0\" x2=\"10\" y2=\"20\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#18181b\"/><stop offset=\"0.44\" stop-color=\"#52525b\"/><stop offset=\"0.88\" stop-color=\"#71717a\"/></linearGradient></defs></svg>`;
+  const SPARK_SVG = '<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 17.5833C10 16.5278 9.79861 15.5417 9.39583 14.625C9.00694 13.7083 8.46528 12.9097 7.77083 12.2292C7.09028 11.5347 6.29167 10.9931 5.375 10.6042C4.45833 10.2014 3.47222 10 2.41667 10C3.47222 10 4.45833 9.80556 5.375 9.41667C6.29167 9.01389 7.09028 8.47222 7.77083 7.79167C8.46528 7.09722 9.00694 6.29167 9.39583 5.375C9.79861 4.44444 10 3.45833 10 2.41667C10 3.45833 10.1944 4.44444 10.5833 5.375C10.9861 6.29167 11.5278 7.09722 12.2083 7.79167C12.9028 8.47222 13.7083 9.01389 14.625 9.41667C15.5556 9.80556 16.5417 10 17.5833 10C16.5417 10 15.5556 10.2014 14.625 10.6042C13.7083 10.9931 12.9028 11.5347 12.2083 12.2292C11.5278 12.9097 10.9861 13.7083 10.5833 14.625C10.1944 15.5417 10 16.5278 10 17.5833Z" fill="url(#sparkGrad)"/><defs><linearGradient id="sparkGrad" x1="10" y1="0" x2="10" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#18181b"/><stop offset="0.44" stop-color="#52525b"/><stop offset="0.88" stop-color="#71717a"/></linearGradient></defs></svg>';
 
 
 
