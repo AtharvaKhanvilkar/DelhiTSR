@@ -6624,8 +6624,12 @@
       'UNDER_CIRCLE_RATE_VALUATION':     'Undervalued Consideration',
       'INSUFFICIENT_STAMP_DUTY':         'Stamp Duty Deficit',
       'INSUFFICIENT_REGISTRATION_FEE':   'Registration Fee Deficit',
-      'AMOUNT_WORDS_FIGURES_MISMATCH':   'Words vs Figures Value Clash',
-      'RECTIFICATION_APPLIED':           'Rec  function sortFindings(findingsList) {
+      'RECTIFICATION_APPLIED':           'Rectification Deed Notation'
+    };
+    return map[type] || type.replace(/_/g, ' ');
+  }
+
+  function sortFindings(findingsList) {
     return [...findingsList].sort((a, b) => {
       const aIsMissing = a.type === 'MISSING_CRITICAL_FIELDS';
       const bIsMissing = b.type === 'MISSING_CRITICAL_FIELDS';
@@ -7643,20 +7647,13 @@
   // ─────────────────────────────────────────────────────────
 
   document.addEventListener('DOMContentLoaded', function() {
-
     if (window.lucide) lucide.createIcons();
-
+    initPdfViewerOption();
+    switchMainTab('events'); // Set initial active tab state to Events & Findings
     if (selectedFile) loadJsonForSelected(selectedFile);
-
     initModelSwitch();
-
     initVoice();
-
-    switchMainTab('pdf'); // Set initial active tab state to document viewer
-
-    initFileTreeStatuses(); // Initialize file statuses and hover tooltips
-
-    initPdfViewerOption(); // Initialize custom viewer feature option
+    initFileTreeStatuses();
 
 
 
