@@ -465,366 +465,15 @@
        ════════════════════════════════════════════════════════════ */
 
     #panel-assistant {
-
-      width: 100%; min-width: 0; overflow: hidden;
-
-      --as-bg: #ffffff;
-
-      --as-text-primary: #1f1f1f;
-
-      --as-text-tertiary: #5e5e5e;
-
-      --as-label-muted: #5f6368;
-
-      --as-icon: #444746;
-
-      --as-run-text: #b0b3b1;
-
-      --as-hover-bg: #f1f3f4;
-
-      --as-font-display: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
-
-      --as-font-body: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
-
-      background: var(--as-bg);
-
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      font-family: inherit;
     }
 
-    #panel-assistant .material-symbols-outlined {
-
-      font-family: 'Material Symbols Outlined';
-
-      font-weight: normal; font-style: normal; line-height: 1;
-
-      letter-spacing: normal; text-transform: none; display: inline-block;
-
-      white-space: nowrap; word-wrap: normal; direction: ltr;
-
-      -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
-
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-
-      user-select: none;
-
-    }
-
-    #panel-assistant .icon-btn {
-
-      display: inline-flex; align-items: center; justify-content: center;
-
-      width: 40px; height: 40px; border: none; background: transparent;
-
-      border-radius: 50%; color: var(--as-icon); cursor: pointer;
-
-      transition: background 0.15s ease;
-
-    }
-
-    #panel-assistant .icon-btn:hover { background: var(--as-hover-bg); }
-
-    #panel-assistant .icon-btn .material-symbols-outlined { font-size: 22px; }
-
-
-
-    /* Chat area */
-
-    #panel-assistant .chat-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
-
-    #panel-assistant .chat-content { max-width: 1216px; margin: 0 auto; padding: 28px 40px 0; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
-
-    #panel-assistant .chat-scroll { width: 100%; min-width: 0; }
-
-
-
-    #panel-assistant .turn {
-
-      position: relative; padding: 16px 16px; margin: -4px -16px;
-
-      border: 1px solid transparent; border-radius: 12px;
-
-      transition: border-color 0.12s ease, box-shadow 0.12s ease;
-
-    }
-
-    #panel-assistant .turn:hover { border-color: #e3e3e3; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-
-
-
-    #panel-assistant .turn-toolbar {
-
-      position: absolute; top: -18px; right: 12px;
-
-      display: flex; align-items: center; gap: 2px; padding: 2px;
-
-      background: var(--as-bg); border: 1px solid #e3e3e3; border-radius: 22px;
-
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
-      opacity: 0; visibility: hidden; transition: opacity 0.12s ease;
-
-    }
-
-    #panel-assistant .turn:hover .turn-toolbar { opacity: 1; visibility: visible; }
-
-    #panel-assistant .turn-toolbar .icon-btn { width: 34px; height: 34px; }
-
-    #panel-assistant .turn-toolbar .icon-btn .material-symbols-outlined { font-size: 19px; }
-
-
-
-    #panel-assistant .turn-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-
-    #panel-assistant .turn-role, #panel-assistant .turn-time {
-
-      font-family: var(--as-font-body); font-size: 13px; color: var(--as-label-muted);
-
-    }
-
-    #panel-assistant .turn-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--as-label-muted); display: inline-block; }
-
-
-
-    #panel-assistant .turn-body { font-family: var(--as-font-body); font-size: 15px; line-height: 1.6; color: var(--as-text-primary); }
-
-    #panel-assistant .turn-body p { margin: 0 0 16px; }
-
-    #panel-assistant .turn-body p:last-child { margin-bottom: 0; }
-
-    #panel-assistant .turn-body strong { font-weight: 700; }
-
-
-
-    #panel-assistant .model-actions { display: flex; align-items: center; gap: 2px; margin-top: 14px; padding-bottom: 10px; position: relative; }
-
-    #panel-assistant .turn.model:hover .model-actions::after {
-
-      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #e3e3e3; z-index: 0;
-
-    }
-
-    #panel-assistant .model-actions .feedback-btn, #panel-assistant .model-actions .gen-time { position: relative; z-index: 1; }
-
-    #panel-assistant .feedback-btn { width: 32px; height: 32px; }
-
-    #panel-assistant .feedback-btn .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-
-    #panel-assistant .gen-time { font-family: var(--as-font-body); font-size: 13px; color: var(--as-text-tertiary); margin-left: 8px; }
-
-
-
-    #panel-assistant .disclaimer { display: flex; align-items: center; gap: 9px; margin-top: 12px; color: var(--as-text-tertiary); font-family: var(--as-font-body); font-size: 13px; }
-
-    #panel-assistant .disclaimer .material-symbols-outlined { font-size: 17px; color: var(--as-text-tertiary); }
-
-
-
-    /* Composer */
-
-    #panel-assistant .composer-wrap { flex-shrink: 0; padding: 12px 24px 20px; width: 100%; min-width: 0; }
-
-    #panel-assistant .composer {
-
-      max-width: 1216px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 16px;
-
-      padding: 14px 16px 10px; background: #fcfcfc; box-sizing: border-box;
-
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-
-    }
-
-    #panel-assistant .composer:focus-within { border-color: #c4c4c4; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-
-    #panel-assistant .composer-input {
-
-      width: 100%; border: none; outline: none; resize: none;
-
-      font-family: var(--as-font-body); font-size: 15px; color: var(--as-text-primary);
-
-      background: transparent; line-height: 1.5; min-height: 24px;
-
-    }
-
-    #panel-assistant .composer-input::placeholder { color: #8c8f8e; }
-
-    #panel-assistant .composer-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-
-    #panel-assistant .composer-left { display: flex; align-items: center; gap: 8px; }
-
-    #panel-assistant .composer-icon-btn { width: 40px; height: 40px; }
-
-
-
-    #panel-assistant .model-switch {
-
-      display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 8px 0 4px;
-
-      border: none; border-radius: 8px; background: transparent;
-
-      font-family: var(--as-font-display); font-size: 14px; font-weight: 500; color: var(--as-text-primary);
-
-      cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
-
-    }
-
-    #panel-assistant .model-switch:hover { background: rgba(0,0,0,0.04); }
-
-    #panel-assistant .model-switch .model-chevron { color: var(--as-text-tertiary); transition: transform 0.15s ease; }
-
-    #panel-assistant .model-switch[aria-expanded="true"] .model-chevron { transform: rotate(180deg); }
-
-
-
-    #panel-assistant .model-menu-wrap { position: relative; }
-
-    #panel-assistant .model-menu {
-
-      position: absolute; bottom: calc(100% + 8px); left: 0; min-width: 248px;
-
-      background: var(--as-bg); border: 1px solid #e6e6e6; border-radius: 12px;
-
-      box-shadow: 0 6px 24px rgba(0,0,0,0.12); padding: 6px; display: none; z-index: 20;
-
-    }
-
-    #panel-assistant .model-menu.open { display: block; }
-
-    #panel-assistant .model-menu-item {
-
-      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px;
-
-      border: none; background: transparent; border-radius: 8px;
-
-      font-family: var(--as-font-body); color: var(--as-text-primary); text-align: left; cursor: pointer;
-
-    }
-
-    #panel-assistant .model-menu-item:hover { background: rgba(0,0,0,0.04); }
-
-    #panel-assistant .model-menu-item .item-text { display: flex; flex-direction: column; }
-
-    #panel-assistant .model-menu-item .item-name { font-family: var(--as-font-display); font-size: 14px; font-weight: 500; color: var(--as-text-primary); }
-
-    #panel-assistant .model-menu-item .item-sub { font-size: 12px; color: var(--as-text-tertiary); margin-top: 2px; }
-
-    #panel-assistant .model-menu-item .check { margin-left: auto; color: #1f1f1f; visibility: hidden; flex-shrink: 0; }
-
-    #panel-assistant .model-menu-item.selected .check { visibility: visible; }
-
-
-
-    #panel-assistant .composer-right { display: flex; align-items: center; gap: 4px; }
-
-    #panel-assistant .composer-right .composer-icon-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: transparent; }
-
-    #panel-assistant .composer-right .composer-icon-btn:hover { background: var(--as-hover-bg); }
-
-    #panel-assistant .composer-right .composer-icon-btn .material-symbols-outlined { font-size: 20px; color: var(--as-icon); font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-
-
-
-    #panel-assistant .run-btn {
-
-      display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
-
-      border: 1px solid transparent; border-radius: 19px; background: transparent;
-
-      font-family: var(--as-font-display); font-size: 15px; font-weight: 500; color: var(--as-run-text);
-
-      cursor: default; margin-left: 2px;
-
-    }
-
-    #panel-assistant .run-btn .run-shortcut { display: inline-flex; align-items: center; gap: 5px; }
-
-    #panel-assistant .run-btn .material-symbols-outlined { font-size: 18px; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-
-    #panel-assistant .run-btn.active {
-
-      background: #ffffff; color: var(--as-text-primary); border-color: #e3e3e3;
-
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer;
-
-    }
-
-    #panel-assistant .run-btn.active:hover { background: #f8f9fa; }
-
-    #panel-assistant .run-btn.active .run-shortcut { color: var(--as-text-primary); }
-
-    #panel-assistant .run-btn.active .material-symbols-outlined { color: var(--as-text-primary); }
-
-
-
-    #panel-assistant .chat-scroll::-webkit-scrollbar { width: 10px; }
-
-    #panel-assistant .chat-scroll::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 5px; }
-
-
-
-    /* Scope menu */
-
-    #panel-assistant .scope-menu {
-
-      position: absolute; bottom: calc(100% + 8px); right: 0; min-width: 264px;
-
-      background: var(--as-bg); border: 1px solid #e6e6e6; border-radius: 12px;
-
-      box-shadow: 0 6px 24px rgba(0,0,0,0.12); padding: 6px; display: none; z-index: 20;
-
-    }
-
-    #panel-assistant .scope-menu.open { display: block; }
-
-    #panel-assistant .scope-menu-head {
-
-      font-family: var(--as-font-body); font-size: 11px; font-weight: 500;
-
-      text-transform: uppercase; letter-spacing: 0.06em; color: var(--as-text-tertiary);
-
-      padding: 6px 10px 4px;
-
-    }
-
-    #panel-assistant .scope-item {
-
-      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px;
-
-      border: none; background: transparent; border-radius: 8px;
-
-      font-family: var(--as-font-body); color: var(--as-text-primary); text-align: left; cursor: pointer;
-
-    }
-
-    #panel-assistant .scope-item:hover { background: rgba(0,0,0,0.04); }
-
-    #panel-assistant .scope-item > .material-symbols-outlined { font-size: 20px; color: var(--as-icon); flex-shrink: 0; font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-
-    #panel-assistant .scope-item .scope-text { display: flex; flex-direction: column; min-width: 0; }
-
-    #panel-assistant .scope-item .scope-name { font-family: var(--as-font-display); font-size: 14px; font-weight: 500; }
-
-    #panel-assistant .scope-item .scope-sub { font-size: 12px; color: var(--as-text-tertiary); margin-top: 2px; }
-
-    #panel-assistant .scope-item .scope-check { margin-left: auto; color: #1f1f1f; visibility: hidden; flex-shrink: 0; }
-
-    #panel-assistant .scope-item.selected .scope-check { visibility: visible; }
-
-
-
-    #panel-assistant .composer-icon-btn.scope-active { background: #f4f4f5; }
-
-    #panel-assistant .composer-icon-btn.scope-active .material-symbols-outlined { color: #18181b; }
-
-
-
-    /* Mic active listening state */
-
-    #panel-assistant .composer-icon-btn.listening { background: #18181b; }
-
-    #panel-assistant .composer-icon-btn.listening .material-symbols-outlined { color: #ffffff; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-
-    @keyframes micPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(24,24,27,0.4); } 50% { box-shadow: 0 0 0 5px rgba(24,24,27,0); } }
-
-    #panel-assistant .composer-icon-btn.listening { animation: micPulse 1.4s ease-in-out infinite; }
+    #chatScroll::-webkit-scrollbar { width: 6px; }
+    #chatScroll::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 3px; }
+    #chatScroll::-webkit-scrollbar-thumb:hover { background: #d4d4d8; }
 
 
 
@@ -2366,140 +2015,53 @@
 
       <!-- AI Assistant Panel -->
 
-      <div class="panel" id="panel-assistant">
+              <div class="panel flex flex-col h-full bg-zinc-50/50" id="panel-assistant">
+        <!-- Top Navigation Bar (shadcn Card Header) -->
+        <div class="h-12 border-b border-zinc-200/90 bg-white flex items-center justify-between px-5 shrink-0 select-none z-10">
+          <div class="flex items-center gap-2.5">
+            <div class="p-1.5 rounded-lg bg-zinc-100 text-zinc-900 border border-zinc-200/80 shadow-2xs">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M4 11a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7Z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
+            </div>
+            <div>
+              <h2 class="text-xs font-bold text-zinc-900 tracking-tight leading-none">AI Legal Assistant</h2>
+              <p class="text-[10px] text-zinc-500 font-medium mt-0.5">Title Intelligence & Document Chain Query</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="clearChat()" class="h-7 px-2.5 rounded-lg border border-zinc-200 bg-white text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              Clear Session
+            </button>
+          </div>
+        </div>
 
-        <main class="chat-scroll" id="chatScroll">
-
-          <div class="chat-content" id="chatMessages"></div>
-
+        <!-- Chat Stream Body -->
+        <main class="flex-1 overflow-y-auto p-6 scroll-smooth" id="chatScroll">
+          <div class="max-w-3xl mx-auto space-y-4" id="chatMessages"></div>
         </main>
 
-
-
-        <!-- Chat Composer Box -->
-
-        <div class="composer-wrap">
-
-          <div class="composer">
-
-            <div class="scope-chip" id="scopeChip">
-
-              <span class="material-symbols-outlined" id="scopeChipIcon">filter_alt</span>
-
+        <!-- Floating Chat Composer Box -->
+        <div class="p-4 shrink-0 bg-white/80 backdrop-blur-xs border-t border-zinc-200/90">
+          <div class="max-w-3xl mx-auto rounded-2xl border border-zinc-200 bg-white p-3.5 shadow-sm focus-within:border-zinc-400 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all space-y-2.5">
+            
+            <!-- Active Filter Chip -->
+            <div class="scope-chip hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-[11px] font-semibold text-zinc-800" id="scopeChip">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
               <span id="scopeChipLabel">Findings</span>
-
-              <button onclick="selectScope('all','General',null)" aria-label="Clear scope"><span class="material-symbols-outlined">close</span></button>
-
+              <button onclick="selectScope('all','General',null)" class="text-zinc-400 hover:text-zinc-900 ml-1 cursor-pointer" aria-label="Clear filter"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
-            <textarea class="composer-input" id="chatInput" rows="1"
+            <!-- Text Input Area -->
+            <textarea class="w-full bg-transparent border-0 outline-none resize-none text-xs font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed min-h-[44px] max-h-[160px]" id="chatInput" rows="1" placeholder="Ask a question about this property's title deeds, owners, or liabilities..." onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
 
-                      placeholder="Start typing a prompt to ask about this property"
-
-                      onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
-
-
-
-            <div class="composer-bottom">
-
-              <div class="composer-left">
-
-                <div class="model-menu-wrap">
-
-                  <button class="model-switch" id="modelBtn" aria-haspopup="listbox" aria-expanded="false">
-
+            <!-- Bottom Controls Bar -->
+            <div class="flex items-center justify-between border-t border-zinc-100 pt-2.5">
+              <!-- Left Menu Pill Controls -->
+              <div class="flex items-center gap-2">
+                <!-- Model Selector Dropdown -->
+                <div class="relative">
+                  <button class="h-7 px-2.5 rounded-lg border border-zinc-200 bg-zinc-50 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors flex items-center gap-1.5 cursor-pointer" id="modelBtn" onclick="initModelSwitch(); document.getElementById('modelMenu').classList.toggle('hidden');">
                     <span id="modelLabel">Gemini 2.5 Flash</span>
-
-                    <svg class="model-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-
-                  </button>
-
-                  <div class="model-menu" id="modelMenu" role="listbox">
-
-                    <button class="model-menu-item selected" role="option" data-model="Gemini 2.5 Flash" data-id="gemini-2.5-flash">
-
-                      <span class="item-text"><span class="item-name">Gemini 2.5 Flash</span><span class="item-sub">Fast, everyday tasks</span></span>
-
-                      <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                    <button class="model-menu-item" role="option" data-model="Gemini 2.5 Pro" data-id="gemini-2.5-pro">
-
-                      <span class="item-text"><span class="item-name">Gemini 2.5 Pro</span><span class="item-sub">Advanced reasoning</span></span>
-
-                      <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                    <button class="model-menu-item" role="option" data-model="Gemini 2.0 Flash" data-id="gemini-2.0-flash">
-
-                      <span class="item-text"><span class="item-name">Gemini 2.0 Flash</span><span class="item-sub">Previous generation</span></span>
-
-                      <svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-
-
-              <div class="composer-right">
-
-                <!-- Scope context button -->
-
-                <div class="scope-menu-wrap" style="position:relative">
-
-                  <button class="composer-icon-btn" id="scopeBtn" aria-label="Choose context scope" title="Choose what the assistant searches" onclick="toggleScopeMenu(event)">
-
-                    <span class="material-symbols-outlined" id="scopeIcon">add</span>
-
-                  </button>
-
-                  <div class="scope-menu" id="scopeMenu" role="listbox">
-
-                    <div class="scope-menu-head">Search within</div>
-
-                    <button class="scope-item selected" role="option" data-scope="all" onclick="selectScope('all','General',this)">
-
-                      <span class="material-symbols-outlined">all_inclusive</span>
-
-                      <span class="scope-text"><span class="scope-name">General (All)</span><span class="scope-sub">Everything — normal mode</span></span>
-
-                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                    <button class="scope-item" role="option" data-scope="json" onclick="selectScope('json','JSON',this)">
-
-                      <span class="material-symbols-outlined">data_object</span>
-
-                      <span class="scope-text"><span class="scope-name">All JSON outputs</span><span class="scope-sub">Raw extracted fields, every doc</span></span>
-
-                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                    <button class="scope-item" role="option" data-scope="findings" onclick="selectScope('findings','Findings',this)">
-
-                      <span class="material-symbols-outlined">flag</span>
-
-                      <span class="scope-text"><span class="scope-name">Findings</span><span class="scope-sub">Validation findings only</span></span>
-
-                      <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-
-                    </button>
-
-                    <button class="scope-item" role="option" data-scope="events" onclick="selectScope('events','Events',this)">
-
-                      <span class="material-symbols-outlined">timeline</span>
-
-                      <span class="scope-text"><span class="scope-name">Events</span><span class="scope-sub">The chronological timeline</span></span>
-
                       <svg class="scope-check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
 
                     </button>
@@ -7442,187 +7004,116 @@
 
 
   function renderChatGreeting() {
-
     const box = document.getElementById('chatMessages');
-
+    if (!box) return;
     box.innerHTML = `
-
-      <section class="turn model" style="border-color:transparent;box-shadow:none">
-
-        <div class="turn-header">
-
-          <span class="turn-role">Model</span>
-
-          <span class="turn-dot"></span>
-
-          <span class="turn-time">${nowTime()}</span>
-
+      <div class="flex flex-col items-center justify-center py-12 text-center max-w-xl mx-auto space-y-4 my-auto">
+        <div class="w-12 h-12 rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-900 shadow-2xs">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
         </div>
-
-        <div class="turn-body">
-
-          <p>Ask me anything about this property — owners, the chain of title, findings, encumbrances, dates, or parties. I answer only from the analyzed documents.</p>
-
+        <div class="space-y-1">
+          <h3 class="text-sm font-bold text-zinc-900 tracking-tight">Title Search Legal Assistant</h3>
+          <p class="text-xs text-zinc-500 max-w-md leading-relaxed">Ask anything about property ownership, title chain continuity, encumbrances, SRO records, or recital discrepancies.</p>
         </div>
-
-      </section>`;
-
+        <div class="pt-2 flex flex-wrap justify-center gap-2 max-w-lg">
+          <button onclick="askSuggested('Who is the current registered title owner?')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
+            Who is the current title owner?
+          </button>
+          <button onclick="askSuggested('Are there any unresolved mortgage liens?')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
+            Are there unresolved mortgage liens?
+          </button>
+          <button onclick="askSuggested('Check for chain of title gaps or missing deeds.')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
+            Check for title chain gaps
+          </button>
+          <button onclick="askSuggested('Verify SRO jurisdiction for this property.')" class="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs cursor-pointer">
+            Verify SRO jurisdiction
+          </button>
+        </div>
+      </div>`;
   }
-
-
 
   function composerInput(el) {
-
     el.style.height = 'auto';
-
-    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
-
-    const run = document.getElementById('runBtn');
-
-    if (run) run.classList.toggle('active', el.value.trim().length > 0);
-
+    el.style.height = Math.min(el.scrollHeight, 180) + 'px';
   }
-
-
 
   function autoGrowChat(el) { composerInput(el); }
 
-
-
   function chatKeydown(e) {
-
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendChat(); }
-
   }
-
-
 
   function askSuggested(text) {
-
     const i = document.getElementById('chatInput');
-
-    i.value = text; composerInput(i); sendChat();
-
+    if (i) { i.value = text; composerInput(i); sendChat(); }
   }
-
-
 
   function clearChat() {
-
     _chatHistory = [];
-
     renderChatGreeting();
-
   }
-
-
 
   function nowTime() {
-
     const d = new Date();
-
     let h = d.getHours(), m = d.getMinutes();
-
     const ap = h >= 12 ? 'PM' : 'AM';
-
     h = h % 12; if (h === 0) h = 12;
-
     return h + ':' + (m < 10 ? '0' + m : m) + '\u00A0' + ap;
-
   }
-
-
-
-  // Formatting operations
 
   function clearGreetingIfPresent() {
-
     const box = document.getElementById('chatMessages');
-
-    if (box.children.length === 1 && !box.querySelector('.model-actions') && _chatHistory.length === 0) {
-
+    if (box && box.querySelector('.max-w-xl') && _chatHistory.length === 0) {
       box.innerHTML = '';
-
     }
-
   }
 
-
-
   function appendChatMessage(role, text, elapsed) {
-
     const box = document.getElementById('chatMessages');
-
-    const sec = document.createElement('section');
-
-    sec.className = 'turn ' + (role === 'user' ? 'user' : 'model');
-
-
+    if (!box) return;
+    const sec = document.createElement('div');
 
     if (role === 'user') {
-
+      sec.className = 'flex justify-end mb-4 animate-in fade-in duration-150';
       sec.innerHTML = `
-
-        ${turnToolbar()}
-
-        <div class="turn-header">
-
-          <span class="turn-role">User</span>
-
-          <span class="turn-dot"></span>
-
-          <span class="turn-time">${nowTime()}</span>
-
-        </div>
-
-        <div class="turn-body"><p>${escapeChatHtml(text)}</p></div>`;
-
-    } else {
-
-      const secs = (typeof elapsed === 'number') ? (Math.round(elapsed * 10) / 10 + 's') : '';
-
-      sec.innerHTML = `
-
-        ${turnToolbar()}
-
-        <div class="turn-header">
-
-          <span class="turn-role">Model</span>
-
-          <span class="turn-dot"></span>
-
-          <span class="turn-time">${nowTime()}</span>
-
-        </div>
-
-        <div class="turn-body">${formatAsstBody(text)}</div>
-
-        <div class="model-actions">
-
-          <button class="icon-btn feedback-btn" aria-label="Good response" onclick="rateMsg(this)"><span class="material-symbols-outlined">thumb_up</span></button>
-
-          <button class="icon-btn feedback-btn" aria-label="Bad response" onclick="rateMsg(this)"><span class="material-symbols-outlined">thumb_down</span></button>
-
-          ${secs ? `<span class="gen-time">${secs}</span>` : ''}
-
-        </div>
-
-        <div class="disclaimer">
-
-          <span class="material-symbols-outlined">info</span>
-
-          <span>Answers come only from analyzed documents and may contain mistakes, so double-check outputs.</span>
-
+        <div class="max-w-[80%] bg-zinc-900 text-white rounded-2xl rounded-tr-xs px-4 py-3 text-xs font-normal shadow-2xs leading-relaxed space-y-1">
+          <div class="flex items-center justify-between gap-3 text-[10px] text-zinc-400 font-semibold mb-1 border-b border-zinc-800 pb-1">
+            <span>You</span>
+            <span>${nowTime()}</span>
+          </div>
+          <div>${escapeChatHtml(text)}</div>
         </div>`;
-
+    } else {
+      const secs = (typeof elapsed === 'number') ? (Math.round(elapsed * 10) / 10 + 's') : '';
+      sec.className = 'flex justify-start mb-4 animate-in fade-in duration-150';
+      sec.innerHTML = `
+        <div class="max-w-[85%] bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs p-4 text-xs shadow-2xs space-y-2.5">
+          <div class="flex items-center justify-between text-[11px] text-zinc-500 font-semibold border-b border-zinc-100 pb-2">
+            <div class="flex items-center gap-1.5">
+              <div class="w-4 h-4 rounded bg-zinc-100 text-zinc-900 flex items-center justify-center border border-zinc-200">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              </div>
+              <span>Title AI Assistant</span>
+            </div>
+            <div class="flex items-center gap-2">
+              ${secs ? `<span class="text-[10px] text-zinc-400 font-mono">${secs}</span>` : ''}
+              <span class="text-zinc-400">${nowTime()}</span>
+            </div>
+          </div>
+          <div class="asst-body leading-relaxed text-zinc-800 space-y-2">${formatAsstBody(text)}</div>
+          <div class="pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400">
+            <span>Answers derived strictly from analyzed project deeds.</span>
+            <div class="flex items-center gap-1">
+              <button onclick="copyTurn(this)" class="p-1 rounded hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 transition-colors cursor-pointer" title="Copy response">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>`;
     }
-
     box.appendChild(sec);
-
     scrollChatToBottom();
-
     return sec;
-
   }
 
 
@@ -7732,39 +7223,26 @@
 
 
   function showChatTyping() {
-
     const box = document.getElementById('chatMessages');
-
-    const sec = document.createElement('section');
-
-    sec.className = 'turn model'; sec.id = 'chatTyping';
-
+    if (!box) return;
+    const sec = document.createElement('div');
+    sec.className = 'flex justify-start mb-4 animate-in fade-in duration-150'; sec.id = 'chatTyping';
     sec.innerHTML = `
-
-      <div class="turn-header">
-
-        <span class="turn-role">Model</span>
-
-        <span class="turn-dot"></span>
-
-        <span class="turn-time">${nowTime()}</span>
-
-      </div>
-
-      <div class="turn-body" style="display:flex;align-items:center;gap:5px;padding:4px 0">
-
-        <span class="chat-dot" style="width:6px;height:6px;border-radius:50%;background:#9aa0a6;display:inline-block"></span>
-
-        <span class="chat-dot" style="width:6px;height:6px;border-radius:50%;background:#9aa0a6;display:inline-block;animation-delay:0.2s"></span>
-
-        <span class="chat-dot" style="width:6px;height:6px;border-radius:50%;background:#9aa0a6;display:inline-block;animation-delay:0.4s"></span>
-
+      <div class="bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs px-4 py-3 text-xs shadow-2xs space-y-2">
+        <div class="flex items-center gap-1.5 text-[11px] text-zinc-500 font-semibold border-b border-zinc-100 pb-1.5">
+          <div class="w-4 h-4 rounded bg-zinc-100 text-zinc-900 flex items-center justify-center border border-zinc-200">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          </div>
+          <span>Title AI Assistant is thinking...</span>
+        </div>
+        <div class="flex items-center gap-1.5 py-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-ping"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-600 animate-bounce"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-900 animate-pulse"></span>
+        </div>
       </div>`;
-
     box.appendChild(sec);
-
     scrollChatToBottom();
-
   }
 
 
