@@ -7737,192 +7737,112 @@
 
 
   function loadCustomPdf(filename) {
+    if (!filename) return;
 
     if (typeof pdfjsLib === 'undefined') {
-
-      console.warn("pdfjsLib is not loaded yet.");
-
+      console.warn("pdfjsLib CDN is loading, retrying in 250ms...");
+      setTimeout(() => loadCustomPdf(filename), 250);
       return;
-
     }
 
     const url = '/pdf/{{ project_name }}/' + filename;
-
     const container = document.getElementById('pdfCustomPagesContainer');
-
     const thumbnailsContainer = document.getElementById('pdfCustomThumbnails');
-
-    
+    const nativeDiv = document.getElementById('pdfViewer-native');
+    const customDiv = document.getElementById('pdfViewer-custom');
 
     if (!container || !thumbnailsContainer) return;
 
-    
+    if (customDiv) customDiv.classList.remove('hidden');
+    if (nativeDiv) nativeDiv.classList.add('hidden');
 
-    // Clear existing pages and thumbnails
-
-    container.innerHTML = '<div class="text-zinc-500 font-sans text-xs select-none">Loading PDF...</div>';
-
+    container.innerHTML = '<div class="text-zinc-500 font-sans text-xs select-none flex items-center gap-2"><svg class="w-4 h-4 animate-spin text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg><span>Loading PDF...</span></div>';
     thumbnailsContainer.innerHTML = '';
-
     pdfCustomCurrentDoc = null;
-
     pdfCustomActivePage = 1;
 
-    
-
     pdfjsLib.getDocument(url).promise.then(pdf => {
-
       pdfCustomCurrentDoc = pdf;
-
       container.innerHTML = '';
-
       
-
-      document.getElementById('pdfCustomTotalPages').textContent = `${pdf.numPages} Total`;
-
+      const totalPagesEl = document.getElementById('pdfCustomTotalPages');
+      if (totalPagesEl) totalPagesEl.textContent = `${pdf.numPages} Total`;
       
-
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-
-        // 1. Create page card container (Exactly matching canvas, zero padding/header/footer)
-
         const pageWrapper = document.createElement('div');
-
         pageWrapper.id = `pdf-custom-page-card-${pageNum}`;
-
         pageWrapper.className = `pdf-custom-page-card bg-white border border-zinc-200 relative shrink-0 transition-all duration-200 shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden`;
-
         pageWrapper.style.width = `${baseWidth}px`;
-
         pageWrapper.style.height = `${baseHeight}px`;
 
-
-
         const canvas = document.createElement('canvas');
-
         canvas.id = `pdf-custom-canvas-${pageNum}`;
-
         canvas.className = "block w-full h-full";
-
         pageWrapper.appendChild(canvas);
-
-
-
         container.appendChild(pageWrapper);
 
-
-
-        // 2. Create thumbnail
-
         const thumbWrapper = document.createElement('div');
-
         thumbWrapper.id = `pdf-custom-thumb-${pageNum}`;
-
         thumbWrapper.onclick = () => pdfCustomGoToPage(pageNum);
-
         thumbWrapper.className = "group cursor-pointer flex flex-col items-center gap-1 select-none";
 
-        
-
         const thumbCard = document.createElement('div');
-
         thumbCard.id = `pdf-custom-thumb-card-${pageNum}`;
-
-        thumbCard.className = "w-28 h-36 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 shadow-sm p-1.5 flex flex-col justify-between overflow-hidden relative transition-all";
-
-        
+        thumbCard.className = "w-28 h-36 bg-zinc-50 border border-zinc-200 hover:border-zinc-400 shadow-2xs p-1.5 flex flex-col justify-between overflow-hidden relative transition-all";
 
         const thumbCanvas = document.createElement('canvas');
-
         thumbCanvas.id = `pdf-custom-thumb-canvas-${pageNum}`;
-
         thumbCanvas.className = "w-full h-full object-contain block opacity-85 group-hover:opacity-100 transition-opacity";
-
-        
-
         thumbCard.appendChild(thumbCanvas);
 
-        thumbWrapper.appendChild(thumbCard);
-
-        
-
         const thumbText = document.createElement('span');
-
         thumbText.id = `pdf-custom-thumb-text-${pageNum}`;
-
         thumbText.className = "text-[9px] font-medium text-zinc-500 group-hover:text-zinc-800 font-sans";
-
         thumbText.textContent = pageNum;
 
+        thumbWrapper.appendChild(thumbCard);
         thumbWrapper.appendChild(thumbText);
-
-
-
         thumbnailsContainer.appendChild(thumbWrapper);
 
-
-
         renderCustomPdfPage(pdf, pageNum, canvas, thumbCanvas);
-
       }
 
-
-
       // Setup page scroll observer
-
       const observer = new IntersectionObserver((entries) => {
-
         entries.forEach(entry => {
-
           if (entry.isIntersecting) {
-
             const pageNum = parseInt(entry.target.id.replace('pdf-custom-page-card-', ''));
-
             if (pageNum && pageNum !== pdfCustomActivePage) {
-
               pdfCustomActivePage = pageNum;
-
               pdfCustomUpdatePageIndicator();
-
             }
-
           }
-
         });
-
       }, {
-
         root: container,
-
         threshold: 0.4
-
       });
 
-      
-
       setTimeout(() => {
-
         const cards = container.querySelectorAll('.pdf-custom-page-card');
-
         cards.forEach(card => observer.observe(card));
-
       }, 100);
 
-
-
       pdfCustomUpdatePageIndicator();
-
       pdfCustomApplyZoom();
-
     }).catch(err => {
-
-      console.error("Failed to render PDF using PDF.js:", err);
-
-      container.innerHTML = `<div class="text-red-500 font-sans text-xs p-4 select-none">Failed to render PDF document: ${err.message}</div>`;
-
+      console.error("PDF.js custom engine error, falling back to native iframe viewer:", err);
+      if (customDiv) customDiv.classList.add('hidden');
+      if (nativeDiv) {
+        nativeDiv.classList.remove('hidden');
+        const frame = document.getElementById('pdfFrame');
+        if (frame) frame.src = url;
+      }
     });
-
   }
+
+
+
 
 
 
