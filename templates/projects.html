@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Projects — DelhiTSR Studio</title>
+  <title>Projects — DelhiTSR</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='delhitsr-logo.png') }}">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#09090b">
+  <meta name="theme-color" content="#ffffff">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <script>
@@ -19,8 +19,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
           },
         },
       },
@@ -29,32 +29,59 @@
 
   <style>
     html, body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+      font-feature-settings: "rlig" 1, "calt" 1;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      font-size: 13.5px;
+      font-size: 14px;
       line-height: 1.5;
-      color: #09090b;
-      background-color: #fcfcfc;
+      color: #18181b;
+      background-color: #fafafa;
     }
     
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #d4d4d8; }
+    ::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
 
-    .studio-card {
+    /* Premium Studio Card */
+    .studio-project-card {
       background: #ffffff;
       border: 1px solid #e4e4e7;
-      border-radius: 12px;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+      border-radius: 16px;
+      padding: 20px;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      position: relative;
     }
-    .studio-card:hover {
+    .studio-project-card:hover {
+      transform: translateY(-3px);
       border-color: #a1a1aa;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08);
     }
 
+    /* Dog-Eared Sheet Header */
+    .doc-sheet-banner {
+      position: relative;
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+      background: linear-gradient(225deg, transparent 10px, #f8fafc 10px);
+    }
+    .doc-sheet-banner::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 10px; height: 10px;
+      background: #cbd5e1;
+      border-bottom-left-radius: 2px;
+    }
+
+    /* Custom Dropdown Styling */
     .custom-dropdown-menu {
       position: absolute;
       top: 100%; left: 0; right: 0;
@@ -63,14 +90,14 @@
       overflow-y: auto;
       background-color: #ffffff;
       border: 1px solid #e4e4e7;
-      border-radius: 8px;
+      border-radius: 10px;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
       z-index: 99;
       padding: 4px 0;
     }
     .custom-dropdown-item {
-      padding: 7px 12px;
-      font-size: 12.5px;
+      padding: 8px 12px;
+      font-size: 13px;
       color: #3f3f46;
       cursor: pointer;
       display: flex;
@@ -90,8 +117,8 @@
     /* Modal Overlay */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(9, 9, 11, 0.45);
-      backdrop-filter: blur(3px);
+      background: rgba(9, 9, 11, 0.5);
+      backdrop-filter: blur(4px);
       z-index: 50;
       display: flex; align-items: center; justify-content: center;
       opacity: 0; pointer-events: none;
@@ -102,405 +129,372 @@
     .modal-box, .confirm-box {
       background: #ffffff;
       border: 1px solid #e4e4e7;
-      border-radius: 14px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18);
-      transform: translateY(4px) scale(0.99);
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+      transform: translateY(6px) scale(0.985);
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-out;
       margin: 0 16px;
     }
-    .modal-box { width: 100%; max-width: 500px; }
+    .modal-box { width: 100%; max-width: 480px; }
     .confirm-box { width: 100%; max-width: 380px; }
     .modal-overlay.open .modal-box,
     .modal-overlay.open .confirm-box { transform: translateY(0) scale(1); }
 
-    .field-error { display: none; font-size: 11px; color: #dc2626; margin-top: 4px; }
+    .field-error { display: none; font-size: 11.5px; color: #ef4444; margin-top: 4px; }
     .field-error.visible { display: block; }
   </style>
 </head>
-<body class="min-h-screen flex text-zinc-900 antialiased selection:bg-zinc-900 selection:text-white">
+<body class="min-h-screen flex flex-col bg-zinc-50/60">
 
-  <!-- ── STUDIO SIDEBAR ── -->
-  <aside class="w-60 border-r border-zinc-200/90 bg-white flex flex-col justify-between shrink-0 h-screen sticky top-0 select-none z-20">
+  <!-- ── STUDIO TOP HEADER (FULL WIDTH NO SIDEBAR) ── -->
+  <header class="h-16 border-b border-zinc-200/80 bg-white sticky top-0 z-30 px-6 sm:px-10 flex items-center justify-between shadow-2xs">
     
-    <!-- Top Header & Nav -->
-    <div class="p-4 space-y-6">
-      
-      <!-- Brand Identifier -->
-      <div class="flex items-center justify-between pb-3 border-b border-zinc-100">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-md bg-zinc-900 text-white flex items-center justify-center font-bold text-xs tracking-wider">
-            TSR
-          </div>
-          <div>
-            <span class="font-bold text-zinc-900 text-sm leading-none block">DelhiTSR</span>
-            <span class="text-[10px] font-mono text-zinc-400 block mt-0.5">Title Engine v2.4</span>
-          </div>
+    <!-- Left: Brand Logo & Title -->
+    <div class="flex items-center gap-3">
+      <a href="/projects" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-bold text-xs tracking-wider shadow-sm">
+          TSR
         </div>
-      </div>
-
-      <!-- Main Navigation Links -->
-      <nav class="space-y-1">
-        <div class="px-2 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Workspace</div>
-        
-        <a href="/projects" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-zinc-900 text-white transition-colors">
-          <i data-lucide="folder-kanban" class="w-4 h-4"></i>
-          <span>Projects</span>
-        </a>
-        
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-          <i data-lucide="file-search" class="w-4 h-4 text-zinc-400"></i>
-          <span>Audit Engine</span>
-        </a>
-        
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-          <i data-lucide="building-2" class="w-4 h-4 text-zinc-400"></i>
-          <span>DORIS Portal</span>
-        </a>
-
-        <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors">
-          <i data-lucide="sliders" class="w-4 h-4 text-zinc-400"></i>
-          <span>Circle Rates</span>
-        </a>
-      </nav>
-
-      <!-- System Summary Stats -->
-      <div class="p-3 bg-zinc-50 border border-zinc-200/80 rounded-xl space-y-2 select-none">
-        <div class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Summary</div>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div>
-            <span class="text-zinc-400 block text-[10px]">Projects</span>
-            <span class="font-bold font-mono text-zinc-800 text-sm">{{ projects|length }}</span>
-          </div>
-          <div>
-            <span class="text-zinc-400 block text-[10px]">Total Docs</span>
-            <span class="font-bold font-mono text-zinc-800 text-sm">
-              {% set total_docs = namespace(value=0) %}
-              {% for p in projects %}{% set total_docs.value = total_docs.value + p.doc_count %}{% endfor %}
-              {{ total_docs.value }}
-            </span>
-          </div>
-        </div>
-      </div>
+        <span class="font-bold tracking-tight text-zinc-900 text-base">DelhiTSR</span>
+      </a>
+      <div class="w-px h-4 bg-zinc-200 mx-1"></div>
+      <span class="text-xs font-semibold text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-md">Studio Projects</span>
     </div>
 
-    <!-- Bottom Profile / Logout -->
-    <div class="p-3 border-t border-zinc-100 bg-zinc-50/50">
-      <div class="flex items-center justify-between p-2 rounded-lg bg-white border border-zinc-200/80">
-        <div class="flex items-center gap-2 min-w-0">
-          <div class="w-6 h-6 rounded-full bg-zinc-200 text-zinc-700 font-bold text-xs flex items-center justify-center shrink-0">
-            {{ current_user.email[0]|upper }}
-          </div>
-          <span class="text-xs font-medium text-zinc-700 truncate" title="{{ current_user.email }}">
-            {{ current_user.email }}
-          </span>
-        </div>
-        <a href="/logout" class="text-zinc-400 hover:text-zinc-900 p-1 rounded transition-colors" title="Logout">
-          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-        </a>
-      </div>
-    </div>
-  </aside>
-
-  <!-- ── MAIN STUDIO CONTENT WORKSPACE ── -->
-  <div class="flex-1 min-w-0 flex flex-col min-h-screen">
-    
-    <!-- Top Sticky Header Bar -->
-    <header class="px-8 py-5 border-b border-zinc-200/90 bg-white sticky top-0 z-10 flex items-center justify-between">
-      <div class="space-y-0.5">
-        <h1 class="text-xl font-bold tracking-tight text-zinc-900">Title Search Projects</h1>
-        <p class="text-xs text-zinc-500">Manage property legal audits, SRO indices, and encumbrance tracking.</p>
+    <!-- Right: User Info & Primary Action -->
+    <div class="flex items-center gap-4">
+      <div class="hidden md:flex items-center gap-2 text-xs text-zinc-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="font-medium text-zinc-700">{{ current_user.email }}</span>
+        <div class="w-px h-3 bg-zinc-200 mx-1"></div>
+        <a href="/logout" class="hover:text-red-600 font-semibold transition-colors">Logout</a>
       </div>
 
-      <!-- Action Button -->
       <button onclick="openModal('createModal')"
-              class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer">
+              class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer">
         <i data-lucide="plus" class="w-3.5 h-3.5"></i>
         <span>New Project</span>
-        <span class="text-[10px] text-zinc-400 font-mono ml-1 hidden sm:inline">[N]</span>
+        <span class="text-[10px] text-zinc-400 font-mono hidden sm:inline ml-1">[N]</span>
       </button>
-    </header>
+    </div>
+  </header>
 
-    <!-- Main Workspace Content -->
-    <main class="p-8 space-y-6 flex-1 max-w-7xl mx-auto w-full">
+  <!-- ── MAIN STUDIO CONTAINER ── -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-10 py-8 space-y-8">
+    
+    <!-- Hero / Title & Stats Overview Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-zinc-200/80">
+      <div class="space-y-1">
+        <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Title Search Projects</h1>
+        <p class="text-xs text-zinc-500">Manage title search audits, SRO index encumbrances, and deed extractions.</p>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="flex items-center gap-6 bg-white border border-zinc-200/90 rounded-xl px-5 py-3 shadow-2xs shrink-0 select-none">
+        <div class="space-y-0.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Projects</span>
+          <div class="text-lg font-bold font-mono text-zinc-900 leading-none">{{ projects|length }}</div>
+        </div>
+        <div class="w-px h-7 bg-zinc-200"></div>
+        <div class="space-y-0.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Deeds</span>
+          <div class="text-lg font-bold font-mono text-zinc-900 leading-none">
+            {% set total_docs = namespace(value=0) %}
+            {% for p in projects %}{% set total_docs.value = total_docs.value + p.doc_count %}{% endfor %}
+            {{ total_docs.value }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filter Controls Toolbar -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 select-none">
       
-      <!-- Filter and Control Toolbar -->
-      <div class="flex flex-wrap items-center justify-between gap-4 select-none">
-        
-        <!-- Search Input with Keyboard Shortcut Indicator -->
-        <div class="relative flex-1 min-w-[240px] max-w-md">
-          <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-          <input type="text" id="search-input"
-                 placeholder="Search project name, locality, address or property ID... [/]"
-                 class="w-full h-9 pl-9 pr-8 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 transition-colors shadow-2xs" />
-          <button id="clear-search" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 text-xs font-bold">
-            ×
-          </button>
-        </div>
-
-        <!-- Right Side: Filters & View Switcher -->
-        <div class="flex flex-wrap items-center gap-3">
-          
-          <!-- Authority Filter -->
-          <div class="relative">
-            <select id="filter-category"
-                    class="h-9 pl-3 pr-8 rounded-lg border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:border-zinc-300 focus:outline-none focus:border-zinc-900 appearance-none shadow-2xs transition-colors">
-              <option value="">All Authorities</option>
-              <option value="mcd">MCD</option>
-              <option value="dda">DDA</option>
-            </select>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-          </div>
-
-          <!-- Land Use Filter -->
-          <div class="relative">
-            <select id="filter-land-use"
-                    class="h-9 pl-3 pr-8 rounded-lg border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:border-zinc-300 focus:outline-none focus:border-zinc-900 appearance-none shadow-2xs transition-colors">
-              <option value="">All Land Uses</option>
-              <option value="residential">Residential</option>
-              <option value="commercial">Commercial</option>
-              <option value="agricultural">Agricultural</option>
-            </select>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-          </div>
-
-          <!-- Dynamic Locality Filter -->
-          <div class="relative">
-            <select id="filter-locality"
-                    class="h-9 pl-3 pr-8 rounded-lg border border-zinc-200 bg-white text-xs font-medium text-zinc-700 hover:border-zinc-300 focus:outline-none focus:border-zinc-900 appearance-none shadow-2xs transition-colors max-w-[150px]">
-              <option value="">All Localities</option>
-            </select>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-          </div>
-
-          <!-- View Mode Toggle -->
-          <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200/80">
-            <button type="button" id="toggle-grid-btn" onclick="setViewMode('grid')"
-                    class="px-2.5 py-1 rounded-md text-xs font-medium transition-all bg-white text-zinc-900 shadow-2xs flex items-center gap-1.5">
-              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-              <span>Grid</span>
-            </button>
-            <button type="button" id="toggle-list-btn" onclick="setViewMode('list')"
-                    class="px-2.5 py-1 rounded-md text-xs font-medium transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5">
-              <i data-lucide="list" class="w-3.5 h-3.5"></i>
-              <span>Table</span>
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ── GRID VIEW ── -->
-      <div id="projects-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for project in projects %}
-          <div class="project-card studio-card p-5 cursor-pointer flex flex-col justify-between group"
-               data-name="{{ project.name|lower }}"
-               data-locality="{{ project.locality|lower if project.locality else '' }}"
-               data-category="{{ project.category|lower if project.category else '' }}"
-               data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
-               data-address="{{ project.address|lower if project.address else '' }}"
-               data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}"
-               onclick="window.location.href='/workspace/{{ project.folder }}'">
-            
-            <div class="space-y-4">
-              <!-- Top Row: Name + Category Badge + Options -->
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 space-y-1">
-                  <h3 class="font-bold text-zinc-900 text-sm tracking-tight group-hover:text-zinc-950 truncate">
-                    {{ project.name }}
-                  </h3>
-                  <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-medium text-zinc-500 truncate">
-                      {{ project.locality if project.locality else 'General Locality' }}
-                    </span>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
-                  {% if project.category %}
-                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase border bg-zinc-50 text-zinc-700 border-zinc-200">
-                      {{ project.category }}
-                    </span>
-                  {% endif %}
-                  <button class="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Project" onclick="confirmDeleteFolder('{{ project.folder }}')">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Property Metadata Box -->
-              <div class="p-3 bg-zinc-50/80 rounded-lg border border-zinc-100 text-xs space-y-1.5 font-mono">
-                {% if project.mcd_upic %}
-                  <div class="flex justify-between">
-                    <span class="text-zinc-400">UPIC ID:</span>
-                    <span class="font-semibold text-zinc-800">{{ project.mcd_upic }}</span>
-                  </div>
-                {% endif %}
-                
-                {% if project.id_type and project.id_value %}
-                  <div class="flex justify-between">
-                    <span class="text-zinc-400">{{ project.id_type.replace('_', ' ')|upper }}:</span>
-                    <span class="font-semibold text-zinc-800">{{ project.id_value }}</span>
-                  </div>
-                {% endif %}
-
-                {% if project.sro %}
-                  <div class="flex justify-between truncate">
-                    <span class="text-zinc-400 shrink-0">Jurisdiction:</span>
-                    <span class="font-medium text-zinc-700 truncate pl-2" title="{{ project.sro }}">{{ project.sro }}</span>
-                  </div>
-                {% endif %}
-
-                {% if not project.mcd_upic and not (project.id_type and project.id_value) and not project.sro %}
-                  <div class="text-zinc-400 italic text-[11px]">No specific identifiers registered</div>
-                {% endif %}
-              </div>
-            </div>
-
-            <!-- Card Bottom Footer -->
-            <div class="mt-5 pt-3 border-t border-zinc-100 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-1.5 text-zinc-500 font-mono">
-                <i data-lucide="file-text" class="w-3.5 h-3.5 text-zinc-400"></i>
-                <span>{{ project.doc_count }} Document{{ 's' if project.doc_count != 1 else '' }}</span>
-              </div>
-              <span class="font-semibold text-zinc-900 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1 text-[12px]">
-                Open Studio &rarr;
-              </span>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-
-      <!-- ── TABLE VIEW (Rendered hidden by default unless toggled) ── -->
-      <div id="projects-list-card" class="hidden bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-2xs">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="border-b border-zinc-200 bg-zinc-50/60 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider select-none">
-              <th class="py-3 px-4">Project & Address</th>
-              <th class="py-3 px-4">Locality & SRO</th>
-              <th class="py-3 px-4">Authority & Use</th>
-              <th class="py-3 px-4">Identifiers</th>
-              <th class="py-3 px-4 text-right pr-6">Documents & Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-zinc-100 text-xs">
-            {% for project in projects %}
-              <tr class="project-list-row group hover:bg-zinc-50/80 transition-colors cursor-pointer"
-                  data-name="{{ project.name|lower }}"
-                  data-locality="{{ project.locality|lower if project.locality else '' }}"
-                  data-category="{{ project.category|lower if project.category else '' }}"
-                  data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
-                  data-address="{{ project.address|lower if project.address else '' }}"
-                  data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}"
-                  onclick="window.location.href='/workspace/{{ project.folder }}'">
-                
-                <!-- Project Name -->
-                <td class="py-3.5 px-4">
-                  <div class="font-bold text-zinc-900 group-hover:text-black transition-colors">
-                    {{ project.name }}
-                  </div>
-                  {% if project.address %}
-                    <div class="text-[11px] text-zinc-400 truncate max-w-xs mt-0.5" title="{{ project.address }}">
-                      {{ project.address }}
-                    </div>
-                  {% endif %}
-                </td>
-
-                <!-- Locality & SRO -->
-                <td class="py-3.5 px-4">
-                  <div class="font-medium text-zinc-800">{{ project.locality if project.locality else '—' }}</div>
-                  {% if project.sro %}
-                    <div class="text-[11px] text-zinc-400 truncate mt-0.5" title="{{ project.sro }}">{{ project.sro }}</div>
-                  {% endif %}
-                </td>
-
-                <!-- Category & Use -->
-                <td class="py-3.5 px-4">
-                  <div class="flex items-center gap-1.5">
-                    {% if project.category %}
-                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-700 border border-zinc-200">
-                        {{ project.category }}
-                      </span>
-                    {% endif %}
-                    {% if project.land_use %}
-                      <span class="px-2 py-0.5 rounded text-[10px] font-medium capitalize bg-zinc-50 text-zinc-600 border border-zinc-200">
-                        {{ project.land_use }}
-                      </span>
-                    {% endif %}
-                  </div>
-                </td>
-
-                <!-- Identifiers -->
-                <td class="py-3.5 px-4 font-mono text-[11px]">
-                  {% if project.mcd_upic %}
-                    <div class="text-zinc-700"><span class="text-zinc-400">UPIC:</span> {{ project.mcd_upic }}</div>
-                  {% endif %}
-                  {% if project.id_type and project.id_value %}
-                    <div class="text-zinc-700"><span class="text-zinc-400">{{ project.id_type.upper() }}:</span> {{ project.id_value }}</div>
-                  {% endif %}
-                  {% if not project.mcd_upic and not (project.id_type and project.id_value) %}
-                    <span class="text-zinc-400">—</span>
-                  {% endif %}
-                </td>
-
-                <!-- Docs & Actions -->
-                <td class="py-3.5 px-4 text-right pr-6" onclick="event.stopPropagation()">
-                  <div class="flex items-center justify-end gap-3">
-                    <span class="font-mono text-zinc-500 text-xs">{{ project.doc_count }} Docs</span>
-                    <a href="/workspace/{{ project.folder }}" class="px-2.5 py-1 rounded bg-zinc-900 text-white font-medium text-[11px] hover:bg-zinc-800 transition-colors">
-                      Open
-                    </a>
-                    <button class="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Project" onclick="confirmDeleteFolder('{{ project.folder }}')">
-                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Empty State -->
-      <div id="no-results-state" class="hidden flex flex-col items-center justify-center py-16 px-4 border border-dashed border-zinc-300 rounded-xl bg-white text-center space-y-3">
-        <div class="w-10 h-10 rounded-full bg-zinc-100 text-zinc-400 flex items-center justify-center">
-          <i data-lucide="folder-search" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h3 class="text-sm font-bold text-zinc-900">No matching projects found</h3>
-          <p class="text-xs text-zinc-500 mt-1">Try clearing your filters or searching for another keyword.</p>
-        </div>
-        <button onclick="clearSearch()" class="px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-50 shadow-2xs transition-colors">
-          Reset Filters
+      <!-- Search Input -->
+      <div class="relative flex-1 min-w-[260px] max-w-md">
+        <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        <input type="text" id="search-input"
+               placeholder="Search project, locality, address or property ID... [/]"
+               class="w-full h-10 pl-10 pr-9 rounded-xl border border-zinc-200 bg-white text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 transition-colors shadow-2xs font-medium" />
+        <button id="clear-search" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 text-sm font-bold">
+          ×
         </button>
       </div>
 
-      {% if not projects %}
-        <div class="flex flex-col items-center justify-center py-20 px-4 border border-dashed border-zinc-300 rounded-xl bg-white text-center space-y-4">
-          <div class="w-12 h-12 rounded-full bg-zinc-100 text-zinc-400 flex items-center justify-center">
-            <i data-lucide="folder-plus" class="w-6 h-6"></i>
-          </div>
-          <div class="space-y-1">
-            <h3 class="text-base font-bold text-zinc-900">No title search projects created yet</h3>
-            <p class="text-xs text-zinc-500 max-w-sm">Create your first title project to start indexing deeds and executing automated audits.</p>
-          </div>
-          <button onclick="openModal('createModal')" class="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-2xs transition-colors">
-            + Create First Project
+      <!-- Filter Dropdowns & View Toggle -->
+      <div class="flex flex-wrap items-center gap-3">
+        
+        <!-- Authority Filter -->
+        <div class="relative">
+          <select id="filter-category"
+                  class="h-10 pl-3 pr-8 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:border-zinc-300 focus:outline-none focus:border-zinc-900 appearance-none shadow-2xs transition-colors">
+            <option value="">All Authorities</option>
+            <option value="mcd">MCD</option>
+            <option value="dda">DDA</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
+
+        <!-- Land Use Filter -->
+        <div class="relative">
+          <select id="filter-land-use"
+                  class="h-10 pl-3 pr-8 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:border-zinc-300 focus:outline-none focus:border-zinc-900 appearance-none shadow-2xs transition-colors">
+            <option value="">All Land Uses</option>
+            <option value="residential">Residential</option>
+            <option value="commercial">Commercial</option>
+            <option value="agricultural">Agricultural</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
+
+        <!-- Locality Filter -->
+        <div class="relative">
+          <select id="filter-locality"
+                  class="h-10 pl-3 pr-8 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:border-zinc-300 focus:outline-none focus:border-zinc-900 appearance-none shadow-2xs transition-colors max-w-[160px]">
+            <option value="">All Localities</option>
+          </select>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        </div>
+
+        <!-- Layout View Toggle -->
+        <div class="flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200/80">
+          <button type="button" id="toggle-grid-btn" onclick="setViewMode('grid')"
+                  class="px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-white text-zinc-900 shadow-2xs flex items-center gap-1.5">
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+            <span>Grid</span>
+          </button>
+          <button type="button" id="toggle-list-btn" onclick="setViewMode('list')"
+                  class="px-3 py-1 rounded-lg text-xs font-medium transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            <span>Table</span>
           </button>
         </div>
-      {% endif %}
 
-    </main>
-  </div>
+      </div>
+    </div>
 
-  <!-- ── CREATE PROJECT MODAL ── -->
+    <!-- ── GRID VIEW (DEEP STUDIO CARDS) ── -->
+    <div id="projects-grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {% for project in projects %}
+        <div class="project-card studio-project-card group"
+             data-name="{{ project.name|lower }}"
+             data-locality="{{ project.locality|lower if project.locality else '' }}"
+             data-category="{{ project.category|lower if project.category else '' }}"
+             data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
+             data-address="{{ project.address|lower if project.address else '' }}"
+             data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}"
+             onclick="window.location.href='/workspace/{{ project.folder }}'">
+          
+          <div class="space-y-4">
+            
+            <!-- Dog-Eared Sheet Banner -->
+            <div class="doc-sheet-banner">
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="font-bold text-zinc-900 text-sm group-hover:text-black truncate max-w-[180px]">
+                  {{ project.name }}
+                </h3>
+                
+                <button class="text-zinc-400 hover:text-red-600 p-1 rounded hover:bg-zinc-200/50 transition-colors shrink-0"
+                        title="Delete Project"
+                        onclick="event.stopPropagation(); confirmDeleteFolder('{{ project.folder }}')">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+
+              <div class="text-[11px] text-zinc-500 font-mono mt-1 truncate">
+                {{ project.locality if project.locality else 'General Jurisdiction' }}
+              </div>
+
+              {% if project.category %}
+                <span class="inline-block mt-3 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {{ project.category }}
+                </span>
+              {% else %}
+                <span class="inline-block mt-3 px-2 py-0.5 rounded text-[10px] font-semibold tracking-wider uppercase bg-zinc-100 text-zinc-600 border border-zinc-200">
+                  TSR Audit
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Property Identifiers Grid -->
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center py-1 border-b border-zinc-100">
+                <span class="text-zinc-400 text-[11px]">Locality</span>
+                <span class="font-semibold text-zinc-800 truncate max-w-[130px]">{{ project.locality if project.locality else '—' }}</span>
+              </div>
+
+              {% if project.mcd_upic %}
+                <div class="flex justify-between items-center py-1 border-b border-zinc-100 font-mono">
+                  <span class="text-zinc-400 text-[11px]">UPIC ID</span>
+                  <span class="font-semibold text-zinc-800">{{ project.mcd_upic }}</span>
+                </div>
+              {% endif %}
+
+              {% if project.id_type and project.id_value %}
+                <div class="flex justify-between items-center py-1 border-b border-zinc-100 font-mono">
+                  <span class="text-zinc-400 text-[11px] uppercase">{{ project.id_type.replace('_', ' ') }}</span>
+                  <span class="font-semibold text-zinc-800">{{ project.id_value }}</span>
+                </div>
+              {% endif %}
+
+              {% if project.sro %}
+                <div class="flex justify-between items-center py-1 border-b border-zinc-100">
+                  <span class="text-zinc-400 text-[11px]">SRO Office</span>
+                  <span class="font-medium text-zinc-700 truncate max-w-[130px]" title="{{ project.sro }}">{{ project.sro }}</span>
+                </div>
+              {% endif %}
+            </div>
+
+          </div>
+
+          <!-- Card Footer -->
+          <div class="mt-6 pt-3 border-t border-zinc-100 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-1.5 text-zinc-500 font-mono">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 text-zinc-400"></i>
+              <span>{{ project.doc_count }} File{{ 's' if project.doc_count != 1 else '' }}</span>
+            </div>
+
+            <span class="font-bold text-zinc-900 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+              Open Studio &rarr;
+            </span>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- ── TABLE VIEW ── -->
+    <div id="projects-list-card" class="hidden bg-white border border-zinc-200/90 rounded-2xl overflow-hidden shadow-2xs">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-zinc-200 bg-zinc-50/80 text-[11px] font-bold text-zinc-500 uppercase tracking-wider select-none">
+            <th class="py-3.5 px-5">Project Name & Address</th>
+            <th class="py-3.5 px-5">Locality & SRO</th>
+            <th class="py-3.5 px-5">Authority & Land Use</th>
+            <th class="py-3.5 px-5">Property Identifiers</th>
+            <th class="py-3.5 px-5 text-right pr-6">Files & Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100 text-xs">
+          {% for project in projects %}
+            <tr class="project-list-row group hover:bg-zinc-50 transition-colors cursor-pointer"
+                data-name="{{ project.name|lower }}"
+                data-locality="{{ project.locality|lower if project.locality else '' }}"
+                data-category="{{ project.category|lower if project.category else '' }}"
+                data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
+                data-address="{{ project.address|lower if project.address else '' }}"
+                data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}"
+                onclick="window.location.href='/workspace/{{ project.folder }}'">
+              
+              <!-- Project Name & Address -->
+              <td class="py-4 px-5">
+                <div class="font-bold text-zinc-900 text-sm group-hover:text-black transition-colors">
+                  {{ project.name }}
+                </div>
+                {% if project.address %}
+                  <div class="text-[11px] text-zinc-400 truncate max-w-sm mt-0.5" title="{{ project.address }}">
+                    {{ project.address }}
+                  </div>
+                {% endif %}
+              </td>
+
+              <!-- Locality & SRO -->
+              <td class="py-4 px-5">
+                <div class="font-semibold text-zinc-800">{{ project.locality if project.locality else '—' }}</div>
+                {% if project.sro %}
+                  <div class="text-[11px] text-zinc-400 truncate mt-0.5" title="{{ project.sro }}">{{ project.sro }}</div>
+                {% endif %}
+              </td>
+
+              <!-- Authority & Use -->
+              <td class="py-4 px-5">
+                <div class="flex items-center gap-1.5">
+                  {% if project.category %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {{ project.category }}
+                    </span>
+                  {% endif %}
+                  {% if project.land_use %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-medium capitalize bg-zinc-100 text-zinc-600 border border-zinc-200">
+                      {{ project.land_use }}
+                    </span>
+                  {% endif %}
+                </div>
+              </td>
+
+              <!-- Identifiers -->
+              <td class="py-4 px-5 font-mono text-[11px]">
+                {% if project.mcd_upic %}
+                  <div class="text-zinc-800"><span class="text-zinc-400">UPIC:</span> {{ project.mcd_upic }}</div>
+                {% endif %}
+                {% if project.id_type and project.id_value %}
+                  <div class="text-zinc-800"><span class="text-zinc-400">{{ project.id_type.upper() }}:</span> {{ project.id_value }}</div>
+                {% endif %}
+                {% if not project.mcd_upic and not (project.id_type and project.id_value) %}
+                  <span class="text-zinc-400">—</span>
+                {% endif %}
+              </td>
+
+              <!-- Files & Actions -->
+              <td class="py-4 px-5 text-right pr-6" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-end gap-3">
+                  <span class="font-mono text-zinc-500 text-xs">{{ project.doc_count }} Files</span>
+                  <a href="/workspace/{{ project.folder }}" class="px-3 py-1.5 rounded-lg bg-zinc-900 text-white font-semibold text-xs hover:bg-zinc-800 transition-colors">
+                    Open Studio
+                  </a>
+                  <button class="p-1.5 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          title="Delete Project"
+                          onclick="confirmDeleteFolder('{{ project.folder }}')">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty Search Results State -->
+    <div id="no-results-state" class="hidden flex flex-col items-center justify-center py-16 px-4 border border-dashed border-zinc-300 rounded-2xl bg-white text-center space-y-3">
+      <div class="w-10 h-10 rounded-full bg-zinc-100 text-zinc-400 flex items-center justify-center">
+        <i data-lucide="folder-search" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-zinc-900">No matching projects found</h3>
+        <p class="text-xs text-zinc-500 mt-1">Try clearing your search query or adjusting authority filters.</p>
+      </div>
+      <button onclick="clearSearch()" class="px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white text-xs font-semibold text-zinc-700 hover:bg-zinc-50 shadow-2xs transition-colors">
+        Reset Search
+      </button>
+    </div>
+
+    {% if not projects %}
+      <div class="flex flex-col items-center justify-center py-24 px-4 border border-dashed border-zinc-300 rounded-2xl bg-white text-center space-y-4">
+        <div class="w-12 h-12 rounded-full bg-zinc-100 text-zinc-400 flex items-center justify-center">
+          <i data-lucide="folder-plus" class="w-6 h-6"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-zinc-900">No title search projects created yet</h3>
+          <p class="text-xs text-zinc-500 max-w-sm leading-relaxed">Create your first title project to start parsing deeds, verifying circle rates, and detecting chain defects.</p>
+        </div>
+        <button onclick="openModal('createModal')" class="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-sm transition-colors">
+          + Create First Project
+        </button>
+      </div>
+    {% endif %}
+
+  </main>
+
+  <!-- ── ULTRA-FAST CREATE PROJECT MODAL ── -->
   <div class="modal-overlay" id="createModal" onclick="handleOverlayClick(event, 'createModal')">
     <div class="modal-box p-6 space-y-5 w-full max-w-[460px]">
       
-      <!-- Header -->
+      <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
         <div>
           <h2 class="text-base font-bold text-zinc-900 tracking-tight">Create Title Search Project</h2>
-          <p class="text-xs text-zinc-500 mt-0.5">Quickly start a project. Only name is required.</p>
+          <p class="text-xs text-zinc-500 mt-0.5">Quick creation — only project name is required.</p>
         </div>
         <button type="button" onclick="closeModal('createModal')" class="text-zinc-400 hover:text-zinc-800 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -510,10 +504,10 @@
       <!-- Form -->
       <form action="/create_project" method="POST" onsubmit="return validateForm()" class="space-y-4">
 
-        <!-- Project Name (Only Required Field) -->
+        <!-- Project Name (REQUIRED) -->
         <div class="space-y-1">
           <div class="flex items-center justify-between">
-            <label for="field_name" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">Project Name <span class="text-red-500">*</span></label>
+            <label for="field_name" class="text-[11px] font-bold uppercase tracking-wider text-zinc-700">Project Name <span class="text-red-500">*</span></label>
             <span class="text-[10px] text-zinc-400 font-mono">Press Enter ↵</span>
           </div>
           <input type="text" name="project_name" id="field_name"
@@ -530,10 +524,10 @@
           </button>
         </div>
 
-        <!-- Optional Fields Container -->
+        <!-- Optional Fields Drawer -->
         <div id="optional-fields" class="hidden space-y-3 pt-2 border-t border-zinc-100">
           
-          <!-- Locality & SRO Office (Optional) -->
+          <!-- Locality & SRO Office -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1 relative" id="locality-dropdown-container">
               <label for="field_locality" class="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Locality (Optional)</label>
@@ -679,11 +673,7 @@
       if (opt) {
         opt.classList.toggle('hidden');
         if (chev) {
-          if (opt.classList.contains('hidden')) {
-            chev.style.transform = 'rotate(0deg)';
-          } else {
-            chev.style.transform = 'rotate(90deg)';
-          }
+          chev.style.transform = opt.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
         }
       }
     }
@@ -691,18 +681,6 @@
       const deleteForm = document.getElementById('deleteForm');
       if (deleteForm) deleteForm.action = '/delete_project/' + folder;
       openModal('deleteModal');
-    }
-
-    function validateForm() {
-      const nameInput = document.getElementById('field_name');
-      const name = nameInput ? nameInput.value.trim() : '';
-      if (!name) {
-        document.getElementById('err_name')?.classList.add('visible');
-        nameInput?.focus();
-        return false;
-      }
-      document.getElementById('err_name')?.classList.remove('visible');
-      return true;
     }
 
     function setViewMode(mode) {
@@ -716,13 +694,13 @@
       if (mode === 'grid') {
         if (gridView) gridView.classList.remove('hidden');
         if (listCard) listCard.classList.add('hidden');
-        if (gridBtn) gridBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-zinc-900 shadow-2xs flex items-center gap-1.5";
-        if (listBtn) listBtn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-all flex items-center gap-1.5";
+        if (gridBtn) gridBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-white text-zinc-900 shadow-2xs flex items-center gap-1.5";
+        if (listBtn) listBtn.className = "px-3 py-1 rounded-lg text-xs font-medium transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5";
       } else {
         if (gridView) gridView.classList.add('hidden');
         if (listCard) listCard.classList.remove('hidden');
-        if (gridBtn) gridBtn.className = "px-2.5 py-1 rounded-md text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-all flex items-center gap-1.5";
-        if (listBtn) listBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-zinc-900 shadow-2xs flex items-center gap-1.5";
+        if (gridBtn) gridBtn.className = "px-3 py-1 rounded-lg text-xs font-medium transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5";
+        if (listBtn) listBtn.className = "px-3 py-1 rounded-lg text-xs font-semibold transition-all bg-white text-zinc-900 shadow-2xs flex items-center gap-1.5";
       }
     }
 
@@ -828,22 +806,15 @@
     }
 
     function validateForm() {
-      const name = document.getElementById('field_name').value.trim();
-      const locality = document.getElementById('field_locality').value.trim();
-      let valid = true;
+      const nameInput = document.getElementById('field_name');
+      const name = nameInput ? nameInput.value.trim() : '';
       if (!name) {
-        document.getElementById('err_name').classList.add('visible');
-        valid = false;
-      } else {
-        document.getElementById('err_name').classList.remove('visible');
+        document.getElementById('err_name')?.classList.add('visible');
+        nameInput?.focus();
+        return false;
       }
-      if (!locality) {
-        document.getElementById('err_locality').classList.add('visible');
-        valid = false;
-      } else {
-        document.getElementById('err_locality').classList.remove('visible');
-      }
-      return valid;
+      document.getElementById('err_name')?.classList.remove('visible');
+      return true;
     }
 
     // Keyboard Shortcuts
