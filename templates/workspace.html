@@ -606,11 +606,12 @@
 
     /* ── Production Studio Sidebar Styles ── */
     #appSidebar {
+      width: 272px;
       background-color: #fafafa;
       border-right: 1px solid #e4e4e7;
-      transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    #appSidebar.sb-collapsed { width: 52px !important; }
+    #appSidebar.sb-collapsed { width: 56px !important; }
     #appSidebar.sb-collapsed .sb-label,
     #appSidebar.sb-collapsed .sb-only-expanded,
     #appSidebar.sb-collapsed .sb-section-label { display: none !important; }
@@ -619,10 +620,10 @@
     .sidebar-item {
       position: relative;
       overflow: visible;
-      height: 32px;
-      border-radius: 6px;
+      height: 34px;
+      border-radius: 8px;
       color: #52525b;
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 500;
       transition: background-color 0.12s ease, color 0.12s ease;
     }
@@ -631,28 +632,27 @@
       color: #09090b;
     }
     .sidebar-item.sb-active {
-      background-color: #f4f4f5;
+      background-color: #ffffff;
+      border: 1px solid #e4e4e7;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
       color: #09090b;
       font-weight: 600;
     }
     .sidebar-item::before {
       content: '';
       position: absolute;
-      left: 0;
+      left: -1px;
       top: 50%;
-      width: 2.5px;
-      height: 60%;
+      width: 3px;
+      height: 50%;
       background-color: #09090b;
       border-radius: 0 2px 2px 0;
       transform: translateY(-50%) scaleY(0);
       transform-origin: center center;
-      transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.15s ease;
     }
     .sidebar-item.sb-active::before {
       transform: translateY(-50%) scaleY(1);
-    }
-    #sidebar-doris::before, #sidebar-ngdrs::before {
-      background-color: #3b82f6;
     }
 
     /* ── Typeahead / Searchable Dropdown Styles ── */
@@ -1302,34 +1302,34 @@
 <body class="bg-[#ffffff] text-zinc-900 antialiased font-sans">
 
 <div class="flex h-screen w-screen overflow-hidden bg-white">
-<aside id="appSidebar" class="relative w-[250px] shrink-0 border-r border-zinc-200 bg-[#fafafa] flex flex-col h-full select-none shadow-2xs">
+<aside id="appSidebar" class="relative w-[272px] shrink-0 border-r border-zinc-200 bg-[#fafafa] flex flex-col h-full select-none shadow-2xs">
 
-      <!-- Sidebar Top Header (Brand / Back Link + Collapse Toggle) -->
-      <div class="sidebar-header flex items-center justify-between px-3 py-2.5 border-b border-zinc-200/80 shrink-0 bg-white select-none">
-        <a href="/projects" class="flex items-center gap-2 text-xs font-semibold text-zinc-800 hover:text-black transition-colors min-w-0 flex-1" title="Back to Projects">
-          <svg class="w-3.5 h-3.5 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Sidebar Top Header (Single-row Workspace Navigation Header) -->
+      <div class="sidebar-header flex items-center justify-between px-3 h-12 border-b border-zinc-200/80 shrink-0 bg-white select-none">
+        <a href="/projects" class="flex items-center gap-2 text-xs font-semibold text-zinc-800 hover:text-black transition-colors min-w-0 flex-1" title="Back to Projects Dashboard">
+          <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5"/>
             <path d="M12 19l-7-7 7-7"/>
           </svg>
-          <span class="truncate sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</span>
+          <span class="truncate font-semibold tracking-tight text-[13px] sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</span>
         </a>
 
         <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
                 class="p-1 rounded-md text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors shrink-0">
-          <svg class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
+          <svg class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
             <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
       </div>
 
-      <!-- Navigation Menu Stream -->
+      <!-- Navigation Stream -->
       <div class="flex-1 overflow-y-auto px-2 py-2 space-y-4" id="sidebarMenu">
 
         <!-- SECTION 1: DOCUMENTS -->
-        <div class="space-y-0.5">
-          <div class="px-2 pt-1 pb-1 text-[10.5px] font-semibold tracking-tight text-zinc-400 uppercase select-none sb-only-expanded">Documents</div>
+        <div class="space-y-1">
+          <div class="px-2 pt-1.5 pb-1 text-[10.5px] font-bold tracking-wider text-zinc-400 uppercase select-none sb-only-expanded">Documents & Files</div>
           
-          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <div id="sidebar-transactions" onclick="selectTransactionsMenu()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1346,24 +1346,19 @@
             </button>
           </div>
 
-          <!-- Document Tree List -->
-          <div class="sb-only-expanded ml-[16px] space-y-0.5 max-h-[260px] overflow-y-auto pr-1" id="fileTree">
+          <!-- Document List Tree (Clean Borderless SaaS Design) -->
+          <div class="sb-only-expanded mt-1 space-y-0.5 max-h-[300px] overflow-y-auto pr-0.5" id="fileTree">
             {% if index_iis %}
               {% for pdf in index_iis %}
-                <div class="group relative flex items-center justify-between pl-[14px] pr-2 py-1.5 rounded-md cursor-pointer text-zinc-700 hover:bg-zinc-200/50 hover:text-zinc-950 text-[11.5px] transition-colors {% if loop.first %}bg-white font-semibold text-zinc-900 border border-zinc-200 shadow-2xs{% endif %}" 
+                <div class="group relative flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer text-zinc-700 hover:bg-zinc-200/50 text-[11.5px] transition-all {% if loop.first %}bg-white font-semibold text-zinc-900 border border-zinc-200/90 shadow-2xs{% endif %}" 
                      onclick="selectFile(this, '{{ pdf }}')" 
                      data-file-row="{{ pdf }}" 
                      data-parse-status="unknown">
-                  <div class="absolute left-0 top-0 {% if loop.last %}h-[14px]{% else %}bottom-0{% endif %} border-l border-zinc-300"></div>
-                  <div class="absolute left-0 top-[14px] w-[10px] border-t border-zinc-300"></div>
-                  <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                    <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    <span class="truncate tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="px-1 py-0.2 rounded text-[9px] font-mono font-bold uppercase bg-red-50 text-red-600 border border-red-100 shrink-0">PDF</span>
+                    <span class="truncate font-medium text-zinc-800 text-[11.5px] group-hover:text-zinc-950 tree-l2-name" data-filename="{{ pdf }}">{{ pdf }}</span>
                   </div>
-                  <div class="relative shrink-0 ml-1">
+                  <div class="relative shrink-0 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button class="p-1 hover:bg-zinc-200 rounded text-zinc-400 hover:text-zinc-900 flex items-center justify-center transition-colors" 
                             onclick="event.stopPropagation(); toggleDocDropdown(this, '{{ pdf }}')"
                             title="Options">
@@ -1377,17 +1372,17 @@
                 </div>
               {% endfor %}
             {% else %}
-              <div class="pl-3 py-1 text-[11px] text-zinc-400 italic">No files attached</div>
+              <div class="px-2.5 py-2 text-[11px] text-zinc-400 italic">No files attached</div>
             {% endif %}
           </div>
         </div>
 
         <!-- SECTION 2: TITLE INTELLIGENCE -->
         <div class="space-y-0.5">
-          <div class="px-2 pt-1 pb-1 text-[10.5px] font-semibold tracking-tight text-zinc-400 uppercase select-none sb-only-expanded">Title Intelligence</div>
+          <div class="px-2 pt-1.5 pb-1 text-[10.5px] font-bold tracking-wider text-zinc-400 uppercase select-none sb-only-expanded">Title Intelligence</div>
 
           <!-- Events & Findings -->
-          <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <div id="sidebar-events" onclick="switchMainTab('events')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1407,7 +1402,7 @@
           </div>
 
           <!-- Chain & Entities -->
-          <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <div id="sidebar-entities" onclick="switchMainTab('entities')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1427,7 +1422,7 @@
           </div>
 
           <!-- AI Assistant -->
-          <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1444,7 +1439,7 @@
           </div>
 
           <!-- Audit Report -->
-          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1466,10 +1461,10 @@
 
         <!-- SECTION 3: TOOLS -->
         <div class="space-y-0.5">
-          <div class="px-2 pt-1 pb-1 text-[10.5px] font-semibold tracking-tight text-zinc-400 uppercase select-none sb-only-expanded">Tools</div>
+          <div class="px-2 pt-1.5 pb-1 text-[10.5px] font-bold tracking-wider text-zinc-400 uppercase select-none sb-only-expanded">Tools</div>
 
           <!-- Document Sorter -->
-          <div id="sidebar-sorter" onclick="switchMainTab('sorter')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <div id="sidebar-sorter" onclick="switchMainTab('sorter')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
@@ -1482,41 +1477,39 @@
 
       </div> <!-- end sidebarMenu -->
 
-      <!-- Footer: User profile info -->
-      <div class="shrink-0 border-t border-zinc-200/80 bg-white p-3">
+      <!-- Footer: User Profile Row -->
+      <div class="shrink-0 h-14 border-t border-zinc-200/80 bg-white px-3 flex items-center justify-between">
         <!-- Hidden status hooks -->
         <div style="display: none;">
           <span id="sbDocCount">{{ index_iis|length if index_iis else 0 }}</span>
           <span id="sbParseStatus">Ready</span>
         </div>
 
-        <div class="flex items-center gap-2.5">
-          <!-- Initials Avatar -->
-          <div class="w-7 h-7 rounded-full bg-zinc-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0 select-none shadow-2xs"
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <!-- User Avatar -->
+          <div class="w-7 h-7 rounded-full bg-zinc-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0 select-none shadow-2xs"
                title="{{ current_user.email }}">
             {{ current_user.email[0].upper() if current_user.email else 'U' }}
           </div>
 
           <!-- User Details -->
-          <div class="flex-1 min-w-0 sb-only-expanded flex items-center justify-between gap-2">
-            <div class="flex flex-col min-w-0">
-              <span class="text-[11.5px] font-semibold text-zinc-900 truncate" title="{{ current_user.email }}">
-                {{ current_user.email.split('@')[0] if current_user.email else 'Operator' }}
-              </span>
-              <span class="text-[9.5px] text-zinc-500 truncate flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                <span>Title Analyst</span>
-              </span>
-            </div>
-
-            <!-- Logout button -->
-            <a href="/logout" class="p-1 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center shrink-0" title="Logout">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-            </a>
+          <div class="flex flex-col min-w-0 flex-1 sb-only-expanded">
+            <span class="text-xs font-semibold text-zinc-900 truncate" title="{{ current_user.email }}">
+              {{ current_user.email.split('@')[0] if current_user.email else 'Operator' }}
+            </span>
+            <span class="text-[10px] text-zinc-400 truncate flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+              <span>Title Analyst</span>
+            </span>
           </div>
         </div>
+
+        <!-- Logout Action Button -->
+        <a href="/logout" class="p-1.5 rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition-colors shrink-0 sb-only-expanded" title="Logout">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </a>
       </div>
 
     </aside>
