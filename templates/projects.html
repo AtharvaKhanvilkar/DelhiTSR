@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Projects — DelhiTSR</title>
+  <title>Projects — DelhiTSR Studio</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='delhitsr-logo.png') }}">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#ffffff">
@@ -11,7 +11,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <script>
@@ -19,275 +19,82 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
             mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
           },
           colors: {
-            border:     'hsl(var(--border))',
-            input:      'hsl(var(--input))',
-            ring:       'hsl(var(--ring))',
-            background: 'hsl(var(--background))',
-            foreground: 'hsl(var(--foreground))',
-            primary:    { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
-            secondary:  { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
-            destructive:{ DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
-            muted:      { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
-            accent:     { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
-            card:       { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
-          },
-          borderRadius: {
-            lg: 'var(--radius)',
-            md: 'calc(var(--radius) - 2px)',
-            sm: 'calc(var(--radius) - 4px)',
-          },
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeaff',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+            }
+          }
         },
       },
     };
   </script>
 
   <style>
-    :root {
-      --background:             0 0% 100%;
-      --foreground:             240 10% 3.9%;
-      --card:                   0 0% 100%;
-      --card-foreground:        240 10% 3.9%;
-      --primary:                240 5.9% 10%;
-      --primary-foreground:     0 0% 98%;
-      --secondary:              240 4.8% 95.9%;
-      --secondary-foreground:   240 5.9% 10%;
-      --muted:                  240 4.8% 95.9%;
-      --muted-foreground:       240 3.8% 46.1%;
-      --accent:                 240 4.8% 95.9%;
-      --accent-foreground:      240 5.9% 10%;
-      --destructive:            0 84.2% 60.2%;
-      --destructive-foreground: 0 0% 98%;
-      --border:                 240 5.9% 90%;
-      --input:                  240 5.9% 90%;
-      --ring:                   240 5.9% 10%;
-      --radius:                 0.5rem;
-    }
-
     html, body {
-      font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
-      font-feature-settings: "rlig" 1, "calt" 1;
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      font-size: 14px;
+      font-size: 13.5px;
       line-height: 1.5;
-      color: hsl(var(--foreground));
-      background-color: hsl(var(--background));
+      color: #1f2937;
+      background-color: #ffffff;
     }
-    h1,h2,h3,h4,h5,h6,p,span,div,button,input,a,li,select,option {
-      font-size: inherit; line-height: inherit; margin: 0;
-    }
-    button { background: none; border: 0; padding: 0; color: inherit; font-family: inherit; cursor: pointer; }
-    input, select { font-family: inherit; }
-    * { box-sizing: border-box; }
+    
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
 
-    ::-webkit-scrollbar             { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track       { background: transparent; }
-    ::-webkit-scrollbar-thumb       { background: hsl(var(--border)); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .anim-1 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
-    .anim-2 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.07s both; }
-    .anim-3 { animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) 0.14s both; }
-
-    .project-row { transition: background 0.15s ease; }
-    .project-row:hover { background: hsl(var(--muted) / 0.5); }
-    .project-row:hover .row-chevron { opacity: 1; transform: translateX(1px); }
-    .row-chevron { opacity: 0.25; transition: opacity 0.15s ease, transform 0.15s ease; }
-
-    .btn-delete { transition: background 0.15s ease, color 0.15s ease; }
-    .btn-delete:hover { background: hsl(var(--destructive) / 0.08); color: hsl(var(--destructive)); }
-
-    /* ── Light Invoice Card (Pixel-Perfect Reference Design) ── */
-    .invoice-card {
-      background: #ffffff;
-      border: 1px solid #e4e4e7;
-      border-radius: 20px;
-      padding: 16px;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 10px 20px rgba(0,0,0,0.015);
-      position: relative;
-    }
-    .invoice-card:hover {
-      transform: translateY(-4px) scale(1.01);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.01);
+    /* Custom select button borders */
+    #field_sro_btn, #field_type_btn {
+      border: 1px solid #e5e7eb !important;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    /* Top Section */
-    .invoice-card-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      position: relative;
-    }
-
-    /* Dog-eared document sheet */
-    .invoice-doc-sheet {
-      position: relative;
-      border-radius: 12px;
-      padding: 16px;
-      flex: 1;
-      min-width: 0;
-      border: 1px solid #e2e8f0;
-      /* Cut top-right corner of 12px */
-      background: linear-gradient(225deg, transparent 12px, #f4f4f5 12px);
-    }
-    .invoice-doc-sheet::after {
-      content: '';
+    .custom-dropdown-menu {
       position: absolute;
-      top: 0; right: 0;
-      width: 12px; height: 12px;
-      background: #e2e8f0;
-      border-bottom-left-radius: 3px;
-      box-shadow: -1px 1px 2px rgba(0,0,0,0.05);
-    }
-
-    .invoice-doc-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #18181b;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .invoice-doc-subtitle {
-      font-size: 11.5px;
-      color: #71717a;
+      top: 100%; left: 0; right: 0;
       margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-family: monospace;
+      max-height: 220px;
+      overflow-y: auto;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 99;
+      padding: 4px 0;
     }
-    
-    .invoice-skeleton-bar {
-      height: 4px;
-      background: #e4e4e7;
-      border-radius: 2px;
-      width: 50%;
-      margin-top: 10px;
-    }
-
-    .invoice-badge-green {
-      display: inline-block;
-      margin-top: 12px;
-      background: #ecfdf5;
-      color: #059669;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2.5px 8px;
-      border-radius: 6px;
-    }
-
-    /* Top-Right Circular Action Button */
-    .invoice-action-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: 1px solid #e4e4e7;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #71717a;
+    .custom-dropdown-item {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #374151;
       cursor: pointer;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-    }
-    .invoice-action-btn:hover {
-      background: #f4f4f5;
-      color: #18181b;
-      transform: scale(1.05);
-    }
-    .invoice-action-btn:active {
-      transform: scale(0.95);
-    }
-
-    /* Bottom Section */
-    .invoice-card-bottom {
-      border-top: 1px solid #f4f4f5;
-      padding-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .invoice-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 12.5px;
     }
-    .invoice-label {
-      color: #71717a;
+    .custom-dropdown-item:hover {
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+    .custom-dropdown-item.selected {
+      background-color: #eff6ff;
+      color: #2563eb;
       font-weight: 500;
     }
-    .invoice-value {
-      color: #18181b;
-      font-weight: 600;
-    }
-    
-    /* Method badge style */
-    .invoice-method-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: #ffffff;
-      border: 1px solid #e4e4e7;
-      border-radius: 6px;
-      padding: 3px 8px;
-      font-size: 11.5px;
-      font-weight: 500;
-      color: #18181b;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-    }
 
-    /* Delete confirmation popover */
-    .invoice-delete-popover {
-      position: absolute;
-      top: 42px; right: 0;
-      background: #ffffff;
-      border: 1px solid #e4e4e7;
-      border-radius: 12px;
-      padding: 6px;
-      z-index: 20;
-      display: none;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      min-width: 150px;
-    }
-    .invoice-delete-popover.open { display: block; }
-    .invoice-delete-popover button {
-      width: 100%;
-      text-align: left;
-      padding: 7px 10px;
-      border-radius: 7px;
-      font-size: 12px;
-      font-weight: 500;
-      color: #ef4444;
-      transition: background 0.12s ease;
-    }
-    .invoice-delete-popover button:hover {
-      background: rgba(239,68,68,0.05);
-    }
-
-
-    /* Modal */
+    /* Modal overlay */
     .modal-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(2px);
       z-index: 50;
       display: flex; align-items: center; justify-content: center;
@@ -297,1150 +104,635 @@
     .modal-overlay.open { opacity: 1; pointer-events: all; }
 
     .modal-box, .confirm-box {
-      background: hsl(var(--background));
-      border: 0.5px solid hsl(var(--border));
-      border-radius: var(--radius);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06);
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
       transform: translateY(6px) scale(0.985);
-      transition: transform 0.24s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.22s ease-out;
+      transition: transform 0.22s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.2s ease-out;
       margin: 0 16px;
     }
-    .modal-box    { width: 100%; max-width: 460px; }
-    .confirm-box  { width: 100%; max-width: 380px; }
+    .modal-box { width: 100%; max-width: 520px; }
+    .confirm-box { width: 100%; max-width: 380px; }
     .modal-overlay.open .modal-box,
     .modal-overlay.open .confirm-box { transform: translateY(0) scale(1); }
 
-    /* Inputs */
-    .form-input {
-      width: 100%; height: 36px;
-      padding: 0 12px;
-      border: 0.5px solid hsl(var(--border));
-      border-radius: calc(var(--radius) - 2px);
-      background: hsl(var(--background));
-      color: hsl(var(--foreground));
-      font-size: 14px; outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      -webkit-appearance: none; appearance: none;
-    }
-    .form-input:focus {
-      border-color: hsl(var(--ring));
-      box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15);
-    }
-    .form-input::placeholder { color: hsl(var(--muted-foreground) / 0.6); }
-    .form-input.input-error  { border-color: hsl(var(--destructive)); }
-    .form-input.input-error:focus { box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.15); }
-
-    .select-wrap { position: relative; }
-    .select-wrap::after {
-      content: ''; position: absolute;
-      right: 12px; top: 50%; transform: translateY(-50%);
-      width: 0; height: 0;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
-      border-top: 5px solid hsl(var(--muted-foreground));
-      pointer-events: none;
-    }
-
-    .field-error { display: none; font-size: 12px; color: hsl(var(--destructive)); margin-top: 4px; }
+    .field-error { display: none; font-size: 12px; color: #ef4444; margin-top: 4px; }
     .field-error.visible { display: block; }
-
-    /* Custom select button borders */
-    #field_sro_btn, #field_type_btn {
-      border: 1px solid hsl(var(--border)) !important;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    #field_sro_btn:focus, #field_type_btn:focus {
-      border-color: hsl(var(--ring)) !important;
-      box-shadow: 0 0 0 2px hsl(var(--ring) / 0.15) !important;
-    }
-
-    /* Pill Options styling (reduced animation intensity) */
-    .pill-option {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .pill-option:hover {
-      transform: translateY(-0.75px) scale(1.008);
-      border-color: hsl(var(--ring) / 0.3);
-      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.06);
-    }
-    .pill-option:active {
-      transform: scale(0.985);
-    }
-    .peer:checked + .pill-option {
-      border-color: #818cf8; /* indigo-400 */
-      background-color: #eef2ff; /* indigo-50 */
-      color: #4f46e5; /* indigo-600 */
-      animation: pill-bounce-soft 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-    .peer:checked + .pill-option i {
-      transform: scale(1.08);
-      animation: icon-wobble-soft 0.35s ease-in-out;
-    }
-    @keyframes pill-bounce-soft {
-      0% { transform: scale(0.98); }
-      50% { transform: scale(1.015); }
-      100% { transform: scale(1); }
-    }
-    @keyframes icon-wobble-soft {
-      0%, 100% { transform: rotate(0deg) scale(1.08); }
-      33% { transform: rotate(-3deg) scale(1.08); }
-      66% { transform: rotate(3deg) scale(1.08); }
-    }
-
-    /* Custom Dropdown Styling */
-    .custom-dropdown-container {
-      position: relative;
-    }
-    .custom-dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      margin-top: 4px;
-      max-height: 220px;
-      overflow-y: auto;
-      background-color: #ffffff;
-      border: 1px solid #e4e4e7; /* border-zinc-200 */
-      border-radius: 8px; /* rounded-lg */
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); /* shadow-lg */
-      z-index: 99;
-      padding: 4px 0;
-    }
-    .custom-dropdown-menu.hidden {
-      display: none;
-    }
-    .custom-dropdown-item {
-      padding: 8px 12px;
-      font-size: 13px;
-      color: #3f3f46; /* text-zinc-700 */
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: background-color 0.1s ease, color 0.1s ease;
-    }
-    .custom-dropdown-item:hover {
-      background-color: #f4f4f5; /* bg-zinc-100 */
-      color: #09090b; /* text-zinc-950 */
-    }
-    .custom-dropdown-item.selected {
-      background-color: #eef2ff; /* bg-indigo-50 */
-      color: #4f46e5; /* text-indigo-600 */
-      font-weight: 500;
-    }
-
-    /* Animated Submit Button */
-    .ui-anim-btn {
-      --padding: 4px;
-      --radius: 8px; /* Rounded rectangle matching default theme radius */
-      --transition: 0.4s;
-      --highlight: hsl(var(--highlight-hue), 100%, 70%);
-      --highlight-50: hsla(var(--highlight-hue), 100%, 70%, 0.5);
-      --highlight-30: hsla(var(--highlight-hue), 100%, 70%, 0.3);
-      --highlight-20: hsla(var(--highlight-hue), 100%, 70%, 0.2);
-      --highlight-80: hsla(var(--highlight-hue), 100%, 70%, 0.8);
-      --ui-anim-svg-fill: #e8e8e8;
-      position: relative;
-    }
-
-    .ui-anim-btn::before {
-      content: "";
-      position: absolute;
-      top: calc(0px - var(--padding));
-      left: calc(0px - var(--padding));
-      width: calc(100% + var(--padding) * 2);
-      height: calc(100% + var(--padding) * 2);
-      border-radius: calc(var(--radius) + var(--padding));
-      pointer-events: none;
-      background-image: linear-gradient(0deg, #0004, #000a);
-      z-index: -1;
-      transition: box-shadow var(--transition), filter var(--transition);
-      box-shadow:
-        0 -8px 8px -6px #0000 inset,
-        0 -16px 16px -8px #00000000 inset,
-        1px 1px 1px #fff2,
-        2px 2px 2px #fff1,
-        -1px -1px 1px #0002,
-        -2px -2px 2px #0001;
-    }
-
-    .ui-anim-btn::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      background-image: linear-gradient(0deg, #fff, var(--highlight), var(--highlight-50), 8%, transparent);
-      background-position: 0 0;
-      opacity: 0;
-      transition: opacity var(--transition), filter var(--transition);
-    }
-
-    /* Letters */
-    .ui-anim-letter {
-      color: #ffffff88;
-      animation: ui-letter-anim 2s ease-in-out infinite;
-      transition: color var(--transition), text-shadow var(--transition), opacity var(--transition);
-    }
-
-    @keyframes ui-letter-anim {
-      50% {
-        text-shadow: 0 0 3px #fff8;
-        color: #fff;
-      }
-    }
-
-    /* SVG flicker */
-    .ui-anim-btn-svg {
-      filter: drop-shadow(0 0 2px #fff9);
-      animation: ui-flicker 2s linear infinite;
-      animation-delay: 0.5s;
-    }
-
-    @keyframes ui-flicker {
-      50% {
-        opacity: 0.3;
-      }
-    }
-
-    /* Text layers */
-    @keyframes ui-appear {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-
-    /* Focus states */
-    .ui-anim-btn:focus .ui-anim-txt-1 {
-      animation: ui-opacity-swap 0.3s ease-in-out forwards;
-      animation-delay: 1s;
-    }
-    .ui-anim-btn:focus .ui-anim-txt-2 {
-      animation: ui-opacity-swap 0.3s ease-in-out reverse forwards;
-      animation-delay: 1s;
-    }
-
-    @keyframes ui-opacity-swap {
-      0% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
-      }
-    }
-
-    .ui-anim-btn:focus .ui-anim-letter {
-      animation:
-        ui-focused-letter 1s ease-in-out forwards,
-        ui-letter-anim 1.2s ease-in-out infinite;
-      animation-delay: 0s, 1s;
-    }
-
-    @keyframes ui-focused-letter {
-      0%,
-      100% {
-        filter: blur(0px);
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(2);
-        filter: blur(10px) brightness(150%)
-          drop-shadow(-36px 12px 12px var(--highlight));
-      }
-    }
-
-    .ui-anim-btn:focus .ui-anim-btn-svg {
-      animation-duration: 1.2s;
-      animation-delay: 0.2s;
-    }
-
-    .ui-anim-btn:focus::before {
-      box-shadow:
-        0 -8px 12px -6px #fff3,
-        0 0 16px 0px var(--highlight-20),
-        1px 1px 1px #fff3,
-        2px 2px 2px #fff1,
-        -1px -1px 1px #0002,
-        -2px -2px 2px #0001;
-    }
-    .ui-anim-btn:focus::after {
-      opacity: 0.6;
-      -webkit-mask-image: linear-gradient(0deg, #fff, transparent);
-      mask-image: linear-gradient(0deg, #fff, transparent);
-      filter: brightness(100%);
-    }
-
-    /* Hover */
-    .ui-anim-btn:hover {
-      border-color: hsla(var(--highlight-hue), 100%, 80%, 0.4) !important;
-    }
-    .ui-anim-btn:hover::before {
-      box-shadow:
-        0 -8px 8px -6px #fffa,
-        0 0 16px 0px var(--highlight-30),
-        1px 1px 1px #fff2,
-        2px 2px 2px #fff1,
-        -1px -1px 1px #0002,
-        -2px -2px 2px #0001;
-    }
-    .ui-anim-btn:hover::after {
-      opacity: 1;
-      -webkit-mask-image: linear-gradient(0deg, #fff, transparent);
-      mask-image: linear-gradient(0deg, #fff, transparent);
-    }
-    .ui-anim-btn:hover .ui-anim-btn-svg {
-      fill: #fff;
-      filter:
-        drop-shadow(0 0 3px var(--highlight))
-        drop-shadow(0 -4px 6px #0009);
-      animation: none;
-    }
-
-    /* Active */
-    .ui-anim-btn:active {
-      border-color: hsla(var(--highlight-hue), 100%, 80%, 0.7) !important;
-      background-color: hsla(var(--highlight-hue), 50%, 20%, 0.5) !important;
-    }
-    .ui-anim-btn:active::before {
-      box-shadow:
-        0 -8px 12px -6px #fffa,
-        0 0 20px 2px var(--highlight-80),
-        1px 1px 1px #fff4,
-        2px 2px 2px #fff2,
-        -1px -1px 1px #0002,
-        -2px -2px 2px #0001;
-    }
-    .ui-anim-btn:active::after {
-      opacity: 1;
-      -webkit-mask-image: linear-gradient(0deg, #fff, transparent);
-      mask-image: linear-gradient(0deg, #fff, transparent);
-      filter: brightness(200%);
-    }
-    .ui-anim-btn:active .ui-anim-letter {
-      text-shadow: 0 0 1px hsla(var(--highlight-hue), 100%, 90%, 0.9);
-      animation: none;
-    }
-
-    /* Letter stagger delays 1:1 */
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(1),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(1) {
-      animation-delay: 0s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(2),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(2) {
-      animation-delay: 0.08s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(3),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(3) {
-      animation-delay: 0.16s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(4),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(4) {
-      animation-delay: 0.24s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(5),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(5) {
-      animation-delay: 0.32s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(6),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(6) {
-      animation-delay: 0.4s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(7),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(7) {
-      animation-delay: 0.48s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(8),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(8) {
-      animation-delay: 0.56s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(9),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(9) {
-      animation-delay: 0.64s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(10),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(10) {
-      animation-delay: 0.72s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(11),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(11) {
-      animation-delay: 0.8s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(12),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(12) {
-      animation-delay: 0.88s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(13),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(13) {
-      animation-delay: 0.96s;
-    }
-    .ui-anim-txt-1 .ui-anim-letter:nth-child(14),
-    .ui-anim-txt-2 .ui-anim-letter:nth-child(14) {
-      animation-delay: 1.04s;
-    }
-
-    /* Disabled */
-    .ui-anim-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    /* Generating Class States */
-    .ui-anim-btn .ui-anim-txt-2 {
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-    .ui-anim-btn .ui-anim-txt-1 {
-      opacity: 1;
-      transition: opacity 0.3s ease-in-out;
-    }
-    .ui-anim-btn.generating .ui-anim-txt-1 {
-      opacity: 0 !important;
-      pointer-events: none;
-    }
-    .ui-anim-btn.generating .ui-anim-txt-2 {
-      opacity: 1 !important;
-    }
-    /* Reset link colors to prevent default browser blue */
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-white flex overflow-x-hidden">
 
-<header class="anim-1 h-14 border-b border-border flex items-center justify-between px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-  <div class="flex items-center gap-3">
-    <span class="text-sm font-bold tracking-tight uppercase" style="color: #0c0c0a; letter-spacing: -0.2px;">DelhiTSR</span>
-    <div class="w-px h-4 bg-border mx-1"></div>
-    <span class="text-sm text-muted-foreground">Projects</span>
-  </div>
-  <div class="flex items-center gap-4">
-    <div class="flex items-center gap-2.5 text-xs text-muted-foreground mr-2">
-      <span class="font-medium text-zinc-700">{{ current_user.email }}</span>
-      <div class="w-px h-3 bg-border"></div>
-      <a href="/logout" class="hover:text-red-700 font-semibold transition-colors">Logout</a>
-    </div>
-    <button onclick="openModal('createModal')"
-            class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
-      <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-      New Project
-    </button>
-  </div>
-</header>
-
-<!-- ── Page body ── -->
-<main class="max-w-5xl mx-auto px-6 py-10 space-y-8">
-
-  <!-- Page header with title and Stats Strip -->
-  <div class="anim-2 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-200">
-    <div class="space-y-1">
-      <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Projects</h1>
-      <p class="text-sm text-muted-foreground select-none">
-        Manage and track automated title search audits.
-      </p>
-    </div>
+  <!-- ── GOOGLE AI STUDIO STYLE SIDEBAR ── -->
+  <aside class="w-64 border-r border-gray-200 bg-white flex flex-col justify-between shrink-0 h-screen sticky top-0 z-20 select-none">
     
-    <!-- Stats Strip -->
-    <div class="flex items-center gap-6 select-none bg-zinc-50 border border-zinc-200/80 rounded-xl px-5 py-3 shadow-sm shrink-0">
-      <!-- Stat item 1 -->
-      <div class="space-y-0.5">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total</span>
-        <div class="text-lg font-bold text-zinc-800 font-mono leading-none">
-          {{ projects|length }}
+    <!-- Top Section: Brand & Navigation -->
+    <div class="p-4 space-y-6">
+      
+      <!-- Brand Logo Header -->
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm font-bold text-xs">
+            AG
+          </div>
+          <span class="font-semibold text-gray-900 text-sm tracking-tight">Google AI Studio</span>
         </div>
-      </div>
-      <div class="w-px h-8 bg-zinc-200"></div>
-      <!-- Stat item 2 -->
-      <div class="space-y-0.5">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">MCD</span>
-        <div class="text-lg font-bold text-zinc-800 font-mono leading-none">
-          {% set mcd_count = namespace(value=0) %}
-          {% for p in projects %}{% if p.category == 'mcd' %}{% set mcd_count.value = mcd_count.value + 1 %}{% endif %}{% endfor %}
-          {{ mcd_count.value }}
-        </div>
-      </div>
-      <div class="w-px h-8 bg-zinc-200"></div>
-      <!-- Stat item 3 -->
-      <div class="space-y-0.5">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">DDA</span>
-        <div class="text-lg font-bold text-zinc-800 font-mono leading-none">
-          {% set dda_count = namespace(value=0) %}
-          {% for p in projects %}{% if p.category == 'dda' %}{% set dda_count.value = dda_count.value + 1 %}{% endif %}{% endfor %}
-          {{ dda_count.value }}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Search & Filter Controls Bar -->
-  <div class="anim-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-    <!-- Left side: search and dropdowns -->
-    <div class="flex flex-wrap items-center gap-3 flex-1 min-w-0">
-      <!-- Search wrapper -->
-      <div class="relative flex-1 min-w-[200px] max-w-sm">
-        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none"></i>
-        <input type="text" id="search-input" 
-               placeholder="Search projects, localities, IDs..." 
-               class="flex h-9 w-full rounded-lg border border-zinc-200 bg-white pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 placeholder:text-zinc-400 transition-all shadow-sm" />
-      </div>
-      <!-- Locality filter wrapper -->
-      <div class="relative">
-        <select id="filter-locality"
-                class="flex h-9 rounded-lg border border-zinc-200 bg-white pl-3 pr-8 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 appearance-none transition-all shadow-sm min-w-[120px]">
-          <option value="">All Localities</option>
-        </select>
-        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 w-3.5 h-3.5 pointer-events-none"></i>
-      </div>
-      <!-- Category filter wrapper -->
-      <div class="relative">
-        <select id="filter-category"
-                class="flex h-9 rounded-lg border border-zinc-200 bg-white pl-3 pr-8 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 appearance-none transition-all shadow-sm min-w-[110px]">
-          <option value="">All Authorities</option>
-          <option value="mcd">MCD</option>
-          <option value="dda">DDA</option>
-        </select>
-        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 w-3.5 h-3.5 pointer-events-none"></i>
-      </div>
-      <!-- Land Use filter wrapper -->
-      <div class="relative">
-        <select id="filter-land-use"
-                class="flex h-9 rounded-lg border border-zinc-200 bg-white pl-3 pr-8 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 appearance-none transition-all shadow-sm min-w-[110px]">
-          <option value="">All Land Uses</option>
-          <option value="residential">Residential</option>
-          <option value="commercial">Commercial</option>
-          <option value="agricultural">Agri Use</option>
-        </select>
-        <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 w-3.5 h-3.5 pointer-events-none"></i>
-      </div>
-    </div>
-
-    <!-- Right side: layout segmented toggles -->
-    <div class="flex items-center gap-2 select-none self-end md:self-auto shrink-0">
-      <div class="flex items-center gap-1 bg-zinc-100 p-0.5 rounded-lg border border-zinc-200/80 shadow-sm">
-        <button type="button" id="toggle-grid-btn" onclick="setViewMode('grid')" 
-                class="px-2.5 py-1 rounded-md text-xs font-semibold transition-all bg-white text-zinc-900 shadow-sm flex items-center gap-1.5">
-          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-          Grid
-        </button>
-        <button type="button" id="toggle-list-btn" onclick="setViewMode('list')" 
-                class="px-2.5 py-1 rounded-md text-xs font-semibold transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5">
-          <i data-lucide="list" class="w-3.5 h-3.5"></i>
-          List
+        <button class="text-gray-400 hover:text-gray-600 p-1 rounded-md transition-colors" title="Collapse sidebar">
+          <i data-lucide="panel-left-close" class="w-4 h-4"></i>
         </button>
       </div>
-    </div>
-  </div>
 
-  <!-- Main Projects Workspace Listings -->
-  <div class="anim-3">
-    {% if projects %}
-      <!-- 1. Grid View (Rendered by default) -->
-      <div id="projects-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {% set gradients = ['grad-blue', 'grad-rose', 'grad-amber', 'grad-emerald', 'grad-violet', 'grad-indigo', 'grad-sunset', 'grad-ocean'] %}
+      <!-- Back Link -->
+      <a href="/dashboard" class="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-800 transition-colors px-2 py-1">
+        <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+        Dashboard
+      </a>
+
+      <!-- Navigation Menu Groups -->
+      <nav class="space-y-5">
+        
+        <!-- Group 1: PROJECT -->
+        <div class="space-y-1">
+          <div class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Project</div>
+          <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i data-lucide="key" class="w-3.5 h-3.5 text-gray-400"></i>
+            <span>API Keys</span>
+          </a>
+          <a href="/projects" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-900 transition-colors">
+            <i data-lucide="folder-open" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span>Projects</span>
+          </a>
+        </div>
+
+        <!-- Group 2: USAGE & BILLING -->
+        <div class="space-y-1">
+          <div class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Usage & Billing</div>
+          <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-gray-400"></i>
+            <span>Usage</span>
+          </a>
+          <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i data-lucide="activity" class="w-3.5 h-3.5 text-gray-400"></i>
+            <span>Rate Limit</span>
+          </a>
+          <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-gray-400"></i>
+            <span>Spend</span>
+          </a>
+          <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5 text-gray-400"></i>
+            <span>Billing</span>
+          </a>
+        </div>
+
+        <!-- Group 3: OBSERVE -->
+        <div class="space-y-1">
+          <div class="px-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Observe</div>
+          <a href="#" class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+            <i data-lucide="database" class="w-3.5 h-3.5 text-gray-400"></i>
+            <span>Logs and Datasets</span>
+          </a>
+        </div>
+
+        <!-- External Link -->
+        <div class="pt-2">
+          <a href="#" class="flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
+            <span>Changelog</span>
+            <i data-lucide="external-link" class="w-3 h-3 text-gray-400"></i>
+          </a>
+        </div>
+
+      </nav>
+    </div>
+
+    <!-- Bottom Section: Settings & User Profile -->
+    <div class="p-3 border-t border-gray-100 space-y-3 bg-gray-50/50">
+      
+      <!-- Quick Action Icons -->
+      <div class="flex items-center justify-around px-1 py-1">
+        <button class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Notifications">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+        </button>
+        <button class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Settings">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+        <button class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="Search">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </button>
+        <button class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="API Keys">
+          <i data-lucide="key-round" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- User Profile Pill -->
+      <div class="flex items-center gap-2.5 p-1.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+        <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+          A
+        </div>
+        <span class="text-xs font-medium text-gray-700 truncate flex-1" title="{{ current_user.email }}">
+          {{ current_user.email }}
+        </span>
+        <a href="/logout" class="text-gray-400 hover:text-red-600 transition-colors p-1" title="Logout">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT WORKSPACE AREA ── -->
+  <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+    
+    <!-- Top Header Bar -->
+    <header class="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Projects</h1>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-300 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-2xs transition-all">
+          <i data-lucide="book-open" class="w-3.5 h-3.5 text-gray-500"></i>
+          API quickstart
+        </button>
+        
+        <button onclick="openModal('createModal')"
+                class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold shadow-2xs transition-all cursor-pointer">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          Create Project
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="p-8 space-y-6 flex-1">
+      
+      <!-- Filter and Control Toolbar Bar (Google AI Studio Pill style) -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Left: Group By & Filters -->
+        <div class="flex flex-wrap items-center gap-4">
+          
+          <!-- Group By Segment -->
+          <div class="flex items-center gap-2 text-xs text-gray-500 select-none">
+            <span>Group by</span>
+            <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-full border border-gray-200">
+              <button type="button" class="px-3 py-0.5 rounded-full text-xs font-semibold bg-white text-gray-900 shadow-2xs flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-900"></span>
+                Project
+              </button>
+              <button type="button" class="px-3 py-0.5 rounded-full text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors">
+                Locality
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter By Dropdown -->
+          <div class="flex items-center gap-2 text-xs text-gray-500 select-none">
+            <span>Filter by</span>
+            <div class="relative">
+              <select id="filter-category"
+                      class="h-8 pl-3 pr-8 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 appearance-none shadow-2xs transition-all">
+                <option value="">All projects</option>
+                <option value="mcd">MCD Projects</option>
+                <option value="dda">DDA Projects</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+
+            <div class="relative">
+              <select id="filter-land-use"
+                      class="h-8 pl-3 pr-8 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 appearance-none shadow-2xs transition-all">
+                <option value="">All Land Uses</option>
+                <option value="residential">Residential</option>
+                <option value="commercial">Commercial</option>
+                <option value="agricultural">Agri Use</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+
+            <div class="relative">
+              <select id="filter-locality"
+                      class="h-8 pl-3 pr-8 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400 appearance-none shadow-2xs transition-all min-w-[110px]">
+                <option value="">All Localities</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Search & View Toggles -->
+        <div class="flex items-center gap-3">
+          <!-- Search Bar -->
+          <div class="relative w-64">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input type="text" id="search-input"
+                   placeholder="Filter by name or ID..."
+                   class="w-full h-8 pl-8 pr-3 rounded-lg border border-gray-200 bg-white text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-2xs transition-all" />
+          </div>
+
+          <!-- View Mode Toggle -->
+          <div class="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+            <button type="button" id="toggle-list-btn" onclick="setViewMode('list')"
+                    class="px-2 py-1 rounded-md text-xs font-semibold bg-white text-gray-900 shadow-2xs transition-all">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i>
+            </button>
+            <button type="button" id="toggle-grid-btn" onclick="setViewMode('grid')"
+                    class="px-2 py-1 rounded-md text-xs font-medium text-gray-500 hover:text-gray-900 transition-all">
+              <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROJECTS TABLE VIEW (GOOGLE AI STUDIO STYLE) ── -->
+      <div id="projects-list-card" class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
+        {% if projects %}
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50/50 text-[11px] font-semibold text-gray-500 uppercase tracking-wider select-none">
+                <th class="py-3 px-4 font-semibold">Title / Project</th>
+                <th class="py-3 px-4 font-semibold">Locality / SRO</th>
+                <th class="py-3 px-4 font-semibold">Created Date</th>
+                <th class="py-3 px-4 font-semibold">Status / Tier</th>
+                <th class="py-3 px-4 text-right font-semibold pr-6">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              {% for project in projects %}
+                <tr class="project-list-row group hover:bg-gray-50/80 transition-colors cursor-pointer"
+                    data-name="{{ project.name|lower }}"
+                    data-locality="{{ project.locality|lower if project.locality else '' }}"
+                    data-category="{{ project.category|lower if project.category else '' }}"
+                    data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
+                    data-address="{{ project.address|lower if project.address else '' }}"
+                    data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}"
+                    onclick="window.location.href='/workspace/{{ project.folder }}'">
+                  
+                  <!-- Column 1: Key / Name -->
+                  <td class="py-3.5 px-4 font-medium text-gray-900">
+                    <div class="flex items-center gap-3">
+                      <div class="p-1.5 rounded bg-gray-100 border border-gray-200 text-gray-400 group-hover:text-blue-600 transition-colors shrink-0">
+                        <i data-lucide="key" class="w-3.5 h-3.5"></i>
+                      </div>
+                      <div class="min-w-0">
+                        <a href="/workspace/{{ project.folder }}" class="font-medium text-gray-900 hover:text-blue-600 hover:underline transition-colors block truncate">
+                          {{ project.name }}
+                        </a>
+                        <div class="text-[11px] text-gray-400 font-mono tracking-tight truncate mt-0.5">
+                          {% if project.mcd_upic %}
+                            UPIC: {{ project.mcd_upic }}
+                          {% elif project.id_value %}
+                            {{ project.id_type|upper if project.id_type else 'ID' }}: {{ project.id_value }}
+                          {% else %}
+                            gen-lang-client-{{ project.folder.split('_')[-1][:8] if '_' in project.folder else '00000000' }}
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Column 2: Locality / SRO -->
+                  <td class="py-3.5 px-4 text-xs text-gray-600">
+                    <div class="font-medium text-gray-800">{{ project.locality if project.locality else '—' }}</div>
+                    {% if project.sro %}
+                      <div class="text-[11px] text-gray-400 truncate mt-0.5">{{ project.sro }}</div>
+                    {% endif %}
+                  </td>
+
+                  <!-- Column 3: Created -->
+                  <td class="py-3.5 px-4 text-xs text-gray-500 font-mono">
+                    {{ project.folder.split('_')[-1] if '_' in project.folder else 'Recent' }}
+                  </td>
+
+                  <!-- Column 4: Status / Billing Tier Badge -->
+                  <td class="py-3.5 px-4 text-xs">
+                    <div class="flex flex-col gap-1 items-start">
+                      <span class="inline-flex items-center gap-1 text-gray-700 text-[11px] font-medium">
+                        Set up billing
+                      </span>
+                      {% if loop.index % 2 == 0 %}
+                        <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          Warning
+                        </span>
+                      {% else %}
+                        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          Active
+                        </span>
+                      {% endif %}
+                    </div>
+                  </td>
+
+                  <!-- Column 5: Actions -->
+                  <td class="py-3.5 px-4 text-right pr-6" onclick="event.stopPropagation()">
+                    <div class="flex items-center justify-end gap-2 text-gray-400">
+                      <button class="p-1 rounded hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Copy Folder ID" onclick="navigator.clipboard.writeText('{{ project.folder }}')">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <button class="p-1 rounded hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Usage Stats">
+                        <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <button class="p-1 rounded hover:text-gray-700 hover:bg-gray-100 transition-colors" title="Bar Stats">
+                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+                      </button>
+                      <button class="p-1 rounded hover:text-red-600 hover:bg-red-50 transition-colors" title="Delete Project" data-folder="{{ project.folder }}" onclick="confirmDeleteFolder('{{ project.folder }}')">
+                        <i data-lucide="more-vertical" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+
+      <!-- ── GRID VIEW (Rendered hidden by default unless toggled) ── -->
+      <div id="projects-grid-view" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for project in projects %}
-          <div class="project-card invoice-card"
+          <div class="project-card border border-gray-200 rounded-xl p-4 bg-white hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
                data-name="{{ project.name|lower }}"
                data-locality="{{ project.locality|lower if project.locality else '' }}"
                data-category="{{ project.category|lower if project.category else '' }}"
                data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
                data-address="{{ project.address|lower if project.address else '' }}"
                data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}"
-               onclick="handleFolderCardClick(this, event, '{{ project.folder }}')">
-            
-            <!-- Top section: doc sheet + action button -->
-            <div class="invoice-card-top">
-              <div class="invoice-doc-sheet">
-                <div class="invoice-doc-title">{{ project.name }}</div>
-                <div class="invoice-doc-subtitle">
-                  {% if project.mcd_upic %}
-                    UPIC: {{ project.mcd_upic }}
-                  {% elif project.id_value %}
-                    {{ project.id_type|upper if project.id_type else 'ID' }}: {{ project.id_value }}
-                  {% else %}
-                    #{{ project.folder.split('_')[-1][:8] if '_' in project.folder else '00000000' }}
-                  {% endif %}
-                </div>
-                <div class="invoice-skeleton-bar"></div>
-                <span class="invoice-badge-green">
-                  {% if project.category %}
-                    {{ project.category|upper if project.category in ['mcd', 'dda'] else (project.category|replace('_', ' ')|capitalize) }}
-                  {% else %}
-                    TSR
-                  {% endif %}
-                </span>
-              </div>
-
-              <!-- Options Button (Download Circle Style) -->
-              <button class="invoice-action-btn folder-card-menu" onclick="event.stopPropagation(); toggleFolderMenu(this)" title="Options">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="1.5"/>
-                  <circle cx="19" cy="12" r="1.5"/>
-                  <circle cx="5" cy="12" r="1.5"/>
-                </svg>
-              </button>
-
-              <!-- Delete popover -->
-              <div class="invoice-delete-popover folder-delete-popover">
-                <button onclick="event.stopPropagation(); confirmDeleteFolder('{{ project.folder }}')">
-                  <span style="display:inline-flex;align-items:center;gap:5px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    Delete Project
-                  </span>
+               onclick="window.location.href='/workspace/{{ project.folder }}'">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="font-semibold text-gray-900 text-sm truncate">{{ project.name }}</h3>
+                <button class="text-gray-400 hover:text-red-600 p-1" onclick="event.stopPropagation(); confirmDeleteFolder('{{ project.folder }}')">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
+              <p class="text-xs text-gray-500 mt-1 font-mono">
+                {{ project.locality if project.locality else 'General Locality' }}
+              </p>
             </div>
-
-            <!-- Bottom section: Details Table -->
-            <div class="invoice-card-bottom">
-              <div class="invoice-row">
-                <span class="invoice-label">Locality</span>
-                <span class="invoice-value">{{ project.locality if project.locality else "General" }}</span>
-              </div>
-              <div class="invoice-row">
-                <span class="invoice-label">Created</span>
-                <span class="invoice-value">{{ project.folder.split('_')[-1] if '_' in project.folder else 'Recent' }}</span>
-              </div>
-              <div class="invoice-row">
-                <span class="invoice-label">Files</span>
-                <span class="invoice-method-badge">
-                  <!-- File stack icon -->
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                  </svg>
-                  {{ project.doc_count }} File{{ 's' if project.doc_count != 1 else '' }}
-                </span>
-              </div>
+            <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+              <span>{{ project.doc_count }} Document{{ 's' if project.doc_count != 1 else '' }}</span>
+              <span class="text-blue-600 font-semibold hover:underline">Open &rarr;</span>
             </div>
           </div>
         {% endfor %}
       </div>
 
-      <!-- 2. List View (Rendered hidden by default) -->
-      <div id="projects-list-card" class="hidden rounded-xl border border-border bg-card shadow-sm overflow-hidden p-1.5">
-        <div id="projects-list-view" class="flex flex-col gap-1.5">
-          {% for project in projects %}
-            <div class="project-list-row group flex items-center justify-between gap-4 p-4 bg-card rounded-lg hover:bg-zinc-50/70 border border-transparent hover:border-zinc-200 transition-all duration-200"
-                 data-name="{{ project.name|lower }}"
-                 data-locality="{{ project.locality|lower if project.locality else '' }}"
-                 data-category="{{ project.category|lower if project.category else '' }}"
-                 data-land-use="{{ project.land_use|lower if project.land_use else '' }}"
-                 data-address="{{ project.address|lower if project.address else '' }}"
-                 data-id="{{ project.mcd_upic|lower if project.mcd_upic else '' }} {{ project.id_value|lower if project.id_value else '' }}">
-              
-              <!-- Left Side: Folder & Name & Address -->
-              <div class="flex items-center gap-4 min-w-0 flex-1">
-                <div class="p-2 rounded-lg bg-zinc-50 border border-zinc-200 group-hover:border-zinc-300 group-hover:bg-zinc-100 transition-colors shrink-0">
-                  <i data-lucide="folder" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-600 transition-colors"></i>
-                </div>
-                <div class="min-w-0 space-y-0.5">
-                  <div class="flex items-center gap-2">
-                    <a href="/workspace/{{ project.folder }}" class="text-sm font-medium tracking-tight text-zinc-800 group-hover:text-zinc-950 truncate hover:underline transition-colors">
-                      {{ project.name }}
-                    </a>
-                  </div>
-                  {% if project.address or project.flat_no or project.floor_no %}
-                    <span class="text-[11px] text-zinc-400 truncate max-w-[320px] block">
-                      {% if project.flat_no or project.floor_no %}
-                        {% if project.flat_no %}{{ project.flat_no }}{% endif %}{% if project.flat_no and project.floor_no %}, {% endif %}{% if project.floor_no %}{{ project.floor_no }}{% endif %} • 
-                      {% endif %}
-                      {{ project.address }}
-                    </span>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Middle Side: Badges & Identifiers -->
-              <div class="flex items-center gap-6 shrink-0">
-                <!-- Locality/SRO -->
-                <div class="w-36 text-left truncate">
-                  <span class="text-xs font-medium text-zinc-700">
-                    {{ project.locality if project.locality else "—" }}
-                  </span>
-                  {% if project.sro %}
-                    <span class="text-[10px] text-zinc-400 block truncate mt-0.5">{{ project.sro.split(' ')[0] }}</span>
-                  {% endif %}
-                </div>
-
-                <!-- Category & Land Use -->
-                <div class="w-36 flex flex-col gap-1 items-start">
-                  {% if project.category %}
-                    <span class="inline-flex items-center gap-1 text-[9px] font-medium px-2 py-0.5 rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
-                      {{ project.category|upper if project.category in ['mcd', 'dda'] else (project.category|replace('_', ' ')|capitalize) }}
-                    </span>
-                  {% endif %}
-                  {% if project.land_use %}
-                    <span class="inline-flex items-center gap-1 text-[9px] font-medium px-2 py-0.5 rounded-md border border-zinc-200 bg-zinc-50 text-zinc-500">
-                      {{ project.land_use|capitalize }}
-                    </span>
-                  {% endif %}
-                </div>
-
-                <!-- Property IDs -->
-                <div class="w-40 flex flex-col gap-1 items-start">
-                  {% if project.mcd_upic %}
-                    <span class="text-[9px] font-mono bg-zinc-50 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-200">
-                      UPIC: {{ project.mcd_upic }}
-                    </span>
-                  {% endif %}
-                  {% if project.id_type and project.id_value %}
-                    <span class="text-[9px] font-mono bg-zinc-50 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-200">
-                      {{ project.id_type.replace('_', ' ').upper() }}: {{ project.id_value }}
-                    </span>
-                  {% endif %}
-                  {% if not project.mcd_upic and not (project.id_type and project.id_value) %}
-                    <span class="text-xs text-muted-foreground">—</span>
-                  {% endif %}
-                </div>
-              </div>
-
-              <!-- Right Side: Actions -->
-              <div class="flex items-center gap-2 shrink-0">
-                <a href="/workspace/{{ project.folder }}" class="inline-flex items-center justify-center h-8 px-3 rounded-lg border border-zinc-200 bg-white text-xs font-semibold text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50 hover:border-zinc-300 shadow-sm transition-all">
-                  Open
-                </a>
-                <button class="btn-delete inline-flex items-center justify-center h-8 w-8 rounded-lg border border-transparent text-zinc-400 hover:text-destructive hover:bg-destructive/5 transition-all"
-                        title="Delete project"
-                        data-folder="{{ project.folder }}"
-                        onclick="event.stopPropagation(); confirmDelete(this)">
-                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
+      <!-- Empty Filter State -->
+      <div id="no-results-state" class="hidden flex flex-col items-center justify-center p-12 border border-dashed border-gray-300 rounded-xl bg-gray-50/50 text-center">
+        <i data-lucide="folder-open" class="w-8 h-8 text-gray-400 mb-2"></i>
+        <p class="text-sm font-semibold text-gray-800">No matching projects found</p>
+        <p class="text-xs text-gray-500 mt-1">Try adjusting your filters or search query.</p>
       </div>
-    {% endif %}
 
-    <!-- 3. Empty Search / Filter Results State -->
-    <div id="no-results-state" class="hidden flex flex-col items-center justify-center px-6 py-20 text-center border border-dashed border-zinc-200 rounded-xl bg-zinc-50/40">
-      <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 mb-4 text-zinc-400 animate-pulse">
-        <i data-lucide="folder-open" class="w-5 h-5 text-zinc-400"></i>
-      </div>
-      <p class="text-sm font-semibold mb-1">No matching projects found</p>
-      <p class="text-xs text-muted-foreground">Try adjusting your filters or search keywords.</p>
-    </div>
-
-    <!-- 4. Default Empty State (No Projects at all) -->
-    {% if not projects %}
-      <div class="flex flex-col items-center justify-center px-6 py-20 text-center border border-dashed border-zinc-200 rounded-xl bg-zinc-50/40 animate-fade-in">
-        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 mb-4 text-zinc-400">
-          <i data-lucide="folder-plus" class="w-5 h-5"></i>
-        </div>
-        <p class="text-sm font-semibold mb-1">No projects yet</p>
-        <p class="text-xs text-muted-foreground mb-5">Create your first title search project to begin.</p>
-        <button onclick="openModal('createModal')"
-                class="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-zinc-200 bg-white text-xs font-semibold hover:bg-zinc-50 shadow-sm transition-all">
-          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          New Project
+      <!-- Bottom Google AI Studio Callout Box -->
+      <div class="flex flex-col items-center justify-center p-8 bg-gray-50/50 border border-gray-200 rounded-2xl text-center space-y-3 max-w-xl mx-auto my-6 select-none">
+        <h3 class="text-sm font-semibold text-gray-900">Can't find your API keys here?</h3>
+        <p class="text-xs text-gray-500 max-w-md leading-relaxed">
+          This list only shows API keys for projects imported into Google AI Studio. Import other projects to manage their associated API Keys.
+          You can also create a new API Key above. <a href="#" class="text-blue-600 hover:underline">Learn more</a>
+        </p>
+        <button onclick="openModal('createModal')" class="px-5 py-2 bg-white border border-gray-300 text-xs font-semibold text-gray-700 rounded-lg hover:bg-gray-50 shadow-2xs transition-colors cursor-pointer">
+          Import projects
         </button>
       </div>
-    {% endif %}
+
+    </main>
   </div>
 
-</main>
-
-<!-- ── CREATE MODAL ── -->
-<div class="modal-overlay" id="createModal" onclick="handleOverlayClick(event, 'createModal')">
-  <div class="modal-box !rounded-2xl p-6 space-y-6 w-full max-w-[550px] relative">
-    
-    <!-- Header -->
-    <div class="space-y-1.5 text-center relative">
-      <h2 class="text-base font-semibold tracking-tight">Create Title Search Project</h2>
-      <p class="text-xs text-muted-foreground">Configure property metadata and search parameters.</p>
-      <button onclick="closeModal('createModal')"
-              class="absolute right-0 top-0 inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-accent transition-colors -mt-1 shrink-0">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-    </div>
-
-    <!-- Form styled like shadcn payment form -->
-    <form action="/create_project" method="POST" onsubmit="return validateForm()" class="space-y-4">
-
-      <!-- Project Name -->
-      <div class="space-y-1">
-        <label for="field_name" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Project Name</label>
-        <input type="text" name="project_name" id="field_name"
-               placeholder="e.g. Sharma Flat — Vasant Kunj"
-               class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all" />
-        <p class="field-error text-[11px] text-destructive mt-1 hidden" id="err_name">Please enter a project name.</p>
-      </div>
-
-      <!-- Locality & SRO Office -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1 relative" id="locality-dropdown-container">
-          <label for="field_locality" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Locality</label>
-          <input type="text" name="locality" id="field_locality" autocomplete="off"
-                 placeholder="e.g. Vasant Kunj"
-                 class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all" />
-          <div id="locality-custom-menu" class="hidden absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg z-50 py-1 transition-all duration-200">
-            <!-- Populated dynamically via JS -->
-          </div>
-          <p class="field-error text-[11px] text-destructive mt-1 hidden" id="err_locality">Enter the Locality name.</p>
+  <!-- ── CREATE MODAL ── -->
+  <div class="modal-overlay" id="createModal" onclick="handleOverlayClick(event, 'createModal')">
+    <div class="modal-box p-6 space-y-6 w-full max-w-[520px] relative">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+        <div>
+          <h2 class="text-base font-bold text-gray-900 tracking-tight">Create Title Search Project</h2>
+          <p class="text-xs text-gray-500 mt-0.5">Configure property metadata and search parameters.</p>
         </div>
-        <div class="space-y-1 relative" id="sro-dropdown-container">
-          <label for="field_sro_btn" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Sub-Registrar Office (SRO)</label>
-          <input type="hidden" name="sro" id="field_sro" />
-          <button type="button" id="field_sro_btn"
-                  class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-left focus:outline-none focus:ring-1 focus:ring-ring appearance-none pr-8 transition-all justify-between items-center">
-            <span id="field_sro_label" class="text-muted-foreground/60">Select SRO Office</span>
-            <i data-lucide="chevron-down" class="text-muted-foreground pointer-events-none w-4 h-4"></i>
-          </button>
-          <div id="sro-custom-menu" class="hidden absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg z-50 py-1 transition-all duration-200">
-            <!-- Populated dynamically via JS -->
-          </div>
-          <p class="field-error text-[11px] text-destructive mt-1 hidden" id="err_sro">Select the SRO Office.</p>
-        </div>
-      </div>
-
-      <!-- Regulatory Authority (Full Width Stacked) -->
-      <div class="space-y-2">
-        <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-          Regulatory Authority
-        </span>
-        <div class="grid grid-cols-2 gap-3">
-          <!-- MCD -->
-          <label class="cursor-pointer">
-            <input type="radio" name="category" value="mcd" checked class="sr-only peer" />
-            <div class="pill-option flex items-center justify-center gap-2 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-600 transition-all peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-300 hover:bg-zinc-50 hover:text-zinc-900 shadow-sm">
-              <i data-lucide="landmark" class="w-4 h-4 shrink-0 transition-transform duration-300"></i>
-              <span>MCD</span>
-            </div>
-          </label>
-          <!-- DDA -->
-          <label class="cursor-pointer">
-            <input type="radio" name="category" value="dda" class="sr-only peer" />
-            <div class="pill-option flex items-center justify-center gap-2 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-600 transition-all peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-300 hover:bg-zinc-50 hover:text-zinc-900 shadow-sm">
-              <i data-lucide="building-2" class="w-4 h-4 shrink-0 transition-transform duration-300"></i>
-              <span>DDA</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Land Use Type (Full Width Stacked) -->
-      <div class="space-y-2">
-        <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-          Land Use Type
-        </span>
-        <div class="grid grid-cols-3 gap-3">
-          <!-- Residential -->
-          <label class="cursor-pointer">
-            <input type="radio" name="land_use" value="residential" checked class="sr-only peer" />
-            <div class="pill-option flex items-center justify-center gap-2 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-600 transition-all peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-300 hover:bg-zinc-50 hover:text-zinc-900 shadow-sm">
-              <i data-lucide="home" class="w-4 h-4 shrink-0 transition-transform duration-300"></i>
-              <span>Residential</span>
-            </div>
-          </label>
-          <!-- Commercial -->
-          <label class="cursor-pointer">
-            <input type="radio" name="land_use" value="commercial" class="sr-only peer" />
-            <div class="pill-option flex items-center justify-center gap-2 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-600 transition-all peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-300 hover:bg-zinc-50 hover:text-zinc-900 shadow-sm">
-              <i data-lucide="briefcase" class="w-4 h-4 shrink-0 transition-transform duration-300"></i>
-              <span>Commercial</span>
-            </div>
-          </label>
-          <!-- Agricultural -->
-          <label class="cursor-pointer">
-            <input type="radio" name="land_use" value="agricultural" class="sr-only peer" />
-            <div class="pill-option flex items-center justify-center gap-2 h-10 px-3 rounded-xl border border-zinc-200 bg-white text-xs font-semibold text-zinc-600 transition-all peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-300 hover:bg-zinc-50 hover:text-zinc-900 shadow-sm">
-              <i data-lucide="leaf" class="w-4 h-4 shrink-0 transition-transform duration-300"></i>
-              <span>Agri Use</span>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Identifiers & UPIC (4-column Grid Layout) -->
-      <div class="grid grid-cols-4 gap-3">
-        <!-- MCD UPIC ID -->
-        <div class="col-span-2 space-y-1">
-          <label for="field_mcd_upic" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">MCD UPIC ID (Optional)</label>
-          <input type="text" name="mcd_upic" id="field_mcd_upic"
-                 placeholder="e.g. 100293847561"
-                 class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all" />
-        </div>
-        <!-- Other Property ID Type -->
-        <div class="col-span-1 space-y-1 relative" id="type-dropdown-container">
-          <label for="field_type_btn" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Property ID Type</label>
-          <input type="hidden" name="id_type" id="field_type" />
-          <button type="button" id="field_type_btn"
-                  class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-[12px] text-left focus:outline-none focus:ring-1 focus:ring-ring appearance-none pr-8 transition-all justify-between items-center">
-            <span id="field_type_label" class="text-muted-foreground/60">Select (Opt)</span>
-            <i data-lucide="chevron-down" class="text-muted-foreground pointer-events-none w-3.5 h-3.5"></i>
-          </button>
-          <div id="type-custom-menu" class="hidden absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-zinc-200 bg-white shadow-lg z-50 py-1 transition-all duration-200">
-            <div class="custom-dropdown-item" data-value="">
-              <span>Select (Opt)</span>
-              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 hidden"></i>
-            </div>
-            <div class="custom-dropdown-item" data-value="plot_no">
-              <span>Plot No.</span>
-              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 hidden"></i>
-            </div>
-            <div class="custom-dropdown-item" data-value="khasra_no">
-              <span>Khasra No.</span>
-              <i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 hidden"></i>
-            </div>
-          </div>
-        </div>
-        <!-- Other Property ID Value -->
-        <div class="col-span-1 space-y-1">
-          <label for="field_value" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Property ID Value</label>
-          <input type="text" name="id_value" id="field_value"
-                 placeholder="e.g. 349/B"
-                 class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all" />
-          <p class="field-error text-[11px] text-destructive mt-1 hidden" id="err_value">Enter ID value.</p>
-        </div>
-      </div>
-
-      <!-- Flat/Unit No. & Floor No. (Building parameters) -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1">
-          <label for="field_flat_no" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Flat / Unit No.</label>
-          <input type="text" name="flat_no" id="field_flat_no"
-                 placeholder="e.g. Flat 302"
-                 class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all" />
-        </div>
-        <div class="space-y-1">
-          <label for="field_floor_no" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Floor Number</label>
-          <input type="text" name="floor_no" id="field_floor_no"
-                 placeholder="e.g. Third Floor"
-                 class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all" />
-        </div>
-      </div>
-
-      <!-- Property Address Dump -->
-      <div class="space-y-1">
-        <label for="field_address" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Property Address Dump</label>
-        <textarea name="address" id="field_address" rows="2"
-                  placeholder="Complete physical address of the property being audited..."
-                  class="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring transition-all resize-none"></textarea>
-      </div>
-
-      <!-- Submit Button -->
-      <div class="relative w-full text-center" id="create-project-btn-wrapper">
-        <button type="submit" name="confirm" value="1" id="create-project-submit"
-                aria-label="Create Project"
-                class="ui-anim-btn w-full h-11 relative flex items-center justify-center cursor-pointer select-none rounded-lg bg-zinc-900 text-white border border-white/10 shadow-[inset_0px_1px_1px_rgba(255,255,255,0.2),inset_0px_2px_2px_rgba(255,255,255,0.15),inset_0px_4px_4px_rgba(255,255,255,0.1),inset_0px_8px_8px_rgba(255,255,255,0.05),inset_0px_16px_16px_rgba(255,255,255,0.05),0_-1px_1px_rgba(0,0,0,0.02),0_-2px_2px_rgba(0,0,0,0.03),0_-4px_4px_rgba(0,0,0,0.05),0_-8px_8px_rgba(0,0,0,0.06),0_-16px_16px_rgba(0,0,0,0.08)] transition-[box-shadow,border,background-color] duration-400 mt-2"
-                style="--highlight-hue: 210deg;">
-          <svg class="ui-anim-btn-svg mr-2 h-5 w-5 flex-grow-0 fill-[#e8e8e8] transition-[fill,filter,opacity] duration-400 relative z-10"
-               xmlns="http://www.w3.org/2000/svg"
-               viewBox="0 0 24 24"
-               aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"></path>
-          </svg>
-          <div class="ui-anim-txt-wrapper relative z-10 flex min-w-[7.2em] items-center">
-            <div class="ui-anim-txt-1 absolute flex items-center">
-              <span class="ui-anim-letter inline-block">C</span>
-              <span class="ui-anim-letter inline-block">r</span>
-              <span class="ui-anim-letter inline-block">e</span>
-              <span class="ui-anim-letter inline-block">a</span>
-              <span class="ui-anim-letter inline-block">t</span>
-              <span class="ui-anim-letter inline-block">e</span>
-              <span class="ui-anim-letter inline-block">&nbsp;</span>
-              <span class="ui-anim-letter inline-block">P</span>
-              <span class="ui-anim-letter inline-block">r</span>
-              <span class="ui-anim-letter inline-block">o</span>
-              <span class="ui-anim-letter inline-block">j</span>
-              <span class="ui-anim-letter inline-block">e</span>
-              <span class="ui-anim-letter inline-block">c</span>
-              <span class="ui-anim-letter inline-block">t</span>
-            </div>
-            <div class="ui-anim-txt-2 absolute flex items-center">
-              <span class="ui-anim-letter inline-block">C</span>
-              <span class="ui-anim-letter inline-block">r</span>
-              <span class="ui-anim-letter inline-block">e</span>
-              <span class="ui-anim-letter inline-block">a</span>
-              <span class="ui-anim-letter inline-block">t</span>
-              <span class="ui-anim-letter inline-block">i</span>
-              <span class="ui-anim-letter inline-block">n</span>
-              <span class="ui-anim-letter inline-block">g</span>
-              <span class="ui-anim-letter inline-block">.</span>
-              <span class="ui-anim-letter inline-block">.</span>
-              <span class="ui-anim-letter inline-block">.</span>
-            </div>
-          </div>
+        <button onclick="closeModal('createModal')" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-    </form>
+      <!-- Form -->
+      <form action="/create_project" method="POST" onsubmit="return validateForm()" class="space-y-4">
 
-    <p class="text-muted-foreground text-center text-xs">
-      Mandates configure automated circle rate audits and mutation checks.
-    </p>
-  </div>
-</div>
-<!-- ── DELETE CONFIRM MODAL ── -->
-<div class="modal-overlay" id="deleteModal" onclick="handleOverlayClick(event, 'deleteModal')">
-  <div class="confirm-box">
-    <div class="px-6 pt-6 pb-5">
-      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10 mb-4">
-        <i data-lucide="trash-2" class="w-4 h-4 text-destructive"></i>
-      </div>
-      <h2 class="text-base font-semibold tracking-tight mb-1">Delete project?</h2>
-      <p class="text-sm text-muted-foreground leading-relaxed">
-        This will permanently delete <span id="deleteProjectLabel" class="font-medium text-foreground"></span> and all its files. This cannot be undone.
-      </p>
-    </div>
-    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/30 rounded-b-lg">
-      <button type="button" onclick="closeModal('deleteModal')"
-              class="inline-flex items-center h-9 px-4 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent transition-colors">
-        Cancel
-      </button>
-      <form id="deleteForm" method="POST" style="display:contents">
-        <button type="submit"
-                class="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-destructive text-destructive-foreground text-sm font-medium shadow-sm hover:bg-destructive/90 active:scale-[0.98] transition-all">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          Delete
-        </button>
+        <!-- Project Name -->
+        <div class="space-y-1">
+          <label for="field_name" class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Project Name</label>
+          <input type="text" name="project_name" id="field_name"
+                 placeholder="e.g. Sharma Flat — Vasant Kunj"
+                 class="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" />
+          <p class="field-error" id="err_name">Please enter a project name.</p>
+        </div>
+
+        <!-- Locality & SRO Office -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1 relative" id="locality-dropdown-container">
+            <label for="field_locality" class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Locality</label>
+            <input type="text" name="locality" id="field_locality" autocomplete="off"
+                   placeholder="e.g. Vasant Kunj"
+                   class="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" />
+            <div id="locality-custom-menu" class="hidden custom-dropdown-menu"></div>
+            <p class="field-error" id="err_locality">Enter the Locality name.</p>
+          </div>
+
+          <div class="space-y-1 relative" id="sro-dropdown-container">
+            <label for="field_sro_btn" class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">SRO Office</label>
+            <input type="hidden" name="sro" id="field_sro" />
+            <button type="button" id="field_sro_btn"
+                    class="w-full h-9 rounded-lg border border-gray-300 bg-white px-3 text-xs text-left focus:outline-none focus:ring-1 focus:ring-blue-500 flex items-center justify-between">
+              <span id="field_sro_label" class="text-gray-400">Select SRO Office</span>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400"></i>
+            </button>
+            <div id="sro-custom-menu" class="hidden custom-dropdown-menu"></div>
+            <p class="field-error" id="err_sro">Select the SRO Office.</p>
+          </div>
+        </div>
+
+        <!-- Category & Land Use -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Authority</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="cursor-pointer">
+                <input type="radio" name="category" value="mcd" checked class="sr-only peer" />
+                <div class="flex items-center justify-center h-8 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-300 hover:bg-gray-50 transition-all">
+                  MCD
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="category" value="dda" class="sr-only peer" />
+                <div class="flex items-center justify-center h-8 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-300 hover:bg-gray-50 transition-all">
+                  DDA
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Land Use</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <label class="cursor-pointer">
+                <input type="radio" name="land_use" value="residential" checked class="sr-only peer" />
+                <div class="flex items-center justify-center h-8 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-300 hover:bg-gray-50 transition-all">
+                  Resi
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="land_use" value="commercial" class="sr-only peer" />
+                <div class="flex items-center justify-center h-8 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-300 hover:bg-gray-50 transition-all">
+                  Comm
+                </div>
+              </label>
+              <label class="cursor-pointer">
+                <input type="radio" name="land_use" value="agricultural" class="sr-only peer" />
+                <div class="flex items-center justify-center h-8 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-600 peer-checked:bg-blue-50 peer-checked:text-blue-600 peer-checked:border-blue-300 hover:bg-gray-50 transition-all">
+                  Agri
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button type="submit" name="confirm" value="1"
+                  class="w-full h-10 rounded-lg bg-gray-900 hover:bg-gray-800 text-white font-semibold text-xs shadow-sm transition-all cursor-pointer">
+            Create Project
+          </button>
+        </div>
       </form>
     </div>
   </div>
-</div>
 
-<script>
-  lucide.createIcons();
+  <!-- ── DELETE MODAL ── -->
+  <div class="modal-overlay" id="deleteModal" onclick="handleOverlayClick(event, 'deleteModal')">
+    <div class="confirm-box p-6 space-y-4">
+      <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+        <i data-lucide="trash-2" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-gray-900">Delete project?</h3>
+        <p class="text-xs text-gray-500 mt-1">This will permanently delete this project and all its records. This cannot be undone.</p>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+        <button type="button" onclick="closeModal('deleteModal')" class="px-4 py-2 rounded-lg border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+          Cancel
+        </button>
+        <form id="deleteForm" method="POST" style="display:contents">
+          <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-2xs transition-colors">
+            Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-  // Set View Mode (Grid vs List)
-  function setViewMode(mode) {
-    const gridView = document.getElementById('projects-grid-view');
-    const listView = document.getElementById('projects-list-card');
-    const gridBtn = document.getElementById('toggle-grid-btn');
-    const listBtn = document.getElementById('toggle-list-btn');
-    const noResults = document.getElementById('no-results-state');
+  <script>
+    lucide.createIcons();
 
-    localStorage.setItem('projects-view-mode', mode);
-
-    const hasResults = !noResults || noResults.classList.contains('hidden');
-
-    if (mode === 'grid') {
-      if (gridView && hasResults) gridView.classList.remove('hidden');
-      if (listView) listView.classList.add('hidden');
-      
-      // Update buttons
-      if (gridBtn) gridBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition-all bg-white text-zinc-900 shadow-sm flex items-center gap-1.5";
-      if (listBtn) listBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5";
-    } else {
-      if (gridView) gridView.classList.add('hidden');
-      if (listView && hasResults) listView.classList.remove('hidden');
-
-      // Update buttons
-      if (gridBtn) gridBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition-all text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5";
-      if (listBtn) listBtn.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition-all bg-white text-zinc-900 shadow-sm flex items-center gap-1.5";
+    function openModal(id) {
+      document.getElementById(id)?.classList.add('open');
     }
-  }
+    function closeModal(id) {
+      document.getElementById(id)?.classList.remove('open');
+    }
+    function handleOverlayClick(e, id) {
+      if (e.target.classList.contains('modal-overlay')) closeModal(id);
+    }
+    function confirmDeleteFolder(folder) {
+      const deleteForm = document.getElementById('deleteForm');
+      if (deleteForm) deleteForm.action = '/delete_project/' + folder;
+      openModal('deleteModal');
+    }
 
-  // Filter and Search Handler
-  function filterProjects() {
-    const searchInput = document.getElementById('search-input');
-    if (!searchInput) return;
-    const searchVal = searchInput.value.toLowerCase().trim();
-    const categoryVal = document.getElementById('filter-category').value.toLowerCase();
-    const landUseVal = document.getElementById('filter-land-use').value.toLowerCase();
-    const localityVal = document.getElementById('filter-locality').value.toLowerCase();
+    function setViewMode(mode) {
+      const gridView = document.getElementById('projects-grid-view');
+      const listCard = document.getElementById('projects-list-card');
+      const gridBtn = document.getElementById('toggle-grid-btn');
+      const listBtn = document.getElementById('toggle-list-btn');
 
-    const cards = document.querySelectorAll('.project-card');
-    const rows = document.querySelectorAll('.project-list-row');
+      localStorage.setItem('projects-view-mode', mode);
 
-    let visibleCount = 0;
-
-    // Filter Grid Cards
-    cards.forEach(card => {
-      const name = card.getAttribute('data-name');
-      const locality = card.getAttribute('data-locality');
-      const category = card.getAttribute('data-category');
-      const landUse = card.getAttribute('data-land-use');
-      const address = card.getAttribute('data-address');
-      const ids = card.getAttribute('data-id');
-
-      const matchesSearch = !searchVal || 
-                            name.includes(searchVal) || 
-                            locality.includes(searchVal) || 
-                            address.includes(searchVal) || 
-                            ids.includes(searchVal);
-      
-      const matchesCategory = !categoryVal || category === categoryVal;
-      const matchesLandUse = !landUseVal || landUse === landUseVal;
-      const matchesLocality = !localityVal || locality === localityVal;
-
-      if (matchesSearch && matchesCategory && matchesLandUse && matchesLocality) {
-        card.classList.remove('hidden');
-        visibleCount++;
+      if (mode === 'grid') {
+        if (gridView) gridView.classList.remove('hidden');
+        if (listCard) listCard.classList.add('hidden');
+        if (gridBtn) gridBtn.className = "px-2 py-1 rounded-md text-xs font-semibold bg-white text-gray-900 shadow-2xs transition-all";
+        if (listBtn) listBtn.className = "px-2 py-1 rounded-md text-xs font-medium text-gray-500 hover:text-gray-900 transition-all";
       } else {
-        card.classList.add('hidden');
-      }
-    });
-
-    // Filter List Rows
-    rows.forEach(row => {
-      const name = row.getAttribute('data-name');
-      const locality = row.getAttribute('data-locality');
-      const category = row.getAttribute('data-category');
-      const landUse = row.getAttribute('data-land-use');
-      const address = row.getAttribute('data-address');
-      const ids = row.getAttribute('data-id');
-
-      const matchesSearch = !searchVal || 
-                            name.includes(searchVal) || 
-                            locality.includes(searchVal) || 
-                            address.includes(searchVal) || 
-                            ids.includes(searchVal);
-      
-      const matchesCategory = !categoryVal || category === categoryVal;
-      const matchesLandUse = !landUseVal || landUse === landUseVal;
-      const matchesLocality = !localityVal || locality === localityVal;
-
-      if (matchesSearch && matchesCategory && matchesLandUse && matchesLocality) {
-        row.classList.remove('hidden');
-      } else {
-        row.classList.add('hidden');
-      }
-    });
-
-    // Show Empty State if no visible projects
-    const noResults = document.getElementById('no-results-state');
-    const gridContainer = document.getElementById('projects-grid-view');
-    const projectsListCard = document.getElementById('projects-list-card');
-    const savedMode = localStorage.getItem('projects-view-mode') || 'grid';
-
-    if (visibleCount === 0) {
-      if (noResults) noResults.classList.remove('hidden');
-      if (gridContainer) gridContainer.classList.add('hidden');
-      if (projectsListCard) projectsListCard.classList.add('hidden');
-    } else {
-      if (noResults) noResults.add('hidden');
-      if (savedMode === 'grid') {
-        if (gridContainer) gridContainer.classList.remove('hidden');
-      } else {
-        if (projectsListCard) projectsListCard.classList.remove('hidden');
+        if (gridView) gridView.classList.add('hidden');
+        if (listCard) listCard.classList.remove('hidden');
+        if (gridBtn) gridBtn.className = "px-2 py-1 rounded-md text-xs font-medium text-gray-500 hover:text-gray-900 transition-all";
+        if (listBtn) listBtn.className = "px-2 py-1 rounded-md text-xs font-semibold bg-white text-gray-900 shadow-2xs transition-all";
       }
     }
-  }
 
-  // Populate dynamic locality filter dropdown
-  function populateLocalityFilter() {
-    const filterLoc = document.getElementById('filter-locality');
-    if (filterLoc) {
-      const localities = new Set();
-      document.querySelectorAll('.project-card').forEach(card => {
-        const loc = card.getAttribute('data-locality');
-        if (loc) {
-          localities.add(loc);
+    function filterProjects() {
+      const searchVal = document.getElementById('search-input')?.value.toLowerCase().trim() || '';
+      const categoryVal = document.getElementById('filter-category')?.value.toLowerCase() || '';
+      const landUseVal = document.getElementById('filter-land-use')?.value.toLowerCase() || '';
+      const localityVal = document.getElementById('filter-locality')?.value.toLowerCase() || '';
+
+      const rows = document.querySelectorAll('.project-list-row');
+      const cards = document.querySelectorAll('.project-card');
+
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const name = row.getAttribute('data-name') || '';
+        const locality = row.getAttribute('data-locality') || '';
+        const category = row.getAttribute('data-category') || '';
+        const landUse = row.getAttribute('data-land-use') || '';
+
+        const matchesSearch = !searchVal || name.includes(searchVal) || locality.includes(searchVal);
+        const matchesCategory = !categoryVal || category === categoryVal;
+        const matchesLandUse = !landUseVal || landUse === landUseVal;
+        const matchesLocality = !localityVal || locality === localityVal;
+
+        if (matchesSearch && matchesCategory && matchesLandUse && matchesLocality) {
+          row.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          row.classList.add('hidden');
         }
       });
-      
-      // Clean previous dynamic options except 'All Localities'
-      while (filterLoc.options.length > 1) {
-        filterLoc.remove(1);
+
+      cards.forEach(card => {
+        const name = card.getAttribute('data-name') || '';
+        const locality = card.getAttribute('data-locality') || '';
+        const category = card.getAttribute('data-category') || '';
+        const landUse = card.getAttribute('data-land-use') || '';
+
+        const matchesSearch = !searchVal || name.includes(searchVal) || locality.includes(searchVal);
+        const matchesCategory = !categoryVal || category === categoryVal;
+        const matchesLandUse = !landUseVal || landUse === landUseVal;
+        const matchesLocality = !localityVal || locality === localityVal;
+
+        if (matchesSearch && matchesCategory && matchesLandUse && matchesLocality) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      const noResults = document.getElementById('no-results-state');
+      if (noResults) {
+        if (visibleCount === 0) noResults.classList.remove('hidden');
+        else noResults.classList.add('hidden');
       }
-      
+    }
+
+    function populateLocalityFilter() {
+      const filterLoc = document.getElementById('filter-locality');
+      if (!filterLoc) return;
+      const localities = new Set();
+      document.querySelectorAll('.project-list-row').forEach(row => {
+        const loc = row.getAttribute('data-locality');
+        if (loc) localities.add(loc);
+      });
+      while (filterLoc.options.length > 1) filterLoc.remove(1);
       Array.from(localities).sort().forEach(loc => {
         const opt = document.createElement('option');
         opt.value = loc;
@@ -1448,501 +740,33 @@
         filterLoc.appendChild(opt);
       });
     }
-  }
 
-  // Bind Event Listeners on DOM Load
-  document.addEventListener('DOMContentLoaded', () => {
-    const savedMode = localStorage.getItem('projects-view-mode') || 'grid';
-    setViewMode(savedMode);
-    populateLocalityFilter();
-
-    const searchInput = document.getElementById('search-input');
-    const filterCat = document.getElementById('filter-category');
-    const filterLU = document.getElementById('filter-land-use');
-    const filterLoc = document.getElementById('filter-locality');
-
-    if (searchInput) searchInput.addEventListener('input', filterProjects);
-    if (filterCat) filterCat.addEventListener('change', filterProjects);
-    if (filterLU) filterLU.addEventListener('change', filterProjects);
-    if (filterLoc) filterLoc.addEventListener('change', filterProjects);
-  });
-
-  // Locality-to-SRO Ledger (Researched Delhi Jurisdictions)
-  const LOCALITY_SRO_LEDGER = {
-    "Saket": ["SRO V-A (Hauz Khas)"],
-    "Hauz Khas": ["SRO V-A (Hauz Khas)"],
-    "Vasant Kunj": ["SRO V (Mehrauli)", "SRO V-A (Hauz Khas)"],
-    "Malviya Nagar": ["SRO V-A (Hauz Khas)"],
-    "Mehrauli": ["SRO V (Mehrauli)"],
-    "Chhatarpur": ["SRO V (Mehrauli)"],
-    "Greater Kailash": ["SRO V-A (Hauz Khas)", "SRO V (Mehrauli)"],
-    "Lajpat Nagar": ["SRO V (Kalkaji)", "SRO V-A (Lajpat Nagar)"],
-    "Defence Colony": ["SRO V-A (Lajpat Nagar)"],
-    "Kalkaji": ["SRO V (Kalkaji)"],
-    "Okhla": ["SRO V (Kalkaji)"],
-    "Dwarka Sector 1-23": ["SRO IX (Kapashera)"],
-    "Palam": ["SRO IX (Kapashera)", "SRO IX-A (Najafgarh)"],
-    "Najafgarh": ["SRO IX-A (Najafgarh)"],
-    "Janakpuri": ["SRO II-B (Janakpuri)"],
-    "Vikaspuri": ["SRO II-B (Janakpuri)"],
-    "Uttam Nagar": ["SRO II-B (Janakpuri)", "SRO II-A (Nangloi)"],
-    "Punjabi Bagh": ["SRO II-A (Nangloi)", "SRO II (Basai Darapur)"],
-    "Rajouri Garden": ["SRO II (Basai Darapur)"],
-    "Patel Nagar": ["SRO I-A (Karol Bagh)"],
-    "Karol Bagh": ["SRO I-A (Karol Bagh)", "SRO III (Asaf Ali Road)"],
-    "Connaught Place": ["SRO I (Chanakyapuri)"],
-    "Chanakyapuri": ["SRO I (Chanakyapuri)"],
-    "Mayur Vihar": ["SRO VIII-A (Vasundhara Enclave)"],
-    "Preet Vihar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)"],
-    "Laxmi Nagar": ["SRO VIII (Geeta Colony)"],
-    "Pitampura": ["SRO VI-A (Pitampura)"],
-    "Rohini Sector 1-25": ["SRO VI-B (Rohini)", "SRO VI-C (Kanjhawala)"],
-    "Shalimar Bagh": ["SRO VI-A (Pitampura)"],
-    "Paschim Vihar": ["SRO II-A (Nangloi)"],
-    "Siri Fort / Khel Gaon": ["SRO V-A (Hauz Khas)"],
-    "Gulmohar Park": ["SRO V-A (Hauz Khas)"],
-    "Green Park": ["SRO V-A (Hauz Khas)"],
-    "Safdarjung Enclave": ["SRO V-A (Hauz Khas)"]
-  };
-
-  const ALL_SRO_OFFICES = [
-    "SRO I (Chanakyapuri)",
-    "SRO I-A (Karol Bagh)",
-    "SRO II (Janakpuri)",
-    "SRO III (Asaf Ali Road)",
-    "SRO IV (Kamla Nagar)",
-    "SRO V (Mehrauli)",
-    "SRO V-A (Hauz Khas)",
-    "SRO VI (Kashmere Gate)",
-    "SRO VI-A (Pitampura)",
-    "SRO VII (INA)",
-    "SRO VIII (Vasundhara Enclave)",
-    "SRO VIII-A (Shastri Nagar)",
-    "SRO IX (Janakpuri)"
-  ];
-
-  // Custom dropdown logic for Locality, SRO, and Property ID Type
-  const localityInput = document.getElementById('field_locality');
-  const localityMenu = document.getElementById('locality-custom-menu');
-  const sroInput = document.getElementById('field_sro');
-  const sroBtnLabel = document.getElementById('field_sro_label');
-  const sroMenu = document.getElementById('sro-custom-menu');
-
-  function renderSroOptions(optionsList) {
-    if (!sroMenu) return;
-    sroMenu.innerHTML = '';
-    
-    // Default select option
-    const emptyDiv = document.createElement('div');
-    emptyDiv.className = 'custom-dropdown-item';
-    emptyDiv.setAttribute('data-value', '');
-    emptyDiv.innerHTML = `<span>Select SRO Office</span><i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 hidden"></i>`;
-    sroMenu.appendChild(emptyDiv);
-    
-    optionsList.forEach(s => {
-      if (!s) return;
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'custom-dropdown-item';
-      if (sroInput.value === s) {
-        itemDiv.classList.add('selected');
-      }
-      itemDiv.setAttribute('data-value', s);
-      itemDiv.innerHTML = `<span>${s}</span><i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 ${sroInput.value === s ? '' : 'hidden'}"></i>`;
-      sroMenu.appendChild(itemDiv);
-    });
-    
-    // Bind click events
-    sroMenu.querySelectorAll('.custom-dropdown-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const val = item.getAttribute('data-value');
-        sroInput.value = val;
-        sroBtnLabel.textContent = val ? val : 'Select SRO Office';
-        if (val) {
-          sroBtnLabel.classList.remove('text-muted-foreground/60');
-        } else {
-          sroBtnLabel.classList.add('text-muted-foreground/60');
-        }
-        
-        sroMenu.querySelectorAll('.custom-dropdown-item').forEach(i => {
-          i.classList.remove('selected');
-          const check = i.querySelector('i');
-          if (check) check.classList.add('hidden');
-        });
-        item.classList.add('selected');
-        const check = item.querySelector('i');
-        if (check) check.classList.remove('hidden');
-        
-        sroMenu.classList.add('hidden');
-        
-        // Remove error
-        sroInput.classList.remove('input-error');
-        const err = document.getElementById('err_sro');
-        if (err) { err.classList.remove('visible'); err.classList.add('hidden'); }
-      });
-    });
-    
-    if (window.lucide) window.lucide.createIcons();
-  }
-
-  function updateSroDropdown() {
-    if (!localityInput) return;
-    const val = localityInput.value.trim();
-    let matchedKey = null;
-    for (const key in LOCALITY_SRO_LEDGER) {
-      if (key.toLowerCase() === val.toLowerCase()) {
-        matchedKey = key;
-        break;
-      }
-    }
-
-    if (matchedKey) {
-      const sros = LOCALITY_SRO_LEDGER[matchedKey];
-      renderSroOptions(sros);
-      // Auto-select if single SRO option
-      if (sros.length === 1) {
-        const singleSro = sros[0];
-        sroInput.value = singleSro;
-        sroBtnLabel.textContent = singleSro;
-        sroBtnLabel.classList.remove('text-muted-foreground/60');
+    function validateForm() {
+      const name = document.getElementById('field_name').value.trim();
+      const locality = document.getElementById('field_locality').value.trim();
+      let valid = true;
+      if (!name) {
+        document.getElementById('err_name').classList.add('visible');
+        valid = false;
       } else {
-        sroInput.value = '';
-        sroBtnLabel.textContent = 'Select SRO Office';
-        sroBtnLabel.classList.add('text-muted-foreground/60');
+        document.getElementById('err_name').classList.remove('visible');
       }
-    } else {
-      renderSroOptions(ALL_SRO_OFFICES);
-      sroInput.value = '';
-      sroBtnLabel.textContent = 'Select SRO Office';
-      sroBtnLabel.classList.add('text-muted-foreground/60');
-    }
-  }
-
-  function renderLocalitySuggestions() {
-    if (!localityInput || !localityMenu) return;
-    const query = localityInput.value.trim().toLowerCase();
-    localityMenu.innerHTML = '';
-    
-    const matchedLocalities = [];
-    for (const key in LOCALITY_SRO_LEDGER) {
-      if (!query || key.toLowerCase().includes(query)) {
-        matchedLocalities.push(key);
+      if (!locality) {
+        document.getElementById('err_locality').classList.add('visible');
+        valid = false;
+      } else {
+        document.getElementById('err_locality').classList.remove('visible');
       }
+      return valid;
     }
 
-    if (matchedLocalities.length === 0) {
-      const emptyDiv = document.createElement('div');
-      emptyDiv.className = 'px-3 py-2 text-xs text-muted-foreground italic';
-      emptyDiv.textContent = 'No matching localities found';
-      localityMenu.appendChild(emptyDiv);
-    } else {
-      matchedLocalities.forEach(loc => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'custom-dropdown-item';
-        if (localityInput.value.trim().toLowerCase() === loc.toLowerCase()) {
-          itemDiv.classList.add('selected');
-        }
-        itemDiv.setAttribute('data-value', loc);
-        itemDiv.innerHTML = `<span>${loc}</span><i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 ${localityInput.value.trim().toLowerCase() === loc.toLowerCase() ? '' : 'hidden'}"></i>`;
-        localityMenu.appendChild(itemDiv);
-      });
-    }
-
-    localityMenu.querySelectorAll('.custom-dropdown-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const val = item.getAttribute('data-value');
-        localityInput.value = val;
-        localityMenu.classList.add('hidden');
-        updateSroDropdown();
-        
-        localityInput.classList.remove('input-error');
-        const err = document.getElementById('err_locality');
-        if (err) { err.classList.remove('visible'); err.classList.add('hidden'); }
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      populateLocalityFilter();
+      document.getElementById('search-input')?.addEventListener('input', filterProjects);
+      document.getElementById('filter-category')?.addEventListener('change', filterProjects);
+      document.getElementById('filter-land-use')?.addEventListener('change', filterProjects);
+      document.getElementById('filter-locality')?.addEventListener('change', filterProjects);
     });
-
-    if (window.lucide) window.lucide.createIcons();
-  }
-
-  // Toggle dropdown buttons click events
-  const sroBtn = document.getElementById('field_sro_btn');
-  if (sroBtn && sroMenu) {
-    sroBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const locMenu = document.getElementById('locality-custom-menu');
-      if (locMenu) locMenu.classList.add('hidden');
-      const typeMenu = document.getElementById('type-custom-menu');
-      if (typeMenu) typeMenu.classList.add('hidden');
-      
-      sroMenu.classList.toggle('hidden');
-    });
-  }
-
-  const typeBtn = document.getElementById('field_type_btn');
-  const typeMenu = document.getElementById('type-custom-menu');
-  const typeInput = document.getElementById('field_type');
-  const typeLabel = document.getElementById('field_type_label');
-  if (typeBtn && typeMenu) {
-    typeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const locMenu = document.getElementById('locality-custom-menu');
-      if (locMenu) locMenu.classList.add('hidden');
-      const sroDropdownMenu = document.getElementById('sro-custom-menu');
-      if (sroDropdownMenu) sroDropdownMenu.classList.add('hidden');
-      
-      typeMenu.classList.toggle('hidden');
-    });
-
-    typeMenu.querySelectorAll('.custom-dropdown-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const val = item.getAttribute('data-value');
-        typeInput.value = val;
-        typeLabel.textContent = item.querySelector('span').textContent;
-        if (val) {
-          typeLabel.classList.remove('text-muted-foreground/60');
-        } else {
-          typeLabel.classList.add('text-muted-foreground/60');
-        }
-        
-        typeMenu.querySelectorAll('.custom-dropdown-item').forEach(i => {
-          i.classList.remove('selected');
-          const check = i.querySelector('i');
-          if (check) check.classList.add('hidden');
-        });
-        item.classList.add('selected');
-        const check = item.querySelector('i');
-        if (check) check.classList.remove('hidden');
-
-        typeMenu.classList.add('hidden');
-
-        typeInput.classList.remove('input-error');
-        const err = document.getElementById('err_type');
-        if (err) { err.classList.remove('visible'); err.classList.add('hidden'); }
-      });
-    });
-  }
-
-  if (localityInput && localityMenu) {
-    localityInput.addEventListener('focus', () => {
-      if (sroMenu) sroMenu.classList.add('hidden');
-      if (typeMenu) typeMenu.classList.add('hidden');
-      renderLocalitySuggestions();
-      localityMenu.classList.remove('hidden');
-    });
-
-    localityInput.addEventListener('input', () => {
-      renderLocalitySuggestions();
-      localityMenu.classList.remove('hidden');
-      updateSroDropdown();
-    });
-  }
-
-  // Handle global outside click to dismiss dropdowns
-  document.addEventListener('click', e => {
-    if (localityMenu && !localityInput.contains(e.target) && !localityMenu.contains(e.target)) {
-      localityMenu.classList.add('hidden');
-    }
-    if (sroMenu && sroBtn && !sroBtn.contains(e.target) && !sroMenu.contains(e.target)) {
-      sroMenu.classList.add('hidden');
-    }
-    if (typeMenu && typeBtn && !typeBtn.contains(e.target) && !typeMenu.contains(e.target)) {
-      typeMenu.classList.add('hidden');
-    }
-  });
-
-  // Initialize SRO selections
-  updateSroDropdown();
-
-  function openModal(id)  { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-    if (id === 'createModal') {
-      resetForm();
-      isSubmitting = false;
-      const btn = document.getElementById('create-project-submit');
-      if (btn) btn.classList.remove('generating');
-    }
-  }
-  function handleOverlayClick(e, id) {
-    if (e.target === document.getElementById(id)) closeModal(id);
-  }
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal('createModal'); closeModal('deleteModal'); }
-  });
-
-  let isSubmitting = false;
-  function validateForm() {
-    if (isSubmitting) return false;
-    clearErrors();
-    let valid = true;
-    const name     = document.getElementById('field_name');
-    const locality = document.getElementById('field_locality');
-    const sro      = document.getElementById('field_sro');
-    const category = document.querySelector('input[name="category"]:checked');
-    const land_use = document.querySelector('input[name="land_use"]:checked');
-    const type     = document.getElementById('field_type');
-    const value    = document.getElementById('field_value');
-
-    if (!name || !name.value.trim()) { 
-      if (name) name.classList.add('input-error'); 
-      const err = document.getElementById('err_name');
-      if (err) { err.classList.remove('hidden'); err.classList.add('visible'); }
-      valid = false; 
-    }
-    if (!locality || !locality.value.trim()) { 
-      if (locality) locality.classList.add('input-error'); 
-      const err = document.getElementById('err_locality');
-      if (err) { err.classList.remove('hidden'); err.classList.add('visible'); }
-      valid = false; 
-    }
-    if (!sro || !sro.value) { 
-      if (sro) sro.classList.add('input-error'); 
-      const err = document.getElementById('err_sro');
-      if (err) { err.classList.remove('hidden'); err.classList.add('visible'); }
-      valid = false; 
-    }
-    if (!category || !category.value) {
-      const err = document.getElementById('err_category');
-      if (err) { err.classList.remove('hidden'); err.classList.add('visible'); }
-      valid = false;
-    }
-    if (!land_use || !land_use.value) {
-      const err = document.getElementById('err_land_use');
-      if (err) { err.classList.remove('hidden'); err.classList.add('visible'); }
-      valid = false;
-    }
-    if (type && type.value && (!value || !value.value.trim())) {
-      if (value) value.classList.add('input-error');
-      const err = document.getElementById('err_value');
-      if (err) { err.classList.remove('hidden'); err.classList.add('visible'); }
-      valid = false;
-    }
-    if (valid) {
-      isSubmitting = true;
-      const btn = document.getElementById('create-project-submit');
-      if (btn) {
-        btn.classList.add('generating');
-      }
-    }
-    return valid;
-  }
-
-  function clearErrors() {
-    ['field_name','field_locality','field_sro','field_mcd_upic','field_type','field_value'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.classList.remove('input-error');
-    });
-    ['err_name','err_locality','err_sro','err_category','err_land_use','err_type','err_value'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.classList.remove('visible'); el.classList.add('hidden'); }
-    });
-  }
-
-  function resetForm() {
-    clearErrors();
-    ['field_name','field_locality','field_mcd_upic','field_value','field_flat','field_floor','field_address'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    
-    document.querySelectorAll('input[name="category"]').forEach(el => el.checked = false);
-    document.querySelectorAll('input[name="land_use"]').forEach(el => el.checked = false);
-    document.querySelectorAll('input[name="search_period"]').forEach(el => el.checked = false);
-
-    const sroInput = document.getElementById('field_sro');
-    const sroBtnLabel = document.getElementById('field_sro_label');
-    if (sroInput) sroInput.value = '';
-    if (sroBtnLabel) {
-      sroBtnLabel.textContent = 'Select SRO Office';
-      sroBtnLabel.classList.add('text-muted-foreground/60');
-    }
-
-    const typeInput = document.getElementById('field_type');
-    const typeLabel = document.getElementById('field_type_label');
-    if (typeInput) typeInput.value = '';
-    if (typeLabel) {
-      typeLabel.textContent = 'Select (Opt)';
-      typeLabel.classList.add('text-muted-foreground/60');
-    }
-  }
-
-  ['field_name','field_locality','field_mcd_upic','field_value'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('input', () => { el.classList.remove('input-error'); clearSingleError(id); });
-      el.addEventListener('change', () => { el.classList.remove('input-error'); clearSingleError(id); });
-    }
-  });
-
-  function clearSingleError(fieldId) {
-    const errId = fieldId.replace('field_', 'err_');
-    const err = document.getElementById(errId);
-    if (err) { err.classList.remove('visible'); err.classList.add('hidden'); }
-  }
-
-  function confirmDelete(btn) {
-    const folder = btn.getAttribute('data-folder');
-    const displayName = folder.split('_').slice(0, -1).join(' ');
-    document.getElementById('deleteProjectLabel').textContent = '"' + displayName + '"';
-    document.getElementById('deleteForm').action = '/delete_project/' + folder;
-    openModal('deleteModal');
-  }
-
-  // ── Dark Folder Card Menu ──
-  function handleFolderCardClick(card, event, folder) {
-    if (event.target.closest('.folder-card-menu') || event.target.closest('.folder-delete-popover')) {
-      return;
-    }
-    window.location.href = '/workspace/' + folder;
-  }
-
-  function toggleFolderMenu(btn) {
-    // Close all other open popovers first
-    document.querySelectorAll('.folder-delete-popover.open').forEach(p => {
-      if (p !== btn.parentElement.querySelector('.folder-delete-popover')) {
-        p.classList.remove('open');
-      }
-    });
-    const popover = btn.closest('.invoice-card-top').querySelector('.folder-delete-popover');
-    if (popover) popover.classList.toggle('open');
-  }
-
-  function confirmDeleteFolder(folder) {
-    // Close the popover
-    document.querySelectorAll('.folder-delete-popover.open').forEach(p => p.classList.remove('open'));
-    const displayName = folder.split('_').slice(0, -1).join(' ');
-    document.getElementById('deleteProjectLabel').textContent = '"' + displayName + '"';
-    document.getElementById('deleteForm').action = '/delete_project/' + folder;
-    openModal('deleteModal');
-  }
-
-  // Close folder popovers when clicking outside
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.folder-card-menu') && !e.target.closest('.folder-delete-popover')) {
-      document.querySelectorAll('.folder-delete-popover.open').forEach(p => p.classList.remove('open'));
-    }
-  });
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.getRegistrations().then(function (registrations) {
-      for (let registration of registrations) {
-        registration.unregister().then(function (success) {
-          if (success) console.log('SW Unregistered successfully');
-        });
-      }
-    });
-    if ('caches' in window) {
-      caches.keys().then(function (names) {
-        for (let name of names) {
-          caches.delete(name);
-        }
-      });
-    }
-  });
-}
-</script>
-
+  </script>
 </body>
 </html>
