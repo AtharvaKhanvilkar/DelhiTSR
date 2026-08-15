@@ -1308,8 +1308,16 @@
 <div class="flex h-screen w-screen overflow-hidden bg-white">
 <aside id="appSidebar" class="relative w-[280px] shrink-0 border-r border-zinc-200 bg-[#fafafa] flex flex-col h-full select-none shadow-2xs">
 
-      <!-- Sidebar Top Header (Single-row Workspace Navigation Header) -->
-      <div class="sidebar-header flex items-center justify-between px-3 h-12 border-b border-zinc-200 shrink-0 bg-white select-none w-full">
+      <!-- Floating Collapse Sidebar Button (Outside Sidebar Boundary, Visible at All Times) -->
+      <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
+              class="absolute -right-3 top-3.5 z-50 w-6 h-6 rounded-full border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 shadow-2xs flex items-center justify-center transition-all cursor-pointer select-none">
+        <svg class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Sidebar Top Header (Seamless Background, No Horizontal Line Passing Through Sidebar) -->
+      <div class="sidebar-header flex items-center justify-between px-3.5 h-12 shrink-0 bg-[#fafafa] select-none w-full">
         <a href="/projects" class="inline-flex items-center gap-2 text-xs font-semibold text-zinc-800 hover:text-black transition-colors min-w-0 flex-1 overflow-hidden" title="Back to Projects Dashboard">
           <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 12H5"/>
@@ -1317,13 +1325,6 @@
           </svg>
           <span class="truncate font-semibold tracking-tight text-xs sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</span>
         </a>
-
-        <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
-                class="p-1.5 rounded-md text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors shrink-0 flex items-center justify-center">
-          <svg class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
       </div>
 
       <!-- Navigation Stream -->
@@ -3300,11 +3301,18 @@
   }
 
   function toggleSidebarCollapse() {
-
     const sb = document.getElementById('appSidebar');
-
-    if (sb) sb.classList.toggle('sb-collapsed');
-
+    const icon = document.getElementById('sidebarCollapseIcon');
+    if (sb) {
+      sb.classList.toggle('sb-collapsed');
+      if (icon) {
+        if (sb.classList.contains('sb-collapsed')) {
+          icon.classList.add('rotate-180');
+        } else {
+          icon.classList.remove('rotate-180');
+        }
+      }
+    }
   }
 
 
