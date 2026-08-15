@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Projects — DelhiTSR</title>
+  <title>DelhiTSR</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='delhitsr-logo.png') }}">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#ffffff">
@@ -12,7 +12,7 @@
   <!-- Plus Jakarta Sans & JetBrains Mono Fonts (Matching workspace.html) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <script>
@@ -20,8 +20,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
+            sans: ['Inter', '"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+            mono: ['Inter', 'sans-serif'],
           },
         },
       },
@@ -30,7 +30,7 @@
 
   <style>
     html, body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       font-size: 13.5px;
@@ -101,16 +101,11 @@
     <!-- Left: Brand Logo & Navigation -->
     <div class="flex items-center gap-6">
       <a href="/projects" class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded bg-zinc-900 text-white flex items-center justify-center font-bold text-[10px] tracking-wider">
-          TSR
-        </div>
-        <span class="font-bold tracking-tight text-zinc-900 text-sm">DelhiTSR</span>
+        <span class="font-bold tracking-tight text-zinc-900 text-base">DelhiTSR</span>
       </a>
 
       <nav class="hidden sm:flex items-center gap-1 text-xs">
         <a href="/projects" class="px-3 py-1.5 rounded-md font-semibold text-zinc-900 bg-zinc-100">Projects</a>
-        <a href="#" class="px-3 py-1.5 rounded-md font-medium text-zinc-500 hover:text-zinc-900 transition-colors">Audits</a>
-        <a href="#" class="px-3 py-1.5 rounded-md font-medium text-zinc-500 hover:text-zinc-900 transition-colors">DORIS Search</a>
       </nav>
     </div>
 
@@ -138,7 +133,7 @@
               class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer self-start sm:self-auto">
         <i data-lucide="plus" class="w-3.5 h-3.5"></i>
         <span>New Project</span>
-        <span class="text-[10px] text-zinc-400 font-mono hidden sm:inline ml-1">[N]</span>
+        <span class="text-[10px] text-zinc-400 font-sans hidden sm:inline ml-1">[N]</span>
       </button>
     </div>
 
@@ -246,7 +241,7 @@
 
               <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
                 {% if project.category %}
-                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-zinc-100 text-zinc-700 border border-zinc-200">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-sans font-semibold uppercase bg-zinc-100 text-zinc-700 border border-zinc-200">
                     {{ project.category }}
                   </span>
                 {% endif %}
@@ -261,13 +256,13 @@
             <!-- Property Identifiers Snippet -->
             <div class="text-xs space-y-1">
               {% if project.mcd_upic %}
-                <div class="text-zinc-600 font-mono text-[11px]">
+                <div class="text-zinc-600 font-sans text-[11px]">
                   <span class="text-zinc-400 font-sans">UPIC:</span> {{ project.mcd_upic }}
                 </div>
               {% endif %}
               
               {% if project.id_value %}
-                <div class="text-zinc-600 font-mono text-[11px]">
+                <div class="text-zinc-600 font-sans text-[11px]">
                   <span class="text-zinc-400 font-sans uppercase">{{ project.id_type.replace('_', ' ') if project.id_type else 'Property ID' }}:</span> {{ project.id_value }}
                 </div>
               {% endif %}
@@ -342,7 +337,7 @@
               <td class="py-3.5 px-4">
                 <div class="flex items-center gap-1.5">
                   {% if project.category %}
-                    <span class="px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase bg-zinc-100 text-zinc-700 border border-zinc-200">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-sans font-semibold uppercase bg-zinc-100 text-zinc-700 border border-zinc-200">
                       {{ project.category }}
                     </span>
                   {% endif %}
@@ -355,7 +350,7 @@
               </td>
 
               <!-- Property Identifiers -->
-              <td class="py-3.5 px-4 font-mono text-[11px]">
+              <td class="py-3.5 px-4 font-sans text-[11px]">
                 {% if project.mcd_upic %}
                   <div class="text-zinc-700"><span class="text-zinc-400 font-sans">UPIC:</span> {{ project.mcd_upic }}</div>
                 {% endif %}
@@ -370,7 +365,7 @@
               <!-- Actions -->
               <td class="py-3.5 px-4 text-right pr-6" onclick="event.stopPropagation()">
                 <div class="flex items-center justify-end gap-3">
-                  <span class="text-zinc-500 font-mono text-xs">{{ project.doc_count }} Docs</span>
+                  <span class="text-zinc-500 font-sans text-xs">{{ project.doc_count }} Docs</span>
                   <a href="/workspace/{{ project.folder }}" class="px-3 py-1 rounded bg-zinc-900 text-white font-medium text-xs hover:bg-zinc-800 transition-colors">
                     Open
                   </a>
@@ -440,7 +435,7 @@
         <div class="space-y-1">
           <div class="flex items-center justify-between">
             <label for="field_name" class="text-[11px] font-semibold uppercase tracking-wider text-zinc-700">Project Name <span class="text-red-500">*</span></label>
-            <span class="text-[10px] text-zinc-400 font-mono">Press Enter ↵</span>
+            <span class="text-[10px] text-zinc-400 font-sans">Press Enter ↵</span>
           </div>
           <input type="text" name="project_name" id="field_name"
                  placeholder="e.g. Vasant Kunj Flat Audit"
@@ -532,14 +527,14 @@
               <label for="field_mcd_upic" class="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">MCD UPIC</label>
               <input type="text" name="mcd_upic" id="field_mcd_upic"
                      placeholder="e.g. 100293847561"
-                     class="w-full h-7 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 font-mono" />
+                     class="w-full h-7 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 font-sans" />
             </div>
 
             <div class="space-y-1">
               <label for="field_id_val" class="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Plot / Khasra No</label>
               <input type="text" name="id_value" id="field_id_val"
                      placeholder="e.g. Plot 349/B"
-                     class="w-full h-7 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 font-mono" />
+                     class="w-full h-7 rounded-md border border-zinc-200 bg-white px-2.5 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 font-sans" />
             </div>
           </div>
         </div>
