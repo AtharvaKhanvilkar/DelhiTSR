@@ -212,6 +212,17 @@ PAGES:
         if p["is_deed_instrument"] and p["type"] not in ("E_STAMP", "REGISTRATION_ENDORSEMENT")
     )
     instrument_type = body_counts.most_common(1)[0][0] if body_counts else None
+    # Deed Span Fill Protection: ensure no un-OCR'd or intermediate pages inside the deed body are missed
+    instrument_indices = [idx for idx, p in enumerate(pages) if p["is_deed_instrument"]]
+    if instrument_indices:
+        min_idx, max_idx = min(instrument_indices), max(instrument_indices)
+        for idx in range(min_idx, max_idx + 1):
+            if pages[idx]["type"] in ("BLANK", "OTHER"):
+                pages[idx]["is_deed_instrument"] = True
+                pages[idx]["type"] = instrument_type or "SALE_DEED"
+                pages[idx]["label"] = SORTER_TYPE_LABELS.get(pages[idx]["type"], "Deed Instrument")
+                pages[idx]["is_blank"] = False
+
     instrument_pages = [p["page"] for p in pages if p["is_deed_instrument"]]
 
     # Group supporting docs into consecutive runs of the same type
