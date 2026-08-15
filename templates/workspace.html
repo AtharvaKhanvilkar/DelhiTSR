@@ -6904,29 +6904,86 @@
 
 
   function formatAsstBody(text) {
-
-    const paras = String(text).split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-
-    if (!paras.length) return `<p>${mdInline(escapeChatHtml(text))}</p>`;
-
-    return paras.map(block => {
-
-      const lines = block.split(/\n/);
-
-      const allBullets = lines.length > 0 && lines.every(l => /^\s*[-*•]\s+/.test(l));
-
-      if (allBullets) {
-
-        const items = lines.map(l => `<li>${mdInline(escapeChatHtml(l.replace(/^\s*[-*•]\s+/, '')))}</li>`).join('');
-
-        return `<ul style="margin:0 0 16px;padding-left:20px">${items}</ul>`;
-
+    if (!text) return '';
+    const lines = String(text).split('\n');
+    let html = '';
+    let inList = false;
+    let listType = null;
+    
+    lines.forEach(line => {
+      let trimmed = line.trim();
+      if (!trimmed) {
+        if (inList) {
+          html += listType === 'ul' ? '</ul>' : '</ol>';
+          inList = false;
+          listType = null;
+        }
+        return;
       }
-
-      return `<p>${mdInline(escapeChatHtml(block)).replace(/\n/g, '<br>')}</p>`;
-
-    }).join('');
-
+      
+      // Headers (e.g. ### Header or ## Header)
+      if (/^#{1,4}\s+/.test(trimmed)) {
+        if (inList) {
+          html += listType === 'ul' ? '</ul>' : '</ol>';
+          inList = false;
+          listType = null;
+        }
+        const title = trimmed.replace(/^#{1,4}\s+/, '');
+        html += `<h4 class="text-[13px] font-bold text-zinc-900 tracking-tight mt-3 mb-1.5 uppercase">${mdInline(escapeChatHtml(title))}</h4>`;
+        return;
+      }
+      
+      // Bullet list item: * or - or •
+      const bulletMatch = trimmed.match(/^[*•-]\s+(.*)/);
+      if (bulletMatch) {
+        if (!inList || listType !== 'ul') {
+          if (inList) html += listType === 'ul' ? '</ul>' : '</ol>';
+          html += '<ul class="space-y-2 my-2 text-[13.5px]">';
+          inList = true;
+          listType = 'ul';
+        }
+        const itemContent = mdInline(escapeChatHtml(bulletMatch[1]));
+        html += `
+          <li class="flex items-start gap-2 text-zinc-800 leading-relaxed">
+            <span class="w-1.5 h-1.5 rounded-full bg-zinc-700 shrink-0 mt-2"></span>
+            <div class="flex-1">${itemContent}</div>
+          </li>`;
+        return;
+      }
+      
+      // Numbered list item: 1. or 2.
+      const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+      if (numMatch) {
+        if (!inList || listType !== 'ol') {
+          if (inList) html += listType === 'ul' ? '</ul>' : '</ol>';
+          html += '<ol class="space-y-2 my-2 text-[13.5px]">';
+          inList = true;
+          listType = 'ol';
+        }
+        const itemContent = mdInline(escapeChatHtml(numMatch[2]));
+        html += `
+          <li class="flex items-start gap-2 text-zinc-800 leading-relaxed">
+            <span class="font-bold text-zinc-900 shrink-0 text-xs px-1.5 py-0.5 rounded bg-zinc-100 border border-zinc-200">${numMatch[1]}</span>
+            <div class="flex-1">${itemContent}</div>
+          </li>`;
+        return;
+      }
+      
+      // Regular paragraph line
+      if (inList) {
+        html += listType === 'ul' ? '</ul>' : '</ol>';
+        inList = false;
+        listType = null;
+      }
+      
+      html += `<p class="mb-2 text-[13.5px] text-zinc-800 leading-relaxed">${mdInline(escapeChatHtml(trimmed))}</p>`;
+    });
+    
+    if (inList) {
+      html += listType === 'ul' ? '</ul>' : '</ol>';
+    }
+    
+    return html;
   }
 
 
