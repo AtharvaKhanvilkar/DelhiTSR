@@ -17,6 +17,43 @@ from deed_doc_scraper import DorisDocScraper
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+def format_inr(number):
+    """Format a number using Indian Numbering System (Lakhs and Crores).
+    e.g. 3500000 -> 35,00,000
+         11000000 -> 1,10,00,000
+         35000 -> 35,000
+    """
+    if number is None or number == "" or number == "N/A":
+        return "N/A"
+    try:
+        val_str = str(number).replace("₹", "").replace(",", "").strip()
+        if not val_str:
+            return str(number)
+        val = float(val_str)
+        is_neg = val < 0
+        val = abs(val)
+        s = f"{val:.2f}" if val % 1 != 0 else f"{int(val)}"
+        dec = ""
+        if "." in s:
+            s, dec = s.split(".")
+            dec = "." + dec
+        if len(s) <= 3:
+            res = s
+        else:
+            last3 = s[-3:]
+            rest = s[:-3]
+            groups = []
+            while len(rest) > 2:
+                groups.insert(0, rest[-2:])
+                rest = rest[:-2]
+            if rest:
+                groups.insert(0, rest)
+            res = ",".join(groups) + "," + last3
+        return ("-" if is_neg else "") + res + dec
+    except Exception:
+        return str(number)
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -565,9 +602,9 @@ def _check_words_vs_figures(figures_val, words_val, doc_no, source, event_date, 
         "doc_no": doc_no,
         "event_date": event_date,
         "source": source,
-        "message": f"{amount_type_label.capitalize()} mismatch: figures show ₹{int(fig_num):,} but words show ₹{int(wrd_num):,}.",
-        "expected": f"₹{int(fig_num):,}",
-        "actual": f"₹{int(wrd_num):,}"
+        "message": f"{amount_type_label.capitalize()} mismatch: figures show ₹{format_inr(int(fig_num))} but words show ₹{format_inr(int(wrd_num))}.",
+        "expected": f"₹{format_inr(int(fig_num))}",
+        "actual": f"₹{format_inr(int(wrd_num))}"
     }
 
 
@@ -1996,7 +2033,7 @@ def _extract_relinquished_share_text(doc_text, data):
     if subtype == "release_mortgage" or data.get("released_mortgage_doc_no"):
         rel_amt = data.get("released_amount_figures") or data.get("released_mortgage_principal_figures")
         if rel_amt and isinstance(rel_amt, (int, float)) and rel_amt > 0:
-            return f"₹{int(rel_amt):,} (Mortgage Charge Released)"
+            return f"₹{format_inr(int(rel_amt))} (Mortgage Charge Released)"
         return "Mortgage Charge Released"
 
     # 2. Discrete JSON share fields
@@ -2821,8 +2858,8 @@ def _phase1_supporting_checks(data, source):
         arr = num(bill.get("arrears"))
         if arr is not None and arr > 1:
             add("WARNING", "UTILITY_ARREARS_OUTSTANDING",
-                f"The attached {utype} bill shows outstanding arrears of ₹{arr:,.2f}. The deed makes the seller liable for pre-sale dues — confirm they are cleared.",
-                expected="₹0 arrears at transfer", actual=f"₹{arr:,.2f}", category="supporting_docs")
+                f"The attached {utype} bill shows outstanding arrears of ₹{format_inr(arr)}. The deed makes the seller liable for pre-sale dues — confirm they are cleared.",
+                expected="₹0 arrears at transfer", actual=f"₹{format_inr(arr)}", category="supporting_docs")
         consumer = bill.get("consumer_name")
         if consumer and parties and not any(names_match(consumer, p.get("name")) for p in parties if p.get("name")):
             add("WARNING", "OCCUPANT_NOT_PARTY",
@@ -3399,9 +3436,9 @@ def _build_events_and_errors(project_path):
                             "doc_no": data.get("doc_no"),
                             "event_date": data.get("date_of_execution"),
                             "source": source,
-                            "message": f"Critical Error: Declared consideration (₹{int(round(actual_price)):,}) is lower than government circle rate valuation (₹{int(round(circle_val)):,}). This presents a legal undervaluation risk under Section 47-A.",
-                            "expected": f"₹{int(round(circle_val)):,}",
-                            "actual": f"₹{int(round(actual_price)):,}"
+                            "message": f"Critical Error: Declared consideration (₹{format_inr(int(round(actual_price)))}) is lower than government circle rate valuation (₹{format_inr(int(round(circle_val)))}). This presents a legal undervaluation risk under Section 47-A.",
+                            "expected": f"₹{format_inr(int(round(circle_val)))}",
+                            "actual": f"₹{format_inr(int(round(actual_price)))}"
                         })
                         
                     # 2. Insufficient Stamp Duty check
@@ -3412,9 +3449,9 @@ def _build_events_and_errors(project_path):
                             "doc_no": data.get("doc_no"),
                             "event_date": data.get("date_of_execution"),
                             "source": source,
-                            "message": f"Critical Error: Stamp duty paid (₹{int(round(actual_sd_val)):,}) is lower than the expected rate of {sd_rate*100}% on the valuation basis (₹{int(round(expected_sd_val)):,}).",
-                            "expected": f"₹{int(round(expected_sd_val)):,} ({sd_rate*100}%)",
-                            "actual": f"₹{int(round(actual_sd_val)):,}"
+                            "message": f"Critical Error: Stamp duty paid (₹{format_inr(int(round(actual_sd_val)))}) is lower than the expected rate of {sd_rate*100}% on the valuation basis (₹{format_inr(int(round(expected_sd_val)))}).",
+                            "expected": f"₹{format_inr(int(round(expected_sd_val)))} ({sd_rate*100}%)",
+                            "actual": f"₹{format_inr(int(round(actual_sd_val)))}"
                         })
                         
                     # 3. Insufficient Registration Fee check
@@ -3425,9 +3462,9 @@ def _build_events_and_errors(project_path):
                             "doc_no": data.get("doc_no"),
                             "event_date": data.get("date_of_execution"),
                             "source": source,
-                            "message": f"Critical Error: Registration fee paid (₹{int(round(actual_reg_val)):,}) is lower than the expected 1% rate (₹{int(round(expected_reg_val)):,}).",
-                            "expected": f"₹{int(round(expected_reg_val)):,}",
-                            "actual": f"₹{int(round(actual_reg_val)):,}"
+                            "message": f"Critical Error: Registration fee paid (₹{format_inr(int(round(actual_reg_val)))}) is lower than the expected 1% rate (₹{format_inr(int(round(expected_reg_val)))}).",
+                            "expected": f"₹{format_inr(int(round(expected_reg_val)))}",
+                            "actual": f"₹{format_inr(int(round(actual_reg_val)))}"
                         })
                 else:
                     # Pre-2007 or exempt document: check stamp duty using declared price as basis
@@ -4114,8 +4151,8 @@ def _build_events_and_errors(project_path):
                             "event_date": data.get("date_of_execution"),
                             "source":     source,
                             "message":    f"Sale price is only {pct}% of Doc {hp_doc}. Possible undervaluation — verify against market value.",
-                            "expected":   f"At least {int(CONSIDERATION_DROP_FRACTION*100)}% of prior sale (₹{int(hp_value):,})",
-                            "actual":     f"₹{int(cons_value):,}"
+                            "expected":   f"At least {int(CONSIDERATION_DROP_FRACTION*100)}% of prior sale (₹{format_inr(int(hp_value))})",
+                            "actual":     f"₹{format_inr(int(cons_value))}"
                         })
 
                 # Record this sale's value for future comparisons
@@ -4736,9 +4773,9 @@ def _build_events_and_errors(project_path):
                         "ref_doc_no": best_enc["doc_no"],
                         "event_date": d2.get("date_of_execution"),
                         "source":     source2,
-                        "message":    f"Release Deed {rel_doc_no} cites a mortgage principal amount of ₹{int(rel_orig_amt or 0):,}, which varies from the registered principal of ₹{int(best_enc['principal_amount'] or 0):,} in Mortgage {best_enc['doc_no']}.",
-                        "expected":   f"₹{int(best_enc['principal_amount'] or 0):,}",
-                        "actual":     f"₹{int(rel_orig_amt or 0):,}"
+                        "message":    f"Release Deed {rel_doc_no} cites a mortgage principal amount of ₹{format_inr(int(rel_orig_amt or 0))}, which varies from the registered principal of ₹{format_inr(int(best_enc.get('principal_amount') or 0))} in Mortgage {best_enc['doc_no']}.",
+                        "expected":   f"₹{format_inr(int(best_enc.get('principal_amount') or 0))}",
+                        "actual":     f"₹{format_inr(int(rel_orig_amt or 0))}"
                     })
 
                 # Lender/Mortgagee Consistency Check
@@ -4851,8 +4888,8 @@ def _build_events_and_errors(project_path):
                 "event_date": enc["since_date"],
                 "source": enc["source_file"],
                 "message": f"Mortgage {enc['doc_no']} is fully resolved and discharged via linked release deed (explicit full release confirmed).",
-                "expected": f"₹{int(round(principal)):,}",
-                "actual": f"₹{int(round(total_released)):,}"
+                "expected": f"₹{format_inr(int(round(principal)))}",
+                "actual": f"₹{format_inr(int(round(total_released)))}"
             })
         else:
             diff = total_released - principal
@@ -4868,9 +4905,9 @@ def _build_events_and_errors(project_path):
                     "doc_no": enc["doc_no"],
                     "event_date": enc["since_date"],
                     "source": enc["source_file"],
-                    "message": f"Mortgage {enc['doc_no']} is fully resolved. Linked release amounts sum to principal (₹{int(round(total_released)):,}).",
-                    "expected": f"₹{int(round(principal)):,}",
-                    "actual": f"₹{int(round(total_released)):,}"
+                    "message": f"Mortgage {enc['doc_no']} is fully resolved. Linked release amounts sum to principal (₹{format_inr(int(round(total_released)))}).",
+                    "expected": f"₹{format_inr(int(round(principal)))}",
+                    "actual": f"₹{format_inr(int(round(total_released)))}"
                 })
             elif diff < -0.01:
                 enc["status"] = "PARTIALLY_RELEASED"
@@ -4882,9 +4919,9 @@ def _build_events_and_errors(project_path):
                     "doc_no": enc["doc_no"],
                     "event_date": enc["since_date"],
                     "source": enc["source_file"],
-                    "message": f"Mortgage {enc['doc_no']} is only partially discharged. A remaining balance shortfall of ₹{int(round(shortfall)):,} exists relative to the registered principal amount.",
-                    "expected": f"₹{int(round(principal)):,}",
-                    "actual": f"₹{int(round(total_released)):,}"
+                    "message": f"Mortgage {enc['doc_no']} is only partially discharged. A remaining balance shortfall of ₹{format_inr(int(round(shortfall)))} exists relative to the registered principal amount.",
+                    "expected": f"₹{format_inr(int(round(principal)))}",
+                    "actual": f"₹{format_inr(int(round(total_released)))}"
                 })
             else:
                 enc["status"] = "RELEASE_OVERFLOW"
@@ -4896,9 +4933,9 @@ def _build_events_and_errors(project_path):
                     "doc_no": enc["doc_no"],
                     "event_date": enc["since_date"],
                     "source": enc["source_file"],
-                    "message": f"Discharge value overflow on Mortgage {enc['doc_no']}. Linked release deeds sum to ₹{int(round(total_released)):,}, which exceeds the registered principal of ₹{int(round(principal)):,} by ₹{int(round(overflow)):,}.",
-                    "expected": f"₹{int(round(principal)):,}",
-                    "actual": f"₹{int(round(total_released)):,}"
+                    "message": f"Discharge value overflow on Mortgage {enc['doc_no']}. Linked release deeds sum to ₹{format_inr(int(round(total_released)))}, which exceeds the registered principal of ₹{format_inr(int(round(principal)))} by ₹{format_inr(int(round(overflow)))}.",
+                    "expected": f"₹{format_inr(int(round(principal)))}",
+                    "actual": f"₹{format_inr(int(round(total_released)))}"
                 })
 
     # ── Cross-party identity check: same PAN/PIN on DIFFERENT people ──
