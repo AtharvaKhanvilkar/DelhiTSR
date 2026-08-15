@@ -1945,8 +1945,8 @@
         </div>
 
         <!-- Scrollable Chat Stream Canvas -->
-        <main class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth flex flex-col" id="chatScroll">
-          <div class="max-w-4xl mx-auto w-full mb-auto space-y-6 pt-2" id="chatMessages"></div>
+        <main class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth" id="chatScroll">
+          <div class="max-w-4xl mx-auto w-full space-y-6" id="chatMessages"></div>
         </main>
 
         <!-- PINNED BOTTOM COMPOSER AREA (ChatGPT / Claude / Vercel v0 Style) -->
@@ -6855,38 +6855,42 @@
     const sec = document.createElement('div');
 
     if (role === 'user') {
-      sec.className = 'flex justify-end mb-4 animate-in fade-in duration-150';
+      sec.className = 'flex justify-end mb-5 animate-in fade-in duration-150';
       sec.innerHTML = `
-        <div class="max-w-[80%] bg-zinc-100 border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tr-xs px-4.5 py-3.5 text-[13.5px] font-medium shadow-2xs leading-relaxed space-y-1.5">
-          <div class="flex items-center justify-between gap-3 text-[11px] text-zinc-500 font-semibold mb-1 border-b border-zinc-200/80 pb-1">
-            <span class="text-zinc-700 font-bold">You</span>
-            <span class="text-zinc-400 font-normal">${nowTime()}</span>
+        <div class="flex flex-col items-end max-w-[75%] space-y-1">
+          <div class="flex items-center gap-1.5 text-[11px] text-zinc-400 font-medium px-1">
+            <span class="font-semibold text-zinc-600">You</span>
+            <span>•</span>
+            <span>${nowTime()}</span>
           </div>
-          <div class="text-zinc-900 leading-relaxed">${escapeChatHtml(text)}</div>
+          <div class="bg-zinc-100 border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tr-xs px-4 py-2.5 text-sm font-medium shadow-2xs leading-relaxed break-words text-left">
+            ${escapeChatHtml(text)}
+          </div>
         </div>`;
     } else {
       const secs = (typeof elapsed === 'number') ? (Math.round(elapsed * 10) / 10 + 's') : '';
-      sec.className = 'flex justify-start mb-4 animate-in fade-in duration-150';
+      sec.className = 'flex justify-start mb-6 animate-in fade-in duration-150';
       sec.innerHTML = `
-        <div class="max-w-[88%] bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs p-5 text-[13.5px] shadow-2xs space-y-3">
-          <div class="flex items-center justify-between text-[11px] text-zinc-500 font-semibold border-b border-zinc-100 pb-2">
-            <div class="flex items-center gap-1.5">
-              <div class="w-4 h-4 rounded bg-zinc-100 text-zinc-900 flex items-center justify-center border border-zinc-200">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-              </div>
-              <span>Title AI Assistant</span>
-            </div>
+        <div class="w-full max-w-4xl bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs p-5 shadow-2xs space-y-3.5">
+          <div class="flex items-center justify-between text-[11px] text-zinc-500 font-semibold border-b border-zinc-100 pb-2.5">
             <div class="flex items-center gap-2">
-              ${secs ? `<span class="text-[10px] text-zinc-400 font-sans">${secs}</span>` : ''}
-              <span class="text-zinc-400">${nowTime()}</span>
+              <div class="w-5 h-5 rounded-md bg-zinc-900 text-white flex items-center justify-center shadow-2xs">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              </div>
+              <span class="text-xs font-bold text-zinc-900">Title AI Assistant</span>
+            </div>
+            <div class="flex items-center gap-2 text-zinc-400 text-[11px]">
+              ${secs ? `<span class="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 font-mono text-[10px] font-semibold border border-zinc-200/80">${secs}</span>` : ''}
+              <span>${nowTime()}</span>
             </div>
           </div>
-          <div class="asst-body leading-relaxed text-zinc-800 space-y-2.5 text-[13.5px]">${formatAsstBody(text)}</div>
-          <div class="pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400">
-            <span>Answers derived strictly from analyzed project deeds.</span>
+          <div class="asst-body leading-relaxed text-zinc-800 space-y-3 text-[14px] font-normal">${formatAsstBody(text)}</div>
+          <div class="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
+            <span class="font-medium text-zinc-400">Answers derived strictly from analyzed project deeds.</span>
             <div class="flex items-center gap-1">
-              <button onclick="copyTurn(this)" class="p-1 rounded hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 transition-colors cursor-pointer" title="Copy response">
+              <button onclick="copyTurn(this)" class="px-2.5 py-1 rounded-md border border-zinc-200/80 bg-white hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer text-[11px] font-medium flex items-center gap-1.5" title="Copy response">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <span>Copy</span>
               </button>
             </div>
           </div>
@@ -7007,19 +7011,19 @@
     const box = document.getElementById('chatMessages');
     if (!box) return;
     const sec = document.createElement('div');
-    sec.className = 'flex justify-start mb-4 animate-in fade-in duration-150'; sec.id = 'chatTyping';
+    sec.className = 'flex justify-start mb-5 animate-in fade-in duration-150'; sec.id = 'chatTyping';
     sec.innerHTML = `
-      <div class="bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs px-4 py-3 text-xs shadow-2xs space-y-2">
-        <div class="flex items-center gap-1.5 text-[11px] text-zinc-500 font-semibold border-b border-zinc-100 pb-1.5">
-          <div class="w-4 h-4 rounded bg-zinc-100 text-zinc-900 flex items-center justify-center border border-zinc-200">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+      <div class="bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs px-4.5 py-3.5 shadow-2xs space-y-2">
+        <div class="flex items-center gap-2 text-[11px] text-zinc-500 font-semibold">
+          <div class="w-4 h-4 rounded bg-zinc-900 text-white flex items-center justify-center">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
           </div>
-          <span>Title AI Assistant is thinking...</span>
+          <span class="text-xs font-bold text-zinc-800">Title AI Assistant is thinking...</span>
         </div>
-        <div class="flex items-center gap-1.5 py-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-ping"></span>
-          <span class="w-1.5 h-1.5 rounded-full bg-zinc-600 animate-bounce"></span>
-          <span class="w-1.5 h-1.5 rounded-full bg-zinc-900 animate-pulse"></span>
+        <div class="flex items-center gap-1.5 py-0.5">
+          <span class="w-2 h-2 rounded-full bg-zinc-400 animate-ping"></span>
+          <span class="w-2 h-2 rounded-full bg-zinc-600 animate-bounce"></span>
+          <span class="w-2 h-2 rounded-full bg-zinc-900 animate-pulse"></span>
         </div>
       </div>`;
     box.appendChild(sec);
