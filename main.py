@@ -968,8 +968,8 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
 
 def summarize_discrepancy_with_ai(finding_dict):
     """
-    Uses Gemini AI (gemini-2.5-flash) to generate a punchy 2-sentence legal discrepancy
-    summary for the advocate finding modal.
+    Uses Gemini AI (gemini-2.5-flash) to generate a simple, non-verdict 2-sentence
+    factual explanation of a document finding for the advocate modal.
     """
     disc_type = finding_dict.get("type", "DISCREPANCY")
     doc_no = finding_dict.get("doc_no", "N/A")
@@ -981,10 +981,8 @@ def summarize_discrepancy_with_ai(finding_dict):
     exp_str = ", ".join(expected) if isinstance(expected, list) else str(expected)
     act_str = ", ".join(actual) if isinstance(actual, list) else str(actual)
 
-    prompt = f"""You are a senior advocate specializing in Indian property title legal audits.
-Analyze the following title discrepancy and generate a concise 2-sentence legal summary explaining:
-1. What the exact document/record conflict is.
-2. What the statutory risk or legal implication is under Indian Property Law (Transfer of Property Act 1882 / Registration Act 1908).
+    prompt = f"""You are a helpful assistant for a property legal audit tool used by bank advocates.
+Provide a clear, simple 2-sentence explanation of the finding below.
 
 Finding Details:
 - Discrepancy Type: {disc_type}
@@ -993,10 +991,10 @@ Finding Details:
 - Actual Recorded State: {act_str}
 - Finding Description: {desc}
 
-STRICT RULES:
-- Output ONLY the 2-sentence summary in clean, professional plain text.
-- Do NOT use markdown bolding (**), asterisks (*), preamble, headers, or bullet lists.
-- Be direct, legal, and concise.
+CRITICAL MANDATORY RULES:
+1. NEVER ANNOUNCE A VERDICT. Do NOT use words like "void", "invalid", "illegal", "defective", "null", or declare any final legal ruling. The final verdict belongs strictly to the reviewing advocate.
+2. KEEP IT SIMPLE AND NON-TECHNICAL. Explain what the difference is between the expected record and the actual document in plain, everyday language without complicated legal jargon or statutory section dumping.
+3. Output ONLY the 2-sentence explanation in clean plain text. No markdown formatting, no bullet points, no headers.
 """
     try:
         response = client.models.generate_content(
@@ -1004,7 +1002,6 @@ STRICT RULES:
             contents=prompt,
         )
         text = (response.text or "").strip()
-        # Clean markdown formatting if any returned
         text = re.sub(r'[*_#`]', '', text)
         return text
     except Exception as e:
