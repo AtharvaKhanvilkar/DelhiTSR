@@ -1946,7 +1946,7 @@
 
         <!-- Scrollable Chat Stream Canvas -->
         <main class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth flex flex-col" id="chatScroll">
-          <div class="max-w-4xl mx-auto w-full my-auto space-y-6" id="chatMessages"></div>
+          <div class="max-w-4xl mx-auto w-full mb-auto space-y-6 pt-2" id="chatMessages"></div>
         </main>
 
         <!-- PINNED BOTTOM COMPOSER AREA (ChatGPT / Claude / Vercel v0 Style) -->
@@ -6857,18 +6857,18 @@
     if (role === 'user') {
       sec.className = 'flex justify-end mb-4 animate-in fade-in duration-150';
       sec.innerHTML = `
-        <div class="max-w-[80%] bg-zinc-900 text-white rounded-2xl rounded-tr-xs px-4 py-3 text-xs font-normal shadow-2xs leading-relaxed space-y-1">
-          <div class="flex items-center justify-between gap-3 text-[10px] text-zinc-400 font-semibold mb-1 border-b border-zinc-800 pb-1">
-            <span>You</span>
-            <span>${nowTime()}</span>
+        <div class="max-w-[80%] bg-zinc-100 border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tr-xs px-4.5 py-3.5 text-[13.5px] font-medium shadow-2xs leading-relaxed space-y-1.5">
+          <div class="flex items-center justify-between gap-3 text-[11px] text-zinc-500 font-semibold mb-1 border-b border-zinc-200/80 pb-1">
+            <span class="text-zinc-700 font-bold">You</span>
+            <span class="text-zinc-400 font-normal">${nowTime()}</span>
           </div>
-          <div>${escapeChatHtml(text)}</div>
+          <div class="text-zinc-900 leading-relaxed">${escapeChatHtml(text)}</div>
         </div>`;
     } else {
       const secs = (typeof elapsed === 'number') ? (Math.round(elapsed * 10) / 10 + 's') : '';
       sec.className = 'flex justify-start mb-4 animate-in fade-in duration-150';
       sec.innerHTML = `
-        <div class="max-w-[85%] bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs p-4 text-xs shadow-2xs space-y-2.5">
+        <div class="max-w-[88%] bg-white border border-zinc-200/90 text-zinc-900 rounded-2xl rounded-tl-xs p-5 text-[13.5px] shadow-2xs space-y-3">
           <div class="flex items-center justify-between text-[11px] text-zinc-500 font-semibold border-b border-zinc-100 pb-2">
             <div class="flex items-center gap-1.5">
               <div class="w-4 h-4 rounded bg-zinc-100 text-zinc-900 flex items-center justify-center border border-zinc-200">
@@ -6881,7 +6881,7 @@
               <span class="text-zinc-400">${nowTime()}</span>
             </div>
           </div>
-          <div class="asst-body leading-relaxed text-zinc-800 space-y-2">${formatAsstBody(text)}</div>
+          <div class="asst-body leading-relaxed text-zinc-800 space-y-2.5 text-[13.5px]">${formatAsstBody(text)}</div>
           <div class="pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400">
             <span>Answers derived strictly from analyzed project deeds.</span>
             <div class="flex items-center gap-1">
