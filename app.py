@@ -3083,7 +3083,50 @@ def _phase1_supporting_checks(data, source):
                 f"Conveyance Deed executed pursuant to DDA Allotment / File No. {allotment_no}.",
                 actual=f"File No. {allotment_no}", category="title_rules")
 
-    return findings
+def _determine_transferee_gender_composition(data, meta):
+    g = (data.get("buyer_gender") or (meta.get("buyer_gender") if meta else None) or "").strip().lower()
+    if g in ("female", "woman"):
+        return "female"
+    elif g in ("joint", "mixed"):
+        return "joint"
+
+    transferees = data.get("transferee_parties") or []
+    genders = []
+
+    for p in transferees:
+        if isinstance(p, dict):
+            p_g = (p.get("gender") or "").strip().lower()
+            if p_g in ("female", "woman", "f"):
+                genders.append("female")
+            elif p_g in ("male", "man", "m"):
+                genders.append("male")
+            else:
+                name = (p.get("name") or "").lower()
+                if any(sal in name for sal in ["mrs.", "smt.", "miss.", "ms.", "कुमारी", "श्रीमती"]):
+                    genders.append("female")
+                elif any(sal in name for sal in ["mr.", "shri.", "sh.", "श्री"]):
+                    genders.append("male")
+
+    if not genders and data.get("buyer_names"):
+        for name in data.get("buyer_names"):
+            n_l = str(name).lower()
+            if any(sal in n_l for sal in ["mrs.", "smt.", "miss.", "ms.", "कुमारी", "श्रीमती"]):
+                genders.append("female")
+            elif any(sal in n_l for sal in ["mr.", "shri.", "sh.", "श्री"]):
+                genders.append("male")
+
+    if not genders:
+        return "male"
+
+    has_female = "female" in genders
+    has_male = "male" in genders
+
+    if has_female and has_male:
+        return "joint"  # Joint Male + Female: 5% Rate in Delhi
+    elif has_female and not has_male:
+        return "female" # All Female buyers: 4% Rate in Delhi
+    else:
+        return "male"   # All Male buyers: 6% Rate in Delhi
 
 
 def _build_events_and_errors(project_path):
@@ -3478,32 +3521,8 @@ def _build_events_and_errors(project_path):
                     actual_price = price if isinstance(price, (int, float)) else 0.0
                     valuation_basis = max(actual_price, circle_val)
                     
-                    # Calculate expected stamp duty based on gender
-                    gender = (data.get("buyer_gender") or meta.get("buyer_gender") or "").strip().lower()
-                    
-                    if not gender:
-                        # Attempt to infer gender from transferee/buyer names
-                        transferee_names = []
-                        if data.get("buyer_names"):
-                            transferee_names.extend(data.get("buyer_names"))
-                        if data.get("donee_name"):
-                            transferee_names.append(data.get("donee_name"))
-                        for p in data.get("transferee_parties") or []:
-                            if p.get("name"):
-                                transferee_names.append(p.get("name"))
-                                
-                        inferred_gender = None
-                        for name in transferee_names:
-                            name_lower = name.lower()
-                            if any(p in name_lower for p in ["mrs.", "smt.", "miss.", "कुमारी", "श्रीमती"]):
-                                inferred_gender = "female"
-                                break
-                            elif any(p in name_lower for p in ["mr.", "shri.", "sh.", "श्री"]):
-                                inferred_gender = "male"
-                                
-                        active_gender = inferred_gender or "male"
-                    else:
-                        active_gender = gender
+                    # Calculate expected stamp duty based on transferee party composition (male, female, joint)
+                    active_gender = _determine_transferee_gender_composition(data, meta)
                         
                     # Get historical stamp duty rate
                     if "GIFT" in txn:
