@@ -389,30 +389,46 @@ def _normalize_sro(sro):
         return ""
     s = str(sro).strip().lower()
     
-    # Strip common trailing location suffixes that documents often append
-    for suffix in [", new delhi", ", delhi", ", nct of delhi", ", nct delhi",
-                   " new delhi", " delhi"]:
+    # Strip common location suffixes
+    for suffix in [", new delhi", ", delhi", ", nct of delhi", ", nct delhi", " new delhi", " delhi"]:
         if s.endswith(suffix):
             s = s[: -len(suffix)].strip().rstrip(",").strip()
             break
-    
-    # Precise Roman numeral dictionary for Delhi SROs
-    DELHI_SRO_ROMANS = {
-        "i": "1", "ii": "2", "iii": "3", "iv": "4", "v": "5", "vi": "6",
-        "vii": "7", "viii": "8", "ix": "9", "x": "10", "xi": "11", "xii": "12",
-        "xiii": "13", "xiv": "14", "xv": "15", "xvi": "16", "xvii": "17", "xviii": "18",
-        "iia": "2a", "via": "6a", "viiia": "8a"
+
+    # Roman numeral mapping
+    romans = {
+        "xviiia": "18a", "xviii": "18", "xviia": "17a", "xvii": "17",
+        "xvia": "16a", "xvi": "16", "xva": "15a", "xv": "15",
+        "xiva": "14a", "xiv": "14", "xiiia": "13a", "xiii": "13",
+        "xiia": "12a", "xii": "12", "xia": "11a", "xi": "11",
+        "xa": "10a", "x": "10", "ixa": "9a", "ixb": "9b", "ix": "9",
+        "viiia": "8a", "viiib": "8b", "viii": "8", "viia": "7a", "vii": "7",
+        "via": "6a", "vib": "6b", "vic": "6c", "vi": "6",
+        "va": "5a", "vb": "5b", "v": "5", "iva": "4a", "ivb": "4b", "iv": "4",
+        "iiia": "3a", "iii": "3", "iia": "2a", "iib": "2b", "ii": "2",
+        "ia": "1a", "i": "1"
     }
-    
-    # Split by non-alphanumeric to find SRO tokens
+
+    # Extract SRO number code if present (e.g., VIII-A, VIIIA, 8-A, 8A, SRO VIII A)
+    m = re.search(r'\b(?:sro|sr)?\s*([ivx]+\s*[a-c]?|\d+\s*[a-c]?)\b', s, re.I)
+    if m:
+        code = m.group(1).replace(" ", "").lower()
+        if code in romans:
+            return romans[code]
+        # Check if code contains roman part
+        for r_k, r_v in romans.items():
+            if code == r_k:
+                return r_v
+        return code
+
+    # Fallback to token joining
     tokens = re.split(r"[^\w\d]+", s)
     new_tokens = []
     for t in tokens:
-        if t in DELHI_SRO_ROMANS:
-            t = DELHI_SRO_ROMANS[t]
+        if t in romans:
+            t = romans[t]
         new_tokens.append(t)
-    s = "".join(new_tokens)
-    return s
+    return "".join(new_tokens)
 
 def _parse_share(text):
     if not text:
@@ -3250,18 +3266,75 @@ def _build_events_and_errors(project_path):
             doc_sro = data.get("sub_registrar_office", "")
             
             LOCALITY_SRO_LEDGER = {
-                "Saket": ["SRO V-A (Hauz Khas)"],
+                # ── EAST & SHAHDARA REVENUE DISTRICTS (SRO IV, VIII, VIII-A) ──
+                "Preet Vihar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)", "SRO VIII-A (Preet Vihar)", "SR VIIIA Preet Vihar"],
+                "Chitra Vihar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)", "SRO VIII-A (Preet Vihar)", "SR VIIIA Preet Vihar"],
+                "Nirman Vihar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)", "SRO VIII-A (Preet Vihar)", "SR VIIIA Preet Vihar"],
+                "Swasthya Vihar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)", "SRO VIII-A (Preet Vihar)", "SR VIIIA Preet Vihar"],
+                "Laxmi Nagar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)", "SR VIIIA Preet Vihar"],
+                "Shakarpur": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)"],
+                "Mayur Vihar": ["SRO VIII-A (Vasundhara Enclave)", "SRO VIII (Geeta Colony)", "Mayur Vihar Phase 1", "Mayur Vihar Phase 2", "Mayur Vihar Phase 3"],
+                "Vasundhara Enclave": ["SRO VIII-A (Vasundhara Enclave)", "SRO VIII (Geeta Colony)"],
+                "IP Extension": ["SRO VIII-A (Vasundhara Enclave)", "SRO VIII (Geeta Colony)"],
+                "Patparganj": ["SRO VIII-A (Vasundhara Enclave)", "SRO VIII (Geeta Colony)"],
+                "Anand Vihar": ["SRO VIII-A (Vasundhara Enclave)", "SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Surajmal Vihar": ["SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Saini Enclave": ["SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Jagriti Enclave": ["SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Yojana Vihar": ["SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Pushpanjali": ["SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Karkardooma": ["SRO VIII-A (Preet Vihar)", "SRO IV (Shahdara)"],
+                "Vivek Vihar": ["SRO IV (Shahdara)", "SRO VIII-A (Preet Vihar)"],
+                "Shahdara": ["SRO IV (Shahdara)", "SRO IV-A (Seelampur)"],
+                "Krishna Nagar": ["SRO VIII (Geeta Colony)", "SRO IV (Shahdara)"],
+                "Geeta Colony": ["SRO VIII (Geeta Colony)"],
+                "Gandhi Nagar": ["SRO VIII (Geeta Colony)"],
+                "Dilshad Garden": ["SRO IV (Shahdara)"],
+                "Mansarovar Park": ["SRO IV (Shahdara)"],
+                "Seelampur": ["SRO IV-A (Seelampur)"],
+                "Yamuna Vihar": ["SRO IV-A (Seelampur)"],
+
+                # ── SOUTH & SOUTH EAST REVENUE DISTRICTS (SRO V, V-A, V-B) ──
+                "Saket": ["SRO V-A (Hauz Khas)", "SRO V (Mehrauli)"],
                 "Hauz Khas": ["SRO V-A (Hauz Khas)"],
-                "Vasant Kunj": ["SRO V (Mehrauli)", "SRO V-A (Hauz Khas)"],
+                "Hauz Khas Enclave": ["SRO V-A (Hauz Khas)"],
+                "Green Park": ["SRO V-A (Hauz Khas)"],
+                "Green Park Extension": ["SRO V-A (Hauz Khas)"],
+                "Safdarjung Enclave": ["SRO V-A (Hauz Khas)"],
+                "Safdarjung Development Area": ["SRO V-A (Hauz Khas)"],
+                "SDA": ["SRO V-A (Hauz Khas)"],
+                "Gulmohar Park": ["SRO V-A (Hauz Khas)"],
+                "Neeti Bagh": ["SRO V-A (Hauz Khas)"],
+                "Anand Lok": ["SRO V-A (Hauz Khas)"],
+                "Navjivan Vihar": ["SRO V-A (Hauz Khas)"],
                 "Malviya Nagar": ["SRO V-A (Hauz Khas)"],
+                "Panchsheel Park": ["SRO V-A (Hauz Khas)"],
+                "Panchsheel Enclave": ["SRO V-A (Hauz Khas)"],
+                "Vasant Vihar": ["SRO V (Mehrauli)", "SRO V-A (Hauz Khas)"],
+                "Vasant Kunj": ["SRO V (Mehrauli)", "SRO V-A (Hauz Khas)"],
                 "Mehrauli": ["SRO V (Mehrauli)"],
                 "Chhatarpur": ["SRO V (Mehrauli)"],
-                "Greater Kailash": ["SRO V-A (Hauz Khas)", "SRO V (Mehrauli)"],
-                "Lajpat Nagar": ["SRO V (Kalkaji)", "SRO V-A (Lajpat Nagar)"],
+                "Sainik Farms": ["SRO V (Mehrauli)"],
+                "Greater Kailash": ["SRO V-A (Hauz Khas)", "SRO V (Kalkaji)"],
+                "Greater Kailash 1": ["SRO V-A (Hauz Khas)", "SRO V (Kalkaji)"],
+                "Greater Kailash 2": ["SRO V-A (Hauz Khas)", "SRO V (Kalkaji)"],
+                "Lajpat Nagar": ["SRO V-A (Lajpat Nagar)", "SRO V (Kalkaji)"],
                 "Defence Colony": ["SRO V-A (Lajpat Nagar)"],
+                "Nizamuddin": ["SRO V-A (Lajpat Nagar)"],
+                "Jungpura": ["SRO V-A (Lajpat Nagar)"],
                 "Kalkaji": ["SRO V (Kalkaji)"],
                 "Okhla": ["SRO V (Kalkaji)"],
-                "Dwarka Sector 1-23": ["SRO IX (Kapashera)"],
+                "New Friends Colony": ["SRO V (Kalkaji)", "SRO V-A (Lajpat Nagar)"],
+                "Friends Colony": ["SRO V (Kalkaji)", "SRO V-A (Lajpat Nagar)"],
+                "Maharani Bagh": ["SRO V (Kalkaji)", "SRO V-A (Lajpat Nagar)"],
+                "CR Park": ["SRO V (Kalkaji)"],
+                "Alaknanda": ["SRO V (Kalkaji)"],
+                "Sarita Vihar": ["SRO V (Kalkaji)"],
+                "Jasola": ["SRO V (Kalkaji)"],
+
+                # ── WEST & SOUTH WEST REVENUE DISTRICTS (SRO II, II-A, II-B, IX, IX-A) ──
+                "Dwarka": ["SRO IX (Kapashera)"],
+                "Dwarka Sector 1-26": ["SRO IX (Kapashera)"],
                 "Palam": ["SRO IX (Kapashera)", "SRO IX-A (Najafgarh)"],
                 "Najafgarh": ["SRO IX-A (Najafgarh)"],
                 "Janakpuri": ["SRO II-B (Janakpuri)"],
@@ -3269,30 +3342,48 @@ def _build_events_and_errors(project_path):
                 "Uttam Nagar": ["SRO II-B (Janakpuri)", "SRO II-A (Nangloi)"],
                 "Punjabi Bagh": ["SRO II-A (Nangloi)", "SRO II (Basai Darapur)"],
                 "Rajouri Garden": ["SRO II (Basai Darapur)"],
-                "Patel Nagar": ["SRO I-A (Karol Bagh)"],
-                "Karol Bagh": ["SRO I-A (Karol Bagh)", "SRO III (Asaf Ali Road)"],
+                "Tilak Nagar": ["SRO II-B (Janakpuri)", "SRO II (Basai Darapur)"],
+                "Hari Nagar": ["SRO II-B (Janakpuri)", "SRO II (Basai Darapur)"],
+                "Kirti Nagar": ["SRO II (Basai Darapur)"],
+                "Paschim Vihar": ["SRO II-A (Nangloi)"],
+
+                # ── NORTH & NORTH WEST REVENUE DISTRICTS (SRO VI, VI-A, VI-B, VI-C) ──
+                "Model Town": ["SRO VI (Subzi Mandi)", "SRO VI-A (Pitampura)"],
+                "Civil Lines": ["SRO VI (Subzi Mandi)"],
+                "Kamla Nagar": ["SRO VI (Subzi Mandi)"],
+                "Pitampura": ["SRO VI-A (Pitampura)"],
+                "Shalimar Bagh": ["SRO VI-A (Pitampura)"],
+                "Ashok Vihar": ["SRO VI-A (Pitampura)"],
+                "Rohini": ["SRO VI-B (Rohini)", "SRO VI-C (Kanjhawala)"],
+                "Rohini Sector 1-38": ["SRO VI-B (Rohini)", "SRO VI-C (Kanjhawala)"],
+
+                # ── CENTRAL & NEW DELHI REVENUE DISTRICTS (SRO I, I-A, III) ──
                 "Connaught Place": ["SRO I (Chanakyapuri)"],
                 "Chanakyapuri": ["SRO I (Chanakyapuri)"],
-                "Mayur Vihar": ["SRO VIII-A (Vasundhara Enclave)"],
-                "Preet Vihar": ["SRO VIII (Geeta Colony)", "SRO VIII-A (Vasundhara Enclave)"],
-                "Laxmi Nagar": ["SRO VIII (Geeta Colony)"],
-                "Pitampura": ["SRO VI-A (Pitampura)"],
-                "Rohini Sector 1-25": ["SRO VI-B (Rohini)", "SRO VI-C (Kanjhawala)"],
-                "Shalimar Bagh": ["SRO VI-A (Pitampura)"],
-                "Paschim Vihar": ["SRO II-A (Nangloi)"],
-                "Siri Fort / Khel Gaon": ["SRO V-A (Hauz Khas)"],
-                "Gulmohar Park": ["SRO V-A (Hauz Khas)"],
-                "Green Park": ["SRO V-A (Hauz Khas)"],
-                "Safdarjung Enclave": ["SRO V-A (Hauz Khas)"]
+                "Karol Bagh": ["SRO I-A (Karol Bagh)", "SRO III (Asaf Ali Road)"],
+                "Patel Nagar": ["SRO I-A (Karol Bagh)"],
+                "Rajinder Nagar": ["SRO I-A (Karol Bagh)"],
+                "Daryaganj": ["SRO III (Asaf Ali Road)"]
             }
-            
+
             meta_locality = meta.get("locality", "").strip()
             if meta_locality in LOCALITY_SRO_LEDGER:
                 allowed_sros = LOCALITY_SRO_LEDGER[meta_locality]
                 doc_sro_norm = _normalize_sro(doc_sro)
                 allowed_sro_norms = [_normalize_sro(s) for s in allowed_sros]
                 
-                if doc_sro_norm not in allowed_sro_norms:
+                # Smart SRO validation: match canonical code (e.g. 8a) OR substring/tokens
+                is_sro_valid = False
+                for a_norm in allowed_sro_norms:
+                    if doc_sro_norm == a_norm or (len(doc_sro_norm) > 1 and doc_sro_norm in a_norm) or (len(a_norm) > 1 and a_norm in doc_sro_norm):
+                        is_sro_valid = True
+                        break
+                
+                # Secondary check: if doc_sro explicitly names locality (e.g. SR VIIIA Preet Vihar)
+                if not is_sro_valid and doc_sro and meta_locality.lower() in doc_sro.lower():
+                    is_sro_valid = True
+
+                if not is_sro_valid:
                     errors.append({
                         "severity": "ERROR",
                         "type": "VOID_DEED_WRONG_SRO",
