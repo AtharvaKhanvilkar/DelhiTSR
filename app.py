@@ -3677,6 +3677,35 @@ def _build_events_and_errors(project_path):
             if actual_sd_val > 0:
                 data["stamp_duty"] = int(round(actual_sd_val))
             
+            # Global Insufficient Stamp Duty & Registration Fee Audit across ALL document types (Sale, Mortgage, Gift, Lease, Release)
+            if expected_sd_val > 0 and actual_sd_val > 0 and actual_sd_val < expected_sd_val:
+                if not any(e.get("type") == "INSUFFICIENT_STAMP_DUTY" and e.get("doc_no") == data.get("doc_no") for e in errors):
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "INSUFFICIENT_STAMP_DUTY",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Stamp duty paid (₹{format_inr(int(round(actual_sd_val)))}) is lower than statutory required stamp duty (₹{format_inr(int(round(expected_sd_val)))}).",
+                        "expected": f"₹{format_inr(int(round(expected_sd_val)))}",
+                        "actual": f"₹{format_inr(int(round(actual_sd_val)))}"
+                    })
+                    
+            actual_reg = data.get("registration_fee")
+            actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
+            if expected_reg_val > 0 and actual_reg_val > 0 and actual_reg_val < expected_reg_val:
+                if not any(e.get("type") == "INSUFFICIENT_REGISTRATION_FEE" and e.get("doc_no") == data.get("doc_no") for e in errors):
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "INSUFFICIENT_REGISTRATION_FEE",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Registration fee paid (₹{format_inr(int(round(actual_reg_val)))}) is lower than the expected statutory rate (₹{format_inr(int(round(expected_reg_val)))}).",
+                        "expected": f"₹{format_inr(int(round(expected_reg_val)))}",
+                        "actual": f"₹{format_inr(int(round(actual_reg_val)))}"
+                    })
+            
             # Delhi property law consideration validations
             if "SALE" in txn or "AGREEMENT" in txn:
                 price = data.get("consideration")
