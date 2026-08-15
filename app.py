@@ -3225,6 +3225,35 @@ def _build_events_and_errors(project_path):
         source = rf.replace("_result.json", ".pdf")
         txn = (data.get("txn_type") or "").upper()
 
+        # Check for missing physical deed pages in scanned PDF
+        txt_path = os.path.join(project_path, rf.replace("_result.json", ".pdf.txt"))
+        if not os.path.exists(txt_path):
+            txt_path = os.path.join(project_path, rf.replace("_refined_result.json", ".pdf.txt"))
+            
+        if os.path.exists(txt_path):
+            try:
+                with open(txt_path, "r", encoding="utf-8", errors="ignore") as pf:
+                    full_txt = pf.read()
+                matches = re.findall(r"PAGE\s*No\.?\s*(\d+)\s*OF\s*([A-Z\s]+)", full_txt, re.IGNORECASE)
+                if matches:
+                    page_nums = sorted(list(set([int(m[0]) for m in matches])))
+                    if len(page_nums) >= 2:
+                        missing_pages = [p for p in range(min(page_nums), max(page_nums) + 1) if p not in page_nums]
+                        if missing_pages:
+                            m_str = ", ".join([f"Page {p}" for p in missing_pages])
+                            errors.append({
+                                "severity": "WARNING",
+                                "type": "MISSING_DEED_PAGES",
+                                "doc_no": data.get("doc_no"),
+                                "event_date": data.get("date_of_execution"),
+                                "source": source,
+                                "message": f"Document Integrity Defect: Physical page numbers jump in scanned deed. Missing pages detected in PDF: {m_str}.",
+                                "expected": f"Continuous sequence (Pages {min(page_nums)} to {max(page_nums)})",
+                                "actual": f"Missing: {m_str}"
+                            })
+            except Exception:
+                pass
+
         # Phase-1 self-contained supporting-document & consistency checks.
         # Isolated, heavily gated, and additive — cannot affect existing findings.
         try:
