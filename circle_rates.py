@@ -596,7 +596,12 @@ def resolve_smart_circle_valuation(data, meta, locality_category=None):
             reg_year = parts[2]
 
     # Tier 1: Explicit Govt Prescribed Value in Deed Text
-    explicit_val = data.get("govt_prescribed_value") or data.get("declared_circle_value") or data.get("circle_rate_value")
+    explicit_val = (
+        data.get("circle_rate_value_stated") or
+        data.get("govt_prescribed_value") or
+        data.get("declared_circle_value") or
+        data.get("circle_rate_value")
+    )
     if explicit_val:
         try:
             val_num = float(re.sub(r"[^\d.]", "", str(explicit_val)))
@@ -677,17 +682,13 @@ def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis):
         else:
             return 0.08
     else:
-        if year >= 2024 or (year == 2023 and valuation_basis > 2500000):
-            if g == "female":
-                return 0.05
-            elif g == "joint":
-                return 0.06
-            else:
-                return 0.07
+        # Standard Delhi Rates (Stamp Duty + MCD Transfer Tax):
+        # Female Buyer: 4% (3% SD + 1% MCD)
+        # Joint (Female + Male): 5% (3.5% SD + 1.5% MCD)
+        # Male Buyers: 6% (3% SD + 3% MCD)
+        if g == "female":
+            return 0.04
+        elif g == "joint":
+            return 0.05
         else:
-            if g == "female":
-                return 0.04
-            elif g == "joint":
-                return 0.05
-            else:
-                return 0.06
+            return 0.06
