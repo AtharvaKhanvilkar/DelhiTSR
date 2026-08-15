@@ -964,3 +964,49 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
         return (response.text or "").strip()
     except Exception as e:
         return f"[Assistant error: {e}]"
+
+
+def summarize_discrepancy_with_ai(finding_dict):
+    """
+    Uses Gemini AI (gemini-2.5-flash) to generate a punchy 2-sentence legal discrepancy
+    summary for the advocate finding modal.
+    """
+    disc_type = finding_dict.get("type", "DISCREPANCY")
+    doc_no = finding_dict.get("doc_no", "N/A")
+    event_date = finding_dict.get("event_date", "N/A")
+    expected = finding_dict.get("expected", "")
+    actual = finding_dict.get("actual", "")
+    desc = finding_dict.get("description", "")
+
+    exp_str = ", ".join(expected) if isinstance(expected, list) else str(expected)
+    act_str = ", ".join(actual) if isinstance(actual, list) else str(actual)
+
+    prompt = f"""You are a senior advocate specializing in Indian property title legal audits.
+Analyze the following title discrepancy and generate a concise 2-sentence legal summary explaining:
+1. What the exact document/record conflict is.
+2. What the statutory risk or legal implication is under Indian Property Law (Transfer of Property Act 1882 / Registration Act 1908).
+
+Finding Details:
+- Discrepancy Type: {disc_type}
+- Document Number: {doc_no} ({event_date})
+- Expected Record State: {exp_str}
+- Actual Recorded State: {act_str}
+- Finding Description: {desc}
+
+STRICT RULES:
+- Output ONLY the 2-sentence summary in clean, professional plain text.
+- Do NOT use markdown bolding (**), asterisks (*), preamble, headers, or bullet lists.
+- Be direct, legal, and concise.
+"""
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+        text = (response.text or "").strip()
+        # Clean markdown formatting if any returned
+        text = re.sub(r'[*_#`]', '', text)
+        return text
+    except Exception as e:
+        print(f"[summarize_discrepancy_with_ai] Gemini call error: {e}")
+        return None
