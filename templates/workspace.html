@@ -1319,15 +1319,9 @@
       <!-- Navigation Stream (Seamless Top-to-Bottom Column) -->
       <div class="flex-1 overflow-y-auto px-2 pt-3 pb-2 space-y-4" id="sidebarMenu">
 
-        <!-- Workspace Title / Back Link -->
-        <div class="px-1.5 pb-1 select-none">
-          <a href="/projects" class="inline-flex items-center gap-2 text-xs font-semibold text-zinc-800 hover:text-black transition-colors min-w-0 w-full overflow-hidden" title="Back to Projects Dashboard">
-            <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 12H5"/>
-              <path d="M12 19l-7-7 7-7"/>
-            </svg>
-            <span class="truncate font-bold tracking-tight text-[13px] text-zinc-900 sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</span>
-          </a>
+        <!-- Workspace Title / Project Name -->
+        <div class="px-2 pt-1 pb-1 select-none">
+          <div class="truncate font-bold tracking-tight text-[13px] text-zinc-900 px-1 sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</div>
         </div>
 
         <!-- SECTION 1: DOCUMENTS -->
@@ -1484,6 +1478,17 @@
         </div>
 
       </div> <!-- end sidebarMenu -->
+
+      <!-- Back to Projects Button (Positioned Right Above User Profile) -->
+      <div class="px-2 py-2 border-t border-zinc-200/80 bg-zinc-50/50 shrink-0">
+        <a href="/projects" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-700 hover:text-zinc-950 hover:bg-zinc-200/60 transition-colors w-full overflow-hidden group select-none" title="Back to Projects Dashboard">
+          <svg class="w-4 h-4 text-zinc-500 group-hover:text-zinc-900 shrink-0 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="M12 19l-7-7 7-7"/>
+          </svg>
+          <span class="truncate font-bold tracking-tight text-[12.5px] text-zinc-800 group-hover:text-zinc-950 sb-only-expanded">Back to Projects</span>
+        </a>
+      </div>
 
       <!-- Footer: User Profile Row -->
       <div class="shrink-0 h-14 border-t border-zinc-200/80 bg-white px-3 flex items-center justify-between">
@@ -1957,16 +1962,26 @@
 
                   <div class="relative">
                     <button type="button" onclick="toggleScopeDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="scopeBtn">
-                      <span id="scopeBtnLabel">Filter: All Documents</span>
+                      <span id="scopeBtnLabel">Filter: General</span>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
-                    <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-52 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
-                      <button type="button" onclick="selectScope('all','All Documents',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">All Documents</button>
-                      <button type="button" onclick="selectScope('findings','Findings Only',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Findings Only</button>
-                      <button type="button" onclick="selectScope('events','Timeline Events',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Timeline Events</button>
-                      <button type="button" onclick="selectScope('chain','Deed Chain',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Deed Chain</button>
-                      <button type="button" onclick="selectScope('mortgages','Mortgage Liens',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Mortgage Liens</button>
-                      <button type="button" onclick="selectScope('sro','SRO Records',this)" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">SRO Records</button>
+                    <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-44 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-0.5">
+                      <button type="button" onclick="selectScope('json','JSON',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        <span>JSON</span>
+                      </button>
+                      <button type="button" onclick="selectScope('findings','Findings',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span>Findings</span>
+                      </button>
+                      <button type="button" onclick="selectScope('mortgages','Mortgages',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><line x1="3" y1="21" x2="21" y2="21"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 3 2 10 22 10 12 3"/></svg>
+                        <span>Mortgages</span>
+                      </button>
+                      <button type="button" onclick="selectScope('general','General',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1 1.275-1.275L12 3Z"/></svg>
+                        <span>General</span>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -7148,23 +7163,23 @@
           <p class="text-xs text-zinc-500 mt-1.5 font-medium">Ask questions about registered owners, encumbrances, deed continuity, or SRO records.</p>
         </div>
 
-        <!-- Framer AI Category Tabs -->
+        <!-- Framer AI Category Tabs (JSON, Findings, Mortgages, General) -->
         <div class="flex items-center justify-center gap-2 max-w-4xl mx-auto w-full pt-1 pb-1 overflow-x-auto select-none">
-          <button type="button" onclick="selectScope('all','All Documents',null)" class="h-8 px-4 rounded-2xl bg-zinc-200/80 text-zinc-900 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
-            <span>Suggested</span>
+          <button type="button" onclick="selectScope('json','JSON',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-700 hover:bg-zinc-50 font-semibold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <span>JSON</span>
           </button>
-          <button type="button" onclick="selectScope('chain','Deed Chain',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-            <span>Deed Chain</span>
+          <button type="button" onclick="selectScope('findings','Findings',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-700 hover:bg-zinc-50 font-semibold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Findings</span>
           </button>
-          <button type="button" onclick="selectScope('mortgages','Mortgage Liens',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          <button type="button" onclick="selectScope('mortgages','Mortgages',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-700 hover:bg-zinc-50 font-semibold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 3 2 10 22 10 22 10 12 3"/></svg>
             <span>Mortgages</span>
           </button>
-          <button type="button" onclick="selectScope('sro','SRO Records',null)" class="h-8 px-4 rounded-2xl bg-white border border-zinc-200/90 text-zinc-600 hover:bg-zinc-50 font-medium text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-            <span>SRO Records</span>
+          <button type="button" onclick="selectScope('general','General',null)" class="h-8 px-4 rounded-2xl bg-zinc-900 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1 1.275-1.275L12 3Z"/></svg>
+            <span>General</span>
           </button>
         </div>
 
@@ -7556,10 +7571,10 @@
     
     if (scope === 'all' || !scope) {
       _chatScope = 'all';
-      if (lbl) lbl.innerHTML = `Filter: All Documents`;
+      if (lbl) lbl.innerHTML = `Filter: General`;
       if (btn) btn.className = "h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer";
     } else {
-      if (lbl) lbl.innerHTML = `<span class="inline-flex items-center gap-1">Filter: <strong class="text-zinc-950">${label}</strong><span onclick="event.stopPropagation(); selectScope('all','All Documents',null);" class="hover:text-zinc-950 text-zinc-400 font-bold ml-1 text-xs" title="Clear filter">✕</span></span>`;
+      if (lbl) lbl.innerHTML = `<span class="inline-flex items-center gap-1">Filter: <strong class="text-zinc-950">${label}</strong><span onclick="event.stopPropagation(); selectScope('general','General',null);" class="hover:text-zinc-950 text-zinc-400 font-bold ml-1 text-xs" title="Clear filter">✕</span></span>`;
       if (btn) btn.className = "h-8 px-3.5 rounded-full border border-zinc-300 bg-zinc-100/90 text-xs font-semibold text-zinc-900 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer";
     }
     hideScopeDropdown();
