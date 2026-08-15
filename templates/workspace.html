@@ -2011,11 +2011,11 @@
         </div>
       </div>
 
-      <!-- Preliminary Title Clearance Certificate (TCC) Report Panel -->
+      <!-- Title Search & Audit Report Panel -->
       <div class="panel overflow-y-auto bg-zinc-100/70 p-4 md:p-8" id="panel-report">
         
         <!-- Printable Document Surface -->
-        <div class="max-w-5xl mx-auto space-y-6 bg-white p-6 md:p-10 rounded-xl border border-zinc-200/90 shadow-xs text-zinc-900 font-sans" id="tcc-printable-area">
+        <div class="max-w-5xl mx-auto space-y-6 bg-white p-6 md:p-10 rounded-xl border border-zinc-200/90 shadow-xs text-zinc-900 font-sans" id="report-printable-area">
           
           <!-- Document Header -->
           <div class="border-b border-zinc-200 pb-6 flex flex-wrap items-start justify-between gap-4">
@@ -2024,15 +2024,15 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-zinc-900"></span>
                 <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">DelhiTSR Title Intelligence Platform</span>
               </div>
-              <h1 class="text-2xl font-extrabold tracking-tight text-zinc-950">PRELIMINARY TITLE CLEARANCE CERTIFICATE</h1>
-              <p class="text-xs text-zinc-500 mt-1 font-sans">Case Reference: TSR-{{ project_name.rsplit('_', 1)[0] }}-2026 • Legal Search Window: 31 Years (1995–2026)</p>
+              <h1 class="text-2xl font-extrabold tracking-tight text-zinc-950">TITLE SEARCH & AUDIT REPORT</h1>
+              <p class="text-xs text-zinc-500 mt-1 font-sans">Case Reference: DELHITSR-{{ project_name.rsplit('_', 1)[0] }}-2026 • Legal Search Window: 31 Years (1995–2026)</p>
             </div>
 
             <div class="text-right">
-              <span class="inline-block px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-amber-100/80 text-amber-900 border border-amber-300/80">
-                PRELIMINARY / ADVOCATE REVIEW
+              <span class="inline-block px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-zinc-100 text-zinc-800 border border-zinc-200">
+                AUDIT REPORT
               </span>
-              <p class="text-[11px] text-zinc-500 mt-1.5 font-medium">Date: <span id="tcc-date-display">15 August 2026</span></p>
+              <p class="text-[11px] text-zinc-500 mt-1.5 font-medium">Date: <span id="report-date-display">15 August 2026</span></p>
             </div>
           </div>
 
@@ -2059,16 +2059,16 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="p-4 rounded-lg bg-zinc-50 border border-zinc-200/80 space-y-2">
               <h3 class="font-bold text-zinc-900 uppercase tracking-wider text-[11px] border-b border-zinc-200 pb-1.5">Property Identity</h3>
-              <div class="flex justify-between"><span class="text-zinc-500">Property Identifier:</span> <span class="font-bold text-zinc-900" id="tcc-prop-id">Flat 8, Plot 1A</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">Locality & Sector:</span> <span class="font-medium text-zinc-800" id="tcc-prop-locality">Hauz Khas Enclave, New Delhi</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">Locality Category:</span> <span class="font-bold text-zinc-900" id="tcc-prop-cat">Category B (High-End Neighborhood)</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">UPIC No:</span> <span class="font-sans text-zinc-800" id="tcc-prop-upic">100293847561</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Property Identifier:</span> <span class="font-bold text-zinc-900" id="report-prop-id">Flat 8, Plot 1A</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Locality & Sector:</span> <span class="font-medium text-zinc-800" id="report-prop-locality">Hauz Khas Enclave, New Delhi</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Locality Category:</span> <span class="font-bold text-zinc-900" id="report-prop-cat">Category B (High-End Neighborhood)</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">UPIC No:</span> <span class="font-sans text-zinc-800" id="report-prop-upic">100293847561</span></div>
             </div>
 
             <div class="p-4 rounded-lg bg-zinc-50 border border-zinc-200/80 space-y-2">
               <h3 class="font-bold text-zinc-900 uppercase tracking-wider text-[11px] border-b border-zinc-200 pb-1.5">Current Title & Jurisdiction</h3>
-              <div class="flex justify-between"><span class="text-zinc-500">Current Owner:</span> <span class="font-bold text-zinc-900" id="tcc-prop-owner">MRS. NEHA SHARMA</span></div>
-              <div class="flex justify-between"><span class="text-zinc-500">Acquisition Instrument:</span> <span class="font-medium text-zinc-800" id="tcc-prop-deed">Sale Deed (Doc 5847/2026)</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Current Owner:</span> <span class="font-bold text-zinc-900" id="report-prop-owner">MRS. NEHA SHARMA</span></div>
+              <div class="flex justify-between"><span class="text-zinc-500">Acquisition Instrument:</span> <span class="font-medium text-zinc-800" id="report-prop-deed">Sale Deed (Doc 5847/2026)</span></div>
               <div class="flex justify-between"><span class="text-zinc-500">SRO Jurisdiction:</span> <span class="font-medium text-zinc-800">SRO VIII-A (Hauz Khas)</span></div>
               <div class="flex justify-between"><span class="text-zinc-500">Encumbrance Status:</span> <span class="font-semibold text-emerald-700">Released / Clear Charge</span></div>
             </div>
@@ -2137,7 +2137,7 @@
                     <th class="p-2.5">Doc No</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-200 text-zinc-800" id="tcc-chain-rows">
+                <tbody class="divide-y divide-zinc-200 text-zinc-800" id="report-chain-rows">
                   <tr><td class="p-2.5">1995</td><td class="p-2.5 font-semibold">Sale Deed</td><td class="p-2.5">DDA</td><td class="p-2.5">MR. RAJESH KUMAR SHARMA</td><td class="p-2.5 font-sans">123/1995</td></tr>
                   <tr><td class="p-2.5">2005</td><td class="p-2.5 font-semibold">Sale Deed</td><td class="p-2.5">MR. RAJESH KUMAR SHARMA</td><td class="p-2.5">MR. VIKRAM SINGH CHAUHAN</td><td class="p-2.5 font-sans">5847/2005</td></tr>
                   <tr><td class="p-2.5">2008</td><td class="p-2.5 font-semibold text-amber-700">Mortgage</td><td class="p-2.5">MR. VIKRAM SINGH CHAUHAN</td><td class="p-2.5">AXIS BANK</td><td class="p-2.5 font-sans">9234/2008</td></tr>
@@ -3395,7 +3395,7 @@
   }
 
   function loadTsrReport() {
-    const dateDisplay = document.getElementById('tcc-date-display');
+    const dateDisplay = document.getElementById('report-date-display');
     if (dateDisplay) {
       const now = new Date();
       const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -3404,17 +3404,17 @@
 
     if (window._currentDeedMetadata) {
       const meta = window._currentDeedMetadata;
-      if (meta.property_name && document.getElementById('tcc-prop-id')) {
-        document.getElementById('tcc-prop-id').textContent = meta.property_name;
+      if (meta.property_name && document.getElementById('report-prop-id')) {
+        document.getElementById('report-prop-id').textContent = meta.property_name;
       }
-      if (meta.locality && document.getElementById('tcc-prop-locality')) {
-        document.getElementById('tcc-prop-locality').textContent = meta.locality + ', New Delhi';
+      if (meta.locality && document.getElementById('report-prop-locality')) {
+        document.getElementById('report-prop-locality').textContent = meta.locality + ', New Delhi';
       }
-      if (meta.current_owner && document.getElementById('tcc-prop-owner')) {
-        document.getElementById('tcc-prop-owner').textContent = meta.current_owner;
+      if (meta.current_owner && document.getElementById('report-prop-owner')) {
+        document.getElementById('report-prop-owner').textContent = meta.current_owner;
       }
-      if (meta.upic && document.getElementById('tcc-prop-upic')) {
-        document.getElementById('tcc-prop-upic').textContent = meta.upic;
+      if (meta.upic && document.getElementById('report-prop-upic')) {
+        document.getElementById('report-prop-upic').textContent = meta.upic;
       }
     }
   }
