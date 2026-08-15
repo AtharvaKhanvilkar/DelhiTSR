@@ -54,6 +54,18 @@ def format_inr(number):
         return str(number)
 
 
+def _safe_float(val, default=0.0):
+    if isinstance(val, (int, float)):
+        return float(val)
+    if not val:
+        return default
+    try:
+        cleaned = re.sub(r"[^\d.]", "", str(val))
+        return float(cleaned) if cleaned else default
+    except Exception:
+        return default
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -3457,6 +3469,9 @@ def _build_events_and_errors(project_path):
             area_sqm_val = 0.0
             expected_sd_val = 0.0
             expected_reg_val = 0.0
+            actual_sd_val = _safe_float(data.get("total_stamp_duty") or data.get("stamp_certificate_amount") or (_safe_float(data.get("stamp_duty")) + _safe_float(data.get("mcd_transfer_tax") or data.get("mcd_tax"))))
+            if actual_sd_val <= 0:
+                actual_sd_val = _safe_float(data.get("stamp_duty"))
             
             doc_area = data.get("built_up_area") or data.get("covered_area") or data.get("area")
             price = data.get("consideration")
