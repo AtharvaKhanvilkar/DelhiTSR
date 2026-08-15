@@ -2818,11 +2818,13 @@ def _phase1_supporting_checks(data, source):
     for src_lbl, a_val in aadhaar_list:
         clean_a = re.sub(r'[\s\-]', '', a_val)
         if clean_a and clean_a.lower() not in ("null", "none", ""):
-            is_valid_a = bool(re.match(r'^\d{12}$', clean_a)) and len(set(clean_a)) > 1
+            is_numeric_12 = bool(re.match(r'^\d{12}$', clean_a)) and len(set(clean_a)) > 1
+            is_masked_aadhaar = bool(re.match(r'^[xX\*#]{4,8}\d{4}$', clean_a))
+            is_valid_a = is_numeric_12 or is_masked_aadhaar
             if not is_valid_a:
                 add("ERROR", "INVALID_AADHAAR_FORMAT",
-                    f"Aadhaar number '{a_val}' for {src_lbl} does not conform to the standard 12-digit Aadhaar format.",
-                    expected="12-digit numeric Aadhaar", actual=a_val, category="id_validation")
+                    f"Aadhaar number '{a_val}' for {src_lbl} does not conform to standard 12-digit or UIDAI Masked Aadhaar format.",
+                    expected="12-digit numeric or UIDAI Masked Aadhaar", actual=a_val, category="id_validation")
 
     # 3B: PAN Format Check (5 letters + 4 digits + 1 letter)
     pan_list = []
