@@ -1308,10 +1308,10 @@
 <div class="flex h-screen w-screen overflow-hidden bg-white">
 <aside id="appSidebar" class="relative w-[280px] shrink-0 border-r border-zinc-200 bg-[#fafafa] flex flex-col h-full select-none shadow-2xs">
 
-      <!-- Floating Collapse Sidebar Button (Outside Sidebar Boundary, Visible at All Times) -->
+      <!-- Floating Collapse Sidebar Button (Prominent, High-Contrast 28x28px Pill) -->
       <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
-              class="absolute -right-3 top-3.5 z-50 w-6 h-6 rounded-md border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 shadow-2xs flex items-center justify-center transition-all cursor-pointer select-none">
-        <svg class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
+              class="absolute -right-3.5 top-3.5 z-50 w-7 h-7 rounded-full border border-zinc-300 bg-white text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100 shadow-md hover:shadow-lg flex items-center justify-center transition-all cursor-pointer select-none">
+        <svg class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
       </button>
@@ -1494,20 +1494,17 @@
         </div>
 
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <!-- User Avatar -->
-          <div class="w-7 h-7 rounded-full bg-zinc-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0 select-none shadow-2xs"
-               title="{{ current_user.email }}">
-            {{ current_user.email[0].upper() if current_user.email else 'U' }}
-          </div>
+          <!-- Open-Source Avatar (DiceBear / Unavatar API) -->
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed={{ current_user.email if current_user.email else 'user' }}&backgroundColor=e4e4e7"
+               alt="User Avatar"
+               class="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 object-cover shrink-0 select-none shadow-2xs"
+               title="{{ current_user.email }}"
+               onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed={{ current_user.email if current_user.email else 'user' }}'">
 
-          <!-- User Details -->
+          <!-- User Details (No Title Analyst tag) -->
           <div class="flex flex-col min-w-0 flex-1 sb-only-expanded">
             <span class="text-xs font-semibold text-zinc-900 truncate" title="{{ current_user.email }}">
               {{ current_user.email.split('@')[0] if current_user.email else 'Operator' }}
-            </span>
-            <span class="text-[10px] text-zinc-400 truncate flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-              <span>Title Analyst</span>
             </span>
           </div>
         </div>
@@ -1676,29 +1673,7 @@
 
     <div class="flex items-center gap-2">
 
-      <!-- Theme Badge -->
-      <div class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 select-none shadow-2xs">
-        <svg class="w-3.5 h-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <span>Light Mode</span>
-      </div>
 
-      <!-- Refresh Data Button -->
-      <button onclick="refreshWorkspaceData()" class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 transition-colors shadow-2xs cursor-pointer">
-        <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-        </svg>
-        <span>Refresh</span>
-      </button>
 
       <!-- Settings Gear Button -->
       <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer shadow-2xs" title="Configure Portal Credentials & System Settings">
