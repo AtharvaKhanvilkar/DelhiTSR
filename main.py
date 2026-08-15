@@ -212,16 +212,29 @@ PAGES:
         if p["is_deed_instrument"] and p["type"] not in ("E_STAMP", "REGISTRATION_ENDORSEMENT")
     )
     instrument_type = body_counts.most_common(1)[0][0] if body_counts else None
-    # Deed Span Fill Protection: ensure no un-OCR'd or intermediate pages inside the deed body are missed
-    instrument_indices = [idx for idx, p in enumerate(pages) if p["is_deed_instrument"]]
-    if instrument_indices:
-        min_idx, max_idx = min(instrument_indices), max(instrument_indices)
-        for idx in range(min_idx, max_idx + 1):
-            if pages[idx]["type"] in ("BLANK", "OTHER"):
-                pages[idx]["is_deed_instrument"] = True
-                pages[idx]["type"] = instrument_type or "SALE_DEED"
-                pages[idx]["label"] = SORTER_TYPE_LABELS.get(pages[idx]["type"], "Deed Instrument")
-                pages[idx]["is_blank"] = False
+    # Smart Instrument & Supporting Sorter Logic:
+    # 1. Dedicated supporting documents (PAN, Aadhaar, Electricity Bill, Tax Receipt, Sanction Plan, etc.) remain SORTED OUT as supporting files.
+    # 2. Scanned deed pages (photo recitals, thumbprints, witness signature pages, map schedules) are retained as DEED_INSTRUMENT.
+    # 3. Only true empty scanner sheets are marked BLANK.
+    for idx, p in enumerate(pages):
+        # Do not override explicitly identified supporting documents
+        if p["type"] in ("PAN_CARD", "AADHAAR_CARD", "PASSPORT", "VOTER_ID", "DRIVING_LICENSE",
+                         "ELECTRICITY_BILL", "GAS_BILL", "WATER_BILL", "PROPERTY_TAX_RECEIPT",
+                         "FORM_A", "UNDERTAKING", "NOC", "SANCTION_PLAN", "MUTATION"):
+            p["is_deed_instrument"] = False
+            continue
+
+        # If a page has low text but falls inside the deed flow (between e-Stamp and Endorsement),
+        # it is a scanned deed photo/signature page — retain as deed instrument!
+        if p["type"] in ("OTHER", "BLANK") and not pages_text[idx].strip():
+            # If surrounded by deed instrument pages, it is part of the deed body
+            prev_is_deed = (idx > 0 and pages[idx-1]["is_deed_instrument"])
+            next_is_deed = (idx < n - 1 and pages[idx+1]["is_deed_instrument"])
+            if prev_is_deed or next_is_deed:
+                p["is_deed_instrument"] = True
+                p["type"] = instrument_type or "SALE_DEED"
+                p["label"] = SORTER_TYPE_LABELS.get(p["type"], "Deed Instrument")
+                p["is_blank"] = False
 
     instrument_pages = [p["page"] for p in pages if p["is_deed_instrument"]]
 
