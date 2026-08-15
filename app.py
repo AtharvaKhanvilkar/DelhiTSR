@@ -5809,7 +5809,7 @@ def api_summarize_discrepancy(project_name):
     return jsonify({
         "ok": True,
         "summary": summary_text,
-        "ai_engine": "Gemini 2.5 Flash AI Engine"
+        "ai_engine": "Gemini 3.1 Flash-Lite (Cheapest & Ultra-Fast)"
     })
 
 

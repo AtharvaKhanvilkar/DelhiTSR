@@ -958,7 +958,7 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
 
     try:
         response = client.models.generate_content(
-            model=model or "gemini-2.5-flash",
+            model=model or "gemini-3.1-flash-lite",
             contents=contents,
         )
         return (response.text or "").strip()
@@ -998,7 +998,7 @@ CRITICAL MANDATORY RULES:
 """
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.1-flash-lite",
             contents=prompt,
         )
         text = (response.text or "").strip()
