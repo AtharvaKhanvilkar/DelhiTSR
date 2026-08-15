@@ -5928,7 +5928,7 @@
               <div class="p-3.5 border border-zinc-200 bg-zinc-50/40 rounded-xl space-y-1">
                 <span class="text-[9px] font-bold text-zinc-400 block uppercase tracking-wider">${fromLabel}</span>
                 <span class="text-xs font-semibold text-zinc-950 block">${fromName}</span>
-                <span class="font-mono text-[10px] text-zinc-500 block">PAN: ${fromPan}</span>
+                <span class="text-[10px] text-zinc-500 block">PAN: ${fromPan}</span>
                 ${authSignatoryFromHtml}
               </div>
               
@@ -5938,7 +5938,7 @@
                   ${bankLogoHtml}
                   <span class="text-xs font-semibold text-zinc-950 block">${toName}</span>
                 </div>
-                <span class="font-mono text-[10px] text-zinc-500 block">PAN: ${toPan}</span>
+                <span class="text-[10px] text-zinc-500 block">PAN: ${toPan}</span>
                 ${authSignatoryToHtml}
               </div>
             </div>
@@ -5974,6 +5974,7 @@
 
     if (window.lucide) lucide.createIcons();
   }
+
   function closeEventDetail() {
     const drawer   = document.getElementById('eventDrawer');
     const backdrop = document.getElementById('eventDrawerBackdrop');
@@ -6026,33 +6027,16 @@
     const actualVal = Array.isArray(err.actual) ? err.actual.join(', ') : (err.actual || '—');
     const hasDetail = (err.expected !== undefined && err.expected !== null) || (err.actual !== undefined && err.actual !== null);
 
-    let legalRationale = "This observation represents a structural title discrepancy. It should be evaluated against registered property records to ensure clear, marketable, and unencumbered title.";
-    let actionSteps = "1. Requisition certified copy of title deed from Sub-Registrar.\n2. Obtain 30-year non-encumbrance certificate (Form 15/16).\n3. Requisition original title deeds from vendor or mortgaging bank.";
-
-    if (err.type === 'CHAIN_ERROR' || label.includes('Chain')) {
-      legalRationale = "Under the Indian Transfer of Property Act, 1882 (Principle of *Nemo dat quod non habet*), a transferor cannot convey a title or ownership share greater than what they lawfully hold on record. Since Mr. Vikram Singh Chauhan gifted away 100% of his share via Gift Deed in 2015, his subsequent transfer in 2026 holds 0% share on record and is legally void *ab initio*.";
-      actionSteps = "1. Requisition complete intermediate title deeds across 30 years.\n2. Obtain certified copy of Gift Deed Doc 2891/2015 from Sub-Registrar.\n3. Verify if Mrs. Priya Vikram Chauhan executed any subsequent deed or consent.";
-    } else if (err.type === 'MORTGAGE_UNRELEASED' || label.includes('Mortgage') || label.includes('Charge')) {
-      legalRationale = "Under Section 58 of the Transfer of Property Act, 1882, a registered mortgage creates a legal charge on immovable property in favor of the lender. Until a formal Deed of Release / Reconveyance is registered with the Sub-Registrar, the outstanding financial charge remains active and binding on future purchasers.";
-      actionSteps = "1. Requisition Bank No-Dues Certificate (NOC) and registered Release Deed.\n2. Verify SRO index-II entries for discharge endorsement.\n3. Check CERSAI registry for outstanding security interest assets.";
-    } else if (label.includes('Lease') || err.type === 'LEASE_NON_TRANSFER') {
-      legalRationale = "Under Section 105 of the Transfer of Property Act, 1882, a Lease or Leave & License agreement grants possessory or occupational rights only. It does NOT transfer proprietary ownership or legal title.";
-      actionSteps = "1. Confirm lease term expiry and physical possession status.\n2. Ensure no statutory tenancy or perpetual lease rights are claimed.";
-    } else if (label.includes('Release') || label.includes('Relinquishment')) {
-      legalRationale = "A Relinquishment or Release Deed is valid only when executed in favor of an existing recorded co-owner or legal heir. A release executed in favor of a third-party stranger is legally invalid as a release and must be stamped and registered as a Sale or Gift Deed.";
-      actionSteps = "1. Verify legal heirship certificate or pedigree tree.\n2. Confirm co-ownership status at the time of deed execution.";
-    }
-
     body.innerHTML = `
       <!-- Modal Header -->
-      <div class="flex flex-col p-6 border-b border-zinc-100 shrink-0 bg-white space-y-3">
+      <div class="flex flex-col p-6 border-b border-zinc-100 shrink-0 bg-white space-y-3 font-sans">
         <div class="flex items-center justify-between">
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
-              <h2 class="text-lg font-bold tracking-tight text-zinc-900">${label}</h2>
-              <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2.5 py-0.5 text-xs">${sevIconSvg}${sevLabel}</span>
+              <h2 class="text-lg font-bold tracking-tight text-zinc-900 font-sans">${label}</h2>
+              <span class="inline-flex items-center gap-1.5 rounded-md border ${sevBadgeCls} px-2.5 py-0.5 text-xs font-sans">${sevIconSvg}${sevLabel}</span>
             </div>
-            <p class="text-xs text-zinc-500 flex items-center gap-1.5">
+            <p class="text-xs text-zinc-500 flex items-center gap-1.5 font-sans">
               <span class="font-semibold text-zinc-700">Doc ${docNo}</span>
               <span class="text-zinc-300">•</span>
               <span>Registered: <strong class="text-zinc-700">${dateVal}</strong></span>
@@ -6065,62 +6049,47 @@
         </div>
       </div>
 
-      <!-- Modal Body -->
-      <div class="p-6 space-y-5 overflow-y-auto min-h-0 flex-1 bg-white">
+      <!-- Modal Body (100% Monochrome & Clean Sans Typography) -->
+      <div class="p-6 space-y-5 overflow-y-auto min-h-0 flex-1 bg-white font-sans">
         
-        <!-- AI Discrepancy Synthesis (Monochrome, Gemini 2.5 Flash) -->
-        <div class="p-4 border border-zinc-200 bg-zinc-50/70 rounded-xl space-y-2 shadow-2xs" id="aiSummaryContainer">
+        <!-- AI Discrepancy Synthesis (Monochrome, Gemini 2.5 Flash, Sans Typography) -->
+        <div class="p-4 border border-zinc-200 bg-zinc-50 rounded-xl space-y-2 shadow-2xs" id="aiSummaryContainer">
           <div class="flex items-center justify-between">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10.5px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-800 border border-zinc-200">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider bg-zinc-100 text-zinc-800 border border-zinc-200 font-sans">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1 1.275-1.275L12 3Z"/></svg>
               <span>AI Discrepancy Synthesis</span>
             </span>
-            <span class="text-[10px] text-zinc-400 font-mono">Gemini 2.5 Flash</span>
+            <span class="text-[11px] text-zinc-500 font-semibold font-sans">Gemini 2.5 Flash</span>
           </div>
-          <p class="text-xs text-zinc-500 font-medium animate-pulse">Generating Gemini legal breakdown...</p>
+          <p class="text-xs text-zinc-500 font-medium animate-pulse font-sans">Generating Gemini legal breakdown...</p>
         </div>
 
         <!-- Discrepancy Finding Observation Card -->
         <div class="p-4 border border-zinc-200 bg-white rounded-xl space-y-1.5 shadow-2xs">
-          <h3 class="text-[10.5px] font-bold uppercase tracking-wider text-zinc-500">Recorded Finding Observation</h3>
-          <p class="text-xs text-zinc-900 leading-relaxed font-medium">${formatBankNamesHtml(err.message || '')}</p>
+          <h3 class="text-[10.5px] font-bold uppercase tracking-wider text-zinc-500 font-sans">Recorded Finding Observation</h3>
+          <p class="text-xs text-zinc-900 leading-relaxed font-medium font-sans">${formatBankNamesHtml(err.message || '')}</p>
         </div>
 
         ${hasDetail ? `
         <!-- Expected vs Actual Comparison -->
-        <div class="space-y-2.5">
-          <h3 class="text-[10.5px] font-bold uppercase tracking-wider text-zinc-500">Record Verification State</h3>
+        <div class="space-y-2.5 font-sans">
+          <h3 class="text-[10.5px] font-bold uppercase tracking-wider text-zinc-500 font-sans">Record Verification State</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div class="p-3.5 border border-zinc-200 bg-white rounded-xl space-y-1 shadow-2xs">
-              <span class="text-[10px] font-bold text-zinc-400 block uppercase tracking-wider">${expectedLbl}</span>
-              <span class="text-xs font-semibold text-zinc-900 block leading-relaxed">${formatBankNamesHtml(expectedVal)}</span>
+              <span class="text-[10px] font-bold text-zinc-400 block uppercase tracking-wider font-sans">${expectedLbl}</span>
+              <span class="text-xs font-semibold text-zinc-900 block leading-relaxed font-sans">${formatBankNamesHtml(expectedVal)}</span>
             </div>
             
             <div class="p-3.5 border border-zinc-300 bg-zinc-50 rounded-xl space-y-1 shadow-2xs">
-              <span class="text-[10px] font-bold text-zinc-700 block uppercase tracking-wider">${actualLbl}</span>
-              <span class="text-xs font-bold text-zinc-950 block leading-relaxed">${formatBankNamesHtml(actualVal)}</span>
+              <span class="text-[10px] font-bold text-zinc-700 block uppercase tracking-wider font-sans">${actualLbl}</span>
+              <span class="text-xs font-bold text-zinc-950 block leading-relaxed font-sans">${formatBankNamesHtml(actualVal)}</span>
             </div>
           </div>
         </div>` : ''}
-
-        <!-- Legal Principles & Title Impact -->
-        <div class="p-4 border border-zinc-200 bg-white rounded-xl space-y-2 shadow-2xs">
-          <div class="flex items-center gap-2">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27272a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-            <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">Statutory Framework & Principles</h3>
-          </div>
-          <p class="text-xs text-zinc-700 leading-relaxed">${legalRationale}</p>
-        </div>
-
-        <!-- Recommended Requisition & Action Steps -->
-        <div class="p-4 border border-zinc-200/90 bg-zinc-50/80 rounded-xl space-y-2">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-600">Recommended Advocate Action</h3>
-          <div class="text-xs text-zinc-800 leading-relaxed font-mono whitespace-pre-line">${actionSteps}</div>
-        </div>
       </div>
     `;
 
-    // Asynchronously fetch AI Discrepancy Summary from backend (NO GEMINI KEYS)
+    // Asynchronously fetch AI Discrepancy Summary from backend (Gemini 2.5 Flash)
     const currentProj = '{{ project_name }}';
     fetch('/api/summarize_discrepancy/' + encodeURIComponent(currentProj), {
       method: 'POST',
@@ -6140,22 +6109,15 @@
     .then(data => {
       const container = document.getElementById('aiSummaryContainer');
       if (data.ok && container) {
-        let itemsHtml = '';
-        if (data.action_items && data.action_items.length) {
-          itemsHtml = '<ul class="list-disc list-inside text-xs text-purple-950 space-y-1 mt-2 pt-2 border-t border-purple-200/70 font-mono">' + 
-            data.action_items.map(it => `<li>${it}</li>`).join('') + '</ul>';
-        }
         container.innerHTML = `
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10.5px] font-bold uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200/90">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          <div class="flex items-center justify-between mb-1.5 font-sans">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider bg-zinc-200/80 text-zinc-900 border border-zinc-300 font-sans">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
               <span>AI Discrepancy Synthesis</span>
             </span>
-            <span class="text-[10px] text-purple-600 font-mono">${data.ai_engine}</span>
+            <span class="text-[11px] text-zinc-600 font-semibold font-sans">${data.ai_engine || 'Gemini 2.5 Flash'}</span>
           </div>
-          <p class="text-xs font-bold text-purple-950 leading-relaxed">${data.summary}</p>
-          <p class="text-xs text-purple-900/90 leading-relaxed mt-1.5 leading-relaxed">${data.legal_impact}</p>
-          ${itemsHtml}
+          <p class="text-xs font-medium text-zinc-900 leading-relaxed font-sans">${data.summary}</p>
         `;
       }
     })
