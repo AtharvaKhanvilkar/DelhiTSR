@@ -1316,19 +1316,19 @@
         </svg>
       </button>
 
-      <!-- Sidebar Top Header (Seamless Background, No Horizontal Line Passing Through Sidebar) -->
-      <div class="sidebar-header flex items-center justify-between px-3.5 h-12 shrink-0 bg-[#fafafa] select-none w-full">
-        <a href="/projects" class="inline-flex items-center gap-2 text-xs font-semibold text-zinc-800 hover:text-black transition-colors min-w-0 flex-1 overflow-hidden" title="Back to Projects Dashboard">
-          <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 12H5"/>
-            <path d="M12 19l-7-7 7-7"/>
-          </svg>
-          <span class="truncate font-semibold tracking-tight text-xs sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</span>
-        </a>
-      </div>
+      <!-- Navigation Stream (Seamless Top-to-Bottom Column) -->
+      <div class="flex-1 overflow-y-auto px-2 pt-3 pb-2 space-y-4" id="sidebarMenu">
 
-      <!-- Navigation Stream -->
-      <div class="flex-1 overflow-y-auto px-2 py-2 space-y-4" id="sidebarMenu">
+        <!-- Workspace Title / Back Link -->
+        <div class="px-1.5 pb-1 select-none">
+          <a href="/projects" class="inline-flex items-center gap-2 text-xs font-semibold text-zinc-800 hover:text-black transition-colors min-w-0 w-full overflow-hidden" title="Back to Projects Dashboard">
+            <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"/>
+              <path d="M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="truncate font-bold tracking-tight text-[13px] text-zinc-900 sb-only-expanded">{{ project_name.rsplit('_', 1)[0] }}</span>
+          </a>
+        </div>
 
         <!-- SECTION 1: DOCUMENTS -->
         <div class="space-y-1">
@@ -6162,7 +6162,6 @@
     .catch(err => {
       console.warn("AI Discrepancy Summarizer offline:", err);
     });
-    `;
 
     backdrop.classList.remove('opacity-0', 'pointer-events-none');
     backdrop.classList.add('opacity-100');
