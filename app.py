@@ -1485,6 +1485,7 @@ DORIS_SESSIONS = {}
 
 @app.route("/api/doris/start/<project_name>", methods=["GET"])
 @login_required
+@limiter.limit("10 per minute; 40 per hour")
 def api_doris_start(project_name):
     if not check_project_owner(project_name):
         abort(403)
@@ -1501,6 +1502,7 @@ def api_doris_start(project_name):
 
 @app.route("/api/doris/select/<project_name>", methods=["POST"])
 @login_required
+@limiter.limit("20 per minute; 100 per hour")
 def api_doris_select(project_name):
     if not check_project_owner(project_name):
         abort(403)
@@ -1537,6 +1539,7 @@ def api_doris_select(project_name):
 
 @app.route("/api/doris/search/<project_name>", methods=["POST"])
 @login_required
+@limiter.limit("10 per minute; 40 per hour")
 def api_doris_search(project_name):
     if not check_project_owner(project_name):
         abort(403)
