@@ -574,6 +574,89 @@ def calculate_circle_rate_value(locality, area_str, property_type, construction_
     res = calculate_circle_rate_details(locality, area_str, property_type, construction_year, registration_year, usage_type, locality_category, structure_type)
     return res["circle_value"], res["area_sqm"]
 
+def resolve_smart_circle_valuation(data, meta, locality_category=None):
+    """
+    Versatile 4-Tier Valuation & Area Resolution Algorithm:
+    Tier 1: Explicit Deed Govt Prescribed Value Recital
+    Tier 2: Composite Area Summation (Covered + Stilt Parking)
+    Tier 3: Smart Priority Area Hierarchy
+    Tier 4: Statutory Circle Rate Matrix Fallback
+    """
+    locality = meta.get("locality", "").strip() if meta else ""
+    p_type = data.get("property_type") or (meta.get("property_type") if meta else None) or "private_flat"
+    const_year = data.get("construction_year") or (meta.get("construction_year") if meta else None)
+    usage_type = data.get("usage_type") or data.get("land_use") or (meta.get("land_use") if meta else None)
+    structure_type = data.get("structure_type")
+    
+    reg_year = None
+    exec_date = data.get("date_of_execution")
+    if exec_date and "-" in exec_date:
+        parts = exec_date.split("-")
+        if len(parts) == 3 and len(parts[2]) == 4:
+            reg_year = parts[2]
+
+    # Tier 1: Explicit Govt Prescribed Value in Deed Text
+    explicit_val = data.get("govt_prescribed_value") or data.get("declared_circle_value") or data.get("circle_rate_value")
+    if explicit_val:
+        try:
+            val_num = float(re.sub(r"[^\d.]", "", str(explicit_val)))
+            if val_num > 0:
+                area_raw = data.get("covered_area") or data.get("built_up_area") or data.get("area")
+                area_sqm = normalize_area_to_sqm(area_raw)
+                return {
+                    "circle_value": round(val_num, 2),
+                    "area_sqm": round(area_sqm, 2),
+                    "valuation_source": "Explicit Deed Govt Recital"
+                }
+        except Exception:
+            pass
+
+    # Tier 2: Composite Area Summation (Covered + Stilt Parking)
+    covered_raw = data.get("covered_area") or data.get("built_up_area")
+    stilt_raw = data.get("stilt_area") or data.get("stilt_parking_area")
+    
+    if covered_raw and stilt_raw:
+        cov_sqm = normalize_area_to_sqm(covered_raw)
+        stilt_sqm = normalize_area_to_sqm(stilt_raw)
+        if cov_sqm > 0:
+            cov_det = calculate_circle_rate_details(locality, str(cov_sqm) + " sqm", p_type, const_year, reg_year, usage_type, locality_category, structure_type)
+            stilt_det = calculate_circle_rate_details(locality, str(stilt_sqm) + " sqm", p_type, const_year, reg_year, usage_type, locality_category, structure_type)
+            composite_val = cov_det["circle_value"] + (stilt_det["circle_value"] * 0.25)
+            total_sqm = cov_sqm + stilt_sqm
+            return {
+                "circle_value": round(composite_val, 2),
+                "area_sqm": round(total_sqm, 2),
+                "valuation_source": "Composite Covered + Stilt Summation"
+            }
+
+    # Tier 3: Smart Priority Area Hierarchy
+    p_lower = str(p_type).lower()
+    if "flat" in p_lower or "builder" in p_lower or "apartment" in p_lower or "floor" in p_lower:
+        best_area = (
+            data.get("covered_area") or
+            data.get("built_up_area") or
+            data.get("carpet_area") or
+            data.get("super_built_up_area") or
+            data.get("undivided_land_share_area") or
+            data.get("area")
+        )
+    elif "plot" in p_lower or "land" in p_lower or "agricultural" in p_lower:
+        best_area = (
+            data.get("plot_area") or
+            data.get("land_area") or
+            data.get("area")
+        )
+    else:
+        best_area = (
+            data.get("built_up_area") or
+            data.get("covered_area") or
+            data.get("area")
+        )
+
+    det = calculate_circle_rate_details(locality, best_area, p_type, const_year, reg_year, usage_type, locality_category, structure_type)
+    det["valuation_source"] = "Statutory Circle Rate Matrix"
+    return det
+
 def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis):
     try:
         year = int(registration_year)

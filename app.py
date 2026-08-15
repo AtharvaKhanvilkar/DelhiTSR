@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from main import extract_text_from_PDF
-from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate
+from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate, resolve_smart_circle_valuation
 from doris_scraper import DorisScraperSession
 from deed_doc_scraper import DorisDocScraper
 from flask_limiter import Limiter
@@ -3433,9 +3433,9 @@ def _build_events_and_errors(project_path):
                     if len(parts) == 3 and len(parts[2]) == 4:
                         reg_year = parts[2]
                         
-                circle_val, area_sqm_val = calculate_circle_rate_value(
-                    meta_locality, doc_area, p_type, const_year, reg_year, usage_type, locality_category
-                )
+                smart_res = resolve_smart_circle_valuation(data, meta, locality_category)
+                circle_val = smart_res.get("circle_value", 0.0)
+                area_sqm_val = smart_res.get("area_sqm", 0.0)
                 
                 # Check for property classification mismatch between reviewer meta and document
                 meta_cat = (meta.get("category") or "").strip().lower()
