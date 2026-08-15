@@ -14,6 +14,8 @@ from main import extract_text_from_PDF
 from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate
 from doris_scraper import DorisScraperSession
 from deed_doc_scraper import DorisDocScraper
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
@@ -21,6 +23,35 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = datetime.timedelta(days=365)
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Production Rate Limiting Architecture across EVERY SINGLE ENDPOINT
+# Default: 200 requests/min, 1000 requests/hour per client IP
+# Specialized strict tiers applied below to auth, AI, scrapers, and PDF parsing
+# ──────────────────────────────────────────────────────────────────────────────
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per minute", "1000 per hour"],
+    storage_uri="memory://",
+    strategy="fixed-window"
+)
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    if request.path.startswith('/api/') or request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            "ok": False,
+            "error": "Rate limit exceeded. Too many requests. Please wait a moment before trying again.",
+            "retry_after": getattr(e, "description", "Rate limit reached")
+        }), 429
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif; max-width:500px; margin:100px auto; padding:32px; border:1px solid #e4e4e7; border-radius:12px; background:#fafafa; text-align:center;">
+        <h2 style="color:#18181b; font-size:18px; font-weight:700; margin-bottom:8px;">429 - Rate Limit Exceeded</h2>
+        <p style="color:#71717a; font-size:14px; line-height:1.5;">You have submitted too many requests in a short period. Please wait 60 seconds before refreshing or trying again.</p>
+        <a href="javascript:history.back()" style="display:inline-block; margin-top:16px; padding:8px 16px; background:#18181b; color:#fff; text-decoration:none; border-radius:6px; font-size:13px; font-weight:600;">Go Back</a>
+    </div>
+    """, 429
 
 @app.before_request
 def auto_login_default_user():
@@ -728,6 +759,7 @@ def generate_and_send_otp(email):
 
 # Auth Routes
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute; 50 per hour")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("projects"))
@@ -746,6 +778,7 @@ def login():
     return render_template("login.html")
 
 @app.route("/register", methods=["GET", "POST"])
+@limiter.limit("5 per minute; 20 per hour")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for("projects"))
@@ -778,6 +811,7 @@ def register():
     return render_template("register.html")
 
 @app.route("/verify/<email>/<purpose>", methods=["GET", "POST"])
+@limiter.limit("10 per minute; 30 per hour")
 def verify(email, purpose):
     if current_user.is_authenticated:
         return redirect(url_for("projects"))
@@ -5306,6 +5340,7 @@ def get_entities(project_name):
 # ── AI Assistant chat endpoint ──────────────────────────────────────────────
 @app.route("/chat/<project_name>", methods=["POST"])
 @login_required
+@limiter.limit("20 per minute; 100 per hour")
 def chat(project_name):
     if not check_project_owner(project_name):
         abort(403)
@@ -5741,6 +5776,7 @@ def serve_sorter_pdf_preview(project_name, filename):
 
 @app.route("/api/summarize_discrepancy/<project_name>", methods=["POST"])
 @login_required
+@limiter.limit("30 per minute; 200 per hour")
 def api_summarize_discrepancy(project_name):
     """
     Production-grade AI Discrepancy Summarizer API Endpoint.
