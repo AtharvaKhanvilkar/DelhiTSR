@@ -1440,6 +1440,26 @@
             </span>
           </div>
 
+          <!-- Audit Report Tab -->
+          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+            <div class="flex items-center gap-2.5 sb-row-content">
+              <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              </span>
+              <span class="sb-label">Audit Report</span>
+            </div>
+            <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </span>
+          </div>
+
 
         </div>
 
@@ -1484,7 +1504,7 @@
           <!-- Open-Source Avatar (DiceBear / Unavatar API) -->
           <img src="https://api.dicebear.com/7.x/notionists/svg?seed={{ current_user.email if current_user.email else 'user' }}&backgroundColor=e4e4e7"
                alt="User Avatar"
-               class="w-7 h-7 rounded-full bg-zinc-100 border border-zinc-200 object-cover shrink-0 select-none shadow-2xs"
+               class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-300 object-cover shrink-0 select-none shadow-sm"
                title="{{ current_user.email }}"
                onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed={{ current_user.email if current_user.email else 'user' }}'">
 
@@ -1991,6 +2011,10 @@
             <p class="text-[11px] text-zinc-400 text-center mt-2 font-normal">Answers are generated exclusively from analyzed property title deeds.</p>
           </div>
         </div>
+      </div>
+
+      <!-- Empty Audit Report Panel -->
+      <div class="panel bg-white p-6 overflow-y-auto" id="panel-report">
       </div>
 
       <!-- Placeholder Panel for DORIS -->
