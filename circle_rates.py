@@ -459,19 +459,6 @@ def get_usage_multiplier(usage):
         return 1.25
     return 1.0
 
-def get_road_width_multiplier(road_width_m):
-    if not road_width_m:
-        return 1.0
-    try:
-        w = float(road_width_m)
-        if w > 20:
-            return 1.15
-        elif w < 9:
-            return 0.85
-        return 1.0
-    except Exception:
-        return 1.0
-
 def get_structure_multiplier(structure_type):
     if not structure_type:
         return 1.0
@@ -482,7 +469,7 @@ def get_structure_multiplier(structure_type):
         return 0.50
     return 1.0
 
-def calculate_circle_rate_details(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None, road_width_m=None, structure_type=None):
+def calculate_circle_rate_details(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None, structure_type=None):
     area_sqm = normalize_area_to_sqm(area_str)
     if area_sqm <= 0:
         return {
@@ -492,7 +479,6 @@ def calculate_circle_rate_details(locality, area_str, property_type, constructio
             "base_rate_per_sqm": 0.0,
             "age_factor": 1.0,
             "usage_multiplier": 1.0,
-            "road_multiplier": 1.0,
             "structure_multiplier": 1.0,
             "effective_rate_per_sqm": 0.0
         }
@@ -510,7 +496,6 @@ def calculate_circle_rate_details(locality, area_str, property_type, constructio
             "base_rate_per_sqm": 0.0,
             "age_factor": 1.0,
             "usage_multiplier": 1.0,
-            "road_multiplier": 1.0,
             "structure_multiplier": 1.0,
             "effective_rate_per_sqm": 0.0
         }
@@ -562,10 +547,9 @@ def calculate_circle_rate_details(locality, area_str, property_type, constructio
         
     age_factor = get_age_factor(construction_year, registration_year)
     usage_mult = get_usage_multiplier(usage_type)
-    road_mult = get_road_width_multiplier(road_width_m)
     struct_mult = get_structure_multiplier(structure_type)
     
-    effective_rate = rate * age_factor * usage_mult * road_mult * struct_mult
+    effective_rate = rate * age_factor * usage_mult * struct_mult
     circle_value = area_sqm * effective_rate
     
     return {
@@ -575,13 +559,12 @@ def calculate_circle_rate_details(locality, area_str, property_type, constructio
         "base_rate_per_sqm": round(rate, 2),
         "age_factor": age_factor,
         "usage_multiplier": usage_mult,
-        "road_multiplier": road_mult,
         "structure_multiplier": struct_mult,
         "effective_rate_per_sqm": round(effective_rate, 2)
     }
 
-def calculate_circle_rate_value(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None, road_width_m=None, structure_type=None):
-    res = calculate_circle_rate_details(locality, area_str, property_type, construction_year, registration_year, usage_type, locality_category, road_width_m, structure_type)
+def calculate_circle_rate_value(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None, structure_type=None):
+    res = calculate_circle_rate_details(locality, area_str, property_type, construction_year, registration_year, usage_type, locality_category, structure_type)
     return res["circle_value"], res["area_sqm"]
 
 def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis):
