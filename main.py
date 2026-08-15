@@ -902,13 +902,18 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
     Returns the assistant's reply text. Uses the free gemini-2.5-flash model
     (same free tier as parsing — no additional cost beyond your existing quota).
     """
+    scope_instructions = {
+        "json": "FOCUS: The user specifically selected the 'JSON' filter. Format your response emphasizing exact extracted field keys, values, raw JSON structures, and document field data.",
+        "findings": "FOCUS: The user specifically selected the 'Findings' filter. Focus your response on surfaced legal discrepancies, title risks, missing parent deeds, and audit observations.",
+        "mortgages": "FOCUS: The user specifically selected the 'Mortgages' filter. Focus your response on bank mortgages, equitable charges, encumbrances, release deeds, and loan clearance status.",
+        "general": "FOCUS: The user selected 'General'. Answer the question naturally using the overall property title context."
+    }
+
     scope_clause = ""
     if scope_note:
-        scope_clause = (
-            f"\n\nREVIEWER SCOPE: the reviewer has scoped this question to "
-            f"\"{scope_note}\". Bias your answer toward that slice of the data, "
-            f"but you may still reference other parts when essential.\n"
-        )
+        key = str(scope_note).lower().strip()
+        custom_focus = scope_instructions.get(key, f"Bias your answer toward '{scope_note}'.")
+        scope_clause = f"\n\n[REVIEWER SCOPE FILTER: {str(scope_note).upper()}]\n{custom_focus}\n"
 
     system_instruction = (
         "You are DelhiTSR Assistant, a careful title-search analyst helping a "
