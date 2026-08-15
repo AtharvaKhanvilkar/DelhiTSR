@@ -1310,7 +1310,7 @@
 
       <!-- Floating Collapse Sidebar Button (Outside Sidebar Boundary, Visible at All Times) -->
       <button id="sidebarCollapseBtn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar" 
-              class="absolute -right-3 top-3.5 z-50 w-6 h-6 rounded-full border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 shadow-2xs flex items-center justify-center transition-all cursor-pointer select-none">
+              class="absolute -right-3 top-3.5 z-50 w-6 h-6 rounded-md border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50 shadow-2xs flex items-center justify-center transition-all cursor-pointer select-none">
         <svg class="w-3.5 h-3.5 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="sidebarCollapseIcon">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
@@ -6066,10 +6066,23 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="p-6 space-y-6 overflow-y-auto min-h-0 flex-1 bg-white">
-        <!-- Discrepancy Observation Card -->
+      <div class="p-6 space-y-5 overflow-y-auto min-h-0 flex-1 bg-white">
+        
+        <!-- AI Discrepancy Synthesis Card (Zero Gemini API Key Usage) -->
+        <div class="p-4 border border-purple-200/90 bg-purple-50/40 rounded-xl space-y-2.5 shadow-2xs" id="aiSummaryContainer">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <span>AI Discrepancy Synthesis</span>
+            </span>
+            <span class="text-[11px] text-purple-700 animate-pulse font-medium">Generating legal breakdown...</span>
+          </div>
+          <p class="text-xs text-zinc-700 leading-relaxed font-medium">Analyzing title document entries and statutory transfer rules...</p>
+        </div>
+
+        <!-- Discrepancy Finding Observation Card -->
         <div class="p-4 border border-zinc-200/90 bg-zinc-50/60 rounded-xl space-y-2">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Finding Observation</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Recorded Finding Observation</h3>
           <p class="text-xs text-zinc-900 leading-relaxed font-medium">${formatBankNamesHtml(err.message || '')}</p>
         </div>
 
@@ -6094,7 +6107,7 @@
         <div class="p-4 border border-zinc-200 bg-white rounded-xl space-y-2 shadow-2xs">
           <div class="flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27272a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-            <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">Legal Principles & Title Impact</h3>
+            <h3 class="text-xs font-bold text-zinc-900 uppercase tracking-wider">Statutory Framework & Principles</h3>
           </div>
           <p class="text-xs text-zinc-700 leading-relaxed">${legalRationale}</p>
         </div>
@@ -6105,6 +6118,50 @@
           <div class="text-xs text-zinc-800 leading-relaxed font-mono whitespace-pre-line">${actionSteps}</div>
         </div>
       </div>
+    `;
+
+    // Asynchronously fetch AI Discrepancy Summary from backend (NO GEMINI KEYS)
+    const currentProj = '{{ project_name }}';
+    fetch('/api/summarize_discrepancy/' + encodeURIComponent(currentProj), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fid: fid,
+        type: err.type,
+        title: label,
+        doc_no: docNo,
+        event_date: dateVal,
+        expected: err.expected,
+        actual: err.actual,
+        description: err.message
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById('aiSummaryContainer');
+      if (data.ok && container) {
+        let itemsHtml = '';
+        if (data.action_items && data.action_items.length) {
+          itemsHtml = '<ul class="list-disc list-inside text-xs text-purple-950 space-y-1 mt-2 pt-2 border-t border-purple-200/70 font-mono">' + 
+            data.action_items.map(it => `<li>${it}</li>`).join('') + '</ul>';
+        }
+        container.innerHTML = `
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10.5px] font-bold uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-200/90">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <span>AI Discrepancy Synthesis</span>
+            </span>
+            <span class="text-[10px] text-purple-600 font-mono">${data.ai_engine}</span>
+          </div>
+          <p class="text-xs font-bold text-purple-950 leading-relaxed">${data.summary}</p>
+          <p class="text-xs text-purple-900/90 leading-relaxed mt-1.5 leading-relaxed">${data.legal_impact}</p>
+          ${itemsHtml}
+        `;
+      }
+    })
+    .catch(err => {
+      console.warn("AI Discrepancy Summarizer offline:", err);
+    });
     `;
 
     backdrop.classList.remove('opacity-0', 'pointer-events-none');
