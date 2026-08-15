@@ -390,7 +390,36 @@ def normalize_area_to_sqm(area_str):
     if not area_str:
         return 0.0
     
-    s = area_str.strip().lower()
+    s = str(area_str).strip().lower()
+    
+    # 1. Prefer explicit Sq. Mtrs / Sq. Meters if present in compound strings
+    # e.g., "196.33 Sq. Yards i.e. 164.15 Sq. Mtrs."
+    sqm_match = re.search(r'([0-9,.]+)\s*(?:sq\.?\s*m(?:trs|tr|eters|eter)?|sqm|square\s*m(?:eters|eter)?)\b', s)
+    if sqm_match:
+        try:
+            return float(sqm_match.group(1).replace(',', ''))
+        except ValueError:
+            pass
+
+    # 2. Check for Sq. Yards / Gaj
+    sqyd_match = re.search(r'([0-9,.]+)\s*(?:sq\.?\s*y(?:ards|ard|ds|d)?|sqyd|sqyds|square\s*y(?:ards|ard)?|gaj|gaz)\b', s)
+    if sqyd_match:
+        try:
+            val = float(sqyd_match.group(1).replace(',', ''))
+            return val * 0.836127
+        except ValueError:
+            pass
+
+    # 3. Check for Sq. Feet
+    sqft_match = re.search(r'([0-9,.]+)\s*(?:sq\.?\s*f(?:eet|oot|t)?|sqft|square\s*f(?:eet|oot)?)\b', s)
+    if sqft_match:
+        try:
+            val = float(sqft_match.group(1).replace(',', ''))
+            return val * 0.092903
+        except ValueError:
+            pass
+
+    # Fallback: Extract first floating number
     match_num = re.search(r'([0-9,.]+)', s)
     if not match_num:
         return 0.0
@@ -400,18 +429,8 @@ def normalize_area_to_sqm(area_str):
         val = float(num_str)
     except ValueError:
         return 0.0
-        
-    # Normalize units:
-    # 1 Gaj (sq.yd) = 0.836127 sqm
-    # 1 Sq.Ft = 0.092903 sqm
-    if any(u in s for u in ["sq.ft", "sqft", "square feet", "square foot", "sq feet", "sq foot"]):
-        return val * 0.092903
-    elif any(u in s for u in ["sq.yd", "sqyds", "sqyd", "square yards", "square yard", "sq yards", "sq yard", "gaj", "gaz"]):
-        return val * 0.836127
-    elif any(u in s for u in ["sq.m", "sqm", "square meter", "square metre", "sq meters", "sq metres", "sq. meters"]):
-        return val * 1.0
-        
-    # Default fallback: assume sq.ft if no unit is found
+
+    # Default fallback: assume sq.ft if no recognized unit unit
     return val * 0.092903
 
 def get_age_factor(construction_year, registration_year):
