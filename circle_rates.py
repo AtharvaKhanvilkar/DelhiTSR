@@ -459,21 +459,62 @@ def get_usage_multiplier(usage):
         return 1.25
     return 1.0
 
-def calculate_circle_rate_value(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None):
+def get_road_width_multiplier(road_width_m):
+    if not road_width_m:
+        return 1.0
+    try:
+        w = float(road_width_m)
+        if w > 20:
+            return 1.15
+        elif w < 9:
+            return 0.85
+        return 1.0
+    except Exception:
+        return 1.0
+
+def get_structure_multiplier(structure_type):
+    if not structure_type:
+        return 1.0
+    s = str(structure_type).strip().lower()
+    if "semi" in s:
+        return 0.70
+    elif "kucha" in s or "temporary" in s:
+        return 0.50
+    return 1.0
+
+def calculate_circle_rate_details(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None, road_width_m=None, structure_type=None):
     area_sqm = normalize_area_to_sqm(area_str)
     if area_sqm <= 0:
-        return 0.0, 0.0
+        return {
+            "circle_value": 0.0,
+            "area_sqm": 0.0,
+            "locality_category": "D",
+            "base_rate_per_sqm": 0.0,
+            "age_factor": 1.0,
+            "usage_multiplier": 1.0,
+            "road_multiplier": 1.0,
+            "structure_multiplier": 1.0,
+            "effective_rate_per_sqm": 0.0
+        }
         
     try:
         reg_yr = int(registration_year) if registration_year else 2026
     except Exception:
         reg_yr = 2026
         
-    # Circle rates introduced on July 18, 2007
     if reg_yr < 2007:
-        return 0.0, 0.0
+        return {
+            "circle_value": 0.0,
+            "area_sqm": round(area_sqm, 2),
+            "locality_category": "N/A (Pre-2007)",
+            "base_rate_per_sqm": 0.0,
+            "age_factor": 1.0,
+            "usage_multiplier": 1.0,
+            "road_multiplier": 1.0,
+            "structure_multiplier": 1.0,
+            "effective_rate_per_sqm": 0.0
+        }
 
-    # Rate table selection based on registration year
     if reg_yr <= 2010:
         rates_table = LAND_RATES_2007
         flat_mult = 0.35
@@ -487,7 +528,6 @@ def calculate_circle_rate_value(locality, area_str, property_type, construction_
         rates_table = LAND_RATES_2014
         flat_mult = 1.0
 
-    # Determine category
     norm_locality = None
     if locality_category and str(locality_category).strip().upper() in "ABCDEFGH":
         norm_locality = str(locality_category).strip().upper()
@@ -497,7 +537,6 @@ def calculate_circle_rate_value(locality, area_str, property_type, construction_
                 
     p_type = (property_type or "").strip().lower()
     
-    # Calculate flat or land rate
     if "dda" in p_type or "society" in p_type or "cghs" in p_type:
         if area_sqm <= 30:
             rate = 50400
@@ -519,13 +558,31 @@ def calculate_circle_rate_value(locality, area_str, property_type, construction_
             rate = 95250
         rate = rate * flat_mult
     else:
-        # Land plot
         rate = rates_table.get(norm_locality, 127680)
         
     age_factor = get_age_factor(construction_year, registration_year)
     usage_mult = get_usage_multiplier(usage_type)
-    circle_value = area_sqm * rate * age_factor * usage_mult
-    return round(circle_value, 2), round(area_sqm, 2)
+    road_mult = get_road_width_multiplier(road_width_m)
+    struct_mult = get_structure_multiplier(structure_type)
+    
+    effective_rate = rate * age_factor * usage_mult * road_mult * struct_mult
+    circle_value = area_sqm * effective_rate
+    
+    return {
+        "circle_value": round(circle_value, 2),
+        "area_sqm": round(area_sqm, 2),
+        "locality_category": norm_locality,
+        "base_rate_per_sqm": round(rate, 2),
+        "age_factor": age_factor,
+        "usage_multiplier": usage_mult,
+        "road_multiplier": road_mult,
+        "structure_multiplier": struct_mult,
+        "effective_rate_per_sqm": round(effective_rate, 2)
+    }
+
+def calculate_circle_rate_value(locality, area_str, property_type, construction_year=None, registration_year=None, usage_type=None, locality_category=None, road_width_m=None, structure_type=None):
+    res = calculate_circle_rate_details(locality, area_str, property_type, construction_year, registration_year, usage_type, locality_category, road_width_m, structure_type)
+    return res["circle_value"], res["area_sqm"]
 
 def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis):
     try:
