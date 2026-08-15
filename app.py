@@ -3415,7 +3415,7 @@ def _build_events_and_errors(project_path):
             expected_sd_val = 0.0
             expected_reg_val = 0.0
             
-            doc_area = data.get("area")
+            doc_area = data.get("built_up_area") or data.get("covered_area") or data.get("area")
             price = data.get("consideration")
             
             if "SALE" in txn or "AGREEMENT" in txn or "GIFT" in txn:
