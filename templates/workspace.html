@@ -6571,13 +6571,14 @@
     if (isNaN(target) || target === 0) return;
     const prefix = text.match(/^[^0-9]*/)?.[0] || '';
     const suffix = text.match(/[^0-9]*$/)?.[0] || '';
+    const isYear = target >= 1000 && target <= 2100 && prefix === '' && suffix === '';
     const startTime = performance.now();
     function step(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = Math.round(target * eased);
-      el.textContent = prefix + current.toLocaleString('en-IN') + suffix;
+      el.textContent = prefix + (isYear ? current.toString() : current.toLocaleString('en-IN')) + suffix;
       if (progress < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
