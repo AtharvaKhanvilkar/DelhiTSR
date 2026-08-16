@@ -89,8 +89,30 @@
     .modal-overlay.open .modal-box,
     .modal-overlay.open .confirm-box { transform: translateY(0) scale(1); }
 
-    .field-error { display: none; font-size: 11.5px; color: #ef4444; margin-top: 4px; }
-    .field-error.visible { display: block; }
+    /* Smooth Page Transitions */
+    body {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.page-enter-active {
+      animation: bodyEnter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    body.page-exit-active {
+      opacity: 0.15 !important;
+      transform: scale(0.992) translateY(-3px) !important;
+      pointer-events: none;
+    }
+    @keyframes bodyEnter {
+      0% {
+        opacity: 0.3;
+        transform: scale(0.994) translateY(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-zinc-50/50">
@@ -768,6 +790,25 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('page-enter-active');
+      if (!document.getElementById('top-page-loader')) {
+        const bar = document.createElement('div');
+        bar.id = 'top-page-loader';
+        bar.className = 'fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-zinc-900 via-blue-600 to-zinc-900 z-[9999] opacity-0 transition-all duration-300 pointer-events-none';
+        document.body.appendChild(bar);
+      }
+      document.body.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.getAttribute('target') === '_blank') return;
+        e.preventDefault();
+        const loader = document.getElementById('top-page-loader');
+        if (loader) { loader.style.opacity = '1'; loader.style.width = '70%'; }
+        document.body.classList.add('page-exit-active');
+        setTimeout(() => { window.location.href = href; }, 160);
+      });
+
       const savedMode = localStorage.getItem('projects-view-mode') || 'grid';
       setViewMode(savedMode);
       populateLocalityFilter();

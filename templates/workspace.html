@@ -246,11 +246,28 @@
 
 
 
-    /* Tab content visibility with fade-in and subtle lift animation */
+    /* Global Page Transitions */
+    body {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.page-enter-active {
+      animation: bodyEnter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    body.page-exit-active {
+      opacity: 0.15 !important;
+      transform: scale(0.992) translateY(-3px) !important;
+      pointer-events: none;
+    }
+    @keyframes bodyEnter {
+      0% { opacity: 0.3; transform: scale(0.994) translateY(4px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
 
-    .panel              { display: none !important; height: 100%; width: 100%; min-height: 0; flex: 1 1 0%; overflow: hidden; opacity: 0; }
-
-    .panel.active       { 
+    /* Tab content visibility with rich fluid entrance */
+    .panel { display: none !important; height: 100%; width: 100%; min-height: 0; flex: 1 1 0%; overflow: hidden; opacity: 0; }
+    .panel.active { 
       display: flex !important; 
       flex-direction: column; 
       flex: 1 1 0%;
@@ -258,15 +275,45 @@
       width: 100%;
       min-height: 0;
       overflow: hidden;
-      animation: panelFadeIn 0.22s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      animation: panelEntrance 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    @keyframes panelFadeIn {
+    @keyframes panelEntrance {
+      0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.993);
+        filter: blur(1px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
 
-      from { opacity: 0; transform: translateY(4px); }
+    /* Sub-panel crossfade slide (e.g. PDF vs JSON document viewer) */
+    #panel-pdf.active, #panel-json.active {
+      animation: subPanelEntrance 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes subPanelEntrance {
+      0% { opacity: 0; transform: translateX(8px) scale(0.996); }
+      100% { opacity: 1; transform: translateX(0) scale(1); }
+    }
 
-      to   { opacity: 1; transform: translateY(0); }
+    /* Fluid Dropdown Menu Pop-in */
+    .dropdown-pop {
+      animation: dropdownPopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transform-origin: bottom left;
+    }
+    @keyframes dropdownPopIn {
+      0% { opacity: 0; transform: translateY(6px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
+    /* Micro-spring feedback for tab clicks */
+    .sidebar-item:active, .custom-tab-btn:active {
+      transform: scale(0.97);
+      transition: transform 0.1s ease;
     }
 
     /* Clean Soft Row & Finding Highlight (Zero layout shifts, No left borders, No DOM modification) */
@@ -2907,6 +2954,29 @@
 
 
 
+  function updateSidebarIndicator(targetEl) {
+    let indicator = document.getElementById('sidebar-active-indicator');
+    const container = document.querySelector('#appSidebar nav');
+    if (!container) return;
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.id = 'sidebar-active-indicator';
+      indicator.className = 'absolute bg-zinc-200/70 border border-zinc-300/50 rounded-lg transition-all duration-200 cubic-bezier(0.16,1,0.3,1) pointer-events-none z-0 shadow-2xs';
+      container.appendChild(indicator);
+    }
+    if (!targetEl) {
+      indicator.style.opacity = '0';
+      return;
+    }
+    const cRect = container.getBoundingClientRect();
+    const eRect = targetEl.getBoundingClientRect();
+    indicator.style.top = (eRect.top - cRect.top) + 'px';
+    indicator.style.left = (eRect.left - cRect.left) + 'px';
+    indicator.style.width = eRect.width + 'px';
+    indicator.style.height = eRect.height + 'px';
+    indicator.style.opacity = '1';
+  }
+
   function switchMainTab(view) {
 
     // 1. Reset selection states of navigation sidebar elements
@@ -2933,7 +3003,7 @@
 
 
 
-    // 2. Highlight active tab
+    // 2. Highlight active tab & position sliding indicator
 
     const targetSidebarEl = document.getElementById('sidebar-' + activeKey);
 
@@ -2942,6 +3012,7 @@
       targetSidebarEl.classList.remove('text-zinc-800', 'font-medium');
 
       targetSidebarEl.classList.add('bg-zinc-200/60', 'font-semibold', 'text-zinc-950', 'sb-active');
+      updateSidebarIndicator(targetSidebarEl);
 
     }
 
@@ -7208,6 +7279,9 @@
     const menu = document.getElementById('scopeMenu');
     if (!menu) return;
     menu.classList.toggle('hidden');
+    if (!menu.classList.contains('hidden')) {
+      menu.classList.add('dropdown-pop');
+    }
     const closeOut = (ev) => {
       if (!menu.contains(ev.target) && ev.target.id !== 'scopeBtn' && !ev.target.closest('#scopeBtn')) {
         menu.classList.add('hidden');
@@ -7540,6 +7614,25 @@
   // ─────────────────────────────────────────────────────────
 
   document.addEventListener('DOMContentLoaded', function() {
+    document.body.classList.add('page-enter-active');
+    if (!document.getElementById('top-page-loader')) {
+      const bar = document.createElement('div');
+      bar.id = 'top-page-loader';
+      bar.className = 'fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-zinc-900 via-blue-600 to-zinc-900 z-[9999] opacity-0 transition-all duration-300 pointer-events-none';
+      document.body.appendChild(bar);
+    }
+    document.body.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href]');
+      if (!link) return;
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.getAttribute('target') === '_blank') return;
+      e.preventDefault();
+      const loader = document.getElementById('top-page-loader');
+      if (loader) { loader.style.opacity = '1'; loader.style.width = '70%'; }
+      document.body.classList.add('page-exit-active');
+      setTimeout(() => { window.location.href = href; }, 160);
+    });
+
     if (window.lucide) lucide.createIcons();
     initPdfViewerOption();
     switchMainTab('events'); // Set initial active tab state to Events & Findings
