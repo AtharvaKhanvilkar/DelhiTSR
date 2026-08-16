@@ -662,7 +662,7 @@ def resolve_smart_circle_valuation(data, meta, locality_category=None):
     det["valuation_source"] = "Statutory Circle Rate Matrix"
     return det
 
-def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis):
+def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type=""):
     try:
         year = int(registration_year)
     except Exception:
@@ -672,9 +672,22 @@ def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis):
     if g not in ["male", "female", "joint"]:
         g = "male"
 
+    s_name = str(seller_name or "").upper()
+    d_type = str(doc_type or "").upper()
+    is_dda = ("DELHI DEVELOPMENT AUTHORITY" in s_name or 
+              "DDA" in s_name or 
+              "LAND AND DEVELOPMENT" in s_name or 
+              "CONVEYANCE" in d_type or
+              "01_DDA_CONVEYANCE_DEED" in d_type)
+
     if year < 2003:
+        # Pre-2003 DDA / Government Conveyance Deeds in Delhi were subject to 6% stamp duty (Article 23, Schedule I-A)
+        if is_dda:
+            return 0.06
         return 0.08
     elif year <= 2007:
+        if is_dda:
+            return 0.06
         if g == "female":
             return 0.05
         elif g == "joint":

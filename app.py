@@ -3544,7 +3544,8 @@ def _build_events_and_errors(project_path):
                         # In Delhi, stamp duty on Gift Deeds executed in favor of family members (blood relatives/spouse) is 3%
                         sd_rate = 0.03
                     else:
-                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
+                        seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
+                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis, seller_name=seller_info, doc_type=str(source or txn))
                         
                     expected_sd_val = valuation_basis * sd_rate
                     expected_reg_val = valuation_basis * 0.01
@@ -3630,7 +3631,8 @@ def _build_events_and_errors(project_path):
                         if "GIFT" in txn:
                             sd_rate = 0.03
                         else:
-                            sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis)
+                            seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
+                            sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis, seller_name=seller_info, doc_type=str(source or txn))
                         expected_sd_val = valuation_basis * sd_rate
                         expected_reg_val = valuation_basis * 0.01
             elif "MORTGAGE" in txn or "INTIMATION" in txn:
