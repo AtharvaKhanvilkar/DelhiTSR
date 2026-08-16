@@ -19,15 +19,47 @@ if not _API_KEY:
     )
 client = genai.Client(api_key=_API_KEY)
 
+import cv2
+import numpy as np
+import pypdfium2 as pdfium
+from rapidocr_onnxruntime import RapidOCR
+
+_rapid_ocr_engine = None
+
+def get_ocr_engine():
+    global _rapid_ocr_engine
+    if _rapid_ocr_engine is None:
+        _rapid_ocr_engine = RapidOCR()
+    return _rapid_ocr_engine
+
+def deskew_and_preprocess_image(image_np):
+    """
+    Module 1: Image Pre-Processing & Deskewer Pipeline
+    Detects text baseline orientation using OpenCV minAreaRect,
+    deskews image if tilt angle > 0.5 deg, and applies contrast binarization.
+    """
+    try:
+        gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY) if len(image_np.shape) == 3 else image_np.copy()
+        thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        coords = np.column_stack(np.where(thresh > 0))
+        if len(coords) > 50:
+            angle = cv2.minAreaRect(coords)[-1]
+            if angle < -45:
+                angle = -(90 + angle)
+            else:
+                angle = -angle
+            if abs(angle) > 0.5 and abs(angle) < 45:
+                (h, w) = image_np.shape[:2]
+                center = (w // 2, h // 2)
+                M = cv2.getRotationMatrix2D(center, angle, 1.0)
+                image_np = cv2.warpAffine(image_np, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+        return image_np
+    except Exception as e:
+        print(f"[deskew_and_preprocess_image] Warning: {e}")
+        return image_np
 
 def extract_text_from_PDF(file_path):
-    """Read a PDF's embedded text layer and return all its text (with a transparent
-    disk cache).
-
-    Text-only by design: the app does NOT OCR. Users bring text-based PDFs. If a PDF
-    has no usable text layer this returns an empty/near-empty string, and the caller
-    is responsible for telling the user to attach a text-based PDF.
-    """
+    """Read a PDF's embedded text layer (with hybrid OCR fallback + deskewing) and return all text."""
     cache_path = file_path + ".txt"
     if os.path.exists(cache_path):
         try:
@@ -40,19 +72,45 @@ def extract_text_from_PDF(file_path):
 
     text = ""
     try:
+        pdf_doc = pdfium.PdfDocument(file_path)
+        ocr = get_ocr_engine()
         with pdfplumber.open(file_path) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
+            for page_idx, page in enumerate(pdf.pages):
+                page_text = page.extract_text() or ""
+                # Module 1 & 2: If native text layer is missing or sparse (<40 chars), deskew and run RapidOCR
+                if len(page_text.strip()) < 40 and page_idx < len(pdf_doc):
+                    try:
+                        pil_img = pdf_doc[page_idx].render(scale=2.0).to_pil()
+                        img_np = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+                        img_deskewed = deskew_and_preprocess_image(img_np)
+                        ocr_res, _ = ocr(img_deskewed)
+                        if ocr_res:
+                            lines = [item[1] for item in ocr_res if item and len(item) > 1]
+                            page_text = "\n".join(lines)
+                    except Exception as ocr_err:
+                        print(f"[hybrid_ocr] Page {page_idx+1} OCR fallback failed: {ocr_err}")
                 if page_text:
-                    text += page_text + "\n"
+                    text += f"--- PAGE {page_idx+1} ---\n" + page_text + "\n\n"
     except Exception as e:
-        print(f"[extract_text] pdfplumber failed: {e}")
+        print(f"[extract_text] Failed: {e}")
 
-    try:
-        with open(cache_path, "w", encoding="utf-8") as f:
-            f.write(text)
-    except Exception:
-        pass
+    if not text.strip():
+        # Fallback to pdfplumber text iteration if pypdfium2 failed
+        try:
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    pt = page.extract_text()
+                    if pt:
+                        text += pt + "\n"
+        except Exception:
+            pass
+
+    if text.strip():
+        try:
+            with open(cache_path, "w", encoding="utf-8") as f:
+                f.write(text)
+        except Exception:
+            pass
 
     return text
 
@@ -533,228 +591,190 @@ LEAVE & LICENSE SPECIFIC FIELDS
 
     schema_part = schemas.get(category, "")
 
+def _call_gemini_json(prompt):
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        raw = response.text.strip()
+        raw = re.sub(r'^```(?:json)?\s*', '', raw)
+        raw = re.sub(r'\s*```$', '', raw)
+        raw = raw.strip()
+        data = json.loads(raw)
+        return data if isinstance(data, dict) else {}
+    except Exception as e:
+        print(f"[_call_gemini_json] Error: {e}")
+        return {}
+
+
+def _extract_pass_1_identity_and_stamps(document_text):
     prompt = f"""
-You are a structured legal-event extraction engine for Indian property documents — NOT a generic OCR reader. Read the document carefully, understand the type of transaction, and extract the fields below. Return ONLY a valid JSON object — no markdown, no code blocks, no explanation, just raw JSON.
+You are a specialized legal document identity & registration stamp extraction engine.
+Read the document text and extract EXACTLY these 20 fields as raw valid JSON:
+1. document_type (SALE_DEED, CONVEYANCE_DEED, GIFT_DEED, MORTGAGE_DEED, RELEASE_DEED, LEAVE_AND_LICENSE, AGREEMENT_OF_SALE, null)
+2. txn_type (SAME AS document_type)
+3. sub_registrar_office (e.g. "SRO V-A (Hauz Khas), New Delhi")
+4. registration_no
+5. registration_year
+6. doc_no (registration_no/registration_year e.g. "123/1995")
+7. date_of_execution (DD-MM-YYYY)
+8. date_of_registration (DD-MM-YYYY)
+9. estamp_certificate_no (e.g. "IN-DL44237927139351V" or null)
+10. estamp_issued_datetime (e.g. "15-Jan-1995 11:30 AM" or null)
+11. estamp_amount (numeric value of e-Stamp purchased)
+12. estamp_first_party (name printed as first party on stamp)
+13. estamp_second_party (name printed as second party on stamp)
+14. estamp_duty_paid_by (who paid stamp duty)
+15. estamp_description (e.g. "Article 23 Conveyance")
+16. stamp_type ("E_STAMP", "PHYSICAL_STAMP", "FRANKING", "TREASURY_CHALLAN", null)
+17. franking_machine_number
+18. treasury_challan_grn
+19. reg_book_no
+20. reg_volume_no
 
-═══════════════════════════════════════════════════════════
-DOCUMENT IDENTITY
-═══════════════════════════════════════════════════════════
-- document_type                   (INDEX II, SALE_DEED, AGREEMENT_OF_SALE, GIFT_DEED, MORTGAGE_DEED, INTIMATION_OF_MORTGAGE, RELEASE_DEED, DEED_OF_RELEASE, LEAVE_AND_LICENSE, NULL)
-- txn_type                        (SALE_DEED, AGREEMENT_OF_SALE, GIFT_DEED, MORTGAGE_DEED, INTIMATION_OF_MORTGAGE, RELEASE_DEED, DEED_OF_RELEASE, LEAVE_AND_LICENSE, NULL)
-- sub_registrar_office
-- registration_no
-- registration_year
-- doc_no                          (registration_no/registration_year)
-- date_of_execution               (DD-MM-YYYY)
-- date_of_registration            (DD-MM-YYYY)
+Return ONLY valid JSON.
 
-═══════════════════════════════════════════════════════════
-PROPERTY IDENTITY & DESCRIPTION
-═══════════════════════════════════════════════════════════
-- survey_no
-- plot_no
-- cts_no
-- khasra_no
-- society_building_name
-- society_building_address        (ALWAYS FULL ADDRESS, exactly as written)
-- flat_no                         (ONLY the flat number, e.g. "6" — not floor or building)
-- area                            (include unit: sq.mt or sq.ft)
-- property_type                   (must be one of: "dda_flat", "private_flat", "plot" or null. DDA/Cooperative/CGHS flat is "dda_flat", a builder flat or private apartment is "private_flat", open land plot is "plot")
-- buyer_gender                    (must be one of: "male", "female", "joint" or null. If all buyers/transferees are female, "female". If all are male, "male". If a mix of male and female, "joint")
-- construction_year               (year of completion of the building or construction year mentioned, integer or null)
-- village
-- district
-- boundary_north
-- boundary_south
-- boundary_east
-- boundary_west
-- property_schedule_text          (the full schedule/description paragraph of the property, verbatim)
-
-═══════════════════════════════════════════════════════════
-FINANCIALS (general)
-═══════════════════════════════════════════════════════════
-- consideration                   (exclude if LEAVE_AND_LICENSE)
-- stamp_duty                      (IF NULL RETURN "ALERT")
-- registration_fee
-- market_value
-{schema_part}
-═══════════════════════════════════════════════════════════
-E-STAMP CERTIFICATE  (only if an e-Stamp / stamp certificate page is present; else leave null)
-═══════════════════════════════════════════════════════════
-- estamp_certificate_no           (e.g. "IN-DL44237927139351V"; null if not clearly legible)
-- estamp_issued_datetime          (issue date/time exactly as printed)
-- estamp_amount                   (numeric value the e-Stamp was purchased for, e.g. 600000)
-- estamp_first_party              (first party as printed on the certificate)
-- estamp_second_party             (second party as printed on the certificate)
-- estamp_duty_paid_by             (who paid the stamp duty, per the certificate)
-- estamp_description              (e.g. "Article 23 Sale" or "Article 40 Mortgage")
-- stamp_type                      ("E_STAMP", "PHYSICAL_STAMP", "FRANKING", "TREASURY_CHALLAN", or "NULL")
-- franking_machine_number         (franking machine registration number, if physical franking)
-- treasury_challan_grn            (Govt Treasury receipt/GRN number, if e-Challan)
-
-═══════════════════════════════════════════════════════════
-REGISTRATION ENDORSEMENT  (the Sub-Registrar/DORIS registration page & Section-60 certificate)
-═══════════════════════════════════════════════════════════
-- reg_book_no                     (registration book number, e.g. 1)
-- reg_volume_no                   (registration volume number, e.g. 2664)
-- reg_pages                       (page range in the register, e.g. "74 to 88")
-- doris_document_number           (the long DORIS document number, e.g. "2387212700149")
-- presenter_name                  (person who presented the deed for registration)
-- pasting_fee                     (pasting fee amount, numeric)
-
-═══════════════════════════════════════════════════════════
-VALUATION / SCHEDULE  (circle-rate computation block, if present; else null)
-═══════════════════════════════════════════════════════════
-- property_number                 (e.g. "170")
-- undivided_share_fraction        (e.g. "1/4" — the undivided share in land/stilt, if stated)
-- floor_under_sale                (e.g. "First Floor upto ceiling level")
-- number_of_storeys               (e.g. "Stilt + Four")
-- covered_area                    (plinth/covered area WITH unit)
-- plot_area                       (total plot area WITH unit)
-- proportionate_stilt_area        (WITH unit)
-- structure_type                  (Pucca / Semi-Pucca / Katcha)
-- age_factor                      (numeric, if stated)
-- structure_type_factor           (numeric, if stated)
-- year_of_construction            (e.g. "After 2017")
-- building_sanction_ref           (e.g. "MCD File No.10043054 dated 27/10/2017")
-- use_factor                      (numeric, if stated)
-- min_land_rate                   (numeric per sqm, if stated)
-- min_construction_rate           (numeric per sqm, if stated)
-- circle_rate_value_stated        (numeric — the deed's OWN stated circle-rate valuation)
-- cost_of_land_stated             (numeric component, only if the deed shows the a+b+c breakdown)
-- cost_of_construction_stated     (numeric component)
-- cost_of_stilt_stated            (numeric component)
-- stamp_duty_rate                 (e.g. "3%" or "6%")
-- corporation_tax_amount          (numeric, if stated)
-- corporation_tax_rate            (e.g. "3%")
-- total_non_judicial_stamp        (numeric total stamp-paper value, if stated)
-- mcd_upic                        (MCD Unique Property ID Code, e.g. "11009217001")
-
-═══════════════════════════════════════════════════════════
-PAYMENT TRAIL  (how the consideration was paid — sale deeds; else empty list)
-═══════════════════════════════════════════════════════════
-- payment_instruments             (list, ONE object per cheque/RTGS/DD/instrument, each
-                                    {{"amount": <numeric>, "mode": "cheque|rtgs|dd|cash|other",
-                                      "instrument_no", "bank", "date"}})
-- tds_challans                    (list, ONE object per TDS deposit, each
-                                    {{"amount": <numeric>, "challan_no", "bsr_code", "serial_no", "date", "bank"}})
-
-═══════════════════════════════════════════════════════════
-TITLE-CHAIN RECITALS & STAMP RECITAL TEXT
-═══════════════════════════════════════════════════════════
-- chain_recitals                  (list, ONE object per prior registered instrument the deed
-                                    recites, each {{"instrument_type", "doc_no", "book_no", "volume",
-                                    "pages", "sro", "execution_date", "registration_date",
-                                    "from_parties", "to_parties"}})
-- title_root                      (root/origin of title if stated, e.g. "President of India / DDA Allotment")
-- is_root_deed                    (true / false — is this the original root allotment document?)
-- leasehold_to_freehold_converted (true / false / null — is a leasehold→freehold conversion recited?)
-- recited_stamp_duty_text         (verbatim text recital of stamp duty paid, e.g. "paid vide e-Stamp Cert IN-DL...")
-
-═══════════════════════════════════════════════════════════
-WITNESSES  (the attesting witnesses to the deed; empty list if none present)
-═══════════════════════════════════════════════════════════
-- witnesses                       (list, each {{"name", "relation", "address", "aadhaar"}};
-                                    aadhaar null if not clearly legible — NEVER guess digits)
-
-═══════════════════════════════════════════════════════════
-ANNEXED SUPPORTING DOCUMENTS  (ID proofs, tax receipt, utility bills, Form-A, undertaking — only if bundled)
-═══════════════════════════════════════════════════════════
-- annexed_id_proofs               (list of ID cards actually present, each {{"person_name",
-                                    "id_type": "aadhaar|pan", "id_value", "dob", "father_or_husband"}})
-- property_tax                    (object {{"upic", "receipt_no", "financial_year", "amount",
-                                    "paid_date", "ward", "zone", "owner"}} or null)
-- utility_bills                   (list, each {{"utility_type": "gas|water|electricity",
-                                    "consumer_name", "account_no", "bill_date", "amount_payable",
-                                    "arrears"}})
-- form_a                          (object {{"transferor", "transferee", "consideration",
-                                    "plinth_area", "land_use", "category"}} or null)
-- undertaking                     (object {{"buyer_name", "property", "mobile", "serial_no", "sro"}} or null)
-
-═══════════════════════════════════════════════════════════
-PARTIES — IDENTITY NUMBERS & ROLES BOUND TO EACH PERSON
-═══════════════════════════════════════════════════════════
-Return BOTH split lists AND a unified 'parties' list of party objects. Each object pairs ONE person with THEIR OWN identity numbers and role:
-
-- transferor_parties              (list of objects, the GIVING side — sellers/donors/mortgagors/releasors/licensors)
-    each object: {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
-- transferee_parties              (list of objects, the RECEIVING side — buyers/donees/mortgagees/releasees/licensees)
-    each object: {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
-- parties                         (unified list of ALL party objects, each {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}})
-    • age: this person's stated age as an integer (e.g. 35), or null if not explicitly recited.
-    • dob: this person's date of birth as printed (DD-MM-YYYY or DD.MM.YYYY).
-    • aadhaar: the 12-digit Aadhaar bound to THIS person, exactly as printed. If not clearly
-      legible, set null. NEVER guess or complete Aadhaar digits.
-    • father_or_husband: this person's S/o or W/o name, if stated.
-
-RULES FOR BINDING:
-  • Read the document carefully to see which PAN/PIN sits next to which name.
-  • If the document lists "Subhan Thakor, PAN BAREN2438L, PIN 411011",
-    then that person's object is {{"name":"Subhan Thakor","pan":"BAREN2438L","pin":"411011"}}.
-  • If a person has no PAN or PIN stated, set that field to null for THAT person —
-    do NOT borrow another person's number.
-  • NEVER put one person's PAN on another person. When unsure which number
-    belongs to whom, set it to null rather than guessing.
-
-- remarks
-
-═══════════════════════════════════════════════════════════
-RULES
-═══════════════════════════════════════════════════════════
-- Return ONLY valid JSON. No markdown, no code blocks, no explanations.
-- Every field in this schema appears ONCE. Do NOT repeat fields.
-- For amount-in-words and amount-in-figures: extract BOTH separately and faithfully — do not convert one into the other. Report exactly what the document says for each.
-- For words_numeric fields (e.g. consideration_words_numeric, principal_amount_words_numeric, released_amount_words_numeric, released_mortgage_principal_words_numeric): ALWAYS output a clean numeric representation of the corresponding amount-in-words text (e.g. 5000000 for "Fifty Lakhs Only").
-- Extract survey_no, plot_no, cts_no, khasra_no SEPARATELY. Do NOT merge them.
-- flat_no contains ONLY the flat number (e.g. "6"), not floor/building details.
-- Do NOT add labels like "Building Name:", "Road:", "City:" to addresses. Return addresses exactly as written, without restructuring.
-- If a field is unclear or absent, set it to null.
-- Normalize obvious OCR noise in NAMES (stray punctuation, doubled spaces), but do NOT invent or "correct" content that isn't there.
-- CRITICAL — NO FABRICATION on the new blocks (e-Stamp, registration endorsement, valuation,
-  payment_instruments, tds_challans, chain_recitals, witnesses, annexed documents): extract a
-  field ONLY when that page/line is actually present and clearly legible. If a page type is not
-  in this document, return null (for objects) or [] (for lists). NEVER invent a witness, an ID
-  number, a payment, a bill, or a recited prior deed that you cannot actually read. A missing
-  value is ALWAYS better than a guessed one.
-- For every numeric field in payment_instruments, tds_challans, and the *_stated valuation
-  components: output a clean number (no commas/₹) ONLY if legible; otherwise null. Do NOT
-  compute or reconcile totals yourself — report each line exactly as printed.
-- Aadhaar values (party, witness, or annexed ID): 12 digits exactly as printed. If any digit is
-  illegible, set the whole value to null. Do NOT pad, complete, or infer digits.
-
-DOCUMENT:
+DOCUMENT TEXT:
 {document_text}
 """
+    return _call_gemini_json(prompt)
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
 
-    raw = response.text.strip()
-    raw = re.sub(r'^```(?:json)?\s*', '', raw)
-    raw = re.sub(r'\s*```$', '', raw)
-    raw = raw.strip()
+def _extract_pass_2_parties_and_kyc(document_text):
+    prompt = f"""
+You are a specialized legal party & KYC recital extraction engine for Indian property deeds.
+Extract party identity & KYC details as raw valid JSON:
+- transferor_parties: list of objects on the GIVING side (sellers/donors/mortgagors/releasors).
+  Each object: {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
+- transferee_parties: list of objects on the RECEIVING side (buyers/donees/mortgagees/releasees).
+  Each object: {{"name", "role", "gender", "age", "dob", "pan", "pin", "aadhaar", "father_or_husband", "address"}}
+- parties: unified list of ALL party objects with their fields.
+- seller_names: list of seller/transferor name strings.
+- buyer_names: list of buyer/transferee name strings.
+- seller_address: seller address string.
+- buyer_address: buyer address string.
+- transferor_pan: list of seller PAN strings.
+- transferor_pin: list of seller PIN strings.
+- transferee_pan: list of buyer PAN strings.
+- transferee_pin: list of buyer PIN strings.
 
-    try:
-        ACT_data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        print("JSON Decode Error:", e)
-        print("Raw response was:", raw[:500])
-        ACT_data = None
+RULE FOR AADHAAR: For Aadhaar, extract exact digits or masked format (e.g. "XXXX-XXXX-9661"). If illegible or unstated, return null. NEVER guess.
 
-    if isinstance(ACT_data, dict):
-        ACT_data["_provisional"]                = False
-        ACT_data["_needs_human_classification"] = False
-        ACT_data["_classification"]             = classification
+Return ONLY valid JSON.
 
-        # Call specialized locality classifier
-        addr = ACT_data.get("society_building_address") or ""
-        loc = ACT_data.get("society_building_name") or ""
-        if addr or loc:
-            category_char = classify_locality_category(addr, loc)
-            if category_char:
-                ACT_data["locality_category"] = category_char
+DOCUMENT TEXT:
+{document_text}
+"""
+    return _call_gemini_json(prompt)
+
+
+def _extract_pass_3_financials_and_payments(document_text, category):
+    prompt = f"""
+You are a specialized financial consideration, payment trail & tax audit extraction engine.
+Extract financial breakdown & payment details as raw valid JSON:
+- consideration (sale consideration price in numbers, e.g. 5000000)
+- consideration_words (consideration price in words)
+- consideration_words_numeric (exact numeric value represented by words)
+- stamp_duty (total stamp duty paid, numeric or "ALERT" if missing)
+- registration_fee (actual registration fee paid, numeric)
+- market_value (numeric or null)
+- payment_instruments: list of payment objects [ {{"amount": numeric, "mode": "cheque|rtgs|dd|cash", "instrument_no": str, "bank": str, "date": str}} ]
+- tds_challans: list of Form 26QB TDS deposit objects [ {{"amount": numeric, "challan_no": str, "bsr_code": str, "serial_no": str, "date": str, "bank": str}} ]
+- corporation_tax_amount (MCD transfer tax, numeric or null)
+- corporation_tax_rate (e.g. "3%")
+- stamp_duty_rate (e.g. "6%")
+- total_non_judicial_stamp (total stamp paper value)
+- principal_amount_figures (if mortgage)
+- principal_amount_words (if mortgage)
+- loan_account_no (if mortgage/release)
+
+Return ONLY valid JSON.
+
+DOCUMENT TEXT:
+{document_text}
+"""
+    return _call_gemini_json(prompt)
+
+
+def _extract_pass_4_property_and_chain(document_text):
+    prompt = f"""
+You are a specialized property schedule & title chain extraction engine.
+Extract property boundaries, schedule & title chain recitals as raw valid JSON:
+- survey_no / plot_no / cts_no / khasra_no
+- society_building_name
+- society_building_address (full address)
+- flat_no (ONLY flat number e.g. "8")
+- area (stated area with unit e.g. "1200 sq.ft.")
+- property_type ("dda_flat", "private_flat", "plot", null)
+- buyer_gender ("male", "female", "joint", null)
+- construction_year (integer or null)
+- village / district
+- mcd_upic (MCD Unique Property ID Code)
+- boundary_north / boundary_south / boundary_east / boundary_west
+- property_schedule_text (verbatim schedule description paragraph)
+- chain_recitals: list of prior registered instruments [ {{"instrument_type": str, "doc_no": str, "execution_date": str, "from_parties": str, "to_parties": str}} ]
+- title_root (origin of title e.g. "President of India / DDA Allotment")
+- is_root_deed (true / false)
+
+Return ONLY valid JSON.
+
+DOCUMENT TEXT:
+{document_text}
+"""
+    return _call_gemini_json(prompt)
+
+
+def parse_index_ii(file_path, forced_subtype=None):
+    document_text = extract_text_from_PDF(file_path)
+
+    # ── STAGE 1: classify the document ──────────────────────────────────
+    if forced_subtype:
+        classification = {
+            "subtype": forced_subtype,
+            "confidence": "high",
+            "reasoning": "human-confirmed",
+            "runners_up": []
+        }
+    else:
+        classification = classify_deed(document_text)
+
+    if classification["confidence"] == "low" and not forced_subtype:
+        return {
+            "_provisional":                 True,
+            "_needs_human_classification":  True,
+            "_classification":              classification,
+            "document_type":                None,
+            "txn_type":                     None,
+        }
+
+    subtype = classification["subtype"]
+    category = get_category_from_subtype(subtype)
+
+    # ── STAGE 2: 4-Endpoint Modular Extraction Passes ───────────────────
+    pass1 = _extract_pass_1_identity_and_stamps(document_text)
+    pass2 = _extract_pass_2_parties_and_kyc(document_text)
+    pass3 = _extract_pass_3_financials_and_payments(document_text, category)
+    pass4 = _extract_pass_4_property_and_chain(document_text)
+
+    # Merge all 4 endpoint JSON outputs into unified ACT_data dictionary
+    ACT_data = {}
+    ACT_data.update(pass1)
+    ACT_data.update(pass2)
+    ACT_data.update(pass3)
+    ACT_data.update(pass4)
+
+    ACT_data["_provisional"]                = False
+    ACT_data["_needs_human_classification"] = False
+    ACT_data["_classification"]             = classification
+
+    # Call specialized locality classifier
+    addr = ACT_data.get("society_building_address") or ""
+    loc = ACT_data.get("society_building_name") or ""
+    if addr or loc:
+        category_char = classify_locality_category(addr, loc)
+        if category_char:
+            ACT_data["locality_category"] = category_char
 
         # Normalize document_type and txn_type based on the classification
         if category == "sale":
