@@ -249,23 +249,25 @@
     /* Global Page Transitions */
     body {
       opacity: 1;
-      transform: scale(1);
-      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translate3d(0, 0, 0);
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     body.page-enter-active {
-      animation: bodyEnter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: bodyEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     body.page-exit-active {
       opacity: 0.15 !important;
-      transform: scale(0.992) translateY(-3px) !important;
+      transform: translate3d(0, -3px, 0) scale(0.994) !important;
       pointer-events: none;
     }
     @keyframes bodyEnter {
-      0% { opacity: 0.3; transform: scale(0.994) translateY(4px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
+      0% { opacity: 0.4; transform: translate3d(0, 3px, 0) scale(0.996); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
 
-    /* Tab content visibility with rich fluid entrance */
+    /* Tab content visibility with GPU-accelerated fluid entrance */
     .panel { display: none !important; height: 100%; width: 100%; min-height: 0; flex: 1 1 0%; overflow: hidden; opacity: 0; }
     .panel.active { 
       display: flex !important; 
@@ -275,39 +277,43 @@
       width: 100%;
       min-height: 0;
       overflow: hidden;
-      animation: panelEntrance 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      animation: panelEntrance 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes panelEntrance {
       0% {
         opacity: 0;
-        transform: translateY(8px) scale(0.993);
-        filter: blur(1px);
+        transform: translate3d(0, 4px, 0) scale(0.996);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0px);
+        transform: translate3d(0, 0, 0) scale(1);
       }
     }
 
     /* Sub-panel crossfade slide (e.g. PDF vs JSON document viewer) */
     #panel-pdf.active, #panel-json.active {
-      animation: subPanelEntrance 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      animation: subPanelEntrance 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes subPanelEntrance {
-      0% { opacity: 0; transform: translateX(8px) scale(0.996); }
-      100% { opacity: 1; transform: translateX(0) scale(1); }
+      0% { opacity: 0; transform: translate3d(6px, 0, 0) scale(0.997); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
 
     /* Fluid Dropdown Menu Pop-in */
     .dropdown-pop {
-      animation: dropdownPopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      animation: dropdownPopIn 0.16s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       transform-origin: bottom left;
     }
     @keyframes dropdownPopIn {
-      0% { opacity: 0; transform: translateY(6px) scale(0.96); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+      0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(0.97); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
     }
 
     /* Micro-spring feedback for tab clicks */
@@ -619,19 +625,25 @@
 
     /* #1 — Timeline row & finding card entrance (staggered fadeSlideUp) */
     @keyframes fadeSlideUp {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0);   }
+      from { opacity: 0; transform: translate3d(0, 4px, 0); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0);   }
     }
     .tl-row-enter {
-      animation: fadeSlideUp 0.22s ease both;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      animation: fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
     .finding-enter {
-      animation: fadeSlideUp 0.2s ease both;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      animation: fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     /* #3 — Stat box entrance (same keyframe, used by countUp targets) */
     .stat-box-enter {
-      animation: fadeSlideUp 0.28s ease both;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      animation: fadeSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     /* #5 — Type badge micro scale on hover */
@@ -6573,12 +6585,16 @@
     const suffix = text.match(/[^0-9]*$/)?.[0] || '';
     const isYear = target >= 1000 && target <= 2100 && prefix === '' && suffix === '';
     const startTime = performance.now();
+    let lastVal = null;
     function step(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = Math.round(target * eased);
-      el.textContent = prefix + (isYear ? current.toString() : current.toLocaleString('en-IN')) + suffix;
+      if (current !== lastVal) {
+        lastVal = current;
+        el.textContent = prefix + (isYear ? current.toString() : current.toLocaleString('en-IN')) + suffix;
+      }
       if (progress < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);

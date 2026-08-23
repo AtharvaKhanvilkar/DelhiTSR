@@ -92,25 +92,27 @@
     /* Smooth Page Transitions */
     body {
       opacity: 1;
-      transform: scale(1);
-      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translate3d(0, 0, 0);
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+      transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     body.page-enter-active {
-      animation: bodyEnter 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: bodyEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     body.page-exit-active {
       opacity: 0.15 !important;
-      transform: scale(0.992) translateY(-3px) !important;
+      transform: translate3d(0, -3px, 0) scale(0.994) !important;
       pointer-events: none;
     }
     @keyframes bodyEnter {
       0% {
-        opacity: 0.3;
-        transform: scale(0.994) translateY(4px);
+        opacity: 0.4;
+        transform: translate3d(0, 3px, 0) scale(0.996);
       }
       100% {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: translate3d(0, 0, 0) scale(1);
       }
     }
   </style>
