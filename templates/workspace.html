@@ -2351,7 +2351,7 @@
       <!-- Messages Scroll Area -->
       <div id="aiSidebarMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 bg-white">
         <!-- Welcome Card -->
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[12.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
+        <div class="bg-[#fafafa] text-zinc-800 rounded-2xl p-3.5 text-[12.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200/70">
           How can I help with this property's title?
         </div>
       </div>
@@ -3339,7 +3339,7 @@
     const container = document.getElementById('aiSidebarMessages');
     if (container) {
       container.innerHTML = `
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[12.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
+        <div class="bg-[#fafafa] text-zinc-800 rounded-2xl p-3.5 text-[12.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200/70">
           How can I help with this property's title?
         </div>
       `;
@@ -3369,7 +3369,7 @@
     if (suggestions) suggestions.classList.add('hidden');
 
     // User Message Bubble (Clean inline whitespace-pre-wrap without template literal leading/trailing newlines)
-    const userMsgHtml = `<div class="flex justify-end my-2"><div class="bg-[#e2e2e6] text-zinc-900 border border-zinc-300/80 rounded-2xl rounded-tr-xs px-3.5 py-2.5 text-[13px] leading-relaxed max-w-[85%] shadow-2xs font-sans whitespace-pre-wrap">${escapeHtml(displayMsg)}</div></div>`;
+    const userMsgHtml = `<div class="flex justify-end my-2"><div class="bg-[#eaeaf0] text-zinc-900 border border-zinc-200/80 rounded-2xl rounded-tr-xs px-3.5 py-2.5 text-[13px] leading-relaxed max-w-[85%] shadow-2xs font-sans whitespace-pre-wrap">${escapeHtml(displayMsg)}</div></div>`;
     container.insertAdjacentHTML('beforeend', userMsgHtml);
     container.scrollTop = container.scrollHeight;
 
@@ -3385,7 +3385,7 @@
     const thinkingId = 'ai-thinking-' + Date.now();
     const thinkingHtml = `
       <div id="${thinkingId}" class="flex justify-start my-2">
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl px-3.5 py-2.5 text-[13px] max-w-[88%] shadow-2xs font-sans border border-zinc-200">
+        <div class="bg-[#fafafa] text-zinc-800 rounded-2xl px-3.5 py-2.5 text-[13px] max-w-[88%] shadow-2xs font-sans border border-zinc-200/70">
           <span class="shining-text text-base font-normal">Gemini is thinking...</span>
         </div>
       </div>
@@ -3424,7 +3424,7 @@
         }
         const botMsgHtml = `
           <div class="flex justify-start my-2">
-            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl rounded-tl-xs px-3.5 py-2.5 text-[13px] leading-relaxed max-w-[90%] shadow-2xs font-sans border border-zinc-200 ai-chat-bubble-content animate-bot-reveal">
+            <div class="bg-[#fafafa] text-zinc-800 rounded-2xl rounded-tl-xs px-3.5 py-2.5 text-[13px] leading-relaxed max-w-[90%] shadow-2xs font-sans border border-zinc-200/70 ai-chat-bubble-content animate-bot-reveal">
               ${parsedContent}
             </div>
           </div>
