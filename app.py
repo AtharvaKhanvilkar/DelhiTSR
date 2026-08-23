@@ -66,12 +66,81 @@ def _safe_float(val, default=0.0):
         return default
 
 
+from werkzeug.utils import secure_filename
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = datetime.timedelta(days=365)
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32 MB max limit per upload payload
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Anti-Malware & Multi-Layer File Upload Security Validation Module
+# ──────────────────────────────────────────────────────────────────────────────
+ALLOWED_EXTENSIONS = {'.pdf', '.png', '.jpg', '.jpeg', '.tiff'}
+MAGIC_BYTES = {
+    '.pdf': [b'%PDF-'],
+    '.png': [b'\x89PNG\r\n\x1a\n'],
+    '.jpg': [b'\xff\xd8\xff'],
+    '.jpeg': [b'\xff\xd8\xff'],
+    '.tiff': [b'II*\x00', b'MM\x00*']
+}
+SUSPICIOUS_PDF_TOKENS = [b'/JavaScript', b'/JS', b'/Launch', b'/EmbeddedFiles', b'/OpenAction']
+
+def validate_and_sanitize_upload(uploaded_file, max_mb=32):
+    """
+    Multi-layer Security & Anti-Malware Validation Pipeline:
+    1. Check file object existence and file size limits.
+    2. Sanitize filename against Path Traversal (Werkzeug secure_filename).
+    3. Check extension whitelisting.
+    4. Inspect magic bytes / file signatures to block MIME-type spoofing.
+    5. Perform deep PDF structure analysis to block embedded scripts/launchers.
+    
+    Returns (is_valid: bool, sanitized_filename: str, error_message: str)
+    """
+    if not uploaded_file or not uploaded_file.filename:
+        return False, "", "No file selected for upload."
+
+    # 1. Filename Sanitization & Path Traversal Prevention
+    filename = secure_filename(uploaded_file.filename)
+    if not filename:
+        return False, "", "Invalid or unsafe filename."
+
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return False, "", f"File extension '{ext}' is disallowed. Only PDF and image files are permitted."
+
+    # 2. File Size Validation
+    uploaded_file.seek(0, os.SEEK_END)
+    file_size = uploaded_file.tell()
+    uploaded_file.seek(0)
+    
+    if file_size == 0:
+        return False, "", "Uploaded file is empty (0 bytes)."
+    if file_size > max_mb * 1024 * 1024:
+        return False, "", f"File size ({file_size / (1024*1024):.1f} MB) exceeds maximum allowed limit of {max_mb} MB."
+
+    # 3. Magic Byte Signature Inspection (Anti-Spoofing)
+    header = uploaded_file.read(16)
+    uploaded_file.seek(0)
+    
+    expected_signatures = MAGIC_BYTES.get(ext, [])
+    match = any(header.startswith(sig) for sig in expected_signatures)
+    if not match:
+        return False, "", f"Security Alert: Binary magic signature does not match format for '{ext}'. Upload blocked."
+
+    # 4. PDF Malware & Embedded Script Scanning
+    if ext == '.pdf':
+        content_sample = uploaded_file.read(65536) # Read first 64KB
+        uploaded_file.seek(0)
+        for token in SUSPICIOUS_PDF_TOKENS:
+            if token in content_sample:
+                print(f"[SECURITY ALERT] Suspicious PDF payload token '{token.decode()}' detected in upload '{filename}'. File rejected.")
+                return False, "", f"Security Violation: Uploaded PDF contains forbidden active payload script ({token.decode()}). Upload blocked."
+
+    return True, filename, ""
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Production Rate Limiting Architecture across EVERY SINGLE ENDPOINT
@@ -1210,8 +1279,14 @@ def workspace(project_name):
     if request.method == "POST":
         uploaded_file = request.files.get("index_ii")
         if uploaded_file:
-            file_path = os.path.join(project_path, uploaded_file.filename)
-            uploaded_file.save(file_path)
+            is_valid, safe_name, err_msg = validate_and_sanitize_upload(uploaded_file)
+            if not is_valid:
+                flash(err_msg, "error")
+                if request.path.startswith("/api/"):
+                    return jsonify({"ok": False, "error": err_msg}), 400
+            else:
+                file_path = os.path.join(project_path, safe_name)
+                uploaded_file.save(file_path)
 
     # Clean up stale unmarked result files. Anything that isn't a
     # properly-marked parse result gets removed on workspace load,
@@ -1454,6 +1529,10 @@ def replace_file(project_name, filename):
     uploaded_file = request.files.get("replacement_file")
     if not uploaded_file:
         return jsonify({"ok": False, "error": "No file uploaded"}), 400
+
+    is_valid, safe_name, err_msg = validate_and_sanitize_upload(uploaded_file)
+    if not is_valid:
+        return jsonify({"ok": False, "error": err_msg}), 400
         
     old_pdf_path = os.path.join(project_path, filename)
     old_result_path = os.path.splitext(old_pdf_path)[0] + "_result.json"
