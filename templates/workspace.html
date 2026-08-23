@@ -2236,14 +2236,14 @@
       <div id="aiSidebarMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 bg-white">
         <!-- Welcome Card -->
         <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
-          Welcome to DelhiTSR Title Intelligence! I'm your legal assistant for analyzing property deeds, verifying chain of title, checking encumbrances, and validating statutory compliance. How can I assist you with this property today?
+          Welcome to DelhiTSR Title Intelligence! I'm your legal assistant for analyzing property deeds, Findings & Chain of Title, checking encumbrances, and validating statutory compliance. How can I assist you with this property today?
         </div>
       </div>
 
       <!-- Suggested Action Pills (Right aligned above input) -->
       <div id="aiSidebarSuggestions" class="px-4 pb-2 flex flex-col items-end gap-1.5 shrink-0 select-none">
-        <button onclick="sendAiSidebarSuggested('Summarize chain of title')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/90 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
-          Summarize chain of title
+        <button onclick="sendAiSidebarSuggested('Summarize Findings & Chain')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/90 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
+          Summarize Findings & Chain
         </button>
         <button onclick="sendAiSidebarSuggested('Check active bank mortgages')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/90 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
           Check active bank mortgages
@@ -2299,14 +2299,13 @@
               </div>
             </div>
 
-            <!-- Scope Popover Menu (Block / Cube Icon Options) -->
+            <!-- Scope Popover Menu (Sharp Consolidated Categories) -->
             <div id="aiSidebarScopeMenu" class="hidden absolute bottom-full left-12 mb-1.5 w-56 rounded-xl border border-zinc-300 bg-white p-1 shadow-lg z-50 text-xs text-zinc-800">
               <div class="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Context Categories</div>
               <div onclick="selectAiSidebarScope('All Title Context')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">All Title Context</div>
-              <div onclick="selectAiSidebarScope('Timeline & Chain of Title')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Timeline & Chain of Title</div>
+              <div onclick="selectAiSidebarScope('Findings & Chain of Title')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Findings & Chain of Title</div>
               <div onclick="selectAiSidebarScope('Encumbrances & Mortgages')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Encumbrances & Mortgages</div>
               <div onclick="selectAiSidebarScope('Financials & Stamp Duty')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Financials & Stamp Duty</div>
-              <div onclick="selectAiSidebarScope('Property Schedule & Boundaries')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Property Schedule & Boundaries</div>
               <div onclick="selectAiSidebarScope('Raw Extracted JSON')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Raw Extracted JSON</div>
             </div>
 
@@ -3140,7 +3139,7 @@
     if (container) {
       container.innerHTML = `
         <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
-          Welcome to DelhiTSR Title Intelligence! I'm your legal assistant for analyzing property deeds, verifying chain of title, checking encumbrances, and validating statutory compliance. How can I assist you with this property today?
+          Welcome to DelhiTSR Title Intelligence! I'm your legal assistant for analyzing property deeds, Findings & Chain of Title, checking encumbrances, and validating statutory compliance. How can I assist you with this property today?
         </div>
       `;
     }

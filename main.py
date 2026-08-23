@@ -976,12 +976,10 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
     actual_model = model_map.get(model, "gemini-2.5-flash")
 
     scope_instructions = {
-        "timeline & chain of title": "FOCUS: Focus specifically on document execution order, vendor/vendee transfers, parent deed continuity, and timeline events.",
-        "encumbrances & mortgages": "FOCUS: Focus specifically on bank mortgages, equitable charges, loan account numbers, release deeds, and encumbrance statuses.",
+        "findings & chain of title": "FOCUS: Focus specifically on surfaced legal discrepancies, title risks, audit observations, document execution order, vendor/vendee transfers, parent deed continuity, and title timeline.",
+        "encumbrances & mortgages": "FOCUS: Focus specifically on bank mortgages, equitable charges, loan account numbers, release deeds, and encumbrance clearance statuses.",
         "financials & stamp duty": "FOCUS: Focus specifically on sale consideration figures, statutory stamp duty paid, MCD transfer tax, e-stamp numbers, and payment modes.",
-        "property schedule & boundaries": "FOCUS: Focus specifically on property address, plot/flat numbers, area dimensions, khasra numbers, and North/South/East/West boundary recitals.",
-        "raw extracted json": "FOCUS: Format your response emphasizing exact extracted field keys, values, raw JSON structures, and document field data.",
-        "findings": "FOCUS: Focus your response on surfaced legal discrepancies, title risks, missing parent deeds, and audit observations."
+        "raw extracted json": "FOCUS: Format your response emphasizing exact extracted field keys, values, raw JSON structures, and document field data."
     }
 
     scope_clause = ""
