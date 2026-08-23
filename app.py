@@ -3697,6 +3697,8 @@ def _build_events_and_errors(project_path):
                             "doc_no": data.get("doc_no"),
                             "event_date": data.get("date_of_execution"),
                             "source": source,
+                            "is_beta": True,
+                            "module_status": "BETA",
                             "message": f"Jurisdiction Audit: Property classified under {j_label} ({h_jur['basis']}). Applicable statutory stamp duty rate evaluated at {sd_rate*100}%.",
                             "expected": j_label,
                             "actual": h_jur["basis"]

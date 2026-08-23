@@ -758,7 +758,9 @@ def classify_haryana_jurisdiction(data, doc_text=""):
         "is_urban": is_urban,
         "jurisdiction_type": j_type,
         "basis": basis,
-        "applicable_rates": rates
+        "applicable_rates": rates,
+        "is_beta": True,
+        "status": "BETA"
     }
 
 def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type="", state="DELHI", is_urban=True):
