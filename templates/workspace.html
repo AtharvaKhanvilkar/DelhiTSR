@@ -409,6 +409,46 @@
 
     .chat-msg-in { animation: chatMsgIn 0.32s cubic-bezier(0.16,1,0.3,1) both; }
 
+    /* Smooth Bot Response Reveal Animation (Gradual Unblur + Slide + Fade) */
+    @keyframes botMessageReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+        filter: blur(5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes botTextChildReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(5px);
+        filter: blur(3px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    .animate-bot-reveal {
+      animation: botMessageReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform, filter;
+    }
+
+    .animate-bot-reveal > * {
+      animation: botTextChildReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .animate-bot-reveal > *:nth-child(1) { animation-delay: 0.05s; }
+    .animate-bot-reveal > *:nth-child(2) { animation-delay: 0.12s; }
+    .animate-bot-reveal > *:nth-child(3) { animation-delay: 0.20s; }
+
 
 
     @keyframes chatDot {
@@ -3335,12 +3375,13 @@
         }
         const botMsgHtml = `
           <div class="flex justify-start my-2">
-            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl rounded-tl-xs px-3 py-2.5 text-[11.5px] leading-normal max-w-[88%] shadow-2xs font-sans border border-zinc-200 ai-chat-bubble-content">
+            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl rounded-tl-xs px-3 py-2.5 text-[11.5px] leading-normal max-w-[88%] shadow-2xs font-sans border border-zinc-200 ai-chat-bubble-content animate-bot-reveal">
               ${parsedContent}
             </div>
           </div>
         `;
         container.insertAdjacentHTML('beforeend', botMsgHtml);
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
       } else {
         const errorHtml = `
           <div class="flex justify-start my-2">
