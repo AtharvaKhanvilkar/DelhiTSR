@@ -751,22 +751,6 @@
       color: #09090b;
       font-weight: 600;
     }
-    .sidebar-item::before {
-      content: '';
-      position: absolute;
-      left: -1px;
-      top: 50%;
-      width: 3px;
-      height: 50%;
-      background-color: #09090b;
-      border-radius: 0 2px 2px 0;
-      transform: translateY(-50%) scaleY(0);
-      transform-origin: center center;
-      transition: transform 0.15s ease;
-    }
-    .sidebar-item.sb-active::before {
-      transform: translateY(-50%) scaleY(1);
-    }
 
     /* ── Typeahead / Searchable Dropdown Styles ── */
     .doris-typeahead {
