@@ -9,7 +9,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
   <a href="#complete-specification-of-all-94-discrepancy--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Checks-7B2CBF?style=flat-square" alt="Rule Engine"></a>
 </p>
 
-DelhiTSR is a specialized title intelligence engine for property legal due diligence across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Designed for institutional mortgage underwriting, title search reporting (TSR), and legal property verification, it ingests multi-deed ownership chains, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured document parameters through a 4-pass LLM pipeline, and evaluates title history against 94 deterministic micro-rules covering statutory stamp duty tariffs, municipal transfer taxes, boundary continuity, and local Sub-Registrar Office (SRO) regulations.
+DelhiTSR is a specialized title intelligence engine for property legal due diligence across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Designed for institutional mortgage underwriting, title search reporting (TSR), and legal property verification, it ingests multi-deed ownership chains, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured document parameters through a 4-pass LLM pipeline, and evaluates title history against 94 deterministic rules covering statutory stamp duty tariffs, municipal transfer taxes, boundary continuity, and local Sub-Registrar Office (SRO) regulations.
 
 > **Note**: DelhiTSR is under active development. While the engine currently parses documents, reconciles taxes, and audits 94 legal rules, compiled Title Search Report (TSR) generation will be added in future releases.
 
@@ -58,8 +58,8 @@ DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, 
                                                                             │
                                                                             ▼
 ┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
-│  Structured Workspace  │ ◄─── │  Module 4: 94 Micro-   │ ◄─── │ Module 3: Tax & Local  │
-│  Interactive Dashboard │      │  Rule Discrepancy Engine│      │  Body Reconciler       │
+│  Structured Workspace  │ ◄─── │  Module 4: 94 Rule     │ ◄─── │ Module 3: Tax & Local  │
+│  Interactive Dashboard │      │  Discrepancy Engine   │      │  Body Reconciler       │
 └────────────────────────┘      └────────────────────────┘      └────────────────────────┘
 ```
 
