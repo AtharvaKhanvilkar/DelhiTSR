@@ -67,7 +67,7 @@ DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, 
 Before document text is parsed, pages undergo automated computer vision processing:
 
 1. **Orientation Angle Detection**: `pypdfium2` renders PDF pages to numpy arrays. OpenCV detects baseline text orientation using minimum area bounding rectangles (`cv2.minAreaRect`).
-2. **Affine Rotation**: Rotates pages back to 0° alignment for detected skew angles between $0.5^\circ$ and $45.0^\circ$.
+2. **Affine Rotation**: Rotates pages back to 0° alignment for detected skew angles between 0.5° and 45.0°.
 3. **Otsu Binarization**: Cleans background yellowing, shadow artifacts, and faint watermarks using Otsu thresholding (`cv2.THRESH_OTSU`).
 4. **Adaptive Text Extraction Pipeline**:
    * **Direct Vector Stream**: Embedded digital fonts are extracted directly via `pdfplumber`.
@@ -125,17 +125,15 @@ Evaluates compliance under the Haryana Stamp Act and Haryana Municipal Corporati
 
 To prevent false deficit findings when stamp duty and local body transfer taxes are paid on separate receipts, `_compute_total_stamp_duty_paid` executes dynamic aggregation:
 
-$$\text{Total Duty Paid} = \max\left(\text{E-Stamp Cert Amount}, \text{Total Non-Judicial Stamp Paper}, \sum \text{Constituent Line Items}\right)$$
+`Total Duty Paid = Max(E-Stamp Certificate Amount, Total Non-Judicial Stamp Paper, Sum of Constituent Line Items)`
 
-Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)} + \text{MCD Transfer Tax (Sec 147)} + \text{Local Body Tax}$.
+Where `Sum of Constituent Line Items = State Stamp Duty (Article 23) + MCD Transfer Tax (Sec 147) + Local Body Tax`.
 
 ---
 
 ## Complete Specification of All 94 Discrepancy & Validation Rules
 
-<details open>
-<summary><b>1. Legal & Statutory Compliance Audits (10 Rules)</b></summary>
-<br>
+### 1. Legal & Statutory Compliance Audits (10 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -146,17 +144,11 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `PROPERTY_NOT_IN_DELHI` | **WARNING** | Out-of-Jurisdiction Location | Property parsed outside NCT Delhi revenue districts. |
 | `SEC28_REG_ACT_AUDIT` | **INFO** | Mandatory SRO Validation | Territorial compliance against 11 NCT Delhi Revenue Districts. |
 | `SRO_TERRITORY_MATRIX` | **INFO** | SRO Territory Ledger Mapping | Validates SRO office assignments against 350+ Delhi Locality Ledger. |
-| `SRO_CODE_NORMALIZER` | **INFO** | SRO Code Canonicalization | Normalizes SRO strings (e.g. SRO V-A Hauz Khas $\rightarrow$ `5a`). |
+| `SRO_CODE_NORMALIZER` | **INFO** | SRO Code Canonicalization | Normalizes SRO strings (e.g. SRO V-A Hauz Khas -> `5a`). |
 | `SRO_LOCALITY_TOKEN_MATCH` | **INFO** | Locality Boundary Token Check | Cross-references address locality against SRO boundary ledger. |
 | `EXPLICIT_SRO_RECITAL` | **INFO** | Explicit Header SRO Recital | Validates SRO jurisdiction explicitly stated in header endorsement text. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>2. Consideration & Financial Valuation Audits (7 Rules)</b></summary>
-<br>
+### 2. Consideration & Financial Valuation Audits (7 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -168,13 +160,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `CONSIDERATION_ANOMALY` | **WARNING** | Transaction Price Drop | Price drops below 70% of historical sale price in same chain. |
 | `AMOUNT_WORDS_FIGURES_MISMATCH` | **ERROR** | Words vs. Figures Mismatch | Discrepancy between value written in words vs numeric figures. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>3. Title Chain & Ownership Integrity Audits (10 Rules)</b></summary>
-<br>
+### 3. Title Chain & Ownership Integrity Audits (10 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -189,13 +175,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `ROOT_DEED_TRACED` | **INFO** | Root of Title Origin | Traces original DDA/L&DO allotment or President of India grant. |
 | `LEASEHOLD_CONVERTED` | **INFO** | Freehold Conversion Traced | Tracks conversion from leasehold tenure to absolute freehold. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>4. Party Identity, PAN & KYC Audits (7 Rules)</b></summary>
-<br>
+### 4. Party Identity, PAN & KYC Audits (7 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -207,30 +187,18 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `SHARED_PIN` | **ERROR** | Inter-document ID Reuse | Same personal identifier shared by different parties. |
 | `MASKED_AADHAAR_VALID` | **INFO** | Masked Aadhaar Verified | Accepts UIDAI Masked Aadhaar (`XXXX-XXXX-1234`) as valid. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>5. Party Name Spelling Deviation Audits (6 Rules)</b></summary>
-<br>
+### 5. Party Name Spelling Deviation Audits (6 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `NAME_DEVIATION_NORMALIZED` | **INFO** | Normalized Match | Spaces, dots, or title prefixes stripped ("Mr. Raj" $\rightarrow$ "Raj"). |
+| `NAME_DEVIATION_NORMALIZED` | **INFO** | Normalized Match | Spaces, dots, or title prefixes stripped ("Mr. Raj" -> "Raj"). |
 | `NAME_DEVIATION_MINOR` | **INFO** | Minor Deviation | Levenshtein edit distance = 1 ("Sanjay" vs "Sanjeev"). |
 | `NAME_DEVIATION_MILD` | **WARNING** | Mild Deviation | Levenshtein edit distance = 2 ("Chauhan" vs "Chowhan"). |
-| `NAME_DEVIATION_SEVERE` | **ERROR** | Severe Deviation | Edit distance $\ge 3$, indicating major spelling conflict. |
+| `NAME_DEVIATION_SEVERE` | **ERROR** | Severe Deviation | Edit distance >= 3, indicating major spelling conflict. |
 | `NAME_DEVIATION_ALIAS` | **INFO** | Legal Alias Match | Spelling mismatch resolved via registered alias tables. |
 | `NAME_DEVIATION_UNKNOWN` | **ERROR** | Unresolved Name Clash | Party name does not match any prior owner in chain. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>6. Mortgage, Encumbrance & Charge Release Audits (16 Rules)</b></summary>
-<br>
+### 6. Mortgage, Encumbrance & Charge Release Audits (16 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -241,7 +209,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `RELEASE_LINK_A` | **INFO** | Link Tier A (Exact Match) | Exact reg number match + SRO, year, and party consistency. |
 | `RELEASE_LINK_B` | **INFO** | Link Tier B (Verified Match) | Reg number match + at least two corroborative parameters. |
 | `RELEASE_LINK_C` | **INFO** | Link Tier C (Matched Link) | Reg number match with minimal corroboration. |
-| `RELEASE_LINK_D` | **WARNING** | Link Tier D (Fuzzy Link) | Fuzzy reg number match (Levenshtein $\le 2$) + 3 parameters. |
+| `RELEASE_LINK_D` | **WARNING** | Link Tier D (Fuzzy Link) | Fuzzy reg number match (Levenshtein <= 2) + 3 parameters. |
 | `RELEASE_LINK_E` | **ERROR** | Link Tier E (Disputed Link) | Fuzzy reg number match without corroboration. |
 | `RELEASE_LINK_F` | **WARNING** | Link Tier F (Indirect Link) | Party name, SRO, and execution year match without reg number. |
 | `RELEASE_PARTY_MISMATCH` | **ERROR** | Release Party Conflict | Release deed references mortgage but lists different parties. |
@@ -251,13 +219,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `PARTIALLY_RELEASED` | **WARNING** | Partial Discharge Shortfall | Linked release amounts are less than registered mortgage principal. |
 | `RELEASE_OVERFLOW` | **ERROR** | Discharge Value Overflow | Linked release amounts exceed registered mortgage principal. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>7. Lender Bank Match & Merger Transition Audits (6 Rules)</b></summary>
-<br>
+### 7. Lender Bank Match & Merger Audits (6 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -265,16 +227,10 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `LENDER_CONSISTENT` | **INFO** | Consistent Lender | Lender names match exactly across mortgage and release. |
 | `LENDER_ALIAS_MATCH` | **INFO** | Lender Alias Match | Match resolved via standard bank alias tables ("SBI" = "State Bank of India"). |
 | `LENDER_BRANCH_DIFF` | **INFO** | Branch Variant Match | Same lender bank, different branch description. |
-| `LENDER_MERGER` | **WARNING** | Bank Merger Transition | Discharging bank matches via historical merger records (e.g. Corporation Bank $\rightarrow$ Union Bank). |
-| `LENDER_FUZZY_MATCH` | **WARNING** | Fuzzy Lender Match | Lender names highly similar (character match $\ge 0.85$). |
+| `LENDER_MERGER` | **WARNING** | Bank Merger Transition | Discharging bank matches via historical merger records (e.g. Corporation Bank -> Union Bank). |
+| `LENDER_FUZZY_MATCH` | **WARNING** | Fuzzy Lender Match | Lender names highly similar (character match >= 0.85). |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>8. Project Metadata Reconciliation Audits (10 Rules)</b></summary>
-<br>
+### 8. Project Metadata Reconciliation Audits (10 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -289,13 +245,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `METADATA_ADDRESS_MISMATCH` | **WARNING** | Address Mismatch | Address fuzzy similarity score below 0.35 threshold. |
 | `MISSING_CRITICAL_FIELDS` | **WARNING** | Missing Mandatory Metadata | Consolidates warnings for deeds missing crucial values. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>9. Statutory Stamp Duty & Municipal Tax Audit Matrix (23 Rules)</b></summary>
-<br>
+### 9. Statutory Stamp Duty & Municipal Tax Audit Matrix (23 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -323,13 +273,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `INSUFFICIENT_STAMP_DUTY` | **ERROR** | Stamp Duty Shortfall | Flags paid stamp duty falling below statutory requirement. |
 | `INSUFFICIENT_REGISTRATION_FEE` | **ERROR** | Registration Fee Shortfall | Flags paid registration fee falling below statutory requirement. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>10. Haryana Jurisdiction & Revenue Estate Audits (4 Rules) [BETA STAGE]</b></summary>
-<br>
+### 10. Haryana Jurisdiction & Revenue Estate Audits (4 Rules) [BETA STAGE]
 
 > **Note**: *All Haryana rules and jurisdiction audit routines operate in BETA.*
 
@@ -340,13 +284,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `HARYANA_REGISTRATION_SLAB` | **STATUTORY** | Haryana Registration Fee Slab [BETA] | Enforces slab-based registration fee capped at max ₹50,000. |
 | `HARYANA_JURISDICTION_CLASSIFIED` | **INFO** | Haryana Jurisdiction Audit [BETA] | Logs classification into Urban Municipal vs Rural Gram Panchayat. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>11. Pre-Processing & Computer Vision Rules (9 Rules)</b></summary>
-<br>
+### 11. Pre-Processing & Computer Vision Rules (9 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -360,13 +298,7 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `PAYMENT_LEDGER_SUM` | **INFO** | Payment Instrument Summation | Verifies sum of Payment Instruments + TDS = Consideration. |
 | `TDS_26QB_AUDIT` | **INFO** | TDS Form 26QB Verification | Extracts BSR codes, challan serials, and 1% TDS payment details. |
 
-</details>
-
-<br>
-
-<details>
-<summary><b>12. Meta-Rules & Legal Privilege Enforcement (3 Rules)</b></summary>
-<br>
+### 12. Meta-Rules & Legal Privilege Enforcement (3 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
@@ -374,18 +306,16 @@ Where $\sum \text{Constituent Line Items} = \text{State Stamp Duty (Article 23)}
 | `DISCREPANCY_DEDUPLICATION` | **META** | Rule Deduplication Engine | Filters duplicate error findings generated across passes. |
 | `PROVISIONAL_AUDIT_STATE` | **META** | Provisional Audit State | Flags workspaces undergoing active processing. |
 
-</details>
-
 ---
 
-## No-Verdict Policy & Legal Privilege Protection
+## Legal Privilege Policy
 
 1. **Factual Output Only**: The engine reports objective observations (such as stamp duty calculations, boundary discrepancies, or missing authorization documents). It does not declare titles void, defective, or invalid.
 2. **Advocate Support**: Output is structured to support legal review while preserving advocate-client privilege.
 
 ---
 
-## Setup & Local Development Installation
+## Setup & Installation
 
 ### Prerequisites
 
@@ -435,7 +365,7 @@ python app.py
 
 ---
 
-## Repository File Blueprint
+## Repository Structure
 
 ```
 tsr-engine/
