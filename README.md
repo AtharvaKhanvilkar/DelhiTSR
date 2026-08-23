@@ -22,6 +22,7 @@ DelhiTSR is a specialized title intelligence engine for property legal due dilig
   - [Delhi Statutory Duty \& MCD Tax Matrix](#delhi-statutory-duty--mcd-tax-matrix)
   - [Haryana Urban vs. Rural Jurisdiction Engine [BETA]](#haryana-urban-vs-rural-jurisdiction-engine-beta)
   - [Constituent Tax Aggregation Algorithm](#constituent-tax-aggregation-algorithm)
+- [5-Tier Legal Severity Classification Framework](#5-tier-legal-severity-classification-framework)
 - [Complete Specification of All 94 Discrepancy \& Validation Rules](#complete-specification-of-all-94-discrepancy--validation-rules)
   - [1. Legal \& Statutory Compliance Audits](#1-legal--statutory-compliance-audits)
   - [2. Consideration \& Financial Valuation Audits](#2-consideration--financial-valuation-audits)
@@ -131,147 +132,159 @@ Where `Sum of Constituent Line Items = State Stamp Duty (Article 23) + MCD Trans
 
 ---
 
+## 5-Tier Legal Severity Classification Framework
+
+All 94 micro-rule findings are categorized according to the platform's standard 5-tier legal risk hierarchy:
+
+1. **Material Defect**: Critical legal defects, title chain breaks, unlinked mortgagors, or severe financial exposure that directly impact title validity.
+2. **Substantive Defect**: Major structural defects, price drops below 70% of historical chain value, unregularized GPA chains, or lender mismatches.
+3. **Statutory Requisition**: Mandatory statutory tariff shortfalls, circle rate undervaluation checks, registration fee deficits, and municipal tax requisitions.
+4. **Procedural Anomaly**: Minor metadata mismatches, minor area unit rounding deviations, fuzzy release linkings, or clerical address variations.
+5. **Record Notation**: Standard audit logs, successful title handshakes, root deed origin traces, e-stamp party alignments, and historical conversion traces.
+
+---
+
 ## Complete Specification of All 94 Discrepancy & Validation Rules
 
 ### 1. Legal & Statutory Compliance Audits (10 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `VOID_DEED_WRONG_SRO` | **ERROR** | SRO Jurisdiction Mismatch | Section 28 Registration Act 1908 territorial jurisdiction audit. |
-| `GPA_POST_2011_INVALID` | **ERROR** | Post-2011 GPA Title Transfer | *Suraj Lamp & Industries v. State of Haryana* (2011) Supreme Court ruling. |
-| `MISSING_GPA_AUTHORIZATION` | **ERROR** | Missing Attorney Authorization | Triggers when attorney executes deed without registered GPA in chain. |
-| `UNREGULARIZED_GPA_CHAIN` | **WARNING** | Unregularized GPA Chain | Chain concludes with GPA rather than registered Sale Deed. |
-| `PROPERTY_NOT_IN_DELHI` | **WARNING** | Out-of-Jurisdiction Location | Property parsed outside NCT Delhi revenue districts. |
-| `SEC28_REG_ACT_AUDIT` | **INFO** | Mandatory SRO Validation | Territorial compliance against 11 NCT Delhi Revenue Districts. |
-| `SRO_TERRITORY_MATRIX` | **INFO** | SRO Territory Ledger Mapping | Validates SRO office assignments against 350+ Delhi Locality Ledger. |
-| `SRO_CODE_NORMALIZER` | **INFO** | SRO Code Canonicalization | Normalizes SRO strings (e.g. SRO V-A Hauz Khas -> `5a`). |
-| `SRO_LOCALITY_TOKEN_MATCH` | **INFO** | Locality Boundary Token Check | Cross-references address locality against SRO boundary ledger. |
-| `EXPLICIT_SRO_RECITAL` | **INFO** | Explicit Header SRO Recital | Validates SRO jurisdiction explicitly stated in header endorsement text. |
+| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | Section 28 Registration Act 1908 territorial jurisdiction audit. |
+| `GPA_POST_2011_INVALID` | **Material Defect** | Post-2011 GPA Title Transfer | *Suraj Lamp & Industries v. State of Haryana* (2011) Supreme Court ruling. |
+| `MISSING_GPA_AUTHORIZATION` | **Material Defect** | Missing Attorney Authorization | Triggers when attorney executes deed without registered GPA in chain. |
+| `UNREGULARIZED_GPA_CHAIN` | **Substantive Defect** | Unregularized GPA Chain | Chain concludes with GPA rather than registered Sale Deed. |
+| `PROPERTY_NOT_IN_DELHI` | **Procedural Anomaly** | Out-of-Jurisdiction Location | Property parsed outside NCT Delhi revenue districts. |
+| `SEC28_REG_ACT_AUDIT` | **Record Notation** | Mandatory SRO Validation | Territorial compliance against 11 NCT Delhi Revenue Districts. |
+| `SRO_TERRITORY_MATRIX` | **Record Notation** | SRO Territory Ledger Mapping | Validates SRO office assignments against 350+ Delhi Locality Ledger. |
+| `SRO_CODE_NORMALIZER` | **Record Notation** | SRO Code Canonicalization | Normalizes SRO strings (e.g. SRO V-A Hauz Khas -> `5a`). |
+| `SRO_LOCALITY_TOKEN_MATCH` | **Record Notation** | Locality Boundary Token Check | Cross-references address locality against SRO boundary ledger. |
+| `EXPLICIT_SRO_RECITAL` | **Record Notation** | Explicit Header SRO Recital | Validates SRO jurisdiction explicitly stated in header endorsement text. |
 
 ### 2. Consideration & Financial Valuation Audits (7 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `MISSING_SALE_CONSIDERATION` | **ERROR** | Missing Sale Price | Section 54 Transfer of Property Act 1882 compliance. |
-| `MISSING_RENTAL_CONSIDERATION` | **ERROR** | Missing Lease License Fee | Section 105 Transfer of Property Act 1882 lease premium check. |
-| `MISSING_MORTGAGE_VALUE` | **ERROR** | Missing Secured Loan Principal | Section 58 Transfer of Property Act 1882 loan principal check. |
-| `GIFT_DEED_WITH_CONSIDERATION` | **ERROR** | Gift with Consideration | Section 122 Transfer of Property Act 1882 voluntary gift check. |
-| `ZERO_CONSIDERATION` | **ERROR** | Zero Value Conveyance | Flags ₹0 consideration sale deeds violating Stamp Act. |
-| `CONSIDERATION_ANOMALY` | **WARNING** | Transaction Price Drop | Price drops below 70% of historical sale price in same chain. |
-| `AMOUNT_WORDS_FIGURES_MISMATCH` | **ERROR** | Words vs. Figures Mismatch | Discrepancy between value written in words vs numeric figures. |
+| `MISSING_SALE_CONSIDERATION` | **Material Defect** | Missing Sale Price | Section 54 Transfer of Property Act 1882 compliance. |
+| `MISSING_RENTAL_CONSIDERATION` | **Material Defect** | Missing Lease License Fee | Section 105 Transfer of Property Act 1882 lease premium check. |
+| `MISSING_MORTGAGE_VALUE` | **Material Defect** | Missing Secured Loan Principal | Section 58 Transfer of Property Act 1882 loan principal check. |
+| `GIFT_DEED_WITH_CONSIDERATION` | **Material Defect** | Gift with Consideration | Section 122 Transfer of Property Act 1882 voluntary gift check. |
+| `ZERO_CONSIDERATION` | **Material Defect** | Zero Value Conveyance | Flags ₹0 consideration sale deeds violating Stamp Act. |
+| `CONSIDERATION_ANOMALY` | **Substantive Defect** | Transaction Price Drop | Price drops below 70% of historical sale price in same chain. |
+| `AMOUNT_WORDS_FIGURES_MISMATCH` | **Material Defect** | Words vs. Figures Mismatch | Discrepancy between value written in words vs numeric figures. |
 
 ### 3. Title Chain & Ownership Integrity Audits (10 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `CHAIN_BREAK` | **ERROR** | Title Chain Break | Seller has no prior record of ownership or holds 0% share on record. |
-| `AREA_MISMATCH` | **ERROR** | Significant Area Mismatch | Area differs by >5% from expected inherited fractional share. |
-| `AREA_MISMATCH_MILD` | **WARNING** | Minor Area Deviation | Area difference under 3 sq. ft. due to unit rounding. |
-| `SOCIETY_MISMATCH` | **ERROR** | Building Name Mismatch | Building or society name conflicts with root document. |
-| `ID_MISMATCH` | **ERROR** | Property ID Conflict | Plot, Survey, Khasra, or Flat number changes unexpectedly. |
-| `DATE_ORDER_DEVIATION` | **ERROR** | Date Sequence Anomaly | Registration date prior to execution date or predecessor deed date. |
-| `CHAIN_HANDSHAKE_VERIFIED` | **INFO** | Title Handshake Verification | Transferee in deed N exactly matches transferor in deed N+1. |
-| `RECTIFICATION_APPLIED` | **INFO** | Clerical Rectification | Error resolved by subsequent registered Rectification Deed. |
-| `ROOT_DEED_TRACED` | **INFO** | Root of Title Origin | Traces original DDA/L&DO allotment or President of India grant. |
-| `LEASEHOLD_CONVERTED` | **INFO** | Freehold Conversion Traced | Tracks conversion from leasehold tenure to absolute freehold. |
+| `CHAIN_BREAK` | **Material Defect** | Title Chain Break | Seller has no prior record of ownership or holds 0% share on record. |
+| `AREA_MISMATCH` | **Material Defect** | Significant Area Mismatch | Area differs by >5% from expected inherited fractional share. |
+| `AREA_MISMATCH_MILD` | **Procedural Anomaly** | Minor Area Deviation | Area difference under 3 sq. ft. due to unit rounding. |
+| `SOCIETY_MISMATCH` | **Material Defect** | Building Name Mismatch | Building or society name conflicts with root document. |
+| `ID_MISMATCH` | **Material Defect** | Property ID Conflict | Plot, Survey, Khasra, or Flat number changes unexpectedly. |
+| `DATE_ORDER_DEVIATION` | **Material Defect** | Date Sequence Anomaly | Registration date prior to execution date or predecessor deed date. |
+| `CHAIN_HANDSHAKE_VERIFIED` | **Record Notation** | Title Handshake Verification | Transferee in deed N exactly matches transferor in deed N+1. |
+| `RECTIFICATION_APPLIED` | **Record Notation** | Clerical Rectification | Error resolved by subsequent registered Rectification Deed. |
+| `ROOT_DEED_TRACED` | **Record Notation** | Root of Title Origin | Traces original DDA/L&DO allotment or President of India grant. |
+| `LEASEHOLD_CONVERTED` | **Record Notation** | Freehold Conversion Traced | Tracks conversion from leasehold tenure to absolute freehold. |
 
 ### 4. Party Identity, PAN & KYC Audits (7 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `INVALID_PAN_FORMAT` | **ERROR** | Invalid PAN Format | Tax identifier fails 10-char regex (`[A-Z]{5}[0-9]{4}[A-Z]`). |
-| `INVALID_PIN_FORMAT` | **ERROR** | Invalid PIN Format | Postal code fails 6-digit numeric pattern. |
-| `PAN_TRANSFEROR_TRANSFEREE_CLASH` | **ERROR** | Intra-document PAN Clash | Seller and buyer share the exact same PAN in same deed. |
-| `PIN_TRANSFEROR_TRANSFEREE_CLASH` | **ERROR** | Intra-document PIN Clash | Parties share same PIN code in same document. |
-| `SHARED_PAN` | **ERROR** | Inter-document PAN Reuse | Same PAN shared by different named parties across deeds. |
-| `SHARED_PIN` | **ERROR** | Inter-document ID Reuse | Same personal identifier shared by different parties. |
-| `MASKED_AADHAAR_VALID` | **INFO** | Masked Aadhaar Verified | Accepts UIDAI Masked Aadhaar (`XXXX-XXXX-1234`) as valid. |
+| `INVALID_PAN_FORMAT` | **Material Defect** | Invalid PAN Format | Tax identifier fails 10-char regex (`[A-Z]{5}[0-9]{4}[A-Z]`). |
+| `INVALID_PIN_FORMAT` | **Procedural Anomaly** | Invalid PIN Format | Postal code fails 6-digit numeric pattern. |
+| `PAN_TRANSFEROR_TRANSFEREE_CLASH` | **Material Defect** | Intra-document PAN Clash | Seller and buyer share the exact same PAN in same deed. |
+| `PIN_TRANSFEROR_TRANSFEREE_CLASH` | **Procedural Anomaly** | Intra-document PIN Clash | Parties share same PIN code in same document. |
+| `SHARED_PAN` | **Material Defect** | Inter-document PAN Reuse | Same PAN shared by different named parties across deeds. |
+| `SHARED_PIN` | **Procedural Anomaly** | Inter-document ID Reuse | Same personal identifier shared by different parties. |
+| `MASKED_AADHAAR_VALID` | **Record Notation** | Masked Aadhaar Verified | Accepts UIDAI Masked Aadhaar (`XXXX-XXXX-1234`) as valid. |
 
 ### 5. Party Name Spelling Deviation Audits (6 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `NAME_DEVIATION_NORMALIZED` | **INFO** | Normalized Match | Spaces, dots, or title prefixes stripped ("Mr. Raj" -> "Raj"). |
-| `NAME_DEVIATION_MINOR` | **INFO** | Minor Deviation | Levenshtein edit distance = 1 ("Sanjay" vs "Sanjeev"). |
-| `NAME_DEVIATION_MILD` | **WARNING** | Mild Deviation | Levenshtein edit distance = 2 ("Chauhan" vs "Chowhan"). |
-| `NAME_DEVIATION_SEVERE` | **ERROR** | Severe Deviation | Edit distance >= 3, indicating major spelling conflict. |
-| `NAME_DEVIATION_ALIAS` | **INFO** | Legal Alias Match | Spelling mismatch resolved via registered alias tables. |
-| `NAME_DEVIATION_UNKNOWN` | **ERROR** | Unresolved Name Clash | Party name does not match any prior owner in chain. |
+| `NAME_DEVIATION_NORMALIZED` | **Record Notation** | Normalized Match | Spaces, dots, or title prefixes stripped ("Mr. Raj" -> "Raj"). |
+| `NAME_DEVIATION_MINOR` | **Record Notation** | Minor Deviation | Levenshtein edit distance = 1 ("Sanjay" vs "Sanjeev"). |
+| `NAME_DEVIATION_MILD` | **Procedural Anomaly** | Mild Deviation | Levenshtein edit distance = 2 ("Chauhan" vs "Chowhan"). |
+| `NAME_DEVIATION_SEVERE` | **Material Defect** | Severe Deviation | Edit distance >= 3, indicating major spelling conflict. |
+| `NAME_DEVIATION_ALIAS` | **Record Notation** | Legal Alias Match | Spelling mismatch resolved via registered alias tables. |
+| `NAME_DEVIATION_UNKNOWN` | **Material Defect** | Unresolved Name Clash | Party name does not match any prior owner in chain. |
 
 ### 6. Mortgage, Encumbrance & Charge Release Audits (16 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `INVALID_MORTGAGOR` | **ERROR** | Invalid Mortgagor | Party mortgaging property previously conveyed interest away. |
-| `UNKNOWN_MORTGAGOR` | **ERROR** | Unknown Mortgagor | Mortgagor has no prior ownership record in chain. |
-| `RELEASE_ORPHAN` | **ERROR** | Unlinked Release Deed | Release deed has no corresponding active mortgage in chain. |
-| `RELEASE_AMBIGUOUS` | **ERROR** | Ambiguous Release Link | Release deed matches multiple active mortgages. |
-| `RELEASE_LINK_A` | **INFO** | Link Tier A (Exact Match) | Exact reg number match + SRO, year, and party consistency. |
-| `RELEASE_LINK_B` | **INFO** | Link Tier B (Verified Match) | Reg number match + at least two corroborative parameters. |
-| `RELEASE_LINK_C` | **INFO** | Link Tier C (Matched Link) | Reg number match with minimal corroboration. |
-| `RELEASE_LINK_D` | **WARNING** | Link Tier D (Fuzzy Link) | Fuzzy reg number match (Levenshtein <= 2) + 3 parameters. |
-| `RELEASE_LINK_E` | **ERROR** | Link Tier E (Disputed Link) | Fuzzy reg number match without corroboration. |
-| `RELEASE_LINK_F` | **WARNING** | Link Tier F (Indirect Link) | Party name, SRO, and execution year match without reg number. |
-| `RELEASE_PARTY_MISMATCH` | **ERROR** | Release Party Conflict | Release deed references mortgage but lists different parties. |
-| `RELEASE_AMOUNT_MISMATCH` | **ERROR** | Release Amount Conflict | Release deed references mortgage but cites different loan amount. |
-| `UNRESOLVED_MORTGAGE` | **WARNING** | Active Unresolved Charge | Active registered mortgage on title with no satisfaction on record. |
-| `MORTGAGE_RESOLVED` | **INFO** | Satisfied Charge | Mortgage fully released and discharged. |
-| `PARTIALLY_RELEASED` | **WARNING** | Partial Discharge Shortfall | Linked release amounts are less than registered mortgage principal. |
-| `RELEASE_OVERFLOW` | **ERROR** | Discharge Value Overflow | Linked release amounts exceed registered mortgage principal. |
+| `INVALID_MORTGAGOR` | **Material Defect** | Invalid Mortgagor | Party mortgaging property previously conveyed interest away. |
+| `UNKNOWN_MORTGAGOR` | **Material Defect** | Unknown Mortgagor | Mortgagor has no prior ownership record in chain. |
+| `RELEASE_ORPHAN` | **Material Defect** | Unlinked Release Deed | Release deed has no corresponding active mortgage in chain. |
+| `RELEASE_AMBIGUOUS` | **Material Defect** | Ambiguous Release Link | Release deed matches multiple active mortgages. |
+| `RELEASE_LINK_A` | **Record Notation** | Link Tier A (Exact Match) | Exact reg number match + SRO, year, and party consistency. |
+| `RELEASE_LINK_B` | **Record Notation** | Link Tier B (Verified Match) | Reg number match + at least two corroborative parameters. |
+| `RELEASE_LINK_C` | **Record Notation** | Link Tier C (Matched Link) | Reg number match with minimal corroboration. |
+| `RELEASE_LINK_D` | **Procedural Anomaly** | Link Tier D (Fuzzy Link) | Fuzzy reg number match (Levenshtein <= 2) + 3 parameters. |
+| `RELEASE_LINK_E` | **Material Defect** | Link Tier E (Disputed Link) | Fuzzy reg number match without corroboration. |
+| `RELEASE_LINK_F` | **Procedural Anomaly** | Link Tier F (Indirect Link) | Party name, SRO, and execution year match without reg number. |
+| `RELEASE_PARTY_MISMATCH` | **Material Defect** | Release Party Conflict | Release deed references mortgage but lists different parties. |
+| `RELEASE_AMOUNT_MISMATCH` | **Material Defect** | Release Amount Conflict | Release deed references mortgage but cites different loan amount. |
+| `UNRESOLVED_MORTGAGE` | **Substantive Defect** | Active Unresolved Charge | Active registered mortgage on title with no satisfaction on record. |
+| `MORTGAGE_RESOLVED` | **Record Notation** | Satisfied Charge | Mortgage fully released and discharged. |
+| `PARTIALLY_RELEASED` | **Substantive Defect** | Partial Discharge Shortfall | Linked release amounts are less than registered mortgage principal. |
+| `RELEASE_OVERFLOW` | **Material Defect** | Discharge Value Overflow | Linked release amounts exceed registered mortgage principal. |
 
 ### 7. Lender Bank Match & Merger Audits (6 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `LENDER_MISMATCH` | **ERROR** | Lender Bank Mismatch | Discharging bank does not match original mortgagee bank. |
-| `LENDER_CONSISTENT` | **INFO** | Consistent Lender | Lender names match exactly across mortgage and release. |
-| `LENDER_ALIAS_MATCH` | **INFO** | Lender Alias Match | Match resolved via standard bank alias tables ("SBI" = "State Bank of India"). |
-| `LENDER_BRANCH_DIFF` | **INFO** | Branch Variant Match | Same lender bank, different branch description. |
-| `LENDER_MERGER` | **WARNING** | Bank Merger Transition | Discharging bank matches via historical merger records (e.g. Corporation Bank -> Union Bank). |
-| `LENDER_FUZZY_MATCH` | **WARNING** | Fuzzy Lender Match | Lender names highly similar (character match >= 0.85). |
+| `LENDER_MISMATCH` | **Material Defect** | Lender Bank Mismatch | Discharging bank does not match original mortgagee bank. |
+| `LENDER_CONSISTENT` | **Record Notation** | Consistent Lender | Lender names match exactly across mortgage and release. |
+| `LENDER_ALIAS_MATCH` | **Record Notation** | Lender Alias Match | Match resolved via standard bank alias tables ("SBI" = "State Bank of India"). |
+| `LENDER_BRANCH_DIFF` | **Record Notation** | Branch Variant Match | Same lender bank, different branch description. |
+| `LENDER_MERGER` | **Substantive Defect** | Bank Merger Transition | Discharging bank matches via historical merger records (e.g. Corporation Bank -> Union Bank). |
+| `LENDER_FUZZY_MATCH` | **Procedural Anomaly** | Fuzzy Lender Match | Lender names highly similar (character match >= 0.85). |
 
 ### 8. Project Metadata Reconciliation Audits (10 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `METADATA_LOCALITY_MISMATCH` | **WARNING** | Locality Mismatch | Locality in deed differs from project metadata setting. |
-| `METADATA_SRO_MISMATCH` | **WARNING** | SRO Office Mismatch | SRO office in deed differs from project metadata setting. |
-| `METADATA_AUTHORITY_MISMATCH` | **WARNING** | Authority Mismatch | Fails to reference MCD/DDA indicators matching project setting. |
-| `METADATA_LAND_USE_MISMATCH` | **WARNING** | Land Use Mismatch | Land use classification differs from project setting. |
-| `METADATA_FLAT_MISMATCH` | **WARNING** | Unit Number Mismatch | Unit or flat number parsed differs from project setting. |
-| `METADATA_FLOOR_MISMATCH` | **WARNING** | Floor Level Mismatch | Floor level parsed differs from project setting. |
-| `METADATA_PROPERTY_ID_MISMATCH` | **WARNING** | Property ID Mismatch | Khasra/Plot/Survey number differs from project setting. |
-| `METADATA_UPIC_MISMATCH` | **WARNING** | MCD UPIC Mismatch | Property UPIC in deed differs from project setting. |
-| `METADATA_ADDRESS_MISMATCH` | **WARNING** | Address Mismatch | Address fuzzy similarity score below 0.35 threshold. |
-| `MISSING_CRITICAL_FIELDS` | **WARNING** | Missing Mandatory Metadata | Consolidates warnings for deeds missing crucial values. |
+| `METADATA_LOCALITY_MISMATCH` | **Procedural Anomaly** | Locality Mismatch | Locality in deed differs from project metadata setting. |
+| `METADATA_SRO_MISMATCH` | **Procedural Anomaly** | SRO Office Mismatch | SRO office in deed differs from project metadata setting. |
+| `METADATA_AUTHORITY_MISMATCH` | **Procedural Anomaly** | Authority Mismatch | Fails to reference MCD/DDA indicators matching project setting. |
+| `METADATA_LAND_USE_MISMATCH` | **Procedural Anomaly** | Land Use Mismatch | Land use classification differs from project setting. |
+| `METADATA_FLAT_MISMATCH` | **Procedural Anomaly** | Unit Number Mismatch | Unit or flat number parsed differs from project setting. |
+| `METADATA_FLOOR_MISMATCH` | **Procedural Anomaly** | Floor Level Mismatch | Floor level parsed differs from project setting. |
+| `METADATA_PROPERTY_ID_MISMATCH` | **Procedural Anomaly** | Property ID Mismatch | Khasra/Plot/Survey number differs from project setting. |
+| `METADATA_UPIC_MISMATCH` | **Procedural Anomaly** | MCD UPIC Mismatch | Property UPIC in deed differs from project setting. |
+| `METADATA_ADDRESS_MISMATCH` | **Procedural Anomaly** | Address Mismatch | Address fuzzy similarity score below 0.35 threshold. |
+| `MISSING_CRITICAL_FIELDS` | **Procedural Anomaly** | Missing Mandatory Metadata | Consolidates warnings for deeds missing crucial values. |
 
 ### 9. Statutory Stamp Duty & Municipal Tax Audit Matrix (23 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `PRE2003_STD_8PCT` | **STATUTORY** | Pre-2003 Resale Standard Rate | Enforces 8.00% Combined Rate (5% SD + 3% MCD Tax). |
-| `PRE2003_DDA_6PCT` | **STATUTORY** | Pre-2003 DDA Concessional Rate | Enforces 6.00% Rate (inclusive of MCD tax) for pre-2003 DDA allotments. |
-| `RATE_2003_MALE_8PCT` | **STATUTORY** | 2003-2007 Male Buyer Tariff | Enforces 8.00% Combined Rate for male buyers. |
-| `RATE_2003_JOINT_7PCT` | **STATUTORY** | 2003-2007 Joint Buyer Tariff | Enforces 7.00% Combined Rate for joint buyers. |
-| `RATE_2003_FEMALE_5PCT` | **STATUTORY** | 2003-2007 Female Buyer Tariff | Enforces 5.00% Combined Rate for female buyers. |
-| `RATE_PRESENT_MALE_6PCT` | **STATUTORY** | 2008-Present Male Buyer Tariff | Enforces 6.00% Combined Rate (3% SD + 3% MCD Tax). |
-| `RATE_PRESENT_JOINT_5PCT` | **STATUTORY** | 2008-Present Joint Buyer Tariff | Enforces 5.00% Combined Rate (3.5% SD + 1.5% MCD Tax). |
-| `RATE_PRESENT_FEMALE_4PCT` | **STATUTORY** | 2008-Present Female Buyer Tariff | Enforces 4.00% Combined Rate (3% SD + 1% MCD Tax). |
-| `GIFT_FAMILY_3PCT` | **STATUTORY** | Gift Deed Family Concession | Applies 3.00% Stamp Duty + 1.00% Reg Fee for family gifts. |
-| `GIFT_NON_FAMILY_STD` | **STATUTORY** | Gift Deed Non-Family Tariff | Applies standard general conveyance rates (4%-6%). |
-| `MORTGAGE_SIMPLE_2PCT` | **STATUTORY** | Simple Mortgage Tariff | Applies 2.00% Stamp Duty on loan principal under Article 40. |
-| `MORTGAGE_EQUITABLE_0.5PCT` | **STATUTORY** | Equitable Mortgage Tariff | Applies 0.50% Stamp Duty on deposit of title deeds. |
-| `RELINQUISH_NOMINAL_SD` | **STATUTORY** | Relinquishment Nominal Duty | Applies nominal ₹150 stamp duty for family share releases. |
-| `RELINQUISH_NOMINAL_REG` | **STATUTORY** | Relinquishment Nominal Fee | Applies nominal ₹100 registration fee for family share releases. |
-| `RELINQUISH_CONSIDERATION` | **STATUTORY** | Relinquishment Consideration Duty | Applies 2.00% SD + 1.00% Reg Fee on monetary consideration. |
-| `RECONVEYANCE_SD_100` | **STATUTORY** | Reconveyance Nominal Duty | Applies nominal ₹100 stamp duty under Article 55. |
-| `RECONVEYANCE_REG_100` | **STATUTORY** | Reconveyance Nominal Fee | Applies nominal ₹100 registration fee. |
-| `LEASE_2PCT_RENT` | **STATUTORY** | Lease / License Fee Tariff | Applies 2.00% Stamp Duty on annual rent / license fee. |
-| `REG_FEE_1PCT` | **STATUTORY** | Standard Registration Fee | Applies 1.00% of consideration / market value. |
-| `SD_ROUNDING_TOLERANCE` | **INFO** | Rounding Math Tolerance | Allows ₹1 mathematical rounding tolerance. |
-| `COMBINED_SD_RECONCILE` | **INFO** | Combined Tax Reconciler | Reconciles separate 3% SD + 3% MCD Tax into 6% total. |
-| `INSUFFICIENT_STAMP_DUTY` | **ERROR** | Stamp Duty Shortfall | Flags paid stamp duty falling below statutory requirement. |
-| `INSUFFICIENT_REGISTRATION_FEE` | **ERROR** | Registration Fee Shortfall | Flags paid registration fee falling below statutory requirement. |
+| `PRE2003_STD_8PCT` | **Statutory Requisition** | Pre-2003 Resale Standard Rate | Enforces 8.00% Combined Rate (5% SD + 3% MCD Tax). |
+| `PRE2003_DDA_6PCT` | **Statutory Requisition** | Pre-2003 DDA Concessional Rate | Enforces 6.00% Rate (inclusive of MCD tax) for pre-2003 DDA allotments. |
+| `RATE_2003_MALE_8PCT` | **Statutory Requisition** | 2003-2007 Male Buyer Tariff | Enforces 8.00% Combined Rate for male buyers. |
+| `RATE_2003_JOINT_7PCT` | **Statutory Requisition** | 2003-2007 Joint Buyer Tariff | Enforces 7.00% Combined Rate for joint buyers. |
+| `RATE_2003_FEMALE_5PCT` | **Statutory Requisition** | 2003-2007 Female Buyer Tariff | Enforces 5.00% Combined Rate for female buyers. |
+| `RATE_PRESENT_MALE_6PCT` | **Statutory Requisition** | 2008-Present Male Buyer Tariff | Enforces 6.00% Combined Rate (3% SD + 3% MCD Tax). |
+| `RATE_PRESENT_JOINT_5PCT` | **Statutory Requisition** | 2008-Present Joint Buyer Tariff | Enforces 5.00% Combined Rate (3.5% SD + 1.5% MCD Tax). |
+| `RATE_PRESENT_FEMALE_4PCT` | **Statutory Requisition** | 2008-Present Female Buyer Tariff | Enforces 4.00% Combined Rate (3% SD + 1% MCD Tax). |
+| `GIFT_FAMILY_3PCT` | **Statutory Requisition** | Gift Deed Family Concession | Applies 3.00% Stamp Duty + 1.00% Reg Fee for family gifts. |
+| `GIFT_NON_FAMILY_STD` | **Statutory Requisition** | Gift Deed Non-Family Tariff | Applies standard general conveyance rates (4%-6%). |
+| `MORTGAGE_SIMPLE_2PCT` | **Statutory Requisition** | Simple Mortgage Tariff | Applies 2.00% Stamp Duty on loan principal under Article 40. |
+| `MORTGAGE_EQUITABLE_0.5PCT` | **Statutory Requisition** | Equitable Mortgage Tariff | Applies 0.50% Stamp Duty on deposit of title deeds. |
+| `RELINQUISH_NOMINAL_SD` | **Statutory Requisition** | Relinquishment Nominal Duty | Applies nominal ₹150 stamp duty for family share releases. |
+| `RELINQUISH_NOMINAL_REG` | **Statutory Requisition** | Relinquishment Nominal Fee | Applies nominal ₹100 registration fee for family share releases. |
+| `RELINQUISH_CONSIDERATION` | **Statutory Requisition** | Relinquishment Consideration Duty | Applies 2.00% SD + 1.00% Reg Fee on monetary consideration. |
+| `RECONVEYANCE_SD_100` | **Statutory Requisition** | Reconveyance Nominal Duty | Applies nominal ₹100 stamp duty under Article 55. |
+| `RECONVEYANCE_REG_100` | **Statutory Requisition** | Reconveyance Nominal Fee | Applies nominal ₹100 registration fee. |
+| `LEASE_2PCT_RENT` | **Statutory Requisition** | Lease / License Fee Tariff | Applies 2.00% Stamp Duty on annual rent / license fee. |
+| `REG_FEE_1PCT` | **Statutory Requisition** | Standard Registration Fee | Applies 1.00% of consideration / market value. |
+| `SD_ROUNDING_TOLERANCE` | **Record Notation** | Rounding Math Tolerance | Allows ₹1 mathematical rounding tolerance. |
+| `COMBINED_SD_RECONCILE` | **Record Notation** | Combined Tax Reconciler | Reconciles separate 3% SD + 3% MCD Tax into 6% total. |
+| `INSUFFICIENT_STAMP_DUTY` | **Statutory Requisition** | Stamp Duty Shortfall | Flags paid stamp duty falling below statutory requirement. |
+| `INSUFFICIENT_REGISTRATION_FEE` | **Statutory Requisition** | Registration Fee Shortfall | Flags paid registration fee falling below statutory requirement. |
 
 ### 10. Haryana Jurisdiction & Revenue Estate Audits (4 Rules) [BETA STAGE]
 
@@ -279,32 +292,32 @@ Where `Sum of Constituent Line Items = State Stamp Duty (Article 23) + MCD Trans
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `HARYANA_URBAN_MUNICIPAL` | **STATUTORY** | Haryana Urban Municipal Tariff [BETA] | Enforces 5% (Female) / 6% (Joint) / 7% (Male) tariff in MCG/MCF/HUDA areas. |
-| `HARYANA_RURAL_GRAM_PANCHAYAT` | **STATUTORY** | Haryana Rural Gram Panchayat Tariff [BETA] | Enforces 3% (Female) / 4% (Joint) / 5% (Male) tariff in Gram Panchayat areas. |
-| `HARYANA_REGISTRATION_SLAB` | **STATUTORY** | Haryana Registration Fee Slab [BETA] | Enforces slab-based registration fee capped at max ₹50,000. |
-| `HARYANA_JURISDICTION_CLASSIFIED` | **INFO** | Haryana Jurisdiction Audit [BETA] | Logs classification into Urban Municipal vs Rural Gram Panchayat. |
+| `HARYANA_URBAN_MUNICIPAL` | **Statutory Requisition** | Haryana Urban Municipal Tariff [BETA] | Enforces 5% (Female) / 6% (Joint) / 7% (Male) tariff in MCG/MCF/HUDA areas. |
+| `HARYANA_RURAL_GRAM_PANCHAYAT` | **Statutory Requisition** | Haryana Rural Gram Panchayat Tariff [BETA] | Enforces 3% (Female) / 4% (Joint) / 5% (Male) tariff in Gram Panchayat areas. |
+| `HARYANA_REGISTRATION_SLAB` | **Statutory Requisition** | Haryana Registration Fee Slab [BETA] | Enforces slab-based registration fee capped at max ₹50,000. |
+| `HARYANA_JURISDICTION_CLASSIFIED` | **Record Notation** | Haryana Jurisdiction Audit [BETA] | Logs classification into Urban Municipal vs Rural Gram Panchayat. |
 
 ### 11. Pre-Processing & Computer Vision Rules (9 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `OPENCV_SKEW_DETECT` | **INFO** | OpenCV Baseline Skew Detect | Detects page line orientation using `cv2.minAreaRect`. |
-| `DESKEW_TRANSFORM_BOUNDS` | **INFO** | Deskew Rotation Bounds | Applies affine rotation for skew angles between 0.5° and 45°. |
-| `OTSU_BINARIZATION` | **INFO** | Otsu Contrast Binarization | Cleans background yellowing and watermarks via Otsu thresholding. |
-| `PDF_VECTOR_EXTRACT` | **INFO** | PDF Vector Stream Extract | Direct extraction of embedded PDF vector fonts via `pdfplumber`. |
-| `RAPIDOCR_FALLBACK_TRIGGER` | **INFO** | RapidOCR Fallback Trigger | Triggers RapidOCR + OpenCV when text density < 40 chars/page. |
-| `PARALLEL_4PASS_SCHEMA` | **INFO** | 4-Pass 20-Field Schema | Splits 80 document fields across 4 parallel API passes. |
-| `ESTAMP_PARTY_ALIGN` | **INFO** | E-Stamp Party Alignment | Verifies e-stamp party names against Vendor/Vendee roles. |
-| `PAYMENT_LEDGER_SUM` | **INFO** | Payment Instrument Summation | Verifies sum of Payment Instruments + TDS = Consideration. |
-| `TDS_26QB_AUDIT` | **INFO** | TDS Form 26QB Verification | Extracts BSR codes, challan serials, and 1% TDS payment details. |
+| `OPENCV_SKEW_DETECT` | **Record Notation** | OpenCV Baseline Skew Detect | Detects page line orientation using `cv2.minAreaRect`. |
+| `DESKEW_TRANSFORM_BOUNDS` | **Record Notation** | Deskew Rotation Bounds | Applies affine rotation for skew angles between 0.5° and 45°. |
+| `OTSU_BINARIZATION` | **Record Notation** | Otsu Contrast Binarization | Cleans background yellowing and watermarks via Otsu thresholding. |
+| `PDF_VECTOR_EXTRACT` | **Record Notation** | PDF Vector Stream Extract | Direct extraction of embedded PDF vector fonts via `pdfplumber`. |
+| `RAPIDOCR_FALLBACK_TRIGGER` | **Record Notation** | RapidOCR Fallback Trigger | Triggers RapidOCR + OpenCV when text density < 40 chars/page. |
+| `PARALLEL_4PASS_SCHEMA` | **Record Notation** | 4-Pass 20-Field Schema | Splits 80 document fields across 4 parallel API passes. |
+| `ESTAMP_PARTY_ALIGN` | **Record Notation** | E-Stamp Party Alignment | Verifies e-stamp party names against Vendor/Vendee roles. |
+| `PAYMENT_LEDGER_SUM` | **Record Notation** | Payment Instrument Summation | Verifies sum of Payment Instruments + TDS = Consideration. |
+| `TDS_26QB_AUDIT` | **Record Notation** | TDS Form 26QB Verification | Extracts BSR codes, challan serials, and 1% TDS payment details. |
 
 ### 12. Meta-Rules & Legal Privilege Enforcement (3 Rules)
 
 | Code | Severity | Finding Name | Legal & Logical Basis |
 | :--- | :--- | :--- | :--- |
-| `NO_VERDICT_PRIVILEGE_GUARD` | **META** | No Legal Verdict Policy | Enforces prohibition against rendering legal verdicts. |
-| `DISCREPANCY_DEDUPLICATION` | **META** | Rule Deduplication Engine | Filters duplicate error findings generated across passes. |
-| `PROVISIONAL_AUDIT_STATE` | **META** | Provisional Audit State | Flags workspaces undergoing active processing. |
+| `NO_VERDICT_PRIVILEGE_GUARD` | **Record Notation** | No Legal Verdict Policy | Enforces prohibition against rendering legal verdicts. |
+| `DISCREPANCY_DEDUPLICATION` | **Record Notation** | Rule Deduplication Engine | Filters duplicate error findings generated across passes. |
+| `PROVISIONAL_AUDIT_STATE` | **Record Notation** | Provisional Audit State | Flags workspaces undergoing active processing. |
 
 ---
 
@@ -315,7 +328,7 @@ Where `Sum of Constituent Line Items = State Stamp Duty (Article 23) + MCD Trans
 
 ---
 
-## Setup & Installation
+## Setup & Local Development Installation
 
 ### Prerequisites
 
@@ -365,7 +378,7 @@ python app.py
 
 ---
 
-## Repository Structure
+## Repository File Blueprint
 
 ```
 tsr-engine/
