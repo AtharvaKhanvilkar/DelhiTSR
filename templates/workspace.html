@@ -1482,8 +1482,8 @@
             </span>
           </div>
 
-          <!-- AI Assistant -->
-          <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <!-- AI Assistant (Opens Right Sidebar Agent) -->
+          <div id="sidebar-assistant" onclick="toggleAiRightSidebar()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1767,13 +1767,10 @@
   </header>
 
   <!-- INNER LAYOUT WRAPPER (Sidebar + Main Content) -->
-  <main class="flex-1 flex flex-col min-w-0 min-h-0 bg-[#ffffff] relative overflow-hidden">
-
-
+  <main class="flex-1 flex flex-row min-w-0 min-h-0 bg-[#ffffff] relative overflow-hidden">
 
     <!-- Panel Content viewport -->
-
-    <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+    <div class="flex-1 flex flex-col overflow-hidden min-h-0 min-w-0">
 
 
 
@@ -1981,92 +1978,6 @@
 
 
 
-      <!-- AI Assistant Panel -->
-
-      <div class="panel flex flex-col h-full bg-[#f9f9fb] relative overflow-hidden" id="panel-assistant">
-        <!-- Refined Top Header Bar (Pure Monochromatic & Polished) -->
-        <div class="h-11 border-b border-zinc-200/70 bg-white flex items-center justify-between px-5 shrink-0 z-20 select-none">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-zinc-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-            <h2 class="text-xs font-bold text-zinc-900 tracking-tight">Title Intelligence AI</h2>
-            <div class="h-3 w-px bg-zinc-200 mx-0.5"></div>
-            <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 border border-zinc-200/80 text-[10px] font-semibold text-zinc-600">
-              <span class="w-1.5 h-1.5 rounded-full bg-zinc-700"></span>
-              <span>RAG Deed Index Ready</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="clearChat()" class="h-7 px-2.5 rounded-md border border-zinc-200 bg-white text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-              <span>Clear Chat</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Scrollable Chat Stream Canvas -->
-        <main class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth" id="chatScroll">
-          <div class="max-w-4xl mx-auto w-full space-y-6" id="chatMessages"></div>
-        </main>
-
-        <!-- PINNED BOTTOM COMPOSER AREA (ChatGPT / Claude / Vercel v0 Style) -->
-        <div class="shrink-0 bg-gradient-to-t from-[#f9f9fb] via-[#f9f9fb] to-transparent pt-3 pb-5 px-6 z-10">
-          <div class="max-w-4xl mx-auto w-full">
-            <div class="relative rounded-[24px] border border-zinc-200/90 bg-white p-3.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06)] focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400 transition-all space-y-2">
-              <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[46px] max-h-[140px]" id="chatInput" rows="1" placeholder="What do you want to analyze about this property's title deeds?" onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
-
-              <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
-                <!-- Left Controls: Attachment & Filter Pill -->
-                <div class="flex items-center gap-2">
-                  <button type="button" class="w-8 h-8 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer" title="Attach document context">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                  </button>
-
-                  <div class="relative">
-                    <button type="button" onclick="toggleScopeDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="scopeBtn">
-                      <span id="scopeBtnLabel">Filter: General</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div id="scopeMenu" class="hidden absolute bottom-full mb-2 left-0 w-44 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-0.5">
-                      <button type="button" onclick="selectScope('json','JSON',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                        <span>JSON</span>
-                      </button>
-                      <button type="button" onclick="selectScope('findings','Findings',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        <span>Findings</span>
-                      </button>
-                      <button type="button" onclick="selectScope('mortgages','Mortgages',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><line x1="3" y1="21" x2="21" y2="21"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 3 2 10 22 10 12 3"/></svg>
-                        <span>Mortgages</span>
-                      </button>
-                      <button type="button" onclick="selectScope('general','General',this)" class="w-full text-left px-3 py-1.5 text-xs font-semibold text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer flex items-center gap-2">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-zinc-500"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1 1.275-1.275L12 3Z"/></svg>
-                        <span>General</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Right Controls: Model Pill & Black Audio Waves Send Button -->
-                <div class="flex items-center gap-2">
-                  <div class="relative">
-                    <button type="button" onclick="toggleModelDropdown(event)" class="h-8 px-3.5 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer" id="modelBtn">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                      <span id="modelLabel">Gemini 2.5 Flash</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div id="modelMenu" class="hidden absolute bottom-full mb-2 right-0 w-44 bg-white border border-zinc-200/90 rounded-2xl shadow-xl p-1.5 z-50 space-y-1">
-                      <button type="button" onclick="selectModel('gemini-2.5-flash', 'Gemini 2.5 Flash')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Gemini 2.5 Flash</button>
-                      <button type="button" onclick="selectModel('gemini-2.5-pro', 'Gemini 2.5 Pro')" class="w-full text-left px-3 py-1.5 text-xs font-medium text-zinc-800 hover:bg-zinc-100 rounded-xl cursor-pointer">Gemini 2.5 Pro</button>
-                    </div>
-                  </div>
-
-                  <button type="button" id="runBtn" onclick="sendChat()" class="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer" title="Send query">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
             <p class="text-[11px] text-zinc-400 text-center mt-2 font-normal">Answers are generated exclusively from analyzed property title deeds.</p>
           </div>
         </div>
@@ -2358,7 +2269,90 @@
 
     </div>
 
-  </main>
+    <!-- Resizable Drag Handle for Right AI Sidebar -->
+    <div id="aiSidebarResizeHandle" class="w-1.5 shrink-0 bg-transparent hover:bg-zinc-300/80 active:bg-zinc-400 cursor-col-resize z-30 transition-colors hidden select-none border-l border-zinc-200/80"></div>
+
+    <!-- Right AI Agent Resizable Sidebar (Exact Match to Design) -->
+    <div id="aiRightSidebar" class="shrink-0 flex flex-col h-full bg-white border-l border-zinc-200/90 hidden relative z-20 shadow-2xs font-sans text-zinc-900 overflow-hidden" style="width: 380px;">
+      <!-- Header Bar -->
+      <div class="h-12 border-b border-zinc-200/80 bg-white px-4 flex items-center justify-between shrink-0 select-none">
+        <div class="flex items-center gap-2">
+          <span class="text-[14px] font-semibold text-zinc-900 tracking-tight">AI Agent</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <!-- Plus Button for New Chat -->
+          <button onclick="resetAiSidebarChat()" title="New Chat" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-700 transition-all shadow-2xs cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <!-- Close Sidebar Button -->
+          <button onclick="toggleAiRightSidebar(false)" title="Close AI Agent" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-all shadow-2xs cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Scroll Area -->
+      <div id="aiSidebarMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 bg-white">
+        <!-- Welcome Card (Exact match to reference design) -->
+        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans">
+          Welcome to Revise! I'm an AI agent that can help you write, edit, and refine documents. How can I help today?
+        </div>
+      </div>
+
+      <!-- Suggested Action Pills (Right aligned above input) -->
+      <div id="aiSidebarSuggestions" class="px-4 pb-2 flex flex-col items-end gap-1.5 shrink-0 select-none">
+        <button onclick="sendAiSidebarSuggested('Draft an outline')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/80 bg-sky-50/40 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
+          Draft an outline
+        </button>
+        <button onclick="sendAiSidebarSuggested('Brainstorm ideas')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/80 bg-sky-50/40 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
+          Brainstorm ideas
+        </button>
+      </div>
+
+      <!-- Floating Input Card (Exact match to reference design) -->
+      <div class="m-3 mt-0 p-3 rounded-2xl border border-zinc-200/90 bg-white shadow-xs focus-within:border-zinc-400 transition-all flex flex-col gap-2 shrink-0">
+        <textarea id="aiSidebarInput" placeholder="Get help writing or brainstorming" onkeydown="handleAiSidebarKeyDown(event)" rows="2" class="w-full bg-transparent resize-none outline-none border-none text-[13.5px] text-zinc-900 placeholder:text-zinc-400/90 min-h-[46px] max-h-[140px] font-sans"></textarea>
+        
+        <!-- Input Toolbar Row -->
+        <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
+          <!-- Left Control Group -->
+          <div class="flex items-center gap-1.5 relative">
+            <!-- Model Selector Button -->
+            <button id="aiSidebarModelBtn" onclick="toggleAiSidebarModelMenu(event)" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-medium text-zinc-700 transition-colors shadow-2xs cursor-pointer">
+              <span id="aiSidebarSelectedModel">GPT-5.6 Luna</span>
+              <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+
+            <!-- Model Popover Menu -->
+            <div id="aiSidebarModelMenu" class="hidden absolute bottom-full left-0 mb-1.5 w-44 rounded-xl border border-zinc-200 bg-white p-1 shadow-lg z-50 text-xs text-zinc-800">
+              <div onclick="selectAiSidebarModel('GPT-5.6 Luna')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium flex items-center justify-between">
+                <span>GPT-5.6 Luna</span>
+                <span class="text-[10px] text-zinc-400">Fast</span>
+              </div>
+              <div onclick="selectAiSidebarModel('Gemini 2.5 Pro')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium flex items-center justify-between">
+                <span>Gemini 2.5 Pro</span>
+                <span class="text-[10px] text-zinc-400">Deep</span>
+              </div>
+            </div>
+
+            <!-- Attachment Button 📎 -->
+            <button onclick="triggerAiSidebarAttachment()" title="Attach document" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+
+            <!-- Context / Cube Button 📦 -->
+            <button onclick="triggerAiSidebarContext()" title="Select property context" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+            </button>
+          </div>
+
+          <!-- Right Control: Send Button (Soft sky blue ↑) -->
+          <button id="aiSidebarSendBtn" onclick="sendAiSidebarMessage()" class="w-8 h-8 rounded-lg bg-[#8dbade] hover:bg-[#7aaad0] active:scale-95 text-white flex items-center justify-center transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4 stroke-[2.4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -2989,7 +2983,227 @@
     indicator.style.opacity = '1';
   }
 
+  // ─────────────────────────────────────────────────────────
+  // Right AI Agent Sidebar Management & Drag Resizing
+  // ─────────────────────────────────────────────────────────
+  let aiSidebarChatHistory = [];
+  let aiSidebarModel = 'GPT-5.6 Luna';
+
+  function toggleAiRightSidebar(show) {
+    const sidebar = document.getElementById('aiRightSidebar');
+    const handle = document.getElementById('aiSidebarResizeHandle');
+    const navItem = document.getElementById('sidebar-assistant');
+    if (!sidebar) return;
+
+    const isCurrentlyOpen = !sidebar.classList.contains('hidden');
+    const shouldOpen = (show === undefined) ? !isCurrentlyOpen : !!show;
+
+    if (shouldOpen) {
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('flex');
+      if (handle) handle.classList.remove('hidden');
+      
+      const savedWidth = localStorage.getItem('ai_sidebar_width') || '380px';
+      sidebar.style.width = savedWidth;
+
+      if (navItem) {
+        navItem.classList.add('bg-zinc-200/60', 'font-semibold', 'text-zinc-950', 'sb-active');
+      }
+    } else {
+      sidebar.classList.add('hidden');
+      sidebar.classList.remove('flex');
+      if (handle) handle.classList.add('hidden');
+
+      if (navItem) {
+        navItem.classList.remove('bg-zinc-200/60', 'font-semibold', 'text-zinc-950', 'sb-active');
+      }
+    }
+  }
+
+  function initAiSidebarResize() {
+    const handle = document.getElementById('aiSidebarResizeHandle');
+    const sidebar = document.getElementById('aiRightSidebar');
+    if (!handle || !sidebar) return;
+
+    let isDragging = false;
+
+    handle.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const containerWidth = document.body.clientWidth;
+      let newWidth = containerWidth - e.clientX;
+      if (newWidth < 300) newWidth = 300;
+      if (newWidth > 640) newWidth = 640;
+      sidebar.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        localStorage.setItem('ai_sidebar_width', sidebar.style.width);
+      }
+    });
+  }
+
+  function toggleAiSidebarModelMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('aiSidebarModelMenu');
+    if (menu) menu.classList.toggle('hidden');
+  }
+
+  function selectAiSidebarModel(modelName) {
+    aiSidebarModel = modelName;
+    const label = document.getElementById('aiSidebarSelectedModel');
+    if (label) label.textContent = modelName;
+    const menu = document.getElementById('aiSidebarModelMenu');
+    if (menu) menu.classList.add('hidden');
+  }
+
+  function handleAiSidebarKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendAiSidebarMessage();
+    }
+  }
+
+  function sendAiSidebarSuggested(text) {
+    const input = document.getElementById('aiSidebarInput');
+    if (input) input.value = text;
+    sendAiSidebarMessage();
+  }
+
+  function resetAiSidebarChat() {
+    aiSidebarChatHistory = [];
+    const container = document.getElementById('aiSidebarMessages');
+    if (container) {
+      container.innerHTML = `
+        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans">
+          Welcome to Revise! I'm an AI agent that can help you write, edit, and refine documents. How can I help today?
+        </div>
+      `;
+    }
+    const suggestions = document.getElementById('aiSidebarSuggestions');
+    if (suggestions) suggestions.classList.remove('hidden');
+  }
+
+  function triggerAiSidebarAttachment() {
+    alert('Attachment context module selected.');
+  }
+
+  function triggerAiSidebarContext() {
+    alert('Property context scope selected.');
+  }
+
+  async function sendAiSidebarMessage() {
+    const input = document.getElementById('aiSidebarInput');
+    const container = document.getElementById('aiSidebarMessages');
+    const suggestions = document.getElementById('aiSidebarSuggestions');
+    const sendBtn = document.getElementById('aiSidebarSendBtn');
+    if (!input || !container) return;
+
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Clear text
+    input.value = '';
+    if (suggestions) suggestions.classList.add('hidden');
+
+    // User Message Bubble (Right aligned, sharp black bubble)
+    const userMsgHtml = `
+      <div class="flex justify-end my-2">
+        <div class="bg-zinc-900 text-white rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed max-w-[88%] shadow-2xs font-sans">
+          ${escapeHtml(text)}
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', userMsgHtml);
+    container.scrollTop = container.scrollHeight;
+
+    // Track history
+    aiSidebarChatHistory.push({ role: 'user', parts: [{ text }] });
+
+    // Thinking Indicator
+    const thinkingId = 'ai-thinking-' + Date.now();
+    const thinkingHtml = `
+      <div id="${thinkingId}" class="flex justify-start my-2">
+        <div class="bg-[#f4f4f6] text-zinc-600 rounded-2xl px-3.5 py-2.5 text-[13px] max-w-[90%] shadow-2xs font-sans flex items-center gap-2">
+          <div class="spinner border-zinc-400 border-t-zinc-800 w-3.5 h-3.5"></div>
+          <span>AI Agent is thinking...</span>
+        </div>
+      </div>
+    `;
+    container.insertAdjacentHTML('beforeend', thinkingHtml);
+    container.scrollTop = container.scrollHeight;
+
+    if (sendBtn) sendBtn.disabled = true;
+
+    try {
+      const res = await fetch('/chat/{{ project_name }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: aiSidebarChatHistory,
+          model: aiSidebarModel === 'Gemini 2.5 Pro' ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+        })
+      });
+      const data = await res.json();
+      const thinkingEl = document.getElementById(thinkingId);
+      if (thinkingEl) thinkingEl.remove();
+
+      if (data.ok && data.answer) {
+        aiSidebarChatHistory.push({ role: 'model', parts: [{ text: data.answer }] });
+        const parsedContent = (typeof marked !== 'undefined') ? marked.parse(data.answer) : escapeHtml(data.answer);
+        const botMsgHtml = `
+          <div class="flex justify-start my-2">
+            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans prose prose-sm prose-zinc max-w-none">
+              ${parsedContent}
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', botMsgHtml);
+      } else {
+        const errorHtml = `
+          <div class="flex justify-start my-2">
+            <div class="bg-red-50 text-red-700 border border-red-200 rounded-2xl p-3 text-xs max-w-[90%] shadow-2xs font-sans">
+              ${escapeHtml(data.error || 'Failed to generate response. Please try again.')}
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', errorHtml);
+      }
+    } catch (err) {
+      const thinkingEl = document.getElementById(thinkingId);
+      if (thinkingEl) thinkingEl.remove();
+      const errorHtml = `
+        <div class="flex justify-start my-2">
+          <div class="bg-red-50 text-red-700 border border-red-200 rounded-2xl p-3 text-xs max-w-[90%] shadow-2xs font-sans">
+            Network error. Please check server connection.
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', errorHtml);
+    } finally {
+      if (sendBtn) sendBtn.disabled = false;
+      container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initAiSidebarResize();
+  });
+
   function switchMainTab(view) {
+    if (view === 'assistant') {
+      toggleAiRightSidebar(true);
+      return;
+    }
 
     // 1. Reset selection states of navigation sidebar elements
 
