@@ -1615,7 +1615,7 @@
 
   <!-- WIDESCREEN TOP BAR (High-Density Platform Header) -->
 
-  <header class="relative h-10 border-b border-zinc-300 bg-white flex items-center justify-between px-4 shrink-0 z-40 select-none">
+  <header class="relative h-12 border-b border-zinc-300 bg-white flex items-center justify-between px-4 shrink-0 z-40 select-none">
 
     <!-- Left Section: Branding / Breadcrumbs -->
     <div class="flex items-center gap-4">
@@ -1762,12 +1762,19 @@
 
 
       <!-- Settings Gear Button -->
-      <button onclick="openSettingsModal()" class="inline-flex items-center gap-1.5 rounded border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-800 hover:bg-zinc-100 transition-colors cursor-pointer shadow-2xs" title="Configure Portal Credentials & System Settings">
-        <svg class="w-3.5 h-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button onclick="openSettingsModal()" class="w-8 h-8 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-100 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition-all cursor-pointer shadow-2xs" title="Configure Portal Credentials & System Settings">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
-        <span>Settings</span>
+      </button>
+
+      <!-- Right Sidebar / AI Agent Toggle Button -->
+      <button onclick="toggleAiRightSidebar()" class="w-8 h-8 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-100 flex items-center justify-center text-zinc-600 hover:text-zinc-900 transition-all cursor-pointer shadow-2xs" title="Toggle AI Agent Sidebar">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="15" y1="3" x2="15" y2="21"/>
+        </svg>
       </button>
 
       <!-- PDF / JSON View Switcher (Embedded in Top Header Bar) -->
