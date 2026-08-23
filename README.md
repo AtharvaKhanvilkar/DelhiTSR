@@ -134,13 +134,11 @@ Where `Sum of Constituent Line Items = State Stamp Duty (Article 23) + MCD Trans
 
 ## 5-Tier Legal Severity Classification Framework
 
-All 94 micro-rule findings are categorized according to the platform's standard 5-tier legal risk hierarchy:
-
-1. **Material Defect**: Critical legal defects, title chain breaks, unlinked mortgagors, or severe financial exposure that directly impact title validity.
-2. **Substantive Defect**: Major structural defects, price drops below 70% of historical chain value, unregularized GPA chains, or lender mismatches.
-3. **Statutory Requisition**: Mandatory statutory tariff shortfalls, circle rate undervaluation checks, registration fee deficits, and municipal tax requisitions.
-4. **Procedural Anomaly**: Minor metadata mismatches, minor area unit rounding deviations, fuzzy release linkings, or clerical address variations.
-5. **Record Notation**: Standard audit logs, successful title handshakes, root deed origin traces, e-stamp party alignments, and historical conversion traces.
+- **Material Defect**
+- **Substantive Defect**
+- **Statutory Requisition**
+- **Procedural Anomaly**
+- **Record Notation**
 
 ---
 
