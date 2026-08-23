@@ -1537,12 +1537,14 @@
         </div>
 
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <!-- Open-Source Avatar (DiceBear / Unavatar API) -->
-          <img src="https://api.dicebear.com/7.x/notionists/svg?seed={{ current_user.email if current_user.email else 'user' }}&backgroundColor=e4e4e7"
-               alt="User Avatar"
-               class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-300 object-cover shrink-0 select-none shadow-sm"
-               title="{{ current_user.email }}"
-               onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed={{ current_user.email if current_user.email else 'user' }}'">
+          <!-- Sprites-as-a-Service Procedural 8-Bit RPG Character Cartoon PFP Tile -->
+          <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+            <img id="userSidebarPfp"
+                 src=""
+                 alt="User PFP"
+                 class="w-full h-full object-cover scale-110 select-none [image-rendering:pixelated]"
+                 title="{{ current_user.email if current_user.email else 'User' }}">
+          </div>
 
           <!-- User Details (No Title Analyst tag) -->
           <div class="flex flex-col min-w-0 flex-1 sb-only-expanded">
@@ -2384,6 +2386,85 @@
 
 <script>
   const projectName = '{{ project_name }}';
+
+  // ── Sprites-as-a-Service Procedural 8-Bit Cartoon RPG Hero PFP Generator ───
+  function generateSpritesAsAServicePfp(seedStr) {
+    let hash = 0;
+    for (let i = 0; i < seedStr.length; i++) {
+      hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+      hash |= 0;
+    }
+    hash = Math.abs(hash);
+
+    const bgColors = ['#18181b', '#0f172a', '#1e1e2e', '#172554', '#14532d', '#4c1d95', '#701a75', '#09090b'];
+    const skinColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc', '#f472b6', '#fed7aa', '#e2e8f0'];
+    const hairColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7', '#ec4899', '#f8fafc', '#27272a'];
+    const armorColors = ['#334155', '#475569', '#64748b', '#0284c7', '#059669', '#d97706', '#dc2626', '#7e22ce'];
+
+    const bg = bgColors[hash % bgColors.length];
+    const skin = skinColors[(hash >> 3) % skinColors.length];
+    const hair = hairColors[(hash >> 6) % hairColors.length];
+    const armor = armorColors[(hash >> 9) % armorColors.length];
+    const eye = ['#facc15', '#4ade80', '#38bdf8', '#fed7aa', '#f8fafc', '#e2e8f0'].includes(skin) ? '#18181b' : '#ffffff';
+
+    const grid = Array.from({ length: 12 }, () => Array(12).fill(null));
+
+    // Hair / Helmet (rows 1..4)
+    for (let r = 1; r <= 4; r++) {
+      for (let c = 2; c <= 5; c++) {
+        if (((hash >> (r * 4 + c)) & 1) || r === 1) {
+          grid[r][c] = hair;
+          grid[r][11 - c] = hair;
+        }
+      }
+    }
+
+    // Face (rows 4..8)
+    for (let r = 4; r <= 8; r++) {
+      for (let c = 3; c <= 5; c++) {
+        grid[r][c] = skin;
+        grid[r][11 - c] = skin;
+      }
+    }
+
+    // Eyes (row 5)
+    grid[5][4] = eye;
+    grid[5][7] = eye;
+
+    // Mouth (row 7)
+    grid[7][5] = '#18181b';
+    grid[7][6] = '#18181b';
+
+    // Armor / Chest (rows 9..11)
+    for (let r = 9; r <= 11; r++) {
+      for (let c = 2; c <= 5; c++) {
+        grid[r][c] = armor;
+        grid[r][11 - c] = armor;
+      }
+    }
+
+    let rects = '';
+    for (let r = 0; r < 12; r++) {
+      for (let c = 0; c < 12; c++) {
+        if (grid[r][c]) {
+          rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="${grid[r][c]}"/>`;
+        }
+      }
+    }
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" width="120" height="120"><rect width="12" height="12" fill="${bg}"/>${rects}</svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
+
+  function initSpritesAsAServicePfp() {
+    const pfpImg = document.getElementById('userSidebarPfp');
+    if (!pfpImg) return;
+    const freshSeed = 'sprites_service_' + (typeof projectName !== 'undefined' ? projectName : 'workspace') + '_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    pfpImg.src = generateSpritesAsAServicePfp(freshSeed);
+  }
+
+  document.addEventListener('DOMContentLoaded', initSpritesAsAServicePfp);
+
   function formatBankNamesHtml(text) {
     if (!text) return text;
     let s = String(text);
