@@ -676,12 +676,12 @@ Extract financial breakdown & payment details as raw valid JSON:
 - consideration (sale consideration price in numbers, e.g. 5000000)
 - consideration_words (consideration price in words)
 - consideration_words_numeric (exact numeric value represented by words)
-- stamp_duty (TOTAL stamp duty paid for the transaction. CRITICAL: In Delhi/Indian deeds, stamp duty is often split into Statutory Stamp Duty e.g. 3% (Rs.3,00,000) and Municipal Corporation / MCD Tax e.g. 3% (Rs.3,00,000), or reported on Sub-Registrar Endorsement page as 600,000. Output the COMBINED TOTAL e.g. 600000 or the Total Non-Judicial Stamp Paper value. Do NOT output just the partial 3% component.)
+- stamp_duty (TOTAL statutory stamp duty and transfer tax paid for the transaction. CRITICAL: Statutory stamp duty in Indian real estate deeds across different state & local registering authorities is frequently split across multiple constituent line items or local authority taxes—such as Primary State Duty under Article 23/Schedule I-A, Municipal/Corporation Transfer Tax, Local Authority Duty, Infrastructure Duty, or separate e-Stamp certificates—in varying proportions like 3%+3%, 4%+2%, 3.5%+1.5%, 5%+1%, etc. Output the COMBINED TOTAL sum of all constituent stamp duty, municipal tax, and local authority transfer tax components e.g. 600000 or the Total Non-Judicial Stamp Paper value. Do NOT output just a single partial constituent component.)
 - registration_fee (actual registration fee paid, numeric e.g. 100000)
 - market_value (numeric or null)
 - payment_instruments: list of payment objects [ {{"amount": numeric, "mode": "cheque|rtgs|dd|cash", "instrument_no": str, "bank": str, "date": str}} ]
 - tds_challans: list of Form 26QB TDS deposit objects [ {{"amount": numeric, "challan_no": str, "bsr_code": str, "serial_no": str, "date": str, "bank": str}} ]
-- corporation_tax_amount (MCD transfer tax e.g. 300000, numeric or null)
+- corporation_tax_amount (Municipal/Corporation transfer tax or local authority tax amount e.g. 300000, numeric or null)
 - corporation_tax_rate (e.g. "3%")
 - stamp_duty_rate (e.g. "6%")
 - total_non_judicial_stamp (total stamp paper value e.g. 600000)
@@ -764,13 +764,13 @@ def parse_index_ii(file_path, forced_subtype=None):
     ACT_data.update(pass3)
     ACT_data.update(pass4)
 
-    # Programmatic Reconciliation for Combined Stamp Duty (SD + MCD Tax / Endorsement Stamp Duty)
+    # Programmatic Generalized Reconciliation for Combined Stamp Duty Across All Local Authorities & Receipt Line Items
     try:
         sd_val = float(re.sub(r"[^\d.]", "", str(ACT_data.get("stamp_duty") or 0))) if ACT_data.get("stamp_duty") != "ALERT" else 0.0
     except Exception:
         sd_val = 0.0
     try:
-        mcd_val = float(re.sub(r"[^\d.]", "", str(ACT_data.get("corporation_tax_amount") or ACT_data.get("mcd_transfer_tax") or 0)))
+        mcd_val = float(re.sub(r"[^\d.]", "", str(ACT_data.get("corporation_tax_amount") or ACT_data.get("mcd_transfer_tax") or ACT_data.get("local_authority_tax") or 0)))
     except Exception:
         mcd_val = 0.0
     try:
@@ -782,15 +782,18 @@ def parse_index_ii(file_path, forced_subtype=None):
     except Exception:
         estamp_amt = 0.0
 
-    # Determine exact total stamp duty paid without double-counting
-    if total_stamp_paper > 0:
+    # Determine exact total stamp duty paid without restricting to rigid formulas or equal split assumptions
+    if total_stamp_paper > 0 and total_stamp_paper >= (sd_val + mcd_val):
         best_sd = total_stamp_paper
-    elif estamp_amt > 0:
+    elif estamp_amt > 0 and estamp_amt >= (sd_val + mcd_val):
         best_sd = estamp_amt
     elif mcd_val > 0:
-        best_sd = sd_val + mcd_val if sd_val <= mcd_val * 1.2 else sd_val
+        if sd_val > 0 and sd_val < (sd_val + mcd_val) * 0.9:
+            best_sd = sd_val + mcd_val
+        else:
+            best_sd = max(sd_val, mcd_val, total_stamp_paper, estamp_amt)
     else:
-        best_sd = sd_val
+        best_sd = max(sd_val, total_stamp_paper, estamp_amt)
 
     if best_sd > 0:
         ACT_data["stamp_duty"] = int(round(best_sd))

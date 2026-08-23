@@ -3191,6 +3191,41 @@ def _phase1_supporting_checks(data, source):
                 f"Conveyance Deed executed pursuant to DDA Allotment / File No. {allotment_no}.",
                 actual=f"File No. {allotment_no}", category="title_rules")
 
+def _compute_total_stamp_duty_paid(data):
+    """
+    Generalized total stamp duty calculation across all state & local registering authorities.
+    Aggregates primary stamp duty, municipal/corporation transfer tax, local authority taxes,
+    and stamp paper/e-stamp values without restricting to rigid formulas or hardcoded split ratios.
+    """
+    if not isinstance(data, dict):
+        return 0.0
+    
+    tot_sd = _safe_float(data.get("total_stamp_duty"))
+    sd = _safe_float(data.get("stamp_duty"))
+    mcd = _safe_float(data.get("corporation_tax_amount") or data.get("mcd_transfer_tax") or data.get("mcd_tax") or data.get("local_authority_tax"))
+    stamp_paper = _safe_float(data.get("total_non_judicial_stamp"))
+    estamp = _safe_float(data.get("estamp_amount") or data.get("stamp_certificate_amount"))
+
+    # 1. Total stamp duty explicitly recorded on certificate or summary field
+    if tot_sd > 0:
+        if mcd > 0 and tot_sd < (sd + mcd) * 0.9:
+            return sd + mcd
+        return tot_sd
+
+    # 2. Total stamp paper or e-stamp amount
+    if stamp_paper > 0 and stamp_paper >= (sd + mcd):
+        return stamp_paper
+    if estamp > 0 and estamp >= (sd + mcd):
+        return estamp
+
+    # 3. Sum of constituent split line items (State Duty + Municipal/Corporation Tax)
+    if mcd > 0:
+        if sd > 0 and sd < (sd + mcd) * 0.9:
+            return sd + mcd
+        return max(sd, mcd, stamp_paper, estamp)
+
+    return max(sd, stamp_paper, estamp)
+
 def _determine_transferee_gender_composition(data, meta):
     g = (data.get("buyer_gender") or (meta.get("buyer_gender") if meta else None) or "").strip().lower()
     if g in ("female", "woman"):
@@ -3565,9 +3600,7 @@ def _build_events_and_errors(project_path):
             area_sqm_val = 0.0
             expected_sd_val = 0.0
             expected_reg_val = 0.0
-            actual_sd_val = _safe_float(data.get("total_stamp_duty") or data.get("stamp_certificate_amount") or (_safe_float(data.get("stamp_duty")) + _safe_float(data.get("mcd_transfer_tax") or data.get("mcd_tax"))))
-            if actual_sd_val <= 0:
-                actual_sd_val = _safe_float(data.get("stamp_duty"))
+            actual_sd_val = _compute_total_stamp_duty_paid(data)
             
             doc_area = data.get("built_up_area") or data.get("covered_area") or data.get("area")
             price = data.get("consideration")
@@ -3646,12 +3679,7 @@ def _build_events_and_errors(project_path):
                     expected_sd_val = valuation_basis * sd_rate
                     expected_reg_val = valuation_basis * 0.01
                     
-                    actual_sd_val = float(data.get("total_stamp_duty") or data.get("stamp_certificate_amount") or (float(data.get("stamp_duty") or 0) + float(data.get("mcd_transfer_tax") or data.get("mcd_tax") or 0)))
-                    if actual_sd_val <= 0:
-                        actual_sd = data.get("stamp_duty")
-                        actual_sd_val = actual_sd if isinstance(actual_sd, (int, float)) else 0.0
-                    if actual_sd_val == 300000 and (data.get("mcd_transfer_tax") == 300000 or data.get("total_stamp_duty") == 600000 or float(data.get("consideration") or 0) == 10000000):
-                        actual_sd_val = 600000
+                    actual_sd_val = _compute_total_stamp_duty_paid(data)
                     actual_reg = data.get("registration_fee")
                     actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
                     
