@@ -1592,12 +1592,14 @@
         </div>
 
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <!-- Sprites-as-a-Service Procedural 8-Bit RPG Character Cartoon PFP Tile -->
-          <div class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-700/80 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+          <!-- Colored Notion-Style Vector Avatar Character PFP -->
+          <div class="w-10 h-10 rounded-full bg-slate-100 border border-zinc-300 overflow-hidden flex items-center justify-center shrink-0 shadow-xs cursor-pointer hover:ring-2 hover:ring-indigo-400 transition-all active:scale-95"
+               onclick="refreshColoredNotionPfp()"
+               title="Click to change colored Notion character">
             <img id="userSidebarPfp"
                  src=""
                  alt="User PFP"
-                 class="w-full h-full object-cover scale-110 select-none [image-rendering:pixelated]"
+                 class="w-full h-full object-cover select-none"
                  title="{{ current_user.email if current_user.email else 'User' }}">
           </div>
 
@@ -2442,83 +2444,39 @@
 <script>
   const projectName = '{{ project_name }}';
 
-  // ── Sprites-as-a-Service Procedural 8-Bit Cartoon RPG Hero PFP Generator ───
-  function generateSpritesAsAServicePfp(seedStr) {
-    let hash = 0;
-    for (let i = 0; i < seedStr.length; i++) {
-      hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
-      hash |= 0;
-    }
-    hash = Math.abs(hash);
-
-    const bgColors = ['#18181b', '#0f172a', '#1e1e2e', '#172554', '#14532d', '#4c1d95', '#701a75', '#09090b'];
-    const skinColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc', '#f472b6', '#fed7aa', '#e2e8f0'];
-    const hairColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#a855f7', '#ec4899', '#f8fafc', '#27272a'];
-    const armorColors = ['#334155', '#475569', '#64748b', '#0284c7', '#059669', '#d97706', '#dc2626', '#7e22ce'];
-
-    const bg = bgColors[hash % bgColors.length];
-    const skin = skinColors[(hash >> 3) % skinColors.length];
-    const hair = hairColors[(hash >> 6) % hairColors.length];
-    const armor = armorColors[(hash >> 9) % armorColors.length];
-    const eye = ['#facc15', '#4ade80', '#38bdf8', '#fed7aa', '#f8fafc', '#e2e8f0'].includes(skin) ? '#18181b' : '#ffffff';
-
-    const grid = Array.from({ length: 12 }, () => Array(12).fill(null));
-
-    // Hair / Helmet (rows 1..4)
-    for (let r = 1; r <= 4; r++) {
-      for (let c = 2; c <= 5; c++) {
-        if (((hash >> (r * 4 + c)) & 1) || r === 1) {
-          grid[r][c] = hair;
-          grid[r][11 - c] = hair;
-        }
-      }
-    }
-
-    // Face (rows 4..8)
-    for (let r = 4; r <= 8; r++) {
-      for (let c = 3; c <= 5; c++) {
-        grid[r][c] = skin;
-        grid[r][11 - c] = skin;
-      }
-    }
-
-    // Eyes (row 5)
-    grid[5][4] = eye;
-    grid[5][7] = eye;
-
-    // Mouth (row 7)
-    grid[7][5] = '#18181b';
-    grid[7][6] = '#18181b';
-
-    // Armor / Chest (rows 9..11)
-    for (let r = 9; r <= 11; r++) {
-      for (let c = 2; c <= 5; c++) {
-        grid[r][c] = armor;
-        grid[r][11 - c] = armor;
-      }
-    }
-
-    let rects = '';
-    for (let r = 0; r < 12; r++) {
-      for (let c = 0; c < 12; c++) {
-        if (grid[r][c]) {
-          rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="${grid[r][c]}"/>`;
-        }
-      }
-    }
-
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" width="120" height="120"><rect width="12" height="12" fill="${bg}"/>${rects}</svg>`;
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  // ── Colored Notion-Style Vector Avatar Character PFP Generator ───
+  function generateColoredNotionPfp(seedStr) {
+    const seed = seedStr || 'user_' + (typeof projectName !== 'undefined' ? projectName : 'workspace') + '_' + Math.floor(Math.random() * 10000);
+    const bgColors = 'b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf,b1f2cd,a7f3d0,fef08a,fed7aa,fbcfe8';
+    const skinColors = 'f8d25c,ffdbac,f1c27d,e0ac69,8d5524,c68642';
+    const clothingColors = '3b82f6,ef4444,10b981,f59e0b,8b5cf6,ec4899,14b8a6,6366f1,06b6d4';
+    
+    // DiceBear Open Peeps API (Notion hand-drawn character set by Pablo Stanley with vibrant colors)
+    return `https://api.dicebear.com/7.x/open-peeps/svg?seed=${encodeURIComponent(seed)}&backgroundColor=${bgColors}&skinColor=${skinColors}&clothingColor=${clothingColors}&scale=90`;
   }
 
-  function initSpritesAsAServicePfp() {
+  function initColoredNotionPfp() {
     const pfpImg = document.getElementById('userSidebarPfp');
     if (!pfpImg) return;
-    const freshSeed = 'sprites_service_' + (typeof projectName !== 'undefined' ? projectName : 'workspace') + '_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    pfpImg.src = generateSpritesAsAServicePfp(freshSeed);
+    const userEmail = '{{ current_user.email if current_user.email else "operator" }}';
+    const userSeed = userEmail.split('@')[0] || 'notion_user';
+    
+    pfpImg.onerror = function() {
+      // Offline fallback: hand-drawn SVG vector Notion character with colors
+      pfpImg.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23dbeafe"/><circle cx="50" cy="40" r="22" fill="%23fcd34d"/><path d="M 28 35 C 28 15, 72 15, 72 35 Z" fill="%231e293b"/><circle cx="43" cy="38" r="3.5" fill="%230f172a"/><circle cx="57" cy="38" r="3.5" fill="%230f172a"/><path d="M 44 48 Q 50 54 56 48" stroke="%230f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 20 100 C 20 70, 80 70, 80 100 Z" fill="%233b82f6"/></svg>`;
+    };
+    
+    pfpImg.src = generateColoredNotionPfp(userSeed);
   }
 
-  document.addEventListener('DOMContentLoaded', initSpritesAsAServicePfp);
+  function refreshColoredNotionPfp() {
+    const pfpImg = document.getElementById('userSidebarPfp');
+    if (!pfpImg) return;
+    const randSeed = 'notion_avatar_' + Math.floor(Math.random() * 1000000);
+    pfpImg.src = generateColoredNotionPfp(randSeed);
+  }
+
+  document.addEventListener('DOMContentLoaded', initColoredNotionPfp);
 
   function formatBankNamesHtml(text) {
     if (!text) return text;
