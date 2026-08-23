@@ -617,7 +617,78 @@ def resolve_smart_circle_valuation(data, meta, locality_category=None):
         "valuation_source": "Dormant (Not Stated in Deed Recitals)"
     }
 
-def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type=""):
+def get_haryana_stamp_duty_rate(gender="male", is_urban=True, doc_type="SALE_DEED"):
+    """
+    Computes statutory stamp duty rate for Haryana under the Haryana Stamp Act & Municipal Act.
+    
+    Urban Municipal Areas (Gurugram, Faridabad, Panchkula, Sonipat, Ambala, Karnal, etc.):
+      - Female Purchaser: 5.0% (3% Stamp Duty + 2% Municipal Duty)
+      - Joint (Female + Male): 6.0% (4% Stamp Duty + 2% Municipal Duty)
+      - Male Purchaser: 7.0% (5% Stamp Duty + 2% Municipal Duty)
+      
+    Rural Gram Panchayat Areas:
+      - Female Purchaser: 3.0% (3% Stamp Duty + 0% Municipal Duty)
+      - Joint (Female + Male): 4.0% (4% Stamp Duty + 0% Municipal Duty)
+      - Male Purchaser: 5.0% (5% Stamp Duty + 0% Municipal Duty)
+    """
+    d_type = str(doc_type or "").upper()
+    g = (gender or "male").strip().lower()
+    if g not in ["male", "female", "joint"]:
+        g = "male"
+
+    if "GIFT" in d_type:
+        # Gift to Blood Relatives in Haryana: Exempt / Nominal ₹100, Gift to Third Party: Full Conveyance Rate
+        return 0.0 if any(k in d_type for k in ["FAMILY", "BLOOD", "RELATIVE", "SPOUSE", "CHILD"]) else (0.05 if g == "female" else (0.06 if g == "joint" else 0.07))
+
+    if "MORTGAGE" in d_type or "INTIMATION" in d_type:
+        if "POSSESSION" in d_type and "WITHOUT" not in d_type:
+            pass # Mortgage with possession equals sale conveyance rate
+        else:
+            # Simple / Equitable Mortgage without possession in Haryana: 0.5%
+            return 0.005
+
+    if is_urban:
+        if g == "female":
+            return 0.05
+        elif g == "joint":
+            return 0.06
+        else:
+            return 0.07
+    else:
+        if g == "female":
+            return 0.03
+        elif g == "joint":
+            return 0.04
+        else:
+            return 0.05
+
+def get_haryana_registration_fee(consideration):
+    """
+    Computes statutory registration fee in Haryana (Slab-based with max ₹50,000 cap).
+    """
+    try:
+        val = float(consideration or 0)
+    except Exception:
+        val = 0.0
+
+    if val <= 0:
+        return 0.0
+    elif val <= 50000:
+        return 100.0
+    elif val <= 500000:
+        return 2500.0
+    elif val <= 1000000:
+        return 5000.0
+    elif val <= 2500000:
+        return 10000.0
+    elif val <= 5000000:
+        return 15000.0
+    elif val <= 10000000:
+        return 25000.0
+    else:
+        return 50000.0 # Capped at ₹50,000 max in Haryana
+
+def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type="", state="DELHI", is_urban=True):
     try:
         year = int(registration_year)
     except Exception:
@@ -629,6 +700,11 @@ def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, s
 
     s_name = str(seller_name or "").upper()
     d_type = str(doc_type or "").upper()
+    st = str(state or "").upper()
+
+    if "HARYANA" in st or any(h_city in s_name or h_city in d_type for h_city in ["GURGAON", "GURUGRAM", "FARIDABAD", "PANCHKULA", "SONIPAT", "AMBALA", "KARNAL", "PANIPAT", "ROHTAK"]):
+        return get_haryana_stamp_duty_rate(gender=g, is_urban=is_urban, doc_type=d_type)
+
     is_dda = ("DELHI DEVELOPMENT AUTHORITY" in s_name or 
               "DDA" in s_name or 
               "LAND AND DEVELOPMENT" in s_name or 
