@@ -4540,6 +4540,10 @@ def _build_events_and_errors(project_path):
             "transferor_parties": data.get("transferor_parties") or [],
             "transferee_parties": data.get("transferee_parties") or [],
             "clauses":            data.get("clauses") or [],
+            "recitals":           data.get("recitals") or [],
+            "recital_summary":    data.get("recital_summary"),
+            "recital_text":       data.get("recital_text"),
+            "property_schedule_text": data.get("property_schedule_text"),
             "supporting_documents": data.get("supporting_documents") or [],
             "released_share":      data.get("released_share_display") or data.get("released_share"),
         }
