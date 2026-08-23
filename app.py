@@ -171,6 +171,23 @@ def ratelimit_handler(e):
     </div>
     """, 429
 
+@app.after_request
+def apply_universal_owasp_security_headers(response):
+    """
+    Universal Security Layer based on OWASP Industry Standards:
+    - X-Content-Type-Options: nosniff (Blocks MIME-type sniffing attacks)
+    - X-Frame-Options: SAMEORIGIN (Prevents Clickjacking UI redressing)
+    - X-XSS-Protection: 1; mode=block (Enforces browser Cross-Site Scripting filters)
+    - Referrer-Policy: strict-origin-when-cross-origin (Prevents sensitive internal path leakage)
+    - Permissions-Policy: geolocation=(), microphone=(), camera=() (Disables unnecessary browser permissions)
+    """
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    return response
+
 @app.before_request
 def auto_login_default_user():
     session.permanent = True
