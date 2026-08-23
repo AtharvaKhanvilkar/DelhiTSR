@@ -2214,19 +2214,19 @@
     <div id="aiSidebarResizeHandle" class="w-1.5 shrink-0 bg-transparent hover:bg-zinc-300/80 active:bg-zinc-400 cursor-col-resize z-30 transition-colors hidden select-none border-l border-zinc-200/80"></div>
 
     <!-- Right AI Agent Resizable Sidebar (Exact Match to Design) -->
-    <div id="aiRightSidebar" class="shrink-0 flex flex-col h-full bg-white border-l border-zinc-200/90 hidden relative z-20 shadow-2xs font-sans text-zinc-900 overflow-hidden" style="width: 380px;">
+    <div id="aiRightSidebar" class="shrink-0 flex flex-col h-full bg-white border-l border-zinc-300 hidden relative z-20 shadow-2xs font-sans text-zinc-900 overflow-hidden" style="width: 380px;">
       <!-- Header Bar -->
-      <div class="h-12 border-b border-zinc-200/80 bg-white px-4 flex items-center justify-between shrink-0 select-none">
+      <div class="h-12 border-b border-zinc-300 bg-white px-4 flex items-center justify-between shrink-0 select-none">
         <div class="flex items-center gap-2">
           <span class="text-[14px] font-semibold text-zinc-900 tracking-tight">AI Agent</span>
         </div>
         <div class="flex items-center gap-1.5">
           <!-- Plus Button for New Chat -->
-          <button onclick="resetAiSidebarChat()" title="New Chat" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-700 transition-all shadow-2xs cursor-pointer">
+          <button onclick="resetAiSidebarChat()" title="New Chat" class="w-7 h-7 rounded-lg border border-zinc-300 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-700 transition-all shadow-2xs cursor-pointer">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
           <!-- Close Sidebar Button -->
-          <button onclick="toggleAiRightSidebar(false)" title="Close AI Agent" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-all shadow-2xs cursor-pointer">
+          <button onclick="toggleAiRightSidebar(false)" title="Close AI Agent" class="w-7 h-7 rounded-lg border border-zinc-300 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-all shadow-2xs cursor-pointer">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -2234,55 +2234,89 @@
 
       <!-- Messages Scroll Area -->
       <div id="aiSidebarMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 bg-white">
-        <!-- Welcome Card (Exact match to reference design) -->
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans">
-          Welcome to Revise! I'm an AI agent that can help you write, edit, and refine documents. How can I help today?
+        <!-- Welcome Card -->
+        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
+          Welcome to DelhiTSR Title Intelligence! I'm your legal assistant for analyzing property deeds, verifying chain of title, checking encumbrances, and validating statutory compliance. How can I assist you with this property today?
         </div>
       </div>
 
       <!-- Suggested Action Pills (Right aligned above input) -->
       <div id="aiSidebarSuggestions" class="px-4 pb-2 flex flex-col items-end gap-1.5 shrink-0 select-none">
-        <button onclick="sendAiSidebarSuggested('Draft an outline')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/80 bg-sky-50/40 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
-          Draft an outline
+        <button onclick="sendAiSidebarSuggested('Summarize chain of title')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/90 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
+          Summarize chain of title
         </button>
-        <button onclick="sendAiSidebarSuggested('Brainstorm ideas')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/80 bg-sky-50/40 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
-          Brainstorm ideas
+        <button onclick="sendAiSidebarSuggested('Check active bank mortgages')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/90 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
+          Check active bank mortgages
+        </button>
+        <button onclick="sendAiSidebarSuggested('Verify stamp duty paid')" class="px-3.5 py-1.5 rounded-xl border border-sky-200/90 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-300 text-sky-950 text-xs font-normal transition-all shadow-2xs cursor-pointer active:scale-98">
+          Verify stamp duty paid
         </button>
       </div>
 
-      <!-- Floating Input Card (Exact match to reference design) -->
-      <div class="m-3 mt-0 p-3 rounded-2xl border border-zinc-200/90 bg-white shadow-xs focus-within:border-zinc-400 transition-all flex flex-col gap-2 shrink-0">
-        <textarea id="aiSidebarInput" placeholder="Get help writing or brainstorming" onkeydown="handleAiSidebarKeyDown(event)" rows="2" class="w-full bg-transparent resize-none outline-none border-none text-[13.5px] text-zinc-900 placeholder:text-zinc-400/90 min-h-[46px] max-h-[140px] font-sans"></textarea>
+      <!-- Floating Input Card (Darker Crisp Border) -->
+      <div class="m-3 mt-0 p-3 rounded-2xl border border-zinc-300 bg-white shadow-xs focus-within:border-zinc-500 transition-all flex flex-col gap-2 shrink-0">
         
+        <!-- Active Badges Row (Scope & Attachments) -->
+        <div id="aiSidebarBadgesRow" class="flex flex-wrap items-center gap-1.5 empty:hidden">
+          <div id="aiSidebarScopeBadge" class="hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-zinc-100 text-zinc-700 text-[11px] font-medium border border-zinc-300">
+            <span id="aiSidebarScopeBadgeText">Scope: All Title Context</span>
+            <button onclick="clearAiSidebarScope()" class="text-zinc-400 hover:text-zinc-700 font-bold ml-1">&times;</button>
+          </div>
+          <div id="aiSidebarAttachmentBadge" class="hidden flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-800 text-[11px] font-medium border border-sky-300">
+            <span id="aiSidebarAttachmentBadgeText">📎 Document.pdf</span>
+            <button onclick="clearAiSidebarAttachment()" class="text-sky-400 hover:text-sky-700 font-bold ml-1">&times;</button>
+          </div>
+        </div>
+
+        <textarea id="aiSidebarInput" placeholder="Ask about deeds, encumbrances, or statutory compliance..." onkeydown="handleAiSidebarKeyDown(event)" rows="2" class="w-full bg-transparent resize-none outline-none border-none text-[13.5px] text-zinc-900 placeholder:text-zinc-400/90 min-h-[46px] max-h-[140px] font-sans"></textarea>
+        
+        <!-- Hidden File Input for Paperclip -->
+        <input type="file" id="aiSidebarFileInput" accept="image/*,.pdf,.doc,.docx" class="hidden" onchange="handleAiSidebarFileUpload(event)">
+
         <!-- Input Toolbar Row -->
-        <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
+        <div class="flex items-center justify-between pt-1.5 border-t border-zinc-200">
           <!-- Left Control Group -->
           <div class="flex items-center gap-1.5 relative">
             <!-- Model Selector Button -->
-            <button id="aiSidebarModelBtn" onclick="toggleAiSidebarModelMenu(event)" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 text-xs font-medium text-zinc-700 transition-colors shadow-2xs cursor-pointer">
-              <span id="aiSidebarSelectedModel">GPT-5.6 Luna</span>
+            <button id="aiSidebarModelBtn" onclick="toggleAiSidebarModelMenu(event)" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-zinc-300 bg-white hover:bg-zinc-50 text-xs font-medium text-zinc-700 transition-colors shadow-2xs cursor-pointer">
+              <span id="aiSidebarSelectedModel">Gemini 2.5 Flash</span>
               <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
             </button>
 
-            <!-- Model Popover Menu -->
-            <div id="aiSidebarModelMenu" class="hidden absolute bottom-full left-0 mb-1.5 w-44 rounded-xl border border-zinc-200 bg-white p-1 shadow-lg z-50 text-xs text-zinc-800">
-              <div onclick="selectAiSidebarModel('GPT-5.6 Luna')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium flex items-center justify-between">
-                <span>GPT-5.6 Luna</span>
-                <span class="text-[10px] text-zinc-400">Fast</span>
+            <!-- Model Popover Menu (Real Gemini Models) -->
+            <div id="aiSidebarModelMenu" class="hidden absolute bottom-full left-0 mb-1.5 w-52 rounded-xl border border-zinc-300 bg-white p-1 shadow-lg z-50 text-xs text-zinc-800">
+              <div onclick="selectAiSidebarModel('Gemini 2.5 Flash')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium flex items-center justify-between">
+                <span>Gemini 2.5 Flash</span>
+                <span class="text-[10px] text-zinc-500 font-semibold">Fast & Precise</span>
               </div>
               <div onclick="selectAiSidebarModel('Gemini 2.5 Pro')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium flex items-center justify-between">
                 <span>Gemini 2.5 Pro</span>
-                <span class="text-[10px] text-zinc-400">Deep</span>
+                <span class="text-[10px] text-zinc-500 font-semibold">Deep Reasoning</span>
+              </div>
+              <div onclick="selectAiSidebarModel('Gemini 1.5 Pro')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium flex items-center justify-between">
+                <span>Gemini 1.5 Pro</span>
+                <span class="text-[10px] text-zinc-500 font-semibold">Legacy Legal</span>
               </div>
             </div>
 
-            <!-- Attachment Button 📎 -->
-            <button onclick="triggerAiSidebarAttachment()" title="Attach document" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer">
+            <!-- Scope Popover Menu (Block / Cube Icon Options) -->
+            <div id="aiSidebarScopeMenu" class="hidden absolute bottom-full left-12 mb-1.5 w-56 rounded-xl border border-zinc-300 bg-white p-1 shadow-lg z-50 text-xs text-zinc-800">
+              <div class="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Context Categories</div>
+              <div onclick="selectAiSidebarScope('All Title Context')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">All Title Context</div>
+              <div onclick="selectAiSidebarScope('Timeline & Chain of Title')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Timeline & Chain of Title</div>
+              <div onclick="selectAiSidebarScope('Encumbrances & Mortgages')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Encumbrances & Mortgages</div>
+              <div onclick="selectAiSidebarScope('Financials & Stamp Duty')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Financials & Stamp Duty</div>
+              <div onclick="selectAiSidebarScope('Property Schedule & Boundaries')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Property Schedule & Boundaries</div>
+              <div onclick="selectAiSidebarScope('Raw Extracted JSON')" class="px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer font-medium text-zinc-700">Raw Extracted JSON</div>
+            </div>
+
+            <!-- Attachment Button 📎 (Opens media/document picker) -->
+            <button onclick="triggerAiSidebarAttachment()" title="Attach supplementary document / media" class="w-7 h-7 rounded-lg border border-zinc-300 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
 
-            <!-- Context / Cube Button 📦 -->
-            <button onclick="triggerAiSidebarContext()" title="Select property context" class="w-7 h-7 rounded-lg border border-zinc-200/90 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer">
+            <!-- Context / Cube Button 📦 (Opens category scope selector) -->
+            <button onclick="triggerAiSidebarContext(event)" title="Select title search context category" class="w-7 h-7 rounded-lg border border-zinc-300 bg-white hover:bg-zinc-50 active:scale-95 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
             </button>
           </div>
@@ -2928,7 +2962,9 @@
   // Right AI Agent Sidebar Management & Drag Resizing
   // ─────────────────────────────────────────────────────────
   let aiSidebarChatHistory = [];
-  let aiSidebarModel = 'GPT-5.6 Luna';
+  let aiSidebarModel = 'Gemini 2.5 Flash';
+  let aiSidebarScope = 'All Title Context';
+  let pendingAiAttachment = null;
 
   function toggleAiRightSidebar(show) {
     const sidebar = document.getElementById('aiRightSidebar');
@@ -3003,6 +3039,8 @@
   function toggleAiSidebarModelMenu(e) {
     if (e) e.stopPropagation();
     const menu = document.getElementById('aiSidebarModelMenu');
+    const scopeMenu = document.getElementById('aiSidebarScopeMenu');
+    if (scopeMenu) scopeMenu.classList.add('hidden');
     if (menu) menu.classList.toggle('hidden');
   }
 
@@ -3013,6 +3051,73 @@
     const menu = document.getElementById('aiSidebarModelMenu');
     if (menu) menu.classList.add('hidden');
   }
+
+  function triggerAiSidebarContext(e) {
+    if (e) e.stopPropagation();
+    const scopeMenu = document.getElementById('aiSidebarScopeMenu');
+    const modelMenu = document.getElementById('aiSidebarModelMenu');
+    if (modelMenu) modelMenu.classList.add('hidden');
+    if (scopeMenu) scopeMenu.classList.toggle('hidden');
+  }
+
+  function selectAiSidebarScope(scopeName) {
+    aiSidebarScope = scopeName;
+    const badge = document.getElementById('aiSidebarScopeBadge');
+    const badgeText = document.getElementById('aiSidebarScopeBadgeText');
+    if (badge && badgeText) {
+      if (scopeName === 'All Title Context') {
+        badge.classList.add('hidden');
+      } else {
+        badgeText.textContent = 'Scope: ' + scopeName;
+        badge.classList.remove('hidden');
+      }
+    }
+    const scopeMenu = document.getElementById('aiSidebarScopeMenu');
+    if (scopeMenu) scopeMenu.classList.add('hidden');
+  }
+
+  function clearAiSidebarScope() {
+    aiSidebarScope = 'All Title Context';
+    const badge = document.getElementById('aiSidebarScopeBadge');
+    if (badge) badge.classList.add('hidden');
+  }
+
+  function triggerAiSidebarAttachment() {
+    const fileInput = document.getElementById('aiSidebarFileInput');
+    if (fileInput) fileInput.click();
+  }
+
+  function handleAiSidebarFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    pendingAiAttachment = { name: file.name, size: file.size };
+    const badge = document.getElementById('aiSidebarAttachmentBadge');
+    const badgeText = document.getElementById('aiSidebarAttachmentBadgeText');
+    if (badge && badgeText) {
+      badgeText.textContent = '📎 ' + file.name;
+      badge.classList.remove('hidden');
+    }
+  }
+
+  function clearAiSidebarAttachment() {
+    pendingAiAttachment = null;
+    const fileInput = document.getElementById('aiSidebarFileInput');
+    if (fileInput) fileInput.value = '';
+    const badge = document.getElementById('aiSidebarAttachmentBadge');
+    if (badge) badge.classList.add('hidden');
+  }
+
+  // Close popover menus when clicking outside
+  document.addEventListener('click', (e) => {
+    const modelMenu = document.getElementById('aiSidebarModelMenu');
+    const scopeMenu = document.getElementById('aiSidebarScopeMenu');
+    if (modelMenu && !e.target.closest('#aiSidebarModelBtn') && !e.target.closest('#aiSidebarModelMenu')) {
+      modelMenu.classList.add('hidden');
+    }
+    if (scopeMenu && !e.target.closest('#aiSidebarScopeMenu') && !e.target.closest('button[title*="title search context"]')) {
+      scopeMenu.classList.add('hidden');
+    }
+  });
 
   function handleAiSidebarKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -3029,24 +3134,18 @@
 
   function resetAiSidebarChat() {
     aiSidebarChatHistory = [];
+    clearAiSidebarAttachment();
+    clearAiSidebarScope();
     const container = document.getElementById('aiSidebarMessages');
     if (container) {
       container.innerHTML = `
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans">
-          Welcome to Revise! I'm an AI agent that can help you write, edit, and refine documents. How can I help today?
+        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
+          Welcome to DelhiTSR Title Intelligence! I'm your legal assistant for analyzing property deeds, verifying chain of title, checking encumbrances, and validating statutory compliance. How can I assist you with this property today?
         </div>
       `;
     }
     const suggestions = document.getElementById('aiSidebarSuggestions');
     if (suggestions) suggestions.classList.remove('hidden');
-  }
-
-  function triggerAiSidebarAttachment() {
-    alert('Attachment context module selected.');
-  }
-
-  function triggerAiSidebarContext() {
-    alert('Property context scope selected.');
   }
 
   async function sendAiSidebarMessage() {
@@ -3056,18 +3155,24 @@
     const sendBtn = document.getElementById('aiSidebarSendBtn');
     if (!input || !container) return;
 
-    const text = input.value.trim();
-    if (!text) return;
+    let text = input.value.trim();
+    if (!text && !pendingAiAttachment) return;
 
-    // Clear text
+    let displayMsg = text;
+    if (pendingAiAttachment) {
+      displayMsg += (displayMsg ? '\n' : '') + `📎 [Attached: ${pendingAiAttachment.name}]`;
+    }
+
+    // Clear text and attachments
     input.value = '';
+    clearAiSidebarAttachment();
     if (suggestions) suggestions.classList.add('hidden');
 
     // User Message Bubble (Right aligned, sharp black bubble)
     const userMsgHtml = `
       <div class="flex justify-end my-2">
-        <div class="bg-zinc-900 text-white rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed max-w-[88%] shadow-2xs font-sans">
-          ${escapeHtml(text)}
+        <div class="bg-zinc-900 text-white rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed max-w-[88%] shadow-2xs font-sans whitespace-pre-wrap">
+          ${escapeHtml(displayMsg)}
         </div>
       </div>
     `;
@@ -3075,15 +3180,20 @@
     container.scrollTop = container.scrollHeight;
 
     // Track history
-    aiSidebarChatHistory.push({ role: 'user', parts: [{ text }] });
+    aiSidebarChatHistory.push({ role: 'user', content: displayMsg, parts: [{ text: displayMsg }] });
+
+    // Map model names to actual API models
+    let modelApiName = 'gemini-2.5-flash';
+    if (aiSidebarModel === 'Gemini 2.5 Pro') modelApiName = 'gemini-2.5-pro';
+    if (aiSidebarModel === 'Gemini 1.5 Pro') modelApiName = 'gemini-1.5-pro';
 
     // Thinking Indicator
     const thinkingId = 'ai-thinking-' + Date.now();
     const thinkingHtml = `
       <div id="${thinkingId}" class="flex justify-start my-2">
-        <div class="bg-[#f4f4f6] text-zinc-600 rounded-2xl px-3.5 py-2.5 text-[13px] max-w-[90%] shadow-2xs font-sans flex items-center gap-2">
+        <div class="bg-[#f4f4f6] text-zinc-600 rounded-2xl px-3.5 py-2.5 text-[13px] max-w-[90%] shadow-2xs font-sans flex items-center gap-2 border border-zinc-200">
           <div class="spinner border-zinc-400 border-t-zinc-800 w-3.5 h-3.5"></div>
-          <span>AI Agent is thinking...</span>
+          <span>DelhiTSR Assistant is analyzing...</span>
         </div>
       </div>
     `;
@@ -3098,19 +3208,21 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           history: aiSidebarChatHistory,
-          model: aiSidebarModel === 'Gemini 2.5 Pro' ? 'gemini-2.5-pro' : 'gemini-2.5-flash'
+          model: modelApiName,
+          scope: aiSidebarScope !== 'All Title Context' ? aiSidebarScope : null
         })
       });
       const data = await res.json();
       const thinkingEl = document.getElementById(thinkingId);
       if (thinkingEl) thinkingEl.remove();
 
-      if (data.ok && data.answer) {
-        aiSidebarChatHistory.push({ role: 'model', parts: [{ text: data.answer }] });
-        const parsedContent = (typeof marked !== 'undefined') ? marked.parse(data.answer) : escapeHtml(data.answer);
+      const replyText = data.reply || data.answer || data.response;
+      if (data.ok && replyText) {
+        aiSidebarChatHistory.push({ role: 'assistant', content: replyText, parts: [{ text: replyText }] });
+        const parsedContent = (typeof marked !== 'undefined') ? marked.parse(replyText) : escapeHtml(replyText);
         const botMsgHtml = `
           <div class="flex justify-start my-2">
-            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans prose prose-sm prose-zinc max-w-none">
+            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans border border-zinc-200 prose prose-sm prose-zinc max-w-none">
               ${parsedContent}
             </div>
           </div>

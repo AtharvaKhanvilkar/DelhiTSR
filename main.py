@@ -964,25 +964,24 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
     """
     Answer a reviewer's question about a specific property, grounded ONLY in
     the parsed data for that project.
-
-    context_json : a JSON string containing everything known about the property
-                   (per-document parsed fields, events, entities, encumbrances,
-                   findings). This is the assistant's entire factual world.
-    history      : list of {"role": "user"|"assistant", "content": "..."} turns,
-                   oldest first. The latest user turn is the current question.
-    scope_note   : optional human-readable note describing the slice of data the
-                   reviewer has scoped the assistant to (e.g. "Events only" or
-                   "Findings only"). Folded into the system instruction so the
-                   assistant knows to answer within that slice.
-
-    Returns the assistant's reply text. Uses the free gemini-2.5-flash model
-    (same free tier as parsing — no additional cost beyond your existing quota).
     """
+    model_map = {
+        "gemini-2.5-flash": "gemini-2.5-flash",
+        "gemini-2.5-pro": "gemini-2.5-pro",
+        "gemini-1.5-pro": "gemini-1.5-pro",
+        "Gemini 2.5 Flash": "gemini-2.5-flash",
+        "Gemini 2.5 Pro": "gemini-2.5-pro",
+        "Gemini 1.5 Pro": "gemini-1.5-pro"
+    }
+    actual_model = model_map.get(model, "gemini-2.5-flash")
+
     scope_instructions = {
-        "json": "FOCUS: The user specifically selected the 'JSON' filter. Format your response emphasizing exact extracted field keys, values, raw JSON structures, and document field data.",
-        "findings": "FOCUS: The user specifically selected the 'Findings' filter. Focus your response on surfaced legal discrepancies, title risks, missing parent deeds, and audit observations.",
-        "mortgages": "FOCUS: The user specifically selected the 'Mortgages' filter. Focus your response on bank mortgages, equitable charges, encumbrances, release deeds, and loan clearance status.",
-        "general": "FOCUS: The user selected 'General'. Answer the question naturally using the overall property title context."
+        "timeline & chain of title": "FOCUS: Focus specifically on document execution order, vendor/vendee transfers, parent deed continuity, and timeline events.",
+        "encumbrances & mortgages": "FOCUS: Focus specifically on bank mortgages, equitable charges, loan account numbers, release deeds, and encumbrance statuses.",
+        "financials & stamp duty": "FOCUS: Focus specifically on sale consideration figures, statutory stamp duty paid, MCD transfer tax, e-stamp numbers, and payment modes.",
+        "property schedule & boundaries": "FOCUS: Focus specifically on property address, plot/flat numbers, area dimensions, khasra numbers, and North/South/East/West boundary recitals.",
+        "raw extracted json": "FOCUS: Format your response emphasizing exact extracted field keys, values, raw JSON structures, and document field data.",
+        "findings": "FOCUS: Focus your response on surfaced legal discrepancies, title risks, missing parent deeds, and audit observations."
     }
 
     scope_clause = ""
@@ -992,23 +991,20 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
         scope_clause = f"\n\n[REVIEWER SCOPE FILTER: {str(scope_note).upper()}]\n{custom_focus}\n"
 
     system_instruction = (
-        "You are DelhiTSR Assistant, an executive title-search analyst helping a "
-        "professional reviewer evaluate ONE specific property. You are given "
-        "structured data extracted from that property's documents.\n\n"
-        "STRICT CONCISENESS & FORMATTING RULES:\n"
-        "1. BE CONCISE, EXECUTIVE, AND EASY TO READ. Provide short, punchy answers. Avoid long-winded introductions, repetitive disclaimers, or wall-of-text paragraphs.\n"
-        "2. DO NOT OVERUSE ASTERISKS OR REPETITIVE BULLETS. Keep lists simple, flat, and scannable.\n"
-        "3. When answering what is wrong or summarizing title risks, provide 2 to 4 direct, high-impact bullet points maximum.\n"
-        "4. Answer strictly from the provided property data below. Use exact document numbers, party names, and dates.\n"
-        "5. For general legal questions, keep explanations short and distinct from property facts.\n"
+        "You are DelhiTSR Assistant, an expert title-search analyst helping a "
+        "professional advocate evaluate ONE specific property. You are given "
+        "structured data extracted from that property's registered deeds.\n\n"
+        "COMMUNICATION STYLE & RULES:\n"
+        "1. BE INFORMATIVE, NATURAL, AND DIRECT. Speak naturally like a senior title advocate. Avoid stiff, dry academic boilerplate, wall-of-text intros, or generic disclaimers.\n"
+        "2. DO NOT OVERUSE ASTERISKS OR REPETITIVE BULLETS. Keep lists flat, clean, and scannable.\n"
+        "3. Answer strictly from the provided property data below. Reference exact document numbers, party names, dates, and amounts.\n"
+        "4. NO VERDICTS RULE: Never declare legal invalidity or use words like 'void', 'defective', or 'illegal'. State factual findings neutrally.\n"
         + scope_clause +
         "\n\n=== PROPERTY DATA (your entire factual world for this property) ===\n"
         + context_json +
         "\n=== END OF PROPERTY DATA ==="
     )
 
-    # Build the conversation for Gemini: system instruction folded into the first
-    # user turn context, then the back-and-forth history.
     contents = []
     contents.append({
         "role": "user",
@@ -1017,18 +1013,19 @@ def chat_about_property(context_json, history, model="gemini-2.5-flash", scope_n
     })
     contents.append({
         "role": "model",
-        "parts": [{"text": "Understood. I'll answer only from this property's "
-                   "parsed data, and clearly mark any general explanations. "
-                   "What would you like to know?"}]
+        "parts": [{"text": "Understood. I will provide direct, informative analysis based on this property's title records. How can I assist you?"}]
     })
 
     for turn in history:
-        role = "user" if turn.get("role") == "user" else "model"
-        contents.append({"role": role, "parts": [{"text": turn.get("content", "")}]})
+        r = turn.get("role", "")
+        role = "user" if r in ("user", "human") else "model"
+        text_content = turn.get("content") or turn.get("parts", [{}])[0].get("text", "")
+        if text_content:
+          contents.append({"role": role, "parts": [{"text": text_content}]})
 
     try:
         response = client.models.generate_content(
-            model=model or "gemini-3.1-flash-lite",
+            model=actual_model,
             contents=contents,
         )
         return (response.text or "").strip()
