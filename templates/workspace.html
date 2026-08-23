@@ -43,8 +43,10 @@
 
 
   <!-- PDF.js CDN -->
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- Marked Markdown Parser CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 
 
@@ -214,6 +216,34 @@
 
       overflow: hidden;
 
+    }
+
+    /* Clean AI Assistant Chat Bubble Typography */
+    .ai-chat-bubble-content p {
+      margin-bottom: 0.5rem;
+    }
+    .ai-chat-bubble-content p:last-child {
+      margin-bottom: 0;
+    }
+    .ai-chat-bubble-content ul, .ai-chat-bubble-content ol {
+      list-style-type: disc;
+      padding-left: 1.25rem;
+      margin-top: 0.35rem;
+      margin-bottom: 0.5rem;
+    }
+    .ai-chat-bubble-content li {
+      margin-bottom: 0.25rem;
+    }
+    .ai-chat-bubble-content strong, .ai-chat-bubble-content b {
+      font-weight: 600;
+      color: #09090b;
+    }
+    .ai-chat-bubble-content h1, .ai-chat-bubble-content h2, .ai-chat-bubble-content h3 {
+      font-weight: 600;
+      color: #09090b;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
+      font-size: 13.5px;
     }
 
     h1, h2, h3, h4, h5, h6, p, span, div, button, input, a, li {
@@ -3167,14 +3197,8 @@
     clearAiSidebarAttachment();
     if (suggestions) suggestions.classList.add('hidden');
 
-    // User Message Bubble (Right aligned, sharp black bubble)
-    const userMsgHtml = `
-      <div class="flex justify-end my-2">
-        <div class="bg-zinc-900 text-white rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed max-w-[88%] shadow-2xs font-sans whitespace-pre-wrap">
-          ${escapeHtml(displayMsg)}
-        </div>
-      </div>
-    `;
+    // User Message Bubble (Clean inline whitespace-pre-wrap without template literal leading/trailing newlines)
+    const userMsgHtml = `<div class="flex justify-end my-2"><div class="bg-zinc-900 text-white rounded-2xl rounded-tr-xs px-3.5 py-2.5 text-[13.5px] leading-snug max-w-[85%] shadow-2xs font-sans whitespace-pre-wrap">${escapeHtml(displayMsg)}</div></div>`;
     container.insertAdjacentHTML('beforeend', userMsgHtml);
     container.scrollTop = container.scrollHeight;
 
@@ -3218,10 +3242,19 @@
       const replyText = data.reply || data.answer || data.response;
       if (data.ok && replyText) {
         aiSidebarChatHistory.push({ role: 'assistant', content: replyText, parts: [{ text: replyText }] });
-        const parsedContent = (typeof marked !== 'undefined') ? marked.parse(replyText) : escapeHtml(replyText);
+        let parsedContent = '';
+        if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+          parsedContent = marked.parse(replyText);
+        } else {
+          parsedContent = escapeHtml(replyText)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/^\s*[\-\*]\s+(.*)$/gm, '<li class="ml-4 list-disc">$1</li>')
+            .replace(/\n\n/g, '<br><br>')
+            .replace(/\n/g, '<br>');
+        }
         const botMsgHtml = `
           <div class="flex justify-start my-2">
-            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans border border-zinc-200 prose prose-sm prose-zinc max-w-none">
+            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl rounded-tl-xs p-3.5 text-[13.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans border border-zinc-200 ai-chat-bubble-content">
               ${parsedContent}
             </div>
           </div>
