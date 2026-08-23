@@ -2265,7 +2265,7 @@
       <!-- Messages Scroll Area -->
       <div id="aiSidebarMessages" class="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 bg-white">
         <!-- Welcome Card -->
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
+        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[12.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
           How can I help with this property's title?
         </div>
       </div>
@@ -2298,7 +2298,7 @@
           </div>
         </div>
 
-        <textarea id="aiSidebarInput" placeholder="Ask about deeds, encumbrances, or statutory compliance..." onkeydown="handleAiSidebarKeyDown(event)" rows="2" class="w-full bg-transparent resize-none outline-none border-none text-[13.5px] text-zinc-900 placeholder:text-zinc-400/90 min-h-[46px] max-h-[140px] font-sans"></textarea>
+        <textarea id="aiSidebarInput" placeholder="Ask about deeds, encumbrances, or statutory compliance..." onkeydown="handleAiSidebarKeyDown(event)" rows="2" class="w-full bg-transparent resize-none outline-none border-none text-[12.5px] text-zinc-900 placeholder:text-zinc-400/90 min-h-[46px] max-h-[140px] font-sans"></textarea>
         
         <!-- Hidden File Input for Paperclip -->
         <input type="file" id="aiSidebarFileInput" accept="image/*,.pdf,.doc,.docx" class="hidden" onchange="handleAiSidebarFileUpload(event)">
@@ -3168,7 +3168,7 @@
     const container = document.getElementById('aiSidebarMessages');
     if (container) {
       container.innerHTML = `
-        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[13.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
+        <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-3.5 text-[12.5px] leading-relaxed shadow-2xs font-sans border border-zinc-200">
           How can I help with this property's title?
         </div>
       `;
@@ -3198,7 +3198,7 @@
     if (suggestions) suggestions.classList.add('hidden');
 
     // User Message Bubble (Clean inline whitespace-pre-wrap without template literal leading/trailing newlines)
-    const userMsgHtml = `<div class="flex justify-end my-2"><div class="bg-zinc-900 text-white rounded-2xl rounded-tr-xs px-3.5 py-2.5 text-[13.5px] leading-snug max-w-[85%] shadow-2xs font-sans whitespace-pre-wrap">${escapeHtml(displayMsg)}</div></div>`;
+    const userMsgHtml = `<div class="flex justify-end my-2"><div class="bg-[#e2e2e6] text-zinc-900 border border-zinc-300/80 rounded-2xl rounded-tr-xs px-3.5 py-2.5 text-[12.5px] leading-snug max-w-[85%] shadow-2xs font-sans whitespace-pre-wrap">${escapeHtml(displayMsg)}</div></div>`;
     container.insertAdjacentHTML('beforeend', userMsgHtml);
     container.scrollTop = container.scrollHeight;
 
@@ -3214,7 +3214,7 @@
     const thinkingId = 'ai-thinking-' + Date.now();
     const thinkingHtml = `
       <div id="${thinkingId}" class="flex justify-start my-2">
-        <div class="bg-[#f4f4f6] text-zinc-600 rounded-2xl px-3.5 py-2.5 text-[13px] max-w-[90%] shadow-2xs font-sans flex items-center gap-2 border border-zinc-200">
+        <div class="bg-[#f4f4f6] text-zinc-600 rounded-2xl px-3.5 py-2.5 text-[12.5px] max-w-[90%] shadow-2xs font-sans flex items-center gap-2 border border-zinc-200">
           <div class="spinner border-zinc-400 border-t-zinc-800 w-3.5 h-3.5"></div>
           <span>DelhiTSR Assistant is analyzing...</span>
         </div>
@@ -3254,7 +3254,7 @@
         }
         const botMsgHtml = `
           <div class="flex justify-start my-2">
-            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl rounded-tl-xs p-3.5 text-[13.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans border border-zinc-200 ai-chat-bubble-content">
+            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl rounded-tl-xs p-3.5 text-[12.5px] leading-relaxed max-w-[92%] shadow-2xs font-sans border border-zinc-200 ai-chat-bubble-content">
               ${parsedContent}
             </div>
           </div>
