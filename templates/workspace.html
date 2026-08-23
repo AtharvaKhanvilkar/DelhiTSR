@@ -513,42 +513,7 @@
 
        ASSISTANT TAB — Google AI Studio UI (preserved verbatim,
 
-       scoped under #panel-assistant so it can't affect the app).
 
-       ════════════════════════════════════════════════════════════ */
-
-    #panel-assistant {
-      width: 100%;
-      min-width: 0;
-      overflow: hidden;
-      font-family: inherit;
-    }
-
-    #chatScroll::-webkit-scrollbar { width: 6px; }
-    #chatScroll::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 3px; }
-    #chatScroll::-webkit-scrollbar-thumb:hover { background: #d4d4d8; }
-
-
-
-    /* Scope chip */
-
-    #panel-assistant .scope-chip {
-
-      display: none; align-items: center; gap: 5px;
-
-      font-family: var(--as-font-body); font-size: 12px; color: #18181b;
-
-      background: #f4f4f5; border-radius: 12px; padding: 2px 10px; margin-bottom: 8px;
-
-      width: fit-content;
-
-    }
-
-    #panel-assistant .scope-chip.show { display: inline-flex; }
-
-    #panel-assistant .scope-chip .material-symbols-outlined { font-size: 14px; }
-
-    #panel-assistant .scope-chip button { border: none; background: none; cursor: pointer; color: #18181b; display: inline-flex; padding: 0; }
 
 
 
@@ -1482,8 +1447,8 @@
             </span>
           </div>
 
-          <!-- AI Assistant (Opens AI View & Right Sidebar Agent) -->
-          <div id="sidebar-assistant" onclick="switchMainTab('assistant')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <!-- AI Assistant (Toggles Right AI Agent Sidebar) -->
+          <div id="sidebar-assistant" onclick="toggleAiRightSidebar()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -2239,60 +2204,7 @@
 
 
 
-      <!-- AI Assistant Panel (Full Workspace View) -->
-      <div class="panel flex flex-col h-full bg-[#f9f9fb] relative overflow-hidden" id="panel-assistant">
-        <!-- Top Header Bar -->
-        <div class="h-11 border-b border-zinc-200/70 bg-white flex items-center justify-between px-5 shrink-0 z-20 select-none">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-zinc-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-            <h2 class="text-xs font-bold text-zinc-900 tracking-tight">Title Intelligence AI</h2>
-            <div class="h-3 w-px bg-zinc-200 mx-0.5"></div>
-            <div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-100 border border-zinc-200/80 text-[10px] font-semibold text-zinc-600">
-              <span class="w-1.5 h-1.5 rounded-full bg-zinc-700"></span>
-              <span>RAG Deed Index Ready</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="resetAiSidebarChat()" class="h-7 px-2.5 rounded-md border border-zinc-200 bg-white text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-              <span>Clear Chat</span>
-            </button>
-          </div>
-        </div>
 
-        <!-- Scrollable Chat Stream Canvas -->
-        <main class="flex-1 overflow-y-auto px-6 py-6 scroll-smooth" id="chatScroll">
-          <div class="max-w-4xl mx-auto w-full space-y-6" id="chatMessages">
-            <div class="bg-[#f4f4f6] text-zinc-800 rounded-2xl p-4 text-[13.5px] leading-relaxed shadow-2xs font-sans">
-              Welcome to Title Intelligence AI! I'm an AI agent that can help you analyze, search, and audit property title deeds. How can I help today?
-            </div>
-          </div>
-        </main>
-
-        <!-- PINNED BOTTOM COMPOSER AREA -->
-        <div class="shrink-0 bg-gradient-to-t from-[#f9f9fb] via-[#f9f9fb] to-transparent pt-3 pb-5 px-6 z-10">
-          <div class="max-w-4xl mx-auto w-full">
-            <div class="relative rounded-[24px] border border-zinc-200/90 bg-white p-3.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.06)] focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400 transition-all space-y-2">
-              <textarea class="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-zinc-900 placeholder:text-zinc-400 leading-relaxed px-1 min-h-[46px] max-h-[140px]" id="chatInput" rows="1" placeholder="What do you want to analyze about this property's title deeds?" onkeydown="chatKeydown(event)" oninput="composerInput(this)"></textarea>
-
-              <div class="flex items-center justify-between pt-1 border-t border-zinc-100/80">
-                <div class="flex items-center gap-2">
-                  <button type="button" onclick="triggerAiSidebarAttachment()" class="w-8 h-8 rounded-full border border-zinc-200/90 bg-white hover:bg-zinc-50 flex items-center justify-center text-zinc-600 transition-colors shadow-2xs cursor-pointer" title="Attach document context">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                  </button>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <button type="button" id="runBtn" onclick="sendMainChat()" class="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer" title="Send query">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <p class="text-[11px] text-zinc-400 text-center mt-2 font-normal">Answers are generated exclusively from analyzed property title deeds.</p>
-          </div>
-        </div>
-      </div>
 
       <!-- Placeholder Panel for NGDRS -->
       <div class="panel" id="panel-ngdrs">
@@ -3295,6 +3207,10 @@
   }
 
   function switchMainTab(view) {
+    if (view === 'assistant') {
+      toggleAiRightSidebar(true);
+      return;
+    }
 
     // 1. Reset selection states of navigation sidebar elements
 
@@ -3378,11 +3294,7 @@
     if (view === 'entities') {
       if (typeof loadEntities === 'function') loadEntities();
     }
-    if (view === 'assistant') {
-      toggleAiRightSidebar(true);
-      if (typeof renderChatGreeting === 'function' && (!window._chatHistory || window._chatHistory.length === 0)) renderChatGreeting();
-      setTimeout(() => { const i = document.getElementById('chatInput'); if (i) i.focus(); }, 100);
-    }
+
     if (view === 'report') {
       if (typeof loadTsrReport === 'function') loadTsrReport();
     }
