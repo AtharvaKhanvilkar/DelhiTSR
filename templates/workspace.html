@@ -1464,25 +1464,7 @@
             </span>
           </div>
 
-          <!-- Audit Report Tab -->
-          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
-            <div class="flex items-center gap-2.5 sb-row-content">
-              <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-              </span>
-              <span class="sb-label">Audit Report</span>
-            </div>
-            <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </span>
-          </div>
+
 
 
         </div>
@@ -1943,14 +1925,7 @@
 
 
 
-            <p class="text-[11px] text-zinc-400 text-center mt-2 font-normal">Answers are generated exclusively from analyzed property title deeds.</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Empty Audit Report Panel -->
-      <div class="panel bg-white p-6 overflow-y-auto" id="panel-report">
-      </div>
 
       <!-- Placeholder Panel for DORIS -->
       <div class="panel" id="panel-doris">
@@ -2961,8 +2936,8 @@
     const navItem = document.getElementById('sidebar-assistant');
     if (!sidebar) return;
 
-    const isCurrentlyOpen = sidebar.style.display === 'flex' || (!sidebar.classList.contains('hidden') && sidebar.style.display !== 'none');
-    const shouldOpen = (show === undefined) ? !isCurrentlyOpen : !!show;
+    const isHidden = sidebar.classList.contains('hidden') || sidebar.style.display === 'none' || !sidebar.style.display;
+    const shouldOpen = (show === undefined) ? isHidden : !!show;
 
     if (shouldOpen) {
       sidebar.classList.remove('hidden');
@@ -2980,10 +2955,14 @@
         if (typeof updateSidebarIndicator === 'function') updateSidebarIndicator(navItem);
       }
     } else {
+      sidebar.classList.add('hidden');
       sidebar.style.display = 'none';
-      if (handle) handle.style.display = 'none';
+      if (handle) {
+        handle.classList.add('hidden');
+        handle.style.display = 'none';
+      }
 
-      if (navItem && typeof activeMainView !== 'undefined' && activeMainView !== 'assistant') {
+      if (navItem) {
         navItem.classList.remove('bg-zinc-200/60', 'font-semibold', 'text-zinc-950', 'sb-active');
       }
     }
