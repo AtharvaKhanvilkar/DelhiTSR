@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from main import extract_text_from_PDF
-from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate, resolve_smart_circle_valuation
+from circle_rates import calculate_circle_rate_value, normalize_area_to_sqm, get_historical_stamp_duty_rate, resolve_smart_circle_valuation, classify_haryana_jurisdiction
 from doris_scraper import DorisScraperSession
 from deed_doc_scraper import DorisDocScraper
 from flask_limiter import Limiter
@@ -3674,7 +3674,13 @@ def _build_events_and_errors(project_path):
                         sd_rate = 0.03
                     else:
                         seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
-                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis, seller_name=seller_info, doc_type=str(source or txn))
+                        state_val = str(data.get("state") or meta.get("state") or "DELHI")
+                        h_jur = classify_haryana_jurisdiction(data)
+                        sd_rate = get_historical_stamp_duty_rate(
+                            reg_year or 2026, active_gender, valuation_basis,
+                            seller_name=seller_info, doc_type=str(source or txn),
+                            state=state_val, is_urban=h_jur["is_urban"]
+                        )
                         
                     expected_sd_val = valuation_basis * sd_rate
                     expected_reg_val = valuation_basis * 0.01
@@ -3682,6 +3688,19 @@ def _build_events_and_errors(project_path):
                     actual_sd_val = _compute_total_stamp_duty_paid(data)
                     actual_reg = data.get("registration_fee")
                     actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
+                    
+                    if "HARYANA" in state_val.upper() or any(h_c in str(data).upper() for h_c in ["GURGAON", "GURUGRAM", "FARIDABAD", "PANCHKULA", "SONIPAT", "AMBALA"]):
+                        j_label = "Urban Municipal Area" if h_jur["is_urban"] else "Rural Gram Panchayat Area"
+                        errors.append({
+                            "severity": "INFO",
+                            "type": "HARYANA_JURISDICTION_CLASSIFIED",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": f"Jurisdiction Audit: Property classified under {j_label} ({h_jur['basis']}). Applicable statutory stamp duty rate evaluated at {sd_rate*100}%.",
+                            "expected": j_label,
+                            "actual": h_jur["basis"]
+                        })
                     
                     # 1. Under Circle Rate Valuation check
                     if "SALE" in txn and actual_price > 0 and actual_price < circle_val:

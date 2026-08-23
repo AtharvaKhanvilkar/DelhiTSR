@@ -688,6 +688,79 @@ def get_haryana_registration_fee(consideration):
     else:
         return 50000.0 # Capped at ₹50,000 max in Haryana
 
+def classify_haryana_jurisdiction(data, doc_text=""):
+    """
+    Deterministically classifies whether a Haryana property falls under an Urban Municipal Area
+    or a Rural Gram Panchayat Area based on deed schedule recitals, addresses, and property IDs.
+    
+    Returns a dict:
+    {
+      "is_urban": bool,
+      "jurisdiction_type": "URBAN_MUNICIPAL" | "RURAL_GRAM_PANCHAYAT",
+      "basis": str,
+      "applicable_rates": {"female": float, "joint": float, "male": float}
+    }
+    """
+    if not isinstance(data, dict):
+        data = {}
+
+    text_to_check = (
+        str(data.get("society_building_address") or "") + " " +
+        str(data.get("property_schedule_text") or "") + " " +
+        str(data.get("village") or "") + " " +
+        str(data.get("district") or "") + " " +
+        str(data.get("society_building_name") or "") + " " +
+        str(doc_text or "")
+    ).lower()
+
+    # Gram Panchayat / Rural Indicators
+    rural_keywords = [
+        "gram panchayat", "panchayat samiti", "abadi deh", "lal dora",
+        "phirni", "gauchar", "hadbast", "killa no", "mustil no",
+        "khewat", "khatauni", "outside municipal limits", "outside mc",
+        "rural area", "gram sabha", "revenue estate of village"
+    ]
+
+    # Urban Municipal Indicators
+    urban_keywords = [
+        "municipal corporation", "municipal council", "municipal committee",
+        "mcg", "mcf", "mc ", "huda", "hsvp", "sector-", "sector ",
+        "urban estate", "dlf", "sushant lok", "palam vihar", "approved colony",
+        "mc property id", "town planning scheme", "municipal ward"
+    ]
+
+    has_urban = any(kw in text_to_check for kw in urban_keywords)
+    has_rural = any(kw in text_to_check for kw in rural_keywords)
+
+    # Check for presence of Municipal Tax payment or receipt
+    mcd_amt = float(data.get("corporation_tax_amount") or data.get("mcd_transfer_tax") or data.get("local_authority_tax") or 0)
+    if mcd_amt > 0:
+        has_urban = True
+
+    if has_urban and not (has_rural and mcd_amt == 0):
+        is_urban = True
+        j_type = "URBAN_MUNICIPAL"
+        basis = "Municipal Corporation / Urban Estate / Sector recitals or Municipal Tax Receipt"
+        rates = {"female": 0.05, "joint": 0.06, "male": 0.07}
+    elif has_rural:
+        is_urban = False
+        j_type = "RURAL_GRAM_PANCHAYAT"
+        basis = "Gram Panchayat / Hadbast No. / Revenue Estate recitals"
+        rates = {"female": 0.03, "joint": 0.04, "male": 0.05}
+    else:
+        # Default to Urban Municipal if indeterminate
+        is_urban = True
+        j_type = "URBAN_MUNICIPAL"
+        basis = "Standard Urban Default (No Rural Gram Panchayat recitals found)"
+        rates = {"female": 0.05, "joint": 0.06, "male": 0.07}
+
+    return {
+        "is_urban": is_urban,
+        "jurisdiction_type": j_type,
+        "basis": basis,
+        "applicable_rates": rates
+    }
+
 def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type="", state="DELHI", is_urban=True):
     try:
         year = int(registration_year)
