@@ -236,6 +236,29 @@
       animation: shining-text 2s linear infinite;
     }
 
+    /* AI Assistant Right Sidebar Slide Animation */
+    #aiRightSidebar {
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                  margin-right 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.22s ease;
+      will-change: transform, margin-right, opacity;
+    }
+
+    #aiRightSidebar.ai-sidebar-closed {
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #aiRightSidebar.ai-sidebar-open {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    #aiSidebarResizeHandle {
+      transition: opacity 0.2s ease;
+    }
+
     .ai-chat-bubble-content p {
       margin-bottom: 0.25rem;
     }
@@ -3093,31 +3116,77 @@
   let aiSidebarScope = 'All Title Context';
   let pendingAiAttachment = null;
 
+  let _aiSidebarAnimating = false;
+
   function toggleAiRightSidebar(show) {
     const sidebar = document.getElementById('aiRightSidebar');
     const handle = document.getElementById('aiSidebarResizeHandle');
-    if (!sidebar) return;
+    if (!sidebar || _aiSidebarAnimating) return;
 
-    const isHidden = sidebar.classList.contains('hidden') || sidebar.style.display === 'none' || !sidebar.style.display;
-    const shouldOpen = (show === undefined) ? isHidden : !!show;
+    const isClosed = sidebar.classList.contains('hidden') || 
+                     sidebar.classList.contains('ai-sidebar-closed') || 
+                     sidebar.style.display === 'none' || 
+                     !sidebar.style.display;
+    const shouldOpen = (show === undefined) ? isClosed : !!show;
+
+    const savedWidth = localStorage.getItem('ai_sidebar_width') || '380px';
+    const widthPx = parseInt(savedWidth, 10) || 380;
 
     if (shouldOpen) {
+      if (!isClosed && sidebar.classList.contains('ai-sidebar-open')) return;
+
+      _aiSidebarAnimating = true;
+
+      // 1. Prepare element display
+      sidebar.style.width = savedWidth;
       sidebar.classList.remove('hidden');
       sidebar.style.display = 'flex';
+      sidebar.classList.remove('ai-sidebar-open');
+      sidebar.classList.add('ai-sidebar-closed');
+      sidebar.style.marginRight = `-${widthPx}px`;
+
       if (handle) {
         handle.classList.remove('hidden');
         handle.style.display = 'block';
+        handle.style.opacity = '0';
       }
-      
-      const savedWidth = localStorage.getItem('ai_sidebar_width') || '380px';
-      sidebar.style.width = savedWidth;
+
+      // 2. Trigger slide-in on next animation frames
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          sidebar.classList.remove('ai-sidebar-closed');
+          sidebar.classList.add('ai-sidebar-open');
+          sidebar.style.marginRight = '0px';
+          if (handle) handle.style.opacity = '1';
+
+          setTimeout(() => {
+            _aiSidebarAnimating = false;
+          }, 290);
+        });
+      });
     } else {
-      sidebar.classList.add('hidden');
-      sidebar.style.display = 'none';
-      if (handle) {
-        handle.classList.add('hidden');
-        handle.style.display = 'none';
-      }
+      if (isClosed && !sidebar.classList.contains('ai-sidebar-open')) return;
+
+      _aiSidebarAnimating = true;
+
+      // 1. Trigger slide-out
+      sidebar.classList.remove('ai-sidebar-open');
+      sidebar.classList.add('ai-sidebar-closed');
+      sidebar.style.marginRight = `-${widthPx}px`;
+
+      if (handle) handle.style.opacity = '0';
+
+      // 2. Hide element after transition completes
+      setTimeout(() => {
+        sidebar.classList.add('hidden');
+        sidebar.style.display = 'none';
+        sidebar.style.marginRight = '0px';
+        if (handle) {
+          handle.classList.add('hidden');
+          handle.style.display = 'none';
+        }
+        _aiSidebarAnimating = false;
+      }, 280);
     }
   }
 
