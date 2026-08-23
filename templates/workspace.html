@@ -1516,15 +1516,18 @@
             </span>
           </div>
 
-          <!-- AI Assistant (Toggles Right AI Agent Sidebar) -->
-          <div id="sidebar-assistant" onclick="toggleAiRightSidebar()" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
+          <!-- Audit Report (Blank Panel) -->
+          <div id="sidebar-report" onclick="switchMainTab('report')" class="sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer font-medium text-[12.5px] text-zinc-700 hover:text-zinc-950 transition-colors group">
             <div class="flex items-center gap-2.5 sb-row-content">
               <span class="text-zinc-400 group-hover:text-zinc-800 transition-colors">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
                 </svg>
               </span>
-              <span class="sb-label">AI Assistant</span>
+              <span class="sb-label">Audit Report</span>
             </div>
             <span class="text-zinc-400 group-hover:text-zinc-700 sb-only-expanded">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1978,29 +1981,22 @@
 
 
       <!-- Entities Ledger Panel -->
-
       <div class="panel" id="panel-entities">
-
         <div class="flex-1 overflow-y-auto min-h-0" id="entitiesPanel">
-
           <div id="entitiesEmpty" class="flex flex-col items-center justify-center h-full p-8">
-
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
-
               <i data-lucide="users" class="w-5 h-5 text-muted-foreground"></i>
-
             </div>
-
             <h3 class="text-sm font-semibold mb-1">No entities analyzed</h3>
-
             <p class="text-sm text-muted-foreground">Extracted entities will be displayed here once analyzed.</p>
-
           </div>
-
           <div id="entitiesContent" class="hidden p-6"></div>
-
         </div>
+      </div>
 
+      <!-- Audit Report Panel (Blank View) -->
+      <div class="panel" id="panel-report">
+        <div class="flex-1 bg-white w-full h-full min-h-0"></div>
       </div>
 
 
@@ -3083,7 +3079,6 @@
   function toggleAiRightSidebar(show) {
     const sidebar = document.getElementById('aiRightSidebar');
     const handle = document.getElementById('aiSidebarResizeHandle');
-    const navItem = document.getElementById('sidebar-assistant');
     if (!sidebar) return;
 
     const isHidden = sidebar.classList.contains('hidden') || sidebar.style.display === 'none' || !sidebar.style.display;
@@ -3099,21 +3094,12 @@
       
       const savedWidth = localStorage.getItem('ai_sidebar_width') || '380px';
       sidebar.style.width = savedWidth;
-
-      if (navItem) {
-        navItem.classList.add('bg-zinc-200/60', 'font-semibold', 'text-zinc-950', 'sb-active');
-        if (typeof updateSidebarIndicator === 'function') updateSidebarIndicator(navItem);
-      }
     } else {
       sidebar.classList.add('hidden');
       sidebar.style.display = 'none';
       if (handle) {
         handle.classList.add('hidden');
         handle.style.display = 'none';
-      }
-
-      if (navItem) {
-        navItem.classList.remove('bg-zinc-200/60', 'font-semibold', 'text-zinc-950', 'sb-active');
       }
     }
   }
@@ -3416,11 +3402,6 @@
   }
 
   function switchMainTab(view) {
-    if (view === 'assistant') {
-      toggleAiRightSidebar(true);
-      return;
-    }
-
     // 1. Reset selection states of navigation sidebar elements
 
     document.querySelectorAll('.sidebar-item').forEach(el => {
@@ -3517,9 +3498,10 @@
       let displayName = 'Events & Findings';
       if (activeKey === 'events') displayName = 'Events & Findings';
       else if (activeKey === 'entities') displayName = 'Chain & Entities';
-      else if (activeKey === 'assistant') displayName = 'AI Assistant';
+      else if (activeKey === 'report') displayName = 'Audit Report';
       else if (activeKey === 'sorter') displayName = 'Document Sorter';
-    topbarTabName.textContent = displayName;
+      else if (activeKey === 'doris') displayName = 'DORIS Integration';
+      topbarTabName.textContent = displayName;
     }
 
   }
