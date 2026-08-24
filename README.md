@@ -53,17 +53,13 @@ Property title chains in India consist of heterogeneous, multi-page scanned docu
 
 DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, and rule evaluation into isolated processing stages:
 
-```
-┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
-│  Raw Deed PDF / Scan   │ ───► │  Module 1: Vision OCR  │ ───► │ Module 2: 4-Pass LLM   │
-│  Ingestion & Upload    │      │ Deskew & Text Recovery │      │ 20-Field Extraction    │
-└────────────────────────┘      └────────────────────────┘      └────────────────────────┘
-                                                                            │
-                                                                            ▼
-┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
-│  Structured Workspace  │ ◄─── │  Module 4: 94 Rule     │ ◄─── │ Module 3: Tax & Local  │
-│  Interactive Dashboard │      │  Discrepancy Engine   │      │  Body Reconciler       │
-└────────────────────────┘      └────────────────────────┘      └────────────────────────┘
+```mermaid
+flowchart LR
+    A["Raw Deed PDF / Scan Ingestion"] --> B["Module 1: Vision OCR & Deskew"]
+    B --> C["Module 2: 4-Pass LLM Extraction"]
+    C --> D["Module 3: Tax & Local Body Reconciler"]
+    D --> E["Module 4: 94 Rule Discrepancy Engine"]
+    E --> F["Structured Workspace Dashboard"]
 ```
 
 ---
