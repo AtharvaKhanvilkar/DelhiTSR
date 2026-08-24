@@ -681,19 +681,41 @@ def _normalize_lender(name):
     s = str(name).strip().lower()
     # Remove punctuation
     s = re.sub(r"[^\w\s]", "", s)
-    # Strip common corporate suffixes
-    s = re.sub(r"\b(ltd|limited|pvt|private|co|company|bank)\b", "", s)
+    # Strip common corporate & financial suffixes
+    s = re.sub(r"\b(ltd|limited|pvt|private|co|company|inc|corp|corporation|bank|housing|finance|financiers|services|capital)\b", "", s)
     s = " ".join(s.split())  # normalize whitespace
-    
-    # Check if this maps to a canonical bank key
+    if not s:
+        return str(name).strip().lower()
+
+    # Stage 1: Exact Normalized Alias Match
+    best_match = None
+    best_sim = 0.0
+
     for canonical_key, aliases in LENDER_ALIASES.items():
         for alias in aliases:
             alias_norm = str(alias).strip().lower()
             alias_norm = re.sub(r"[^\w\s]", "", alias_norm)
-            alias_norm = re.sub(r"\b(ltd|limited|pvt|private|co|company|bank)\b", "", alias_norm)
+            alias_norm = re.sub(r"\b(ltd|limited|pvt|private|co|company|inc|corp|corporation|bank|housing|finance|financiers|services|capital)\b", "", alias_norm)
             alias_norm = " ".join(alias_norm.split())
+            if not alias_norm:
+                alias_norm = canonical_key
+
             if s == alias_norm or s == canonical_key:
                 return canonical_key
+
+            # Stage 2: Strict Levenshtein Similarity calculation (>= 82% threshold)
+            max_len = max(len(s), len(alias_norm))
+            if max_len > 0:
+                dist = _levenshtein(s, alias_norm)
+                sim = 1.0 - (dist / max_len)
+                if sim > best_sim:
+                    best_sim = sim
+                    best_match = canonical_key
+
+    # Apply strict threshold (minimum 82% similarity required for fuzzy match)
+    if best_match and best_sim >= 0.82:
+        return best_match
+
     return s
 
 def _levenshtein(s1, s2):
