@@ -166,16 +166,16 @@ Audits compliance against statutory registration laws, SRO territorial jurisdict
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | Checks if the document was registered at the correct Sub-Registrar Office (SRO) for the property's location (Sec 28, Registration Act 1908). |
-| `GPA_POST_2011_INVALID` | **Material Defect** | Post-2011 GPA Title Transfer | Flags property transfers done via Power of Attorney (GPA) after October 11, 2011 without a registered Sale Deed (*Suraj Lamp* Supreme Court ruling). |
-| `MISSING_GPA_AUTHORIZATION` | **Material Defect** | Missing Attorney Authorization | Checks if a deed signed by an attorney includes a registered Power of Attorney (GPA/SPA) in the document chain. |
-| `UNREGULARIZED_GPA_CHAIN` | **Substantive Defect** | Unregularized GPA Chain | Flags title histories that end with a Power of Attorney instead of a registered Sale Deed. |
-| `PROPERTY_NOT_IN_DELHI` | **Procedural Anomaly** | Out-of-Jurisdiction Location | Flags properties located outside NCT Delhi revenue districts or Haryana (BETA) boundaries. |
-| `SEC28_REG_ACT_AUDIT` | **Record Notation** | Mandatory SRO Validation | Audits official registry stamps against local SRO territorial boundaries (Sec 28, Registration Act 1908). |
-| `SRO_TERRITORY_MATRIX` | **Record Notation** | SRO Territory Ledger Mapping | Verifies SRO office assignments against Delhi's 350+ official locality map. |
-| `SRO_CODE_NORMALIZER` | **Record Notation** | SRO Code Canonicalization | Standardizes SRO name variations (e.g., 'SRO V-A Hauz Khas' to `5a`) for system processing. |
-| `SRO_LOCALITY_TOKEN_MATCH` | **Record Notation** | Locality Boundary Token Check | Matches the property address against official SRO locality listings. |
-| `EXPLICIT_SRO_RECITAL` | **Record Notation** | Explicit Header SRO Recital | Checks that SRO mentions in the text match official registration stamps on the deed. |
+| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | Evaluates whether the deed was registered with the Sub-Registrar Office (SRO) holding statutory territorial jurisdiction over the property (Sec 28, Registration Act 1908). |
+| `GPA_POST_2011_INVALID` | **Material Defect** | Post-2011 GPA Title Transfer | Flags property transfers executed via General Power of Attorney after 11-Oct-2011 without a registered Sale Deed (*Suraj Lamp* Supreme Court ruling). |
+| `MISSING_GPA_AUTHORIZATION` | **Material Defect** | Missing Attorney Authorization | Verifies that deeds executed by an attorney-in-fact reference a valid registered Power of Attorney (GPA/SPA) in the title chain. |
+| `UNREGULARIZED_GPA_CHAIN` | **Substantive Defect** | Unregularized GPA Chain | Detects title chains concluding with an Agreement to Sell or Power of Attorney rather than a registered conveyance. |
+| `PROPERTY_NOT_IN_DELHI` | **Procedural Anomaly** | Out-of-Jurisdiction Location | Flags property localities situated outside NCT Delhi revenue districts or Haryana (BETA) boundaries. |
+| `SEC28_REG_ACT_AUDIT` | **Record Notation** | Mandatory SRO Validation | Audits official endorsement stamps against statutory SRO territorial maps under Sec 28 of the Registration Act 1908. |
+| `SRO_TERRITORY_MATRIX` | **Record Notation** | SRO Territory Ledger Mapping | Cross-references SRO office designations against the engine's 350+ Delhi locality mapping matrix. |
+| `SRO_CODE_NORMALIZER` | **Record Notation** | SRO Code Canonicalization | Normalizes SRO text variations (e.g., 'SRO V-A Hauz Khas' to `5a`) into canonical system identifiers. |
+| `SRO_LOCALITY_TOKEN_MATCH` | **Record Notation** | Locality Boundary Token Check | Performs tokenized matching between property schedule addresses and official SRO boundary ledgers. |
+| `EXPLICIT_SRO_RECITAL` | **Record Notation** | Explicit Header SRO Recital | Validates explicit SRO jurisdiction recitals in deed preambles against official endorsement registry stamps. |
 
 ### 2. Consideration & Financial Valuation Audits
 
@@ -183,13 +183,13 @@ Audits monetary consideration declarations, lease rentals, mortgage principal am
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `MISSING_SALE_CONSIDERATION` | **Material Defect** | Missing Sale Price | Ensures a valid sale price is stated in the sale deed (Sec 54, Transfer of Property Act 1882). |
-| `MISSING_RENTAL_CONSIDERATION` | **Material Defect** | Missing Lease License Fee | Checks that rent or monthly license fees are stated in lease and license agreements (Sec 105, Transfer of Property Act 1882). |
-| `MISSING_MORTGAGE_VALUE` | **Material Defect** | Missing Secured Loan Principal | Ensures mortgage deeds clearly state the loan principal amount (Sec 58, Transfer of Property Act 1882). |
-| `GIFT_DEED_WITH_CONSIDERATION` | **Material Defect** | Gift with Consideration | Flags gift deeds that mention money changing hands, as gifts must be voluntary without payment (Sec 122, Transfer of Property Act 1882). |
-| `CONSIDERATION_ZERO_OR_NEGATIVE` | **Material Defect** | Invalid Consideration Value | Flags deeds with zero, negative, or invalid transaction values. |
-| `CONSIDERATION_FORMAT_AUDIT` | **Record Notation** | Consideration Parsing Validation | Checks for typos between numbers and written word amounts (e.g., ₹5,00,000 vs. 'Fifty Thousand'). |
-| `CONSIDERATION_CURRENCY_CHECK` | **Record Notation** | Currency Unit Standardization | Verifies that payment amounts are correctly recorded in Indian Rupees (INR / ₹). |
+| `MISSING_SALE_CONSIDERATION` | **Material Defect** | Missing Sale Price | Validates that monetary consideration is explicitly declared in conveyances as required under Sec 54 of the Transfer of Property Act 1882. |
+| `MISSING_RENTAL_CONSIDERATION` | **Material Defect** | Missing Lease License Fee | Verifies that lease premium or monthly license fees are recited in Lease Deeds and Leave & License agreements (Sec 105, Transfer of Property Act 1882). |
+| `MISSING_MORTGAGE_VALUE` | **Material Defect** | Missing Secured Loan Principal | Ensures Mortgage Deeds explicitly state the secured principal loan amount (Sec 58, Transfer of Property Act 1882). |
+| `GIFT_DEED_WITH_CONSIDERATION` | **Material Defect** | Gift with Consideration | Flags Gift Deeds reciting monetary consideration, violating the voluntary transfer requirement under Sec 122 of the Transfer of Property Act 1882. |
+| `CONSIDERATION_ZERO_OR_NEGATIVE` | **Material Defect** | Invalid Consideration Value | Flags conveyances declaring zero, negative, or invalid numeric values for transaction consideration. |
+| `CONSIDERATION_FORMAT_AUDIT` | **Record Notation** | Consideration Parsing Validation | Audits numerical figures against written word consideration recitals to detect monetary transcription discrepancies. |
+| `CONSIDERATION_CURRENCY_CHECK` | **Record Notation** | Currency Unit Standardization | Verifies monetary consideration recitals against standard Indian Rupee (INR / ₹) currency denominations. |
 
 ### 3. Title Chain & Ownership Integrity Audits
 
@@ -197,16 +197,16 @@ Audits 30-year ownership continuity, link deed sequencing, execution dates, and 
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `CHAIN_BREAK_TRANSFEROR_MISMATCH` | **Material Defect** | Ownership Chain Break | Checks that the seller in each deed matches the buyer from the previous deed to ensure an unbroken ownership chain. |
-| `CHRONOLOGICAL_DATE_ANOMALY` | **Material Defect** | Reverse Date Sequencing | Flags documents where a newer deed is dated earlier than the previous owner's purchase deed. |
-| `FUTURE_REGISTRATION_DATE` | **Material Defect** | Future Registration Stamp | Flags registration dates listed in the future relative to the document date. |
-| `MUTATION_RECORD_MISSING` | **Substantive Defect** | Missing Revenue Mutation Record | Flags property transfers that lack government revenue mutation records (Khasra/Khatauni or MCD tax mutation). |
-| `MULTIPLE_ACTIVE_OWNERS` | **Substantive Defect** | Ambiguous Undivided Ownership | Detects conflicting ownership claims where multiple parties claim 100% ownership of the same property. |
-| `DEED_EXECUTION_DATE_MISSING` | **Procedural Anomaly** | Missing Execution Date | Checks for missing signing dates on deeds. |
-| `DEED_REGISTRATION_DATE_MISSING` | **Procedural Anomaly** | Missing SRO Registration Date | Flags deeds missing official Sub-Registrar endorsement dates. |
-| `TITLE_CHAIN_SPAN_AUDIT` | **Record Notation** | Title History Duration Check | Calculates total years of ownership history and flags chains under the standard 30-year requirement. |
-| `PARTIAL_SHARE_TRANSFER_CHECK` | **Record Notation** | Undivided Share Audit | Tracks what percentage of property share is transferred in each document. |
-| `DOCUMENT_SEQUENCE_NORMALIZER` | **Record Notation** | Chronological Ledger Order | Sorts uploaded documents in chronological order by registration date. |
+| `CHAIN_BREAK_TRANSFEROR_MISMATCH` | **Material Defect** | Ownership Chain Break | Audits title continuity to ensure the transferor in each deed matches the transferee in the preceding registered conveyance. |
+| `CHRONOLOGICAL_DATE_ANOMALY` | **Material Defect** | Reverse Date Sequencing | Identifies chronological anomalies where a derivative deed bears an execution date earlier than its parent root deed. |
+| `FUTURE_REGISTRATION_DATE` | **Material Defect** | Future Registration Stamp | Flags registration dates occurring in the future relative to system processing timestamps. |
+| `MUTATION_RECORD_MISSING` | **Substantive Defect** | Missing Revenue Mutation Record | Identifies title transfers lacking corresponding revenue mutation records (Khasra/Khatauni or MCD property tax mutation). |
+| `MULTIPLE_ACTIVE_OWNERS` | **Substantive Defect** | Ambiguous Undivided Ownership | Detects conflicting concurrent full ownership claims over the same property unit across unlinked conveyances. |
+| `DEED_EXECUTION_DATE_MISSING` | **Procedural Anomaly** | Missing Execution Date | Checks for missing execution dates on deed preambles or signature recitals. |
+| `DEED_REGISTRATION_DATE_MISSING` | **Procedural Anomaly** | Missing SRO Registration Date | Flags conveyances lacking official Sub-Registrar registration endorsement dates. |
+| `TITLE_CHAIN_SPAN_AUDIT` | **Record Notation** | Title History Duration Check | Computes total span of title documentation (in years) and flags chains shorter than the standard 30-year statutory requirement. |
+| `PARTIAL_SHARE_TRANSFER_CHECK` | **Record Notation** | Undivided Share Audit | Tracks the percentage of undivided land share conveyed in each title deed. |
+| `DOCUMENT_SEQUENCE_NORMALIZER` | **Record Notation** | Chronological Ledger Order | Sorts multi-deed document packages into strict chronological sequence based on registration timestamps. |
 
 ### 4. Party Identity, PAN & KYC Audits
 
@@ -214,13 +214,13 @@ Audits party identities, Income Tax PAN compliance, corporate CIN numbers, and s
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `MISSING_TRANSFEROR_NAME` | **Material Defect** | Missing Seller Identity | Checks for missing seller names in documents. |
-| `MISSING_TRANSFEREE_NAME` | **Material Defect** | Missing Buyer Identity | Checks for missing buyer names in documents. |
-| `INVALID_PAN_FORMAT` | **Substantive Defect** | Structural PAN Defect | Verifies that Income Tax PAN numbers match the official 10-character format (`ABCDE1234F`). |
-| `MISSING_PARTY_PAN` | **Statutory Requisition** | Missing Income Tax PAN | Flags high-value transactions missing PAN numbers or Form 60/61 declarations (Sec 139A, Income Tax Act 1961). |
-| `CORPORATE_CIN_CHECK` | **Procedural Anomaly** | Corporate Identity Audit | Verifies Corporate Identification Numbers (CIN/LLPIN) when companies buy or sell property. |
-| `PARTY_ADDRESS_MISSING` | **Procedural Anomaly** | Missing Party Address | Flags documents missing formal buyer or seller addresses. |
-| `REPRESENTATIVE_CAPACITY_CHECK` | **Record Notation** | Execution Authority Audit | Checks board resolutions or authorizations when signatories act on behalf of companies or trusts. |
+| `MISSING_TRANSFEROR_NAME` | **Material Defect** | Missing Seller Identity | Checks for missing or unextracted transferor party names in conveyances. |
+| `MISSING_TRANSFEREE_NAME` | **Material Defect** | Missing Buyer Identity | Checks for missing or unextracted transferee party names in conveyances. |
+| `INVALID_PAN_FORMAT` | **Substantive Defect** | Structural PAN Defect | Validates extracted Permanent Account Number (PAN) strings against the official Income Tax format (`[A-Z]{5}[0-9]{4}[A-Z]{1}`). |
+| `MISSING_PARTY_PAN` | **Statutory Requisition** | Missing Income Tax PAN | Flags high-value transactions registered without PAN details or Form 60/61 declarations (Sec 139A, Income Tax Act 1961). |
+| `CORPORATE_CIN_CHECK` | **Procedural Anomaly** | Corporate Identity Audit | Validates Corporate Identification Numbers (CIN/LLPIN) for corporate entities executing property conveyances. |
+| `PARTY_ADDRESS_MISSING` | **Procedural Anomaly** | Missing Party Address | Identifies deed parties lacking formal residential or corporate address recitals. |
+| `REPRESENTATIVE_CAPACITY_CHECK` | **Record Notation** | Execution Authority Audit | Verifies board resolutions, executor status, or power of attorney recitals for corporate and non-individual signatories. |
 
 ### 5. Party Name Spelling Deviation Audits
 
@@ -228,12 +228,12 @@ Audits party name spelling variations across title chain documents, alias recita
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `NAME_SPELLING_CRITICAL_DEVIATION` | **Material Defect** | Major Name Mismatch | Flags major spelling differences in buyer or seller names between consecutive documents. |
-| `NAME_SPELLING_MODERATE_DEVIATION` | **Substantive Defect** | Moderate Name Variation | Flags minor spelling variations (such as phonetic differences) across documents. |
-| `ALIAS_NAME_RECITAL_CHECK` | **Statutory Requisition** | Alias / Also Known As Recital | Checks if name variations are explained by explicit alias recitals ('also known as') or official name change records. |
-| `SALUTATION_NORMALIZER` | **Record Notation** | Name Honorific Normalization | Removes titles like Shri, Smt, Dr, or M/s before comparing names. |
-| `SURNAME_INITIAL_EXPANSION` | **Record Notation** | Initial vs. Full Name Check | Matches abbreviated names against full names (e.g., 'R.K. Sharma' vs. 'Rajesh Kumar Sharma'). |
-| `PARTY_ROLE_CANONICALIZER` | **Record Notation** | Party Role Normalization | Standardizes role terms like Vendor/Vendee or Lessor/Lessee into standard seller/buyer roles. |
+| `NAME_SPELLING_CRITICAL_DEVIATION` | **Material Defect** | Major Name Mismatch | Flags major spelling discrepancies (Levenshtein distance > 0.35) between party names across successive title chain deeds. |
+| `NAME_SPELLING_MODERATE_DEVIATION` | **Substantive Defect** | Moderate Name Variation | Flags moderate spelling variations (e.g., phonetic transliteration differences) in party names across chain documents. |
+| `ALIAS_NAME_RECITAL_CHECK` | **Statutory Requisition** | Alias / Also Known As Recital | Verifies if name variations are backed by explicit alias recitals ('also known as') or official gazette notifications. |
+| `SALUTATION_NORMALIZER` | **Record Notation** | Name Honorific Normalization | Strips honorifics (Shri, Smt, Dr, M/s) prior to performing fuzzy string comparison across party records. |
+| `SURNAME_INITIAL_EXPANSION` | **Record Notation** | Initial vs. Full Name Check | Matches abbreviated middle names or initials against full expanded names (e.g., 'R.K. Sharma' vs 'Rajesh Kumar Sharma'). |
+| `PARTY_ROLE_CANONICALIZER` | **Record Notation** | Party Role Normalization | Maps vernacular party role terms (Vendor/Vendee, Lessor/Lessee, Donor/Donee) into standard system roles. |
 
 ### 6. Mortgage, Encumbrance & Charge Release Audits
 
@@ -241,22 +241,22 @@ Audits outstanding bank mortgages, reconveyance deeds, NOC certificates, court a
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `UNRELEASED_MORTGAGE_CHARGE` | **Material Defect** | Outstanding Bank Charge | Flags past bank mortgages that lack a registered Bank Release Deed or Reconveyance Deed. |
-| `MISSING_RECONVEYANCE_DEED` | **Material Defect** | Missing Release Deed | Flags paid-off bank loans that lack a registered Release Deed on record. |
-| `MORTGAGE_AMOUNT_EXCEEDED` | **Substantive Defect** | Charge Amount Discrepancy | Checks that bank release deed amounts match the original loan amount in the mortgage deed. |
-| `NOC_BANK_RELEASE_MISSING` | **Substantive Defect** | Missing Bank No Objection Certificate | Flags transactions on mortgaged property conducted without a written No Objection Certificate (NOC) from the bank. |
-| `ENCLOSED_DEPOSIT_TITLE_DEEDS` | **Statutory Requisition** | Equitable Mortgage Audit | Checks Memorandum of Deposit of Title Deeds (MODTD) registration under Sec 17 of the Registration Act 1908. |
-| `MORTGAGE_DATE_PRIORITY` | **Substantive Defect** | Mortgage Priority Audit | Checks priority order when multiple mortgages exist on the same property (Sec 48, Transfer of Property Act 1882). |
-| `RELEASE_DEED_PARTY_MISMATCH` | **Substantive Defect** | Mortgagee Identity Mismatch | Flags release deeds signed by an entity other than the original bank without proof of debt transfer. |
-| `PARTIAL_RELEASE_CHARGE` | **Statutory Requisition** | Partial Reconveyance Audit | Identifies partial loan payoffs where a mortgage charge remains active on part of the property. |
-| `LIS_PENDENS_CHARGE_CHECK` | **Material Defect** | Pending Court Litigation Charge | Flags ongoing court disputes or stay orders mentioned in property records (Sec 52, Transfer of Property Act 1882). |
-| `ATTACHMENT_ORDER_CHECK` | **Material Defect** | Judicial / Revenue Attachment | Flags government tax liens or court orders attaching the property. |
-| `LENDER_MERGER_TRANSITION` | **Record Notation** | Bank Merger Mapping | Maps historical bank mergers (e.g., Corporation Bank to Union Bank of India) when checking bank release deeds. |
-| `MORTGAGE_PROPERTY_SCHEDULE_MATCH` | **Procedural Anomaly** | Mortgage Property Match | Verifies that property descriptions in mortgage deeds match the main title deed. |
-| `RECHARGE_STAMP_DUTY_CHECK` | **Statutory Requisition** | Mortgage Stamp Duty Audit | Checks stamp duty paid on mortgage deeds (Article 40, Indian Stamp Act 1899). |
-| `MODTD_REGISTRATION_CHECK` | **Statutory Requisition** | MODTD Registration Audit | Verifies compulsory registration of equitable mortgage deposit memorandums under state stamp laws. |
-| `ENCUMBRANCE_FREE_DECLARATION` | **Record Notation** | Encumbrance Warranty Recital | Checks seller promises in the deed confirming the property is free of loans, liens, and court cases. |
-| `CHARGE_REGISTER_CANONICALIZER` | **Record Notation** | Encumbrance Ledger Normalization | Combines all past and current bank charges into a single clear property status list. |
+| `UNRELEASED_MORTGAGE_CHARGE` | **Material Defect** | Outstanding Bank Charge | Identifies outstanding equitable or registered mortgages in the title history lacking a registered Deed of Reconveyance or Bank Release Deed. |
+| `MISSING_RECONVEYANCE_DEED` | **Material Defect** | Missing Release Deed | Flags satisfied mortgages where debt payoff is recited but no formal registered Reconveyance Deed is on record. |
+| `MORTGAGE_AMOUNT_EXCEEDED` | **Substantive Defect** | Charge Amount Discrepancy | Detects discrepancies where release deed amounts do not cover the principal secured loan amount specified in the original Mortgage Deed. |
+| `NOC_BANK_RELEASE_MISSING` | **Substantive Defect** | Missing Bank No Objection Certificate | Flags transactions on mortgaged property conducted without written No Objection Certificates (NOC) from the mortgagee institution. |
+| `ENCLOSED_DEPOSIT_TITLE_DEEDS` | **Statutory Requisition** | Equitable Mortgage Audit | Audits Memorandum of Deposit of Title Deeds (MODTD) for compulsory registration under Sec 17 of the Registration Act 1908. |
+| `MORTGAGE_DATE_PRIORITY` | **Substantive Defect** | Mortgage Priority Audit | Verifies chronological priority of multiple mortgages registered against the same property under Sec 48 of the Transfer of Property Act 1882. |
+| `RELEASE_DEED_PARTY_MISMATCH` | **Substantive Defect** | Mortgagee Identity Mismatch | Flags release deeds executed by entities other than the original mortgagee bank without proof of debt assignment. |
+| `PARTIAL_RELEASE_CHARGE` | **Statutory Requisition** | Partial Reconveyance Audit | Identifies partial discharge of mortgage debt where an encumbrance remains active over undivided property portions. |
+| `LIS_PENDENS_CHARGE_CHECK` | **Material Defect** | Pending Court Litigation Charge | Flags pending court litigation recitals or court stay orders registered against the property (Sec 52, Transfer of Property Act 1882). |
+| `ATTACHMENT_ORDER_CHECK` | **Material Defect** | Judicial / Revenue Attachment | Flags revenue recovery attachment orders, tax department liens, or court attachment decrees against the property. |
+| `LENDER_MERGER_TRANSITION` | **Record Notation** | Bank Merger Mapping | Maps historical bank mergers (e.g., Corporation Bank to Union Bank of India) when verifying release deeds executed by successor banks. |
+| `MORTGAGE_PROPERTY_SCHEDULE_MATCH` | **Procedural Anomaly** | Mortgage Property Match | Cross-checks property unit details in Mortgage Deeds against the underlying title deed schedule. |
+| `RECHARGE_STAMP_DUTY_CHECK` | **Statutory Requisition** | Mortgage Stamp Duty Audit | Verifies stamp duty paid on Mortgage Deeds against Article 40 of the Indian Stamp Act 1899. |
+| `MODTD_REGISTRATION_CHECK` | **Statutory Requisition** | MODTD Registration Audit | Verifies compulsory registration of Memorandum of Deposit of Title Deeds under state stamp laws. |
+| `ENCUMBRANCE_FREE_DECLARATION` | **Record Notation** | Encumbrance Warranty Recital | Audits seller warranty recitals declaring the property free from all encumbrances, liens, and litigation. |
+| `CHARGE_REGISTER_CANONICALIZER` | **Record Notation** | Encumbrance Ledger Normalization | Compiles all active, partial, and discharged charges into a unified property encumbrance ledger. |
 
 ### 7. Lender Bank Match & Merger Audits
 
@@ -264,12 +264,12 @@ Audits recognized lending institutions, historical bank mergers, and SARFAESI en
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `UNRECOGNIZED_LENDING_INSTITUTION` | **Procedural Anomaly** | Unknown Lender Entity | Flags mortgage deeds involving unrecognized lenders outside official Public/Private banks, HFCs, and NBFCs. |
-| `HISTORICAL_BANK_MERGER_MAP` | **Record Notation** | Merger Succession Mapping | Automatically handles bank mergers (e.g., Syndicate Bank to Canara Bank, e-Vijaya Bank to Bank of Baroda). |
-| `NBFC_HFC_REGISTRATION_CHECK` | **Statutory Requisition** | RBI / NHB License Audit | Checks regulatory license status for housing finance companies and NBFC lenders under RBI/NHB rules. |
-| `MORTGAGEE_NAME_STANDARDIZATION` | **Record Notation** | Lender Name Normalization | Standardizes bank name variations (e.g., 'State Bank of India', 'SBI', 'S.B.I.') into a single clean format. |
-| `ASSIGNMENT_OF_DEBT_CHECK` | **Substantive Defect** | Debt Assignment Verification | Verifies debt assignment deeds when loan portfolios are transferred between banks. |
-| `SARFAESI_NOTICE_CHECK` | **Material Defect** | SARFAESI Enforcement Charge | Flags bank loan default notices or auction proceedings under the SARFAESI Act 2002. |
+| `UNRECOGNIZED_LENDING_INSTITUTION` | **Procedural Anomaly** | Unknown Lender Entity | Flags mortgage instruments executed with private entities outside the engine's 100+ recognized Commercial Bank, HFC, and NBFC registry. |
+| `HISTORICAL_BANK_MERGER_MAP` | **Record Notation** | Merger Succession Mapping | Resolves institutional succession for merged banks (e.g., Syndicate Bank to Canara Bank, e-Vijaya Bank to Bank of Baroda). |
+| `NBFC_HFC_REGISTRATION_CHECK` | **Statutory Requisition** | RBI / NHB License Audit | Audits lender entities against the engine's 100+ RBI/NHB registered HFC & NBFC ledger to verify regulatory standing and mortgage creation authority. |
+| `MORTGAGEE_NAME_STANDARDIZATION` | **Record Notation** | Lender Name Normalization | Standardizes corporate variations in bank names (e.g., 'State Bank of India', 'SBI', 'S.B.I.') into canonical entity codes. |
+| `ASSIGNMENT_OF_DEBT_CHECK` | **Substantive Defect** | Debt Assignment Verification | Audits Deed of Assignment of Debt when a mortgage portfolio is transferred between financial institutions. |
+| `SARFAESI_NOTICE_CHECK` | **Material Defect** | SARFAESI Enforcement Charge | Flags default notices or enforcement proceedings registered under the SARFAESI Act 2002. |
 
 ### 8. Project Metadata Reconciliation Audits
 
@@ -277,16 +277,16 @@ Audits plot/unit numbers, square footage area calculations, four-sided boundarie
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `PLOT_NUMBER_MISMATCH` | **Material Defect** | Plot Identifier Mismatch | Checks that plot and flat numbers stay consistent across all documents in the ownership history. |
-| `PROPERTY_AREA_DISCREPANCY` | **Substantive Defect** | Area Calculation Deviation | Flags discrepancies in property area (sq. ft. or sq. yards) between original and newer deeds. |
-| `BOUNDARY_NORTH_MISMATCH` | **Procedural Anomaly** | North Boundary Mismatch | Cross-checks North boundary descriptions across consecutive deeds. |
-| `BOUNDARY_SOUTH_MISMATCH` | **Procedural Anomaly** | South Boundary Mismatch | Cross-checks South boundary descriptions across consecutive deeds. |
-| `BOUNDARY_EAST_MISMATCH` | **Procedural Anomaly** | East Boundary Mismatch | Cross-checks East boundary descriptions across consecutive deeds. |
-| `BOUNDARY_WEST_MISMATCH` | **Procedural Anomaly** | West Boundary Mismatch | Cross-checks West boundary descriptions across consecutive deeds. |
-| `COLONY_NAME_NORMALIZER` | **Record Notation** | Locality Name Normalization | Standardizes colony names (e.g., 'Hauz Khas Enclave' vs. 'Hauz Khas') against official locality listings. |
-| `UNIT_MEASUREMENT_CONVERSION` | **Record Notation** | Area Unit Standardization | Converts different measurement units (sq. yards, sq. meters, bigha, biswa) into square feet. |
-| `PROPERTY_TYPE_CANONICALIZER` | **Record Notation** | Property Classification | Classifies property usage (Residential, Commercial, Industrial, Agricultural) based on deed text. |
-| `ADDRESS_LINE_RECONCILIATION` | **Record Notation** | Full Address Parsing | Reconciles full property addresses against municipal and postal records. |
+| `PLOT_NUMBER_MISMATCH` | **Material Defect** | Plot Identifier Mismatch | Reconciles plot, flat, and property unit identifiers across all link deeds in the title chain to detect transcription errors or unit swapping. |
+| `PROPERTY_AREA_DISCREPANCY` | **Substantive Defect** | Area Calculation Deviation | Detects variance in property area (sq. ft. / sq. yards) between root deeds and subsequent transfer conveyances. |
+| `BOUNDARY_NORTH_MISMATCH` | **Procedural Anomaly** | North Boundary Mismatch | Cross-references North boundary descriptions in property schedule recitals across successive deeds. |
+| `BOUNDARY_SOUTH_MISMATCH` | **Procedural Anomaly** | South Boundary Mismatch | Cross-references South boundary descriptions in property schedule recitals across successive deeds. |
+| `BOUNDARY_EAST_MISMATCH` | **Procedural Anomaly** | East Boundary Mismatch | Cross-references East boundary descriptions in property schedule recitals across successive deeds. |
+| `BOUNDARY_WEST_MISMATCH` | **Procedural Anomaly** | West Boundary Mismatch | Cross-references West boundary descriptions in property schedule recitals across successive deeds. |
+| `COLONY_NAME_NORMALIZER` | **Record Notation** | Locality Name Normalization | Standardizes colony and locality names (e.g., 'Hauz Khas Enclave' vs 'Hauz Khas') using statutory locality dictionaries. |
+| `UNIT_MEASUREMENT_CONVERSION` | **Record Notation** | Area Unit Standardization | Normalizes variant area metrics (sq. yards, sq. meters, bigha, biswa) into standardized square feet. |
+| `PROPERTY_TYPE_CANONICALIZER` | **Record Notation** | Property Classification | Classifies property nature (Residential, Commercial, Industrial, Agricultural) based on deed schedule recitals. |
+| `ADDRESS_LINE_RECONCILIATION` | **Record Notation** | Full Address Parsing | Reconciles complete address strings against statutory postal and municipal records. |
 
 ### 9. Statutory Stamp Duty & Municipal Tax Audit Matrix
 
@@ -294,29 +294,29 @@ Audits statutory stamp duty compliance, MCD transfer taxes, gender concessions, 
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `STAMP_DUTY_DEFICIT_MALE` | **Statutory Requisition** | Male Stamp Duty Deficit | Checks if male buyers paid the required stamp duty rate (6% total in Delhi: 4% stamp duty + 2% MCD tax). |
-| `STAMP_DUTY_DEFICIT_FEMALE` | **Statutory Requisition** | Female Stamp Duty Deficit | Checks if female buyers received the statutory concession rate (4% total in Delhi: 3% stamp duty + 1% MCD tax). |
-| `STAMP_DUTY_DEFICIT_JOINT` | **Statutory Requisition** | Joint Stamp Duty Deficit | Checks if joint (male + female) buyers paid the joint rate (5% total in Delhi). |
-| `MCD_TRANSFER_TAX_DEFICIT` | **Statutory Requisition** | MCD Transfer Tax Deficit | Checks municipal transfer tax payment under Sec 147 of the Delhi Municipal Corporation Act 1957. |
-| `PRE_2003_CONVEYANCE_TAX_CHECK` | **Record Notation** | Pre-2003 Flat Rate Duty Check | Evaluates stamp duty compliance for older conveyances registered before 2003 under flat 8% rules. |
-| `DDA_CONVEYANCE_EXEMPTION` | **Record Notation** | DDA Statutory Concession | Applies statutory stamp duty rules for original DDA or Government allotment conveyances before 2003 (6% rate). |
-| `E_STAMP_CERTIFICATE_VERIFY` | **Record Notation** | E-Stamp Authentication | Verifies e-stamp certificate numbers, dates, and amounts against official registry records. |
-| `STAMP_PAPER_DATE_PRECEDENCE` | **Procedural Anomaly** | Stamp Paper Date Precedence | Checks that stamp paper was purchased on or before the deed signing date (Sec 29, Indian Stamp Act 1899). |
-| `CIRCLE_RATE_EVALUATION` | **Statutory Requisition** | Minimum Circle Rate Audit | Calculates minimum legal property valuation based on Delhi Category A-H circle rates and flags undervaluation. |
-| `UNDERVALUATION_PENALTY_CHECK` | **Statutory Requisition** | Undervaluation Requisition | Flags stamp duty shortfalls subject to impounding and penalty under Sec 47A of the Indian Stamp Act 1899. |
-| `AGGREGATE_DUTY_COMPUTATION` | **Record Notation** | Multi-Receipt Duty Aggregation | Combines payments across multiple e-stamp receipts, state stamp duty, and municipal transfer tax. |
-| `ARTICLE_23_CONVEYANCE_DUTY` | **Record Notation** | Article 23 Conveyance Tariff | Checks conveyance stamp duty rates under Article 23 of the Indian Stamp Act 1899. |
-| `ARTICLE_55_RELEASE_DUTY` | **Record Notation** | Article 55 Release Tariff | Checks stamp duty paid on Release or Relinquishment Deeds (Article 55, Indian Stamp Act 1899). |
-| `ARTICLE_33_GIFT_DUTY` | **Record Notation** | Article 33 Gift Tariff | Checks stamp duty paid on Gift Deeds (Article 33, Indian Stamp Act 1899). |
-| `ARTICLE_48_GPA_DUTY` | **Record Notation** | Article 48 Power of Attorney Tariff | Checks stamp duty paid on Power of Attorney documents (Article 48, Indian Stamp Act 1899). |
-| `ARTICLE_35_LEASE_DUTY` | **Record Notation** | Article 35 Lease Tariff | Checks stamp duty paid on Lease Agreements based on lease length and annual rent (Article 35). |
-| `ARTICLE_40_MORTGAGE_DUTY` | **Record Notation** | Article 40 Mortgage Tariff | Checks stamp duty paid on Mortgage Deeds (Article 40, Indian Stamp Act 1899). |
-| `FEMALE_CONCESSION_ELIGIBILITY` | **Record Notation** | Female Rate Concession Audit | Verifies buyer details to ensure female stamp duty discount eligibility. |
-| `STAMP_REFUND_CLAIM_CHECK` | **Record Notation** | Unused Stamp Paper Audit | Checks unused or cancelled stamp papers submitted for refund within the 6-month limit (Sec 49). |
-| `IMPOUNDING_RISK_ASSESSMENT` | **Substantive Defect** | Deed Impounding Risk | Flags understamped deeds at risk of being impounded by the Collector of Stamps (Sec 33, Indian Stamp Act). |
-| `REGISTRATION_FEE_CHECK` | **Statutory Requisition** | Statutory Registration Fee Audit | Checks 1% statutory registration fees paid at the SRO office. |
-| `PAST_STAMP_LAW_AMENDMENT_MAP` | **Record Notation** | Historical Stamp Rate Ledger | Applies past Delhi stamp duty rate changes (1995, 2003, 2008, 2012) based on deed dates. |
-| `TAX_EXEMPTION_RECITAL_VERIFY` | **Record Notation** | Statutory Exemption Recital | Verifies statutory tax exemption claims (such as government grants) against official notifications. |
+| `STAMP_DUTY_DEFICIT_MALE` | **Statutory Requisition** | Male Stamp Duty Deficit | Reconciles stamp duty paid by male purchasers against statutory rates (6% total in Delhi: 4% stamp duty + 2% MCD transfer tax). |
+| `STAMP_DUTY_DEFICIT_FEMALE` | **Statutory Requisition** | Female Stamp Duty Deficit | Reconciles stamp duty paid by female purchasers against statutory concession rates (4% total in Delhi: 3% stamp duty + 1% MCD transfer tax). |
+| `STAMP_DUTY_DEFICIT_JOINT` | **Statutory Requisition** | Joint Stamp Duty Deficit | Reconciles stamp duty paid by joint (female + male) purchasers against joint concession rates (5% total in Delhi). |
+| `MCD_TRANSFER_TAX_DEFICIT` | **Statutory Requisition** | MCD Transfer Tax Deficit | Reconciles municipal transfer tax paid under Sec 147 of the Delhi Municipal Corporation Act 1957. |
+| `PRE_2003_CONVEYANCE_TAX_CHECK` | **Record Notation** | Pre-2003 Flat Rate Duty Check | Evaluates historical stamp duty compliance for conveyances registered prior to 2003 under flat 8% tariff rules. |
+| `DDA_CONVEYANCE_EXEMPTION` | **Record Notation** | DDA Statutory Concession | Applies statutory stamp duty exemptions for initial DDA / Government allotment conveyances executed prior to 2003 (6% rate). |
+| `E_STAMP_CERTIFICATE_VERIFY` | **Record Notation** | E-Stamp Authentication | Validates e-stamp certificate numbers, issue timestamps, and certificate amounts against registration endorsements. |
+| `STAMP_PAPER_DATE_PRECEDENCE` | **Procedural Anomaly** | Stamp Paper Date Precedence | Verifies that non-judicial stamp paper purchase dates precede or match the deed execution date (Sec 29, Indian Stamp Act 1899). |
+| `CIRCLE_RATE_EVALUATION` | **Statutory Requisition** | Minimum Circle Rate Audit | Calculates minimum statutory valuation based on Delhi Category A-H circle rates and flags undervaluation. |
+| `UNDERVALUATION_PENALTY_CHECK` | **Statutory Requisition** | Undervaluation Requisition | Identifies stamp duty shortfalls subject to impounding and penalty under Sec 47A of the Indian Stamp Act 1899. |
+| `AGGREGATE_DUTY_COMPUTATION` | **Record Notation** | Multi-Receipt Duty Aggregation | Dynamically aggregates split e-stamp receipts, state stamp duty, and local body transfer tax payments. |
+| `ARTICLE_23_CONVEYANCE_DUTY` | **Record Notation** | Article 23 Conveyance Tariff | Verifies conveyance stamp duty rates under Article 23, Schedule I-A of the Indian Stamp Act 1899. |
+| `ARTICLE_55_RELEASE_DUTY` | **Record Notation** | Article 55 Release Tariff | Audits stamp duty paid on Release / Relinquishment Deeds under Article 55 of the Indian Stamp Act 1899. |
+| `ARTICLE_33_GIFT_DUTY` | **Record Notation** | Article 33 Gift Tariff | Audits stamp duty paid on Gift Deeds under Article 33, Schedule I-A of the Indian Stamp Act 1899. |
+| `ARTICLE_48_GPA_DUTY` | **Record Notation** | Article 48 Power of Attorney Tariff | Audits stamp duty paid on Power of Attorney instruments under Article 48 of the Indian Stamp Act 1899. |
+| `ARTICLE_35_LEASE_DUTY` | **Record Notation** | Article 35 Lease Tariff | Audits stamp duty paid on Lease Agreements based on lease duration and annual rent under Article 35. |
+| `ARTICLE_40_MORTGAGE_DUTY` | **Record Notation** | Article 40 Mortgage Tariff | Audits stamp duty paid on Mortgage Deeds with or without possession under Article 40 of the Indian Stamp Act 1899. |
+| `FEMALE_CONCESSION_ELIGIBILITY` | **Record Notation** | Female Rate Concession Audit | Verifies sole female or joint female ownership recitals to validate eligibility for statutory stamp duty concessions. |
+| `STAMP_REFUND_CLAIM_CHECK` | **Record Notation** | Unused Stamp Paper Audit | Identifies cancelled or unexecuted stamp papers submitted for statutory refund within 6 months (Sec 49, Indian Stamp Act). |
+| `IMPOUNDING_RISK_ASSESSMENT` | **Substantive Defect** | Deed Impounding Risk | Flags inadequately stamped deeds subject to impounding by the Collector of Stamps under Sec 33 of the Indian Stamp Act. |
+| `REGISTRATION_FEE_CHECK` | **Statutory Requisition** | Statutory Registration Fee Audit | Reconciles 1% statutory registration fees paid at SRO (subject to Delhi/Haryana statutory caps). |
+| `PAST_STAMP_LAW_AMENDMENT_MAP` | **Record Notation** | Historical Stamp Rate Ledger | Maps historical stamp duty rate amendments in Delhi (1995, 2003, 2008, 2012) against deed registration dates. |
+| `TAX_EXEMPTION_RECITAL_VERIFY` | **Record Notation** | Statutory Exemption Recital | Verifies statutory tax exemption recitals (e.g., government grants, educational trusts) against statutory notification orders. |
 
 ### 10. Haryana Jurisdiction & Revenue Estate Audits [BETA]
 
@@ -326,10 +326,10 @@ Audits Haryana Municipal Corporation (MCG/MCF) vs. rural Gram Panchayat duty rat
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `HARYANA_URBAN_RURAL_CLASSIFIER` | **Record Notation** | Municipal vs Gram Panchayat Classifier | Classifies Haryana properties as Urban Municipal Corporation (MCG/MCF) vs. Rural Gram Panchayat areas. |
-| `HARYANA_FEMALE_CONCESSION_CHECK` | **Statutory Requisition** | Haryana Female Concession Audit | Checks Haryana stamp duty rates (5% Urban / 3% Rural for females vs. 7% Urban / 5% Rural for males). |
-| `HADBAST_NUMBER_AUDIT` | **Substantive Defect** | Hadbast / Khasra Verification | Cross-checks Hadbast (Revenue Estate) and Khasra parcel numbers against Haryana Land Records. |
-| `HARYANA_GRAM_PANCHAYAT_DUTY` | **Statutory Requisition** | 2% Gram Panchayat Duty Audit | Checks the 2% local body transfer tax in rural Haryana Gram Panchayat areas. |
+| `HARYANA_URBAN_RURAL_CLASSIFIER` | **Record Notation** | Municipal vs Gram Panchayat Classifier | Classifies Haryana property locations into Urban Municipal Corporation (MCG/MCF) vs. Rural Gram Panchayat revenue areas. |
+| `HARYANA_FEMALE_CONCESSION_CHECK` | **Statutory Requisition** | Haryana Female Concession Audit | Audits Haryana statutory stamp duty rates (5% Urban / 3% Rural for females vs. 7% Urban / 5% Rural for males). |
+| `HADBAST_NUMBER_AUDIT` | **Substantive Defect** | Hadbast / Khasra Verification | Cross-checks Hadbast (Revenue Estate) numbers and Khasra parcel identifiers against Haryana Land Records ledgers. |
+| `HARYANA_GRAM_PANCHAYAT_DUTY` | **Statutory Requisition** | 2% Gram Panchayat Duty Audit | Audits the 2% local body transfer duty levied in rural Haryana Gram Panchayat jurisdictions. |
 
 ### 11. Pre-Processing & Computer Vision Rules
 
@@ -337,15 +337,15 @@ Audits document page orientation, affine deskewing, binarization quality, and du
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `PAGE_SKEW_ANGLE_DETECT` | **Record Notation** | Deskew Angle Detection | Detects page tilt angle (-45° to +45°) using OpenCV bounding box analysis (`cv2.minAreaRect`). |
-| `AFFINE_ROTATION_DESKEW` | **Record Notation** | Computer Vision Page Deskew | Straightens tilted document page scans before text extraction. |
-| `OTSU_BINARIZATION_CLEAN` | **Record Notation** | Artifact & Shadow Removal | Cleans background yellowing, stamp bleed, and shadows using adaptive Otsu thresholding (`cv2.THRESH_OTSU`). |
-| `DUAL_ENGINE_OCR_ROUTER` | **Record Notation** | Digital Vector vs. OCR Routing | Routes pages to digital font extraction (`pdfplumber`) or vision OCR based on text quality. |
-| `WATERMARK_SHADOW_SUPPRESSION` | **Record Notation** | Watermark Noise Filter | Filters out background watermarks and registry stamps that obscure deed text. |
-| `RESOLUTION_DPI_NORMALIZER` | **Record Notation** | Image Resolution Normalization | Rescales low-resolution document scans to 300 DPI baseline for accurate text reading. |
-| `MULTI_PAGE_SEQUENCE_CHECK` | **Record Notation** | Page Sequence Continuity | Detects missing or out-of-order pages in uploaded PDF packages. |
-| `ENDORSEMENT_STAMP_CROP` | **Record Notation** | SRO Endorsement Bounding Box | Locates and crops official registration stamps on deed margins for targeted text extraction. |
-| `IMAGE_BLUR_QUALITY_AUDIT` | **Record Notation** | Image Clarity Audit | Measures image sharpness to flag blurry or unreadable scans that need re-uploading. |
+| `PAGE_SKEW_ANGLE_DETECT` | **Record Notation** | Deskew Angle Detection | Computes page rotation skew angle (-45° to +45°) using OpenCV minimum area bounding box analysis (`cv2.minAreaRect`). |
+| `AFFINE_ROTATION_DESKEW` | **Record Notation** | Computer Vision Page Deskew | Applies 2D affine rotation matrix transformation to straighten skewed scanned deed pages prior to OCR. |
+| `OTSU_BINARIZATION_CLEAN` | **Record Notation** | Artifact & Shadow Removal | Executes adaptive Otsu thresholding (`cv2.THRESH_OTSU`) to remove background yellowing, stamp bleed, and shadow artifacts. |
+| `DUAL_ENGINE_OCR_ROUTER` | **Record Notation** | Digital Vector vs. OCR Routing | Dynamically routes pages between direct PDF vector text extraction (`pdfplumber`) and computer vision OCR based on text layer quality. |
+| `WATERMARK_SHADOW_SUPPRESSION` | **Record Notation** | Watermark Noise Filter | Filters out recurring endorsement background watermarks and SRO security stamps that obscure deed text. |
+| `RESOLUTION_DPI_NORMALIZER` | **Record Notation** | Image Resolution Normalization | Rescales low-resolution document scans to 300 DPI baseline for optical character recognition accuracy. |
+| `MULTI_PAGE_SEQUENCE_CHECK` | **Record Notation** | Page Sequence Continuity | Detects missing pages or out-of-order page sequences in uploaded PDF document packages. |
+| `ENDORSEMENT_STAMP_CROP` | **Record Notation** | SRO Endorsement Bounding Box | Locates and crops registration endorsement stamps on deed margins for targeted OCR text extraction. |
+| `IMAGE_BLUR_QUALITY_AUDIT` | **Record Notation** | Image Clarity Audit | Measures Laplacian variance to flag illegible, blurry, or low-quality document scans requiring re-upload. |
 
 ### 12. Meta-Rules & Legal Privilege Enforcement
 
@@ -353,9 +353,9 @@ Enforces no-verdict AI output boundaries, statutory privilege disclaimers, and P
 
 | Code | Severity | Finding Name | Verification Function & Legal Scope |
 | :--- | :--- | :--- | :--- |
-| `NO_VERDICT_PROSE_ENFORCER` | **Record Notation** | Legal Opinion Verdict Filter | Ensures output stays strictly neutral, filtering out definitive legal verdicts from AI text. |
-| `PRIVILEGE_DISCLAIMER_ATTACH` | **Record Notation** | Legal Privilege Disclaimer | Attaches statutory disclaimers stating outputs are draft due diligence tools, not legal opinions. |
-| `CONFIDENTIALITY_METADATA_GUARD` | **Record Notation** | Data Privacy & KYC Shield | Redacts personal identity details and private KYC data from system logs. |
+| `NO_VERDICT_PROSE_ENFORCER` | **Record Notation** | Legal Opinion Verdict Filter | Enforces the platform's strictly neutral stance by filtering out conclusive legal verdicts (e.g. declaring deeds 'void' or 'invalid') from AI output. |
+| `PRIVILEGE_DISCLAIMER_ATTACH` | **Record Notation** | Legal Privilege Disclaimer | Attaches mandatory statutory disclaimers declaring outputs as draft due diligence assistance, not formal legal opinions. |
+| `CONFIDENTIALITY_METADATA_GUARD` | **Record Notation** | Data Privacy & KYC Shield | Redacts sensitive personal identifiable information (PII) and confidential KYC data from persistent system logs. |
 
 ---
 
