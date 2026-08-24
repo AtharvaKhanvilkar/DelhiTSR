@@ -703,7 +703,7 @@ def _normalize_lender(name):
             if s == alias_norm or s == canonical_key:
                 return canonical_key
 
-            # Stage 2: Strict Levenshtein Similarity calculation (>= 82% threshold)
+            # Stage 2: Strict Levenshtein Similarity calculation (>= 90% threshold)
             max_len = max(len(s), len(alias_norm))
             if max_len > 0:
                 dist = _levenshtein(s, alias_norm)
@@ -712,8 +712,8 @@ def _normalize_lender(name):
                     best_sim = sim
                     best_match = canonical_key
 
-    # Apply strict threshold (minimum 82% similarity required for fuzzy match)
-    if best_match and best_sim >= 0.82:
+    # Apply ultra-strict threshold (minimum 90% similarity required for fuzzy match)
+    if best_match and best_sim >= 0.90:
         return best_match
 
     return s
