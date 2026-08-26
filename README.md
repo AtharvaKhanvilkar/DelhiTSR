@@ -42,6 +42,7 @@ DelhiTSR is a specialized title intelligence engine for property legal due dilig
   - [11. Pre-Processing \& Computer Vision Rules](#11-pre-processing--computer-vision-rules)
   - [12. Meta-Rules \& Legal Privilege Enforcement](#12-meta-rules--legal-privilege-enforcement)
 - [No-Verdict Policy \& Legal Privilege Protection](#no-verdict-policy--legal-privilege-protection)
+- [Security Architecture \& OWASP Controls](#security-architecture--owasp-controls)
 - [Setup \& Local Development Installation](#setup--local-development-installation)
 - [Repository File Blueprint](#repository-file-blueprint)
 
@@ -363,6 +364,29 @@ Enforces no-verdict AI output boundaries, statutory privilege disclaimers, and P
 
 1. **Factual Output Only**: The engine reports objective observations (such as stamp duty calculations, boundary discrepancies, or missing authorization documents). It does not declare titles void, defective, or invalid.
 2. **Advocate Support**: Output is structured to support legal review while preserving advocate-client privilege.
+
+---
+
+## Security Architecture & OWASP Controls
+
+The platform implements multi-layered security controls to protect sensitive real estate transactions, identity data, and document processing routines against standard web vulnerabilities and LLM-specific threat vectors:
+
+### 1. Indirect Prompt Injection (IPI) & LLM Boundaries
+* **Payload Encapsulation**: All OCR document text supplied to LLM extraction routines (`main.py`) is explicitly bounded inside `<untrusted_document_payload>` XML tags.
+* **Defensive System Mandates**: Prompts enforce system-level instructions requiring the engine to process tag contents strictly as static data and ignore any embedded command overrides or queries.
+* **Stateless API Executions**: Extraction passes execute statelessly without context memory or database access, preventing cross-document information disclosure.
+* **Strict Schema Sanitization**: Responses are validated against explicit JSON schemas. Unstructured text or non-conforming fields returned by the model are automatically stripped.
+
+### 2. Authentication & Data Protection
+* **Constant-Time Verification**: Passwordless email OTP verification uses `secrets.compare_digest` to prevent timing side-channel analysis.
+* **AES-256 PII Encryption**: Aadhaar identifiers are encrypted at rest using Fernet symmetric encryption (`cryptography.fernet`). Decryption occurs strictly in-memory during real-time audit evaluation.
+* **Broken Object-Level Authorization (BOLA) Defense**: All project workspace endpoints enforce ownership validation (`check_project_owner`), restricting access to the authenticated user ID.
+
+### 3. Network & Transport Security Headers
+* **HTTP Security Headers**: Every HTTP response sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 1; mode=block`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+* **Cross-Origin & Permission Isolation**: Standard headers enforce `X-Permitted-Cross-Domain-Policies: none`, `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`, and `Permissions-Policy: geolocation=(), microphone=(), camera=()`.
+* **Transport Layer Security**: HTTPS Transport Security (`Strict-Transport-Security: max-age=31536000; includeSubDomains`) is enforced when operating in secure environments.
+* **Rate Limiting & Payload Limits**: Endpoint rate limits prevent automated brute-force attempts on authentication routes, while `MAX_CONTENT_LENGTH` restricts file uploads to 32MB.
 
 ---
 
