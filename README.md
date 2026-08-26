@@ -13,7 +13,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
 
 DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for institutional mortgage underwriting and title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass LLM pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
 
-> **Note**: DelhiTSR is under active development. While the engine currently audits title deeds, reconciles stamp duty tariffs, and evaluates 94 statutory verification checks, compiled Title Search Report (TSR) generation will be introduced in future releases.
+> **Note**: DelhiTSR is under active development. While the engine currently audits title deeds, reconciles stamp duty tariffs, and evaluates 94 verification checks, compiled Title Search Report (TSR) generation will be introduced in future releases.
 
 ---
 
@@ -23,7 +23,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 - [Module 1: Document Pre-processing \& Dual-Engine OCR](#module-1-document-pre-processing--dual-engine-ocr)
 - [Module 2: 4-Pass 80-Parameter Extraction Pipeline](#module-2-4-pass-80-parameter-extraction-pipeline)
 - [Module 3: Universal Tax \& Local Authority Reconciliation Engine](#module-3-universal-tax--local-authority-reconciliation-engine)
-  - [Delhi Statutory Duty \& MCD Tax Matrix](#delhi-statutory-duty--mcd-tax-matrix)
+  - [Delhi Stamp Duty \& MCD Tax Matrix](#delhi-stamp-duty--mcd-tax-matrix)
   - [Haryana Urban vs. Rural Jurisdiction Engine [BETA]](#haryana-urban-vs-rural-jurisdiction-engine-beta)
   - [Constituent Tax Aggregation Algorithm](#constituent-tax-aggregation-algorithm)
 - [Recognized Financial Institutions \& Mortgage Lenders](#recognized-financial-institutions--mortgage-lenders)
@@ -96,7 +96,7 @@ To prevent context drift and attention splitting across 50+ page legal deeds, ex
 
 ## Module 3: Universal Tax & Local Authority Reconciliation Engine
 
-### Delhi Statutory Duty & MCD Tax Matrix
+### Delhi Stamp Duty & MCD Tax Matrix
 
 Evaluates compliance under the Indian Stamp Act, 1899 (Schedule I-A Delhi Amendment) and Section 147 of the Delhi Municipal Corporation Act, 1957:
 
@@ -161,21 +161,21 @@ The engine incorporates a normalized lender entity ledger that resolves spelling
 
 The engine executes 94 deterministic audit routines across 12 specialized functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 platform legal severity tiers:
 
-### 1. Legal & Statutory Compliance Audits
+### 1. Legal & Regulatory Compliance Audits
 
-Audits compliance against statutory registration laws, SRO territorial jurisdiction, and power of attorney execution mandates:
+Audits compliance against registration laws, SRO territorial jurisdiction, and power of attorney execution mandates:
 
 | Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | `Sec 28, Registration Act 1908` | Evaluates whether the deed was registered at the Sub-Registrar Office (SRO) holding statutory territorial jurisdiction over the property locality, flagging registrations outside territorial limits as void. |
+| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | `Sec 28, Registration Act 1908` | Evaluates whether the deed was registered at the Sub-Registrar Office (SRO) holding territorial jurisdiction over the property locality, flagging registrations outside territorial limits as void. |
 | `GPA_POST_2011_INVALID` | **Material Defect** | Post-2011 GPA Title Transfer | `Suraj Lamp Ruling (Supreme Court, 2011)` | Flags property title transfers executed via General Power of Attorney after October 11, 2011 without a registered Sale Deed. |
 | `MISSING_GPA_AUTHORIZATION` | **Material Defect** | Missing Attorney Authorization | `Sec 32 & 33, Registration Act 1908` | Verifies that conveyances executed by an attorney-in-fact reference a valid registered General or Special Power of Attorney (GPA/SPA) in the title chain. |
 | `UNREGULARIZED_GPA_CHAIN` | **Substantive Defect** | Unregularized GPA Chain | `Sec 54, Transfer of Property Act 1882` | Detects title histories ending with an unregularized General Power of Attorney or Agreement to Sell without a subsequently registered Sale Deed. |
-| `PROPERTY_NOT_IN_DELHI` | **Procedural Anomaly** | Out-of-Jurisdiction Location | `Delhi Land Revenue Act 1954` | Flags property localities situated outside the statutory revenue districts of NCT Delhi or Haryana (BETA) boundaries. |
-| `SEC28_REG_ACT_AUDIT` | **Record Notation** | Mandatory SRO Validation | `Sec 28, Registration Act 1908` | Audits official Sub-Registrar registration endorsement stamps against statutory SRO territorial revenue maps. |
+| `PROPERTY_NOT_IN_DELHI` | **Procedural Anomaly** | Out-of-Jurisdiction Location | `Delhi Land Revenue Act 1954` | Flags property localities situated outside the revenue districts of NCT Delhi or Haryana (BETA) boundaries. |
+| `SEC28_REG_ACT_AUDIT` | **Record Notation** | Mandatory SRO Validation | `Sec 28, Registration Act 1908` | Audits official Sub-Registrar registration endorsement stamps against official SRO territorial revenue maps. |
 | `SRO_TERRITORY_MATRIX` | **Record Notation** | SRO Territory Ledger Mapping | `N/A (Engine Jurisdiction Ledger)` | Cross-references SRO office designations on deeds against the engine's 350+ Delhi revenue locality mapping matrix. |
 | `SRO_CODE_NORMALIZER` | **Record Notation** | SRO Code Canonicalization | `N/A (Engine Canonical Logic)` | Normalizes variant SRO text strings (e.g., 'SRO V-A Hauz Khas' to `5a`) into canonical system SRO identifiers. |
-| `SRO_LOCALITY_TOKEN_MATCH` | **Record Notation** | Locality Boundary Token Check | `N/A (Engine Token Matching)` | Performs tokenized string matching between the property schedule address and official SRO statutory jurisdiction ledgers. |
+| `SRO_LOCALITY_TOKEN_MATCH` | **Record Notation** | Locality Boundary Token Check | `N/A (Engine Token Matching)` | Performs tokenized string matching between the property schedule address and official SRO jurisdiction ledgers. |
 | `EXPLICIT_SRO_RECITAL` | **Record Notation** | Explicit Header SRO Recital | `Sec 28, Registration Act 1908` | Validates explicit SRO jurisdiction recitals in deed preambles against official endorsement registry stamps. |
 
 ### 2. Consideration & Financial Valuation Audits
@@ -187,7 +187,7 @@ Audits monetary consideration declarations, lease rentals, mortgage principal am
 | `MISSING_SALE_CONSIDERATION` | **Material Defect** | Missing Sale Price | `Sec 54, Transfer of Property Act 1882` | Validates that monetary transaction consideration is explicitly declared in conveyances as required for legal validity. |
 | `MISSING_RENTAL_CONSIDERATION` | **Material Defect** | Missing Lease License Fee | `Sec 105, Transfer of Property Act 1882` | Verifies that rent, premium, or monthly license fees are explicitly recited in Lease Deeds and Leave & License agreements. |
 | `MISSING_MORTGAGE_VALUE` | **Material Defect** | Missing Secured Loan Principal | `Sec 58, Transfer of Property Act 1882` | Ensures Mortgage Deeds explicitly declare the principal loan amount secured by the property. |
-| `GIFT_DEED_WITH_CONSIDERATION` | **Material Defect** | Gift with Consideration | `Sec 122, Transfer of Property Act 1882` | Flags Gift Deeds that recite financial consideration, violating the statutory requirement that gifts must be voluntary transfers without monetary payment. |
+| `GIFT_DEED_WITH_CONSIDERATION` | **Material Defect** | Gift with Consideration | `Sec 122, Transfer of Property Act 1882` | Flags Gift Deeds that recite financial consideration, violating the legal requirement that gifts must be voluntary transfers without monetary payment. |
 | `CONSIDERATION_ZERO_OR_NEGATIVE` | **Material Defect** | Invalid Consideration Value | `Sec 25, Indian Contract Act 1872` | Flags conveyances declaring zero, negative, or invalid numeric values for monetary transaction consideration. |
 | `CONSIDERATION_FORMAT_AUDIT` | **Record Notation** | Consideration Parsing Validation | `N/A (Engine Financial Parser)` | Audits numerical figures against written word consideration recitals (e.g., ₹5,00,000 vs 'Fifty Thousand') to detect monetary transcription discrepancies. |
 | `CONSIDERATION_CURRENCY_CHECK` | **Record Notation** | Currency Unit Standardization | `Reserve Bank of India Act 1934` | Verifies that monetary consideration values are recorded in standard Indian Rupee (INR / ₹) currency denominations. |
@@ -205,7 +205,7 @@ Audits 30-year ownership continuity, link deed sequencing, execution dates, and 
 | `MULTIPLE_ACTIVE_OWNERS` | **Substantive Defect** | Ambiguous Undivided Ownership | `Sec 44, Transfer of Property Act 1882` | Detects conflicting concurrent full ownership claims over the same property unit across unlinked conveyances. |
 | `DEED_EXECUTION_DATE_MISSING` | **Procedural Anomaly** | Missing Execution Date | `Sec 23, Registration Act 1908` | Checks for missing execution or signing dates on deed preambles and signature recitals. |
 | `DEED_REGISTRATION_DATE_MISSING` | **Procedural Anomaly** | Missing SRO Registration Date | `Sec 60, Registration Act 1908` | Flags conveyances lacking official Sub-Registrar registration endorsement dates. |
-| `TITLE_CHAIN_SPAN_AUDIT` | **Record Notation** | Title History Duration Check | `Sec 90, Indian Evidence Act 1872` | Computes the total span of title documentation in years and flags title chains shorter than the standard 30-year statutory requirement for proving ancient documents. |
+| `TITLE_CHAIN_SPAN_AUDIT` | **Record Notation** | Title History Duration Check | `Sec 90, Indian Evidence Act 1872` | Computes the total span of title documentation in years and flags title chains shorter than the 30-year requirement for proving ancient documents. |
 | `PARTIAL_SHARE_TRANSFER_CHECK` | **Record Notation** | Undivided Share Audit | `Sec 44, Transfer of Property Act 1882` | Tracks the exact percentage of undivided land share conveyed in each title deed to ensure full title conveyance. |
 | `DOCUMENT_SEQUENCE_NORMALIZER` | **Record Notation** | Chronological Ledger Order | `N/A (Engine Chronology Audit)` | Sorts multi-deed document packages into strict chronological sequence based on registration timestamps. |
 
@@ -246,7 +246,7 @@ Audits outstanding bank mortgages, reconveyance deeds, NOC certificates, court a
 | `MISSING_RECONVEYANCE_DEED` | **Material Defect** | Missing Release Deed | `Sec 60, Transfer of Property Act 1882` | Flags satisfied bank loans where debt payoff is recited but no formal registered Reconveyance Deed is on record. |
 | `MORTGAGE_AMOUNT_EXCEEDED` | **Substantive Defect** | Charge Amount Discrepancy | `Sec 60, Transfer of Property Act 1882` | Detects discrepancies where release deed amounts do not cover the principal secured loan amount specified in the original Mortgage Deed. |
 | `NOC_BANK_RELEASE_MISSING` | **Substantive Defect** | Missing Bank No Objection Certificate | `Sec 48, Transfer of Property Act 1882` | Flags transactions on mortgaged property conducted without written No Objection Certificates (NOC) from the mortgagee institution. |
-| `ENCLOSED_DEPOSIT_TITLE_DEEDS` | **Statutory Requisition** | Equitable Mortgage Audit | `Sec 17(1)(c), Registration Act 1908` | Audits Memorandum of Deposit of Title Deeds (MODTD) for compulsory registration under statutory registration law. |
+| `ENCLOSED_DEPOSIT_TITLE_DEEDS` | **Statutory Requisition** | Equitable Mortgage Audit | `Sec 17(1)(c), Registration Act 1908` | Audits Memorandum of Deposit of Title Deeds (MODTD) for compulsory registration under registration law. |
 | `MORTGAGE_DATE_PRIORITY` | **Substantive Defect** | Mortgage Priority Audit | `Sec 48, Transfer of Property Act 1882` | Verifies chronological priority of multiple mortgages registered against the same property. |
 | `RELEASE_DEED_PARTY_MISMATCH` | **Substantive Defect** | Mortgagee Identity Mismatch | `Sec 130, Transfer of Property Act 1882` | Flags release deeds executed by entities other than the original mortgagee bank without proof of debt assignment. |
 | `PARTIAL_RELEASE_CHARGE` | **Statutory Requisition** | Partial Reconveyance Audit | `Sec 60, Transfer of Property Act 1882` | Identifies partial discharge of mortgage debt where an encumbrance remains active over undivided property portions. |
@@ -270,7 +270,7 @@ Audits recognized lending institutions, historical bank mergers, and SARFAESI en
 | `NBFC_HFC_REGISTRATION_CHECK` | **Statutory Requisition** | RBI / NHB License Audit | `Reserve Bank of India Act 1934 (Sec 45-IA)` | Audits lender entities against the engine's 100+ RBI/NHB registered HFC & NBFC ledger to verify regulatory licensing and mortgage creation authority. |
 | `MORTGAGEE_NAME_STANDARDIZATION` | **Record Notation** | Lender Name Normalization | `N/A (Engine Levenshtein Normalizer)` | Standardizes corporate variations in bank names (e.g., 'State Bank of India', 'SBI', 'S.B.I.') into canonical entity codes using 85% Levenshtein fuzzy matching. |
 | `ASSIGNMENT_OF_DEBT_CHECK` | **Substantive Defect** | Debt Assignment Verification | `Sec 130, Transfer of Property Act 1882` | Verifies that when a successor bank or ARC releases a mortgage originally created by a different lender, a registered Deed of Assignment of Debt exists in the title chain to validate legal transfer of mortgage rights. |
-| `SARFAESI_NOTICE_CHECK` | **Material Defect** | SARFAESI Enforcement Charge | `Sec 13(2) & 13(4), SARFAESI Act 2002` | Scans title recitals, index records, and registry endorsements for active Sec 13(2) demand notices, Sec 13(4) possession notices, or bank auction proceedings under statutory securitisation laws. |
+| `SARFAESI_NOTICE_CHECK` | **Material Defect** | SARFAESI Enforcement Charge | `Sec 13(2) & 13(4), SARFAESI Act 2002` | Scans title recitals, index records, and registry endorsements for active Sec 13(2) demand notices, Sec 13(4) possession notices, or bank auction proceedings under securitisation laws. |
 
 ### 8. Project Metadata Reconciliation Audits
 
@@ -284,26 +284,26 @@ Audits plot/unit numbers, square footage area calculations, four-sided boundarie
 | `BOUNDARY_SOUTH_MISMATCH` | **Procedural Anomaly** | South Boundary Mismatch | `Sec 21, Registration Act 1908` | Cross-references South boundary descriptions in property schedule recitals across successive deeds. |
 | `BOUNDARY_EAST_MISMATCH` | **Procedural Anomaly** | East Boundary Mismatch | `Sec 21, Registration Act 1908` | Cross-references East boundary descriptions in property schedule recitals across successive deeds. |
 | `BOUNDARY_WEST_MISMATCH` | **Procedural Anomaly** | West Boundary Mismatch | `Sec 21, Registration Act 1908` | Cross-references West boundary descriptions in property schedule recitals across successive deeds. |
-| `COLONY_NAME_NORMALIZER` | **Record Notation** | Locality Name Normalization | `N/A (Engine Locality Dictionary)` | Standardizes colony and locality names (e.g., 'Hauz Khas Enclave' vs 'Hauz Khas') using statutory locality dictionaries. |
+| `COLONY_NAME_NORMALIZER` | **Record Notation** | Locality Name Normalization | `N/A (Engine Locality Dictionary)` | Standardizes colony and locality names (e.g., 'Hauz Khas Enclave' vs 'Hauz Khas') using official locality dictionaries. |
 | `UNIT_MEASUREMENT_CONVERSION` | **Record Notation** | Area Unit Standardization | `N/A (Engine Measurement Converter)` | Normalizes variant area metrics (sq. yards, sq. meters, bigha, biswa) into standardized square feet. |
 | `PROPERTY_TYPE_CANONICALIZER` | **Record Notation** | Property Classification | `Delhi Master Plan 2021 (MPD-2021)` | Classifies property nature (Residential, Commercial, Industrial, Agricultural) based on deed schedule recitals. |
-| `ADDRESS_LINE_RECONCILIATION` | **Record Notation** | Full Address Parsing | `N/A (Engine Address Parser)` | Reconciles complete address strings against statutory postal and municipal records. |
+| `ADDRESS_LINE_RECONCILIATION` | **Record Notation** | Full Address Parsing | `N/A (Engine Address Parser)` | Reconciles complete address strings against postal and municipal records. |
 
-### 9. Statutory Stamp Duty & Municipal Tax Audit Matrix
+### 9. Stamp Duty & Municipal Tax Audit Matrix
 
-Audits statutory stamp duty compliance, MCD transfer taxes, gender concessions, e-stamp validation, and minimum circle rates:
+Audits stamp duty compliance, MCD transfer taxes, gender concessions, e-stamp validation, and minimum circle rates:
 
 | Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| `STAMP_DUTY_DEFICIT_MALE` | **Statutory Requisition** | Male Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid by male purchasers against statutory rates (6% total in Delhi: 4% stamp duty + 2% MCD transfer tax). |
-| `STAMP_DUTY_DEFICIT_FEMALE` | **Statutory Requisition** | Female Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid by female purchasers against statutory concession rates (4% total in Delhi: 3% stamp duty + 1% MCD transfer tax). |
+| `STAMP_DUTY_DEFICIT_MALE` | **Statutory Requisition** | Male Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid by male purchasers against prescribed rates (6% total in Delhi: 4% stamp duty + 2% MCD transfer tax). |
+| `STAMP_DUTY_DEFICIT_FEMALE` | **Statutory Requisition** | Female Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid by female purchasers against concession rates (4% total in Delhi: 3% stamp duty + 1% MCD transfer tax). |
 | `STAMP_DUTY_DEFICIT_JOINT` | **Statutory Requisition** | Joint Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid by joint (female + male) purchasers against joint concession rates (5% total in Delhi). |
 | `MCD_TRANSFER_TAX_DEFICIT` | **Statutory Requisition** | MCD Transfer Tax Deficit | `Sec 147, Delhi Municipal Corporation Act 1957` | Reconciles municipal transfer tax paid on property conveyances in Delhi. |
 | `PRE_2003_CONVEYANCE_TAX_CHECK` | **Record Notation** | Pre-2003 Flat Rate Duty Check | `Indian Stamp Act 1899 (Delhi Schedule)` | Evaluates historical stamp duty compliance for conveyances registered prior to 2003 under flat 8% tariff rules. |
-| `DDA_CONVEYANCE_EXEMPTION` | **Record Notation** | DDA Statutory Concession | `DDA Allotment Rules / Delhi Stamp Notification` | Applies statutory stamp duty exemptions for initial DDA / Government allotment conveyances executed prior to 2003 (6% rate). |
+| `DDA_CONVEYANCE_EXEMPTION` | **Record Notation** | DDA Tax Concession | `DDA Allotment Rules / Delhi Stamp Notification` | Applies stamp duty exemptions for initial DDA / Government allotment conveyances executed prior to 2003 (6% rate). |
 | `E_STAMP_CERTIFICATE_VERIFY` | **Record Notation** | E-Stamp Authentication | `Sec 3, Indian Stamp Act 1899 / SHCIL System` | Validates e-stamp certificate numbers, issue timestamps, and certificate amounts against registration endorsements. |
 | `STAMP_PAPER_DATE_PRECEDENCE` | **Procedural Anomaly** | Stamp Paper Date Precedence | `Sec 29, Indian Stamp Act 1899` | Verifies that non-judicial stamp paper purchase dates precede or match the deed execution date. |
-| `CIRCLE_RATE_EVALUATION` | **Statutory Requisition** | Minimum Circle Rate Audit | `Delhi Stamp (Prevention of Undervaluation) Rules 2007` | Calculates minimum statutory valuation based on Delhi Category A-H circle rates and flags undervaluation. |
+| `CIRCLE_RATE_EVALUATION` | **Statutory Requisition** | Minimum Circle Rate Audit | `Delhi Stamp (Prevention of Undervaluation) Rules 2007` | Calculates minimum valuation based on Delhi Category A-H circle rates and flags undervaluation. |
 | `UNDERVALUATION_PENALTY_CHECK` | **Statutory Requisition** | Undervaluation Requisition | `Sec 47A, Indian Stamp Act 1899` | Identifies stamp duty shortfalls subject to impounding and penalty by the Collector of Stamps. |
 | `AGGREGATE_DUTY_COMPUTATION` | **Record Notation** | Multi-Receipt Duty Aggregation | `N/A (Engine Tax Aggregator)` | Dynamically aggregates split e-stamp receipts, state stamp duty, and local body transfer tax payments. |
 | `ARTICLE_23_CONVEYANCE_DUTY` | **Record Notation** | Article 23 Conveyance Tariff | `Article 23, Schedule I-A, Indian Stamp Act 1899` | Verifies conveyance stamp duty rates on sale deeds and transfer instruments. |
@@ -312,12 +312,12 @@ Audits statutory stamp duty compliance, MCD transfer taxes, gender concessions, 
 | `ARTICLE_48_GPA_DUTY` | **Record Notation** | Article 48 Power of Attorney Tariff | `Article 48, Schedule I-A, Indian Stamp Act 1899` | Audits stamp duty paid on Power of Attorney instruments. |
 | `ARTICLE_35_LEASE_DUTY` | **Record Notation** | Article 35 Lease Tariff | `Article 35, Schedule I-A, Indian Stamp Act 1899` | Audits stamp duty paid on Lease Agreements based on lease duration and annual rent. |
 | `ARTICLE_40_MORTGAGE_DUTY` | **Record Notation** | Article 40 Mortgage Tariff | `Article 40, Schedule I-A, Indian Stamp Act 1899` | Audits stamp duty paid on Mortgage Deeds with or without possession. |
-| `FEMALE_CONCESSION_ELIGIBILITY` | **Record Notation** | Female Rate Concession Audit | `Delhi Govt Stamp Duty Concession Notification 2008` | Verifies sole female or joint female ownership recitals to validate eligibility for statutory stamp duty concessions. |
-| `STAMP_REFUND_CLAIM_CHECK` | **Record Notation** | Unused Stamp Paper Audit | `Sec 49, Indian Stamp Act 1899` | Identifies cancelled or unexecuted stamp papers submitted for statutory refund within 6 months. |
+| `FEMALE_CONCESSION_ELIGIBILITY` | **Record Notation** | Female Rate Concession Audit | `Delhi Govt Stamp Duty Concession Notification 2008` | Verifies sole female or joint female ownership recitals to validate eligibility for stamp duty concessions. |
+| `STAMP_REFUND_CLAIM_CHECK` | **Record Notation** | Unused Stamp Paper Audit | `Sec 49, Indian Stamp Act 1899` | Identifies cancelled or unexecuted stamp papers submitted for refund within 6 months. |
 | `IMPOUNDING_RISK_ASSESSMENT` | **Substantive Defect** | Deed Impounding Risk | `Sec 33, Indian Stamp Act 1899` | Flags inadequately stamped deeds subject to impounding by the Collector of Stamps. |
-| `REGISTRATION_FEE_CHECK` | **Statutory Requisition** | Statutory Registration Fee Audit | `Table of Registration Fees (Sec 78, Reg Act 1908)` | Reconciles 1% statutory registration fees paid at SRO (subject to Delhi/Haryana statutory caps). |
+| `REGISTRATION_FEE_CHECK` | **Statutory Requisition** | Registration Fee Audit | `Table of Registration Fees (Sec 78, Reg Act 1908)` | Reconciles 1% registration fees paid at SRO (subject to Delhi/Haryana fee caps). |
 | `PAST_STAMP_LAW_AMENDMENT_MAP` | **Record Notation** | Historical Stamp Rate Ledger | `N/A (Engine Historical Tax Matrix)` | Maps historical stamp duty rate amendments in Delhi (1995, 2003, 2008, 2012) against deed registration dates. |
-| `TAX_EXEMPTION_RECITAL_VERIFY` | **Record Notation** | Statutory Exemption Recital | `Sec 9, Indian Stamp Act 1899` | Verifies statutory tax exemption recitals (e.g., government grants, educational trusts) against statutory notification orders. |
+| `TAX_EXEMPTION_RECITAL_VERIFY` | **Record Notation** | Tax Exemption Recital | `Sec 9, Indian Stamp Act 1899` | Verifies tax exemption recitals (e.g., government grants, educational trusts) against official notification orders. |
 
 ### 10. Haryana Jurisdiction & Revenue Estate Audits [BETA]
 
@@ -328,7 +328,7 @@ Audits Haryana Municipal Corporation (MCG/MCF) vs. rural Gram Panchayat duty rat
 | Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `HARYANA_URBAN_RURAL_CLASSIFIER` | **Record Notation** | Municipal vs Gram Panchayat Classifier | `Haryana Municipal Corporation Act 1994 / Panchayati Raj Act 1994` | Classifies Haryana property locations into Urban Municipal Corporation (MCG/MCF) vs. Rural Gram Panchayat revenue areas. |
-| `HARYANA_FEMALE_CONCESSION_CHECK` | **Statutory Requisition** | Haryana Female Concession Audit | `Indian Stamp (Haryana Amendment) Act` | Audits Haryana statutory stamp duty rates (5% Urban / 3% Rural for females vs. 7% Urban / 5% Rural for males). |
+| `HARYANA_FEMALE_CONCESSION_CHECK` | **Statutory Requisition** | Haryana Female Concession Audit | `Indian Stamp (Haryana Amendment) Act` | Audits Haryana stamp duty rates (5% Urban / 3% Rural for females vs. 7% Urban / 5% Rural for males). |
 | `HADBAST_NUMBER_AUDIT` | **Substantive Defect** | Hadbast / Khasra Verification | `Haryana Land Revenue Act 1887` | Cross-checks Hadbast (Revenue Estate) numbers and Khasra parcel identifiers against Haryana Land Records ledgers. |
 | `HARYANA_GRAM_PANCHAYAT_DUTY` | **Statutory Requisition** | 2% Gram Panchayat Duty Audit | `Haryana Panchayati Raj Act 1994 (Sec 200)` | Audits the 2% local body transfer duty levied in rural Haryana Gram Panchayat jurisdictions. |
 
@@ -350,12 +350,12 @@ Audits document page orientation, affine deskewing, binarization quality, and du
 
 ### 12. Meta-Rules & Legal Privilege Enforcement
 
-Enforces no-verdict AI output boundaries, statutory privilege disclaimers, and PII confidentiality filters:
+Enforces no-verdict AI output boundaries, legal privilege disclaimers, and PII confidentiality filters:
 
 | Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `NO_VERDICT_PROSE_ENFORCER` | **Record Notation** | Legal Opinion Verdict Filter | `N/A (Engine Compliance Directive)` | Enforces the platform's strictly neutral stance by filtering out conclusive legal verdicts (e.g. declaring deeds 'void' or 'invalid') from AI output. |
-| `PRIVILEGE_DISCLAIMER_ATTACH` | **Record Notation** | Legal Privilege Disclaimer | `N/A (Engine Compliance Directive)` | Attaches mandatory statutory disclaimers declaring outputs as technical audit assistance, not formal legal opinions. |
+| `PRIVILEGE_DISCLAIMER_ATTACH` | **Record Notation** | Legal Privilege Disclaimer | `N/A (Engine Compliance Directive)` | Attaches mandatory disclaimers declaring outputs as technical audit assistance, not formal legal opinions. |
 | `CONFIDENTIALITY_METADATA_GUARD` | **Record Notation** | Data Privacy & KYC Shield | `Digital Personal Data Protection Act 2023` | Redacts sensitive personal identifiable information (PII) and confidential KYC data from persistent system logs. |
 
 ---
