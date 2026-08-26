@@ -13,7 +13,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
 
 DelhiTSR is a specialized title intelligence engine for property legal due diligence across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Designed for institutional mortgage underwriting, title search reporting (TSR), and legal property verification, it ingests multi-deed ownership chains, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured document parameters through a 4-pass LLM pipeline, and evaluates title history against 94 deterministic rules covering statutory stamp duty tariffs, municipal transfer taxes, boundary continuity, and local Sub-Registrar Office (SRO) regulations.
 
-> **Note**: DelhiTSR is under active development. While the engine currently parses documents, reconciles taxes, and audits 94 legal rules, compiled Title Search Report (TSR) generation will be added in future releases.
+> **Note**: DelhiTSR is under active development. While the engine currently parses document chains, reconciles municipal tax tariffs, and audits 94 title verification checks, compiled Title Search Report (TSR) document generation will be introduced in future releases.
 
 ---
 
