@@ -1,14 +1,14 @@
 # DelhiTSR
-Title Intelligence Engine (Delhi NCT & Haryana [BETA])
+### Title Intelligence Engine (Delhi NCT & Haryana [BETA])
 
-<p>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python Version"></a>
-  <a href="https://flask.palletsprojects.org/"><img src="https://img.shields.io/badge/Framework-Flask-000000?style=flat-square&logo=flask&logoColor=white" alt="Framework"></a>
-  <a href="https://opencv.org/"><img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?style=flat-square&logo=opencv&logoColor=white" alt="OpenCV"></a>
-  <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI-Gemini%202.5%20Vision-4285F4?style=flat-square&logo=google&logoColor=white" alt="AI Engine"></a>
-  <a href="#complete-specification-of-all-94-discrepancy--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Checks-7B2CBF?style=flat-square" alt="Rule Engine"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi%20NCT%20%7C%20Haryana%20[BETA]-0284C7?style=flat-square" alt="Coverage"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-amber?style=flat-square" alt="Status"></a>
+<p align="left">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Version"></a>
+  <a href="https://flask.palletsprojects.org/"><img src="https://img.shields.io/badge/Framework-Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Framework"></a>
+  <a href="https://opencv.org/"><img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white" alt="OpenCV"></a>
+  <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI_Core-Gemini_2.5_Vision-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white" alt="AI Engine"></a>
+  <a href="#complete-specification-of-all-94-discrepancy--validation-rules"><img src="https://img.shields.io/badge/Rule_Engine-94_Deterministic_Audits-7B2CBF?style=for-the-badge&logo=scales&logoColor=white" alt="Rule Engine"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi_NCT_%7C_Haryana_[BETA]-0284C7?style=for-the-badge&logo=googlemaps&logoColor=white" alt="Coverage"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Status-Active_Development-10B981?style=for-the-badge&logo=github&logoColor=white" alt="Status"></a>
 </p>
 
 DelhiTSR is a specialized title intelligence engine for property legal due diligence across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Designed for institutional mortgage underwriting, title search reporting (TSR), and legal property verification, it ingests multi-deed ownership chains, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured document parameters through a 4-pass LLM pipeline, and evaluates title history against 94 deterministic rules covering statutory stamp duty tariffs, municipal transfer taxes, boundary continuity, and local Sub-Registrar Office (SRO) regulations.
