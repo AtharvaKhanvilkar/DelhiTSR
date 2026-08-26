@@ -68,13 +68,25 @@ def _safe_float(val, default=0.0):
 
 from werkzeug.utils import secure_filename
 
+import secrets
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'dev-secret-key-autotsr-alpha-123'
+app.config['SECRET_KEY'] = os.environ.get("FLASK_SECRET_KEY") or os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['REMEMBER_COOKIE_DURATION'] = datetime.timedelta(days=365)
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32 MB max limit per upload payload
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+@app.after_request
+def apply_security_headers(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Anti-Malware & Multi-Layer File Upload Security Validation Module
@@ -171,36 +183,38 @@ def ratelimit_handler(e):
     </div>
     """, 429
 
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+if os.environ.get('FLASK_ENV') == 'production' or os.environ.get('HTTPS') == 'true':
+    app.config['SESSION_COOKIE_SECURE'] = True
+
 @app.after_request
 def apply_universal_owasp_security_headers(response):
     """
-    Universal Security Layer based on OWASP Industry Standards:
+    Universal Security Layer based on OWASP Production Standards:
     - X-Content-Type-Options: nosniff (Blocks MIME-type sniffing attacks)
     - X-Frame-Options: SAMEORIGIN (Prevents Clickjacking UI redressing)
     - X-XSS-Protection: 1; mode=block (Enforces browser Cross-Site Scripting filters)
     - Referrer-Policy: strict-origin-when-cross-origin (Prevents sensitive internal path leakage)
     - Permissions-Policy: geolocation=(), microphone=(), camera=() (Disables unnecessary browser permissions)
+    - X-Permitted-Cross-Domain-Policies: none (Prevents Flash/PDF cross-domain policy load)
+    - Cross-Origin-Opener-Policy: same-origin (Isolates browsing context)
+    - Cross-Origin-Resource-Policy: same-origin (Restricts resource sharing)
+    - Strict-Transport-Security: max-age=31536000; includeSubDomains (HTTPS Transport Security)
     """
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    response.headers['X-Permitted-Cross-Domain-Policies'] = 'none'
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    if request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
 
-@app.before_request
-def auto_login_default_user():
-    session.permanent = True
-    if not current_user.is_authenticated:
-        try:
-            default_user = User.query.first()
-            if not default_user:
-                default_user = User(email="admin@tsrengine.local")
-                db.session.add(default_user)
-                db.session.commit()
-            login_user(default_user, remember=True)
-        except Exception:
-            pass
+
 
 db = SQLAlchemy(app)
 
@@ -363,18 +377,22 @@ def migrate_existing_projects(user_id):
         db.session.commit()
 
 def check_project_owner(project_name):
-    folder_path = os.path.join(PROJECT_FOLDER, project_name)
-    if os.path.exists(folder_path):
-        return True
+    if not project_name:
+        return False
     if not current_user.is_authenticated:
         return False
+    # Check exact project ownership by current user
     proj = Project.query.filter_by(project_name=project_name, user_id=current_user.id).first()
-    if proj is None:
-        proj_prefix = Project.query.filter(Project.project_name.startswith(project_name), Project.user_id == current_user.id).first()
-        if proj_prefix:
-            return True
-        return False
-    return True
+    if proj:
+        return True
+    # Check prefix matching for workspace folders assigned to current user
+    proj_prefix = Project.query.filter(
+        Project.project_name.startswith(project_name + "_"),
+        Project.user_id == current_user.id
+    ).first()
+    if proj_prefix:
+        return True
+    return False
 
 @app.errorhandler(403)
 def forbidden_error(e):
@@ -413,22 +431,51 @@ os.makedirs(PROJECT_FOLDER, exist_ok=True)
 def _get_project_path(project_name):
     if not project_name:
         return ""
-    exact_path = os.path.join(PROJECT_FOLDER, project_name)
+    safe_name = os.path.basename(str(project_name).replace("\\", "/").strip("/"))
+    exact_path = os.path.join(PROJECT_FOLDER, safe_name)
     if os.path.exists(exact_path):
         return exact_path
     
     if os.path.exists(PROJECT_FOLDER):
         for folder in os.listdir(PROJECT_FOLDER):
-            if folder.startswith(project_name + "_"):
+            if folder.startswith(safe_name + "_"):
                 target_path = os.path.join(PROJECT_FOLDER, folder)
                 if os.path.isdir(target_path):
                     return target_path
         for folder in os.listdir(PROJECT_FOLDER):
-            if folder.startswith(project_name):
+            if folder.startswith(safe_name):
                 target_path = os.path.join(PROJECT_FOLDER, folder)
                 if os.path.isdir(target_path):
                     return target_path
     return exact_path
+
+def _safe_resolve_file(project_name, filename=None):
+    if not project_name:
+        return None
+    proj_dir = _get_project_path(project_name)
+    if not proj_dir or not os.path.exists(proj_dir):
+        return None
+        
+    abs_base = os.path.abspath(PROJECT_FOLDER)
+    abs_proj_dir = os.path.abspath(proj_dir)
+    
+    try:
+        if os.path.commonpath([abs_base, abs_proj_dir]) != abs_base:
+            return None
+    except Exception:
+        return None
+        
+    if filename:
+        clean_filename = str(filename).replace("\\", "/").lstrip("/")
+        target_path = os.path.abspath(os.path.join(abs_proj_dir, clean_filename))
+        try:
+            if os.path.commonpath([abs_proj_dir, target_path]) != abs_proj_dir:
+                return None
+        except Exception:
+            return None
+        return target_path
+        
+    return abs_proj_dir
 
 # PER BANK ALIASES 
 LENDER_ALIASES = {
@@ -1104,10 +1151,10 @@ def verify(email, purpose):
             flash("OTP code is required.")
             return render_template("verify.html", email=email, purpose=purpose)
             
-        # Validate OTP
+        # Validate OTP with constant-time string comparison (timing attack prevention)
         now = datetime.datetime.utcnow()
-        record = UserOTP.query.filter_by(email=email, otp_code=otp_code).first()
-        if not record or record.expires_at < now:
+        record = UserOTP.query.filter_by(email=email).order_by(UserOTP.id.desc()).first()
+        if not record or record.expires_at < now or not secrets.compare_digest(str(record.otp_code), str(otp_code)):
             flash("Invalid or expired verification code.")
             return render_template("verify.html", email=email, purpose=purpose)
             
@@ -1266,7 +1313,7 @@ def google_mock_callback():
         if is_first:
             migrate_existing_projects(user.id)
             
-    login_user(user, remember=True)
+    login_user(user)
     return redirect(url_for("projects"))
 
 @app.route("/logout")
@@ -1585,26 +1632,21 @@ def parse(project_name, filename):
         abort(403)
     from flask import jsonify
     from main import parse_index_ii
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
-    file_path = os.path.join(project_path, filename)
-    print("DEBUG looking for:", file_path)
-    print("DEBUG files in folder:", os.listdir(project_path))
-    if not os.path.exists(file_path):
-        return jsonify({"error": "File not found: " + file_path})
+    project_path = _get_project_path(project_name)
+    file_path = _safe_resolve_file(project_name, filename)
+    if not file_path or not os.path.exists(file_path):
+        return jsonify({"error": "File not found"})
     try:
         result = parse_index_ii(file_path)
         if result is None:
             return jsonify({"error": "Could not parse document"})
-        # Mask + encrypt Aadhaar BEFORE anything is written or returned, so the
-        # plaintext never reaches the disk or the browser.
+        # Mask + encrypt Aadhaar BEFORE anything is written or returned
         _protect_aadhaar(result)
-        # Save result to disk WITH a "parsed" marker so we can
-        # distinguish freshly-parsed results from stale files on disk.
-        # Provisional results (low-confidence classification) get flagged
-        # at the top level too, so _load_results can skip them and the
-        # workspace UI can show a "?" badge prompting manual classification.
+        
         result_filename = os.path.splitext(filename)[0] + "_result.json"
-        result_path = os.path.join(project_path, result_filename)
+        result_path = _safe_resolve_file(project_name, result_filename)
+        if not result_path:
+            return jsonify({"error": "Invalid output path"}), 400
         envelope = {"parsed": True, "data": result}
         if isinstance(result, dict) and result.get("_provisional") is True:
             envelope["provisional"]                = True
@@ -1622,22 +1664,14 @@ def parse(project_name, filename):
 def classify_file(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
-    """
-    Reviewer-confirmed classification for a provisional document.
-    Body: {"subtype": "<one of DEED_SUBTYPES keys>"}.
-    On receipt: rewrite the saved _result.json with the confirmed subtype,
-    clear the provisional flags, and re-run full extraction with that
-    subtype known. The file then enters the engine on the next page load.
-    """
     from flask import jsonify
     from main import parse_index_ii, DEED_SUBTYPES
 
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
-    file_path    = os.path.join(project_path, filename)
-    payload      = request.get_json(silent=True) or {}
-    subtype      = (payload.get("subtype") or "").strip()
+    file_path = _safe_resolve_file(project_name, filename)
+    payload   = request.get_json(silent=True) or {}
+    subtype   = (payload.get("subtype") or "").strip()
 
-    if not os.path.exists(file_path):
+    if not file_path or not os.path.exists(file_path):
         return jsonify({"ok": False, "error": "File not found"}), 404
     if subtype not in DEED_SUBTYPES:
         return jsonify({"ok": False, "error": "Unknown subtype"}), 400
@@ -1646,8 +1680,6 @@ def classify_file(project_name, filename):
         result = parse_index_ii(file_path, forced_subtype=subtype)
         if not isinstance(result, dict):
             return jsonify({"ok": False, "error": "Re-extraction failed"}), 500
-        # Force-confirm the subtype the reviewer chose; clear provisional
-        # so _load_results lets the engine see it on next load.
         result["_provisional"]                = False
         result["_needs_human_classification"] = False
         if not isinstance(result.get("_classification"), dict):
@@ -1659,7 +1691,9 @@ def classify_file(project_name, filename):
             result["_classification"]["confidence"] = "high"
             result["_classification"]["reasoning"]  = "human-confirmed"
         result_filename = os.path.splitext(filename)[0] + "_result.json"
-        result_path = os.path.join(project_path, result_filename)
+        result_path = _safe_resolve_file(project_name, result_filename)
+        if not result_path:
+            return jsonify({"ok": False, "error": "Invalid output path"}), 400
         with open(result_path, "w") as f:
             json.dump({"parsed": True, "data": result}, f, indent=2)
         return jsonify({"ok": True, "subtype": subtype})
@@ -1673,7 +1707,6 @@ def classify_file(project_name, filename):
 def replace_file(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
     uploaded_file = request.files.get("replacement_file")
     if not uploaded_file:
         return jsonify({"ok": False, "error": "No file uploaded"}), 400
@@ -1682,13 +1715,16 @@ def replace_file(project_name, filename):
     if not is_valid:
         return jsonify({"ok": False, "error": err_msg}), 400
         
-    old_pdf_path = os.path.join(project_path, filename)
-    old_result_path = os.path.splitext(old_pdf_path)[0] + "_result.json"
+    old_pdf_path = _safe_resolve_file(project_name, filename)
+    if not old_pdf_path:
+        return jsonify({"ok": False, "error": "Invalid file path"}), 400
+        
+    old_result_path = _safe_resolve_file(project_name, os.path.splitext(filename)[0] + "_result.json")
     
     try:
         if os.path.exists(old_pdf_path):
             os.remove(old_pdf_path)
-        if os.path.exists(old_result_path):
+        if old_result_path and os.path.exists(old_result_path):
             os.remove(old_result_path)
     except OSError as e:
         return jsonify({"ok": False, "error": f"Failed to delete old files: {e}"}), 500
@@ -1712,7 +1748,9 @@ def save_result(project_name, filename):
         return jsonify({"ok": False, "error": "No JSON payload provided"}), 400
         
     result_filename = os.path.splitext(filename)[0] + "_result.json"
-    result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
+    result_path = _safe_resolve_file(project_name, result_filename)
+    if not result_path:
+        return jsonify({"ok": False, "error": "Invalid target path"}), 400
 
     # Re-protect Aadhaar on any user-edited save, whether the payload is a bare
     # data dict or a {"parsed":..., "data":...} envelope. Plaintext never persists.
@@ -1942,12 +1980,13 @@ def rename_file(project_name, filename):
     if not new_name.lower().endswith(".pdf"):
         new_name = new_name + ".pdf"
 
-    project_path = os.path.join(PROJECT_FOLDER, project_name)
-    old_path = os.path.join(project_path, filename)
-    new_path = os.path.join(project_path, new_name)
+    old_path = _safe_resolve_file(project_name, filename)
+    new_path = _safe_resolve_file(project_name, new_name)
 
-    if not os.path.exists(old_path):
+    if not old_path or not os.path.exists(old_path):
         return jsonify({"ok": False, "error": "File not found"}), 404
+    if not new_path:
+        return jsonify({"ok": False, "error": "Invalid new file name"}), 400
     if os.path.exists(new_path):
         return jsonify({"ok": False, "error": "A file with that name already exists"}), 409
 
@@ -1955,9 +1994,9 @@ def rename_file(project_name, filename):
     os.rename(old_path, new_path)
 
     # Rename the result JSON too so it stays linked
-    old_result = os.path.join(project_path, os.path.splitext(filename)[0] + "_result.json")
-    new_result = os.path.join(project_path, os.path.splitext(new_name)[0] + "_result.json")
-    if os.path.exists(old_result):
+    old_result = _safe_resolve_file(project_name, os.path.splitext(filename)[0] + "_result.json")
+    new_result = _safe_resolve_file(project_name, os.path.splitext(new_name)[0] + "_result.json")
+    if old_result and os.path.exists(old_result) and new_result:
         os.rename(old_result, new_result)
 
     return jsonify({"ok": True, "new_name": new_name})
@@ -1971,13 +2010,14 @@ def delete_file(project_name, filename):
         abort(403)
     from urllib.parse import unquote
     filename = unquote(filename)
-    file_path = os.path.join(PROJECT_FOLDER, project_name, filename)
-    if os.path.exists(file_path):
+    file_path = _safe_resolve_file(project_name, filename)
+    if file_path and os.path.exists(file_path):
         os.remove(file_path)
     # Also delete the saved result JSON if it exists
     result_filename = os.path.splitext(filename)[0] + "_result.json"
-    result_path = os.path.join(PROJECT_FOLDER, project_name, result_filename)
-    if os.path.exists(result_path):
+    result_path = _safe_resolve_file(project_name, result_filename)
+    if result_path and os.path.exists(result_path):
+        os.remove(result_path)
         os.remove(result_path)
     return redirect(f"/workspace/{project_name}")
 
@@ -2067,15 +2107,18 @@ def edit_project():
     return redirect(f"/workspace/{new_folder}")
 
 
-# Serve PDF file for viewer
 @app.route("/pdf/<project_name>/<path:filename>")
 @login_required
 def serve_pdf(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
     from flask import send_from_directory
-    project_path = _get_project_path(project_name)
-    return send_from_directory(project_path, filename)
+    target_path = _safe_resolve_file(project_name, filename)
+    if not target_path or not os.path.exists(target_path):
+        abort(404)
+    proj_dir = _get_project_path(project_name)
+    rel_path = os.path.relpath(target_path, proj_dir)
+    return send_from_directory(proj_dir, rel_path)
 
 
 # Load saved parse result for a file
@@ -2085,10 +2128,9 @@ def load_result(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
     from flask import jsonify
-    project_path = _get_project_path(project_name)
     result_filename = os.path.splitext(filename)[0] + "_result.json"
-    result_path = os.path.join(project_path, result_filename)
-    if not os.path.exists(result_path):
+    result_path = _safe_resolve_file(project_name, result_filename)
+    if not result_path or not os.path.exists(result_path):
         return jsonify({"exists": False})
     with open(result_path) as f:
         data = json.load(f)
@@ -6252,8 +6294,12 @@ def serve_sorter_pdf_preview(project_name, filename):
     if not check_project_owner(project_name):
         abort(403)
     from flask import send_from_directory
-    staging = os.path.join(PROJECT_FOLDER, project_name, SORTER_SUBDIR)
-    return send_from_directory(staging, filename)
+    staging = os.path.join(_get_project_path(project_name), SORTER_SUBDIR)
+    target_path = os.path.abspath(os.path.join(staging, filename))
+    if not target_path.startswith(os.path.abspath(staging) + os.sep) or not os.path.exists(target_path):
+        abort(404)
+    rel_path = os.path.relpath(target_path, staging)
+    return send_from_directory(staging, rel_path)
 
 
 @app.route("/api/summarize_discrepancy/<project_name>", methods=["POST"])
