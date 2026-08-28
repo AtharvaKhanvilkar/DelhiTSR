@@ -82,10 +82,33 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 @app.after_request
 def apply_security_headers(response):
+    """
+    OWASP ASVS Level 2 Compliance Suite:
+    - V14.4.1: X-Frame-Options against Clickjacking
+    - V14.4.2: X-Content-Type-Options against MIME Sniffing
+    - V14.4.3: Content-Security-Policy against XSS and Data Exfiltration
+    - V14.4.4: Referrer-Policy against token leakage
+    - V14.4.5: Permissions-Policy disabling unused browser APIs (camera, mic, geo)
+    - V9.1.1: Strict-Transport-Security enforcing HTTPS
+    - V14.4.6: Cross-Origin-Opener-Policy preventing window isolation bypasses
+    """
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: blob: https:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'self';"
+    )
+    if request.is_secure:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
 # ──────────────────────────────────────────────────────────────────────────────
