@@ -109,6 +109,14 @@ def apply_security_headers(response):
     )
     if request.is_secure:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # OWASP ASVS V8.2.1 & V14.4.7: Sensitive Data Cache-Control Defense
+    # Prevents client, browser disk, and proxy caching of sensitive legal/project data
+    if request.path.startswith(('/workspace', '/api', '/sorter', '/download', '/parse', '/edit_project')):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
     return response
 
 # ──────────────────────────────────────────────────────────────────────────────
