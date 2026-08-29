@@ -354,47 +354,9 @@ class Project(db.Model):
     project_name = db.Column(db.String(150), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-class UserOTP(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(150), nullable=False)
-    otp_code = db.Column(db.String(6), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    expires_at = db.Column(db.DateTime, nullable=False)
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-def send_otp_email(email, otp_code):
-    smtp_server = os.environ.get("SMTP_SERVER")
-    smtp_port = os.environ.get("SMTP_PORT")
-    smtp_username = os.environ.get("SMTP_USERNAME")
-    smtp_password = os.environ.get("SMTP_PASSWORD")
-    sender_email = os.environ.get("SENDER_EMAIL")
-
-    subject = f"Your DelhiTSR Verification Code: {otp_code}"
-    body = f"Hello,\n\nYour One-Time Password (OTP) for DelhiTSR is: {otp_code}\n\nThis code will expire in 5 minutes.\n\nRegards,\nDelhiTSR Team"
-
-    if smtp_server and smtp_port and smtp_username and smtp_password and sender_email:
-        try:
-            msg = MIMEText(body)
-            msg['Subject'] = subject
-            msg['From'] = sender_email
-            msg['To'] = email
-
-            with smtplib.SMTP(smtp_server, int(smtp_port)) as server:
-                server.starttls()
-                server.login(smtp_username, smtp_password)
-                server.sendmail(sender_email, [email], msg.as_string())
-            print(f"[SMTP] Successfully sent OTP to {email}")
-            return True
-        except Exception as e:
-            print(f"[SMTP ERROR] Failed to send email via SMTP: {e}")
-            
-    print(f"\n==========================================")
-    print(f"[DEVELOPER MODE] OTP for {email} is: {otp_code}")
-    print(f"==========================================\n")
-    return False
 
 def migrate_existing_projects(user_id):
     if os.path.exists(PROJECT_FOLDER):
@@ -1101,122 +1063,24 @@ def _match_release_to_mortgage(enc, d2):
             
     return None, None, None, 0, False, False, False, False
 
-def generate_and_send_otp(email):
-    # Delete old OTPs for this email
-    UserOTP.query.filter_by(email=email).delete()
-    
-    # Generate 6-digit code
-    code = "".join([str(random.randint(0, 9)) for _ in range(6)])
-    
-    # Create OTP record (expires in 5 minutes)
-    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-    otp = UserOTP(email=email, otp_code=code, expires_at=expires)
-    db.session.add(otp)
-    db.session.commit()
-    
-    # Send email
-    send_otp_email(email, code)
-
-# Auth Routes
-@app.route("/login", methods=["GET", "POST"])
-@limiter.limit("10 per minute; 50 per hour")
+# Auth Routes (Google OAuth Exclusive)
+@app.route("/login", methods=["GET"])
+@limiter.limit("30 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("projects"))
-    if request.method == "POST":
-        email = request.form.get("email", "").strip()
-        if not email:
-            flash("Email address is required.")
-            return render_template("login.html")
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            flash("Email address is not registered. Please sign up first.")
-            return render_template("login.html")
-            
-        generate_and_send_otp(email)
-        return redirect(url_for("verify", email=email, purpose="login"))
     return render_template("login.html")
 
-@app.route("/register", methods=["GET", "POST"])
-@limiter.limit("5 per minute; 20 per hour")
+@app.route("/register", methods=["GET"])
+@limiter.limit("30 per minute")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for("projects"))
-    if request.method == "POST":
-        email = request.form.get("email", "").strip()
-        if not email:
-            flash("Email address is required.")
-            return render_template("register.html")
-            
-        # Whitelist verification
-        whitelist_path = "allowed_emails.txt"
-        is_authorized = False
-        if os.path.exists(whitelist_path):
-            with open(whitelist_path, "r", encoding="utf-8") as f:
-                allowed = [line.strip().lower() for line in f if line.strip()]
-            if email.lower() in allowed:
-                is_authorized = True
-        
-        if not is_authorized:
-            flash("This email address is not authorized for the alpha preview. Please contact the administrator.")
-            return render_template("register.html")
-            
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            flash("Email already registered. Please sign in instead.")
-            return render_template("register.html")
-            
-        generate_and_send_otp(email)
-        return redirect(url_for("verify", email=email, purpose="register"))
-    return render_template("register.html")
+    return render_template("login.html")
 
 @app.route("/verify/<email>/<purpose>", methods=["GET", "POST"])
-@limiter.limit("10 per minute; 30 per hour")
 def verify(email, purpose):
-    if current_user.is_authenticated:
-        return redirect(url_for("projects"))
-        
-    if request.method == "POST":
-        otp_code = request.form.get("otp_code", "").strip()
-        if not otp_code:
-            flash("OTP code is required.")
-            return render_template("verify.html", email=email, purpose=purpose)
-            
-        # Validate OTP with constant-time string comparison (timing attack prevention)
-        now = datetime.datetime.utcnow()
-        record = UserOTP.query.filter_by(email=email).order_by(UserOTP.id.desc()).first()
-        if not record or record.expires_at < now or not secrets.compare_digest(str(record.otp_code), str(otp_code)):
-            flash("Invalid or expired verification code.")
-            return render_template("verify.html", email=email, purpose=purpose)
-            
-        # Clear OTP from database
-        db.session.delete(record)
-        db.session.commit()
-        
-        if purpose == "register":
-            existing_user = User.query.filter_by(email=email).first()
-            if not existing_user:
-                is_first = User.query.count() == 0
-                new_user = User(email=email)
-                db.session.add(new_user)
-                db.session.commit()
-                
-                if is_first:
-                    migrate_existing_projects(new_user.id)
-                login_user(new_user, remember=True)
-            else:
-                login_user(existing_user, remember=True)
-        else: # login
-            user = User.query.filter_by(email=email).first()
-            if user:
-                login_user(user, remember=True)
-            else:
-                flash("Login failed. Account not found.")
-                return redirect(url_for("login"))
-                
-        return redirect(url_for("projects"))
-        
-    return render_template("verify.html", email=email, purpose=purpose)
+    return redirect(url_for("login"))
 
 @app.route("/login/google")
 def login_google():
