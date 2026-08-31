@@ -6,7 +6,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
   <a href="https://flask.palletsprojects.org/"><img src="https://img.shields.io/badge/Framework-Flask-000000?style=flat&logo=flask&logoColor=white" alt="Framework"></a>
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white" alt="OpenCV"></a>
   <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI-Gemini%202.5%20Vision-4285F4?style=flat&logo=google&logoColor=white" alt="AI Engine"></a>
-  <a href="#complete-specification-of-all-94-parameters--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
+  <a href="#complete-specification-of-all-94-parameters"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
   <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi%20NCT%20%7C%20Haryana%20[BETA]-0284C7?style=flat" alt="Coverage"></a>
   <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-10B981?style=flat" alt="Status"></a>
 </p>
@@ -27,7 +27,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 - [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
 - [Legal Privilege \& Compliance Policy](#legal-privilege--compliance-policy)
 - [Security \& Data Protection Controls](#security--data-protection-controls)
-- [Complete Specification of All 94 Parameters & Validation Rules](#complete-specification-of-all-94-parameters--validation-rules)
+- [Complete Specification of All 94 Parameters](#complete-specification-of-all-94-parameters)
 - [Parameter Enforcement Note](#parameter-enforcement-note)
 - [Installation \& Local Setup](#installation--local-setup)
 - [Repository Structure](#repository-structure)
@@ -123,6 +123,9 @@ The engine incorporates a normalized lender entity ledger that resolves spelling
 
 ## 5-Tier Legal Severity Scale
 
+> **Platform Findings Integration**: All defects, requisitions, procedural anomalies, and record notations identified by the engine are surfaced directly as interactive **findings** within the platform's workspace dashboard, complete with document location markers and contextual risk details.
+
+
 Findings are classified into a 5-tier legal scale based on legal weight:
 
 - **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
@@ -159,7 +162,7 @@ The platform implements security controls to protect sensitive real estate trans
 
 ---
 
-## Complete Specification of All 94 Parameters & Validation Rules
+## Complete Specification of All 94 Parameters
 
 The engine executes 94 deterministic audit routines across 12 functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 legal severity tiers:
 
