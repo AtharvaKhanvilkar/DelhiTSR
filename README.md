@@ -27,7 +27,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 - [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
 - [Legal Privilege \& Compliance Policy](#legal-privilege--compliance-policy)
 - [Security \& Data Protection Controls](#security--data-protection-controls)
-- [94 Discrepancy \& Validation Rules](#94-discrepancy--validation-rules)
+- [Complete Specification of All 94 Parameters & Validation Rules](#complete-specification-of-all-94-parameters--validation-rules)
 - [Parameter Enforcement Note](#parameter-enforcement-note)
 - [Installation \& Local Setup](#installation--local-setup)
 - [Repository Structure](#repository-structure)
