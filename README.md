@@ -164,7 +164,7 @@ The platform implements security controls to protect sensitive real estate trans
 
 ## Complete Specification of All 94 Parameters
 
-The engine evaluates 94 parameters across 12 domain categories, checking document extractions against statutory provisions, title continuity requirements, and state stamp schedules to assign each finding a 5-tier legal severity rating:
+The engine evaluates 94 parameters across 12 domains, checking reconciled metadata for an event against governing laws, title continuity requirements, and state stamp schedules to assign each finding a 5-tier severity rating:
 
 ### 1. Legal & Statutory Registration Rules
 
