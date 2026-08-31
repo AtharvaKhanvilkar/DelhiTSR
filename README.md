@@ -172,7 +172,7 @@ Audits compliance against registration laws, SRO territorial jurisdiction, and p
 
 | Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | `Sec 28, Registration Act 1908` | Flags deeds registered at a Sub-Registrar Office outside the property's local jurisdiction as void under Section 28. |
+| `VOID_DEED_WRONG_SRO` | **Material Defect** | SRO Jurisdiction Mismatch | `Sec 28, Registration Act 1908` | Evaluates whether the deed was registered at the Sub-Registrar Office (SRO) holding territorial jurisdiction over the property locality, flagging registrations outside territorial limits as void. |
 | `GPA_POST_2011_INVALID` | **Material Defect** | Post-2011 GPA Title Transfer | `Suraj Lamp Ruling (Supreme Court, 2011)` | Flags title transfers executed via General Power of Attorney after October 11, 2011 without a registered Sale Deed. |
 | `MISSING_GPA_AUTHORIZATION` | **Material Defect** | Missing Attorney Authorization | `Sec 32 & 33, Registration Act 1908` | Verifies that attorney transfers cite a valid registered Power of Attorney in the title chain. |
 | `UNREGULARIZED_GPA_CHAIN` | **Substantive Defect** | Unregularized GPA Chain | `Sec 54, Transfer of Property Act 1882` | Detects title chains ending with an unregularized Power of Attorney or Agreement to Sell without a registered Sale Deed. |
