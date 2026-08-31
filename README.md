@@ -16,7 +16,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 > **What is a Title Search Report (TSR)?**  
 > A Title Search Report checks a property's past ownership documents to confirm ownership integrity and ensure there are no unsettled loans & mortgages, title continuity defects, or hidden claims. In India, financial institutions require a TSR certified by an empanelled advocate to verify a clear and marketable title prior to the disbursal of loan.
 > 
-> **DelhiTSR** aims for the automated production of Title Search Reports using **94** distinct & defined rules acting as parameters for title audit.
+> **DelhiTSR** aims for the automated production of a Title Search Report with the help of **94** distinct & defined rules acting as parameters for title audit.
 > 
 > *Note: DelhiTSR is under active development. Compiled TSR document export will be introduced in future releases.*
 
