@@ -164,7 +164,7 @@ The platform implements security controls to protect sensitive real estate trans
 
 ## Complete Specification of All 94 Parameters
 
-The engine executes 94 deterministic audit routines across 12 functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 legal severity tiers:
+The platform audits 94 parameters across 12 categories. Each check evaluates document details against applicable laws and maps findings to one of the 5 legal severity tiers:
 
 ### 1. Legal & Statutory Registration Rules
 
