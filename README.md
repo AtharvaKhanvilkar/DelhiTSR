@@ -11,7 +11,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
   <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-10B981?style=flat" alt="Status"></a>
 </p>
 
-DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for institutional mortgage underwriting and title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass LLM pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
+DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for property title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
 
 > **Note**: DelhiTSR is under active development. While the engine currently audits title deeds, reconciles stamp duty tariffs, and evaluates 94 verification checks, compiled Title Search Report (TSR) generation will be introduced in future releases.
 
@@ -19,46 +19,29 @@ DelhiTSR is a title verification engine for property ownership chains across the
 
 ## Table of Contents
 
-- [System Architecture \& Pipeline Workflow](#system-architecture--pipeline-workflow)
-- [Module 1: Document Pre-processing \& Dual-Engine OCR](#module-1-document-pre-processing--dual-engine-ocr)
-- [Module 2: 4-Pass 80-Parameter Extraction Pipeline](#module-2-4-pass-80-parameter-extraction-pipeline)
-- [Parameter Enforcement Architecture](#parameter-enforcement-architecture)
-- [Module 3: Universal Tax \& Local Authority Reconciliation Engine](#module-3-universal-tax--local-authority-reconciliation-engine)
-  - [Delhi Stamp Duty \& MCD Tax Matrix](#delhi-stamp-duty--mcd-tax-matrix)
-  - [Haryana Urban vs. Rural Jurisdiction Engine [BETA]](#haryana-urban-vs-rural-jurisdiction-engine-beta)
-  - [Constituent Tax Aggregation Algorithm](#constituent-tax-aggregation-algorithm)
+- [System Overview \& Processing Pipeline](#system-overview--processing-pipeline)
+  - [Module 1: Document Pre-processing \& Dual-Engine OCR](#module-1-document-pre-processing--dual-engine-ocr)
+  - [Module 2: 4-Pass 80-Parameter Extraction Pipeline](#module-2-4-pass-80-parameter-extraction-pipeline)
+  - [Module 3: Tax \& Local Authority Reconciliation](#module-3-tax--local-authority-reconciliation)
 - [Recognized Financial Institutions \& Mortgage Lenders](#recognized-financial-institutions--mortgage-lenders)
 - [5-Tier Legal Severity Classification Framework](#5-tier-legal-severity-classification-framework)
-- [Complete Specification of All 94 Discrepancy \& Validation Rules](#complete-specification-of-all-94-discrepancy--validation-rules)
-  - [1. Legal \& Statutory Compliance Audits](#1-legal--statutory-compliance-audits)
-  - [2. Consideration \& Financial Valuation Audits](#2-consideration--financial-valuation-audits)
-  - [3. Title Chain \& Ownership Integrity Audits](#3-title-chain--ownership-integrity-audits)
-  - [4. Party Identity, PAN \& KYC Audits](#4-party-identity-pan--kyc-audits)
-  - [5. Party Name Spelling Deviation Audits](#5-party-name-spelling-deviation-audits)
-  - [6. Mortgage, Encumbrance \& Charge Release Audits](#6-mortgage-encumbrance--charge-release-audits)
-  - [7. Lender Bank Match \& Merger Transition Audits](#7-lender-bank-match--merger-transition-audits)
-  - [8. Project Metadata Reconciliation Audits](#8-project-metadata-reconciliation-audits)
-  - [9. Statutory Stamp Duty \& Municipal Tax Audit Matrix](#9-statutory-stamp-duty--municipal-tax-audit-matrix)
-  - [10. Haryana Jurisdiction \& Revenue Estate Audits [BETA]](#10-haryana-jurisdiction--revenue-estate-audits-beta)
-  - [11. Pre-Processing \& Computer Vision Rules](#11-pre-processing--computer-vision-rules)
-  - [12. Meta-Rules \& Legal Privilege Enforcement](#12-meta-rules--legal-privilege-enforcement)
-- [No-Verdict Policy \& Legal Privilege Protection](#no-verdict-policy--legal-privilege-protection)
+- [Legal Privilege Policy](#legal-privilege-policy)
 - [Security Architecture \& OWASP Controls](#security-architecture--owasp-controls)
+- [Complete Specification of All 94 Discrepancy \& Validation Rules](#complete-specification-of-all-94-discrepancy--validation-rules)
+- [Parameter Enforcement Note](#parameter-enforcement-note)
 - [Setup \& Local Development Installation](#setup--local-development-installation)
 - [Repository File Blueprint](#repository-file-blueprint)
 
 ---
 
-## System Architecture & Pipeline Workflow
+## System Overview & Processing Pipeline
 
-Property title chains in India consist of heterogeneous, multi-page scanned documents spanning 30+ years of ownership history. Standard document parsing engines fail on these inputs due to split tax receipts (e.g., separate stamp duty and local authority tax payments), missing localized statutory context (e.g., pre-2003 DDA conveyance stamp exemptions), and LLM context drift on long files.
-
-DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, and rule evaluation into isolated processing stages:
+Property title chains in India consist of heterogeneous, multi-page scanned documents spanning 30+ years of ownership history. DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, and rule evaluation into clear processing stages:
 
 ```mermaid
 flowchart LR
     A["Raw Deed PDF / Scan Ingestion"] --> B["Module 1: Vision OCR & Deskew"]
-    B --> C["Module 2: 4-Pass LLM Extraction"]
+    B --> C["Module 2: 4-Pass Schema Extraction"]
     C --> D["Module 3: Tax & Local Body Reconciler"]
     D --> E["Module 4: 94 Rule Discrepancy Engine"]
     E --> F["Structured Workspace Dashboard"]
@@ -66,7 +49,7 @@ flowchart LR
 
 ---
 
-## Module 1: Document Pre-processing & Dual-Engine OCR
+### Module 1: Document Pre-processing & Dual-Engine OCR
 
 Before document text is parsed, pages undergo automated computer vision processing:
 
@@ -80,7 +63,7 @@ Before document text is parsed, pages undergo automated computer vision processi
 
 ---
 
-## Module 2: 4-Pass 80-Parameter Extraction Pipeline
+### Module 2: 4-Pass 80-Parameter Extraction Pipeline
 
 To prevent context drift and attention splitting across 50+ page legal deeds, extraction is partitioned into 4 specialized schema passes, extracting 80 target parameters per document:
 
@@ -95,64 +78,25 @@ To prevent context drift and attention splitting across 50+ page legal deeds, ex
 
 ---
 
-## Parameter Enforcement Architecture
+### Module 3: Tax & Local Authority Reconciliation
 
-DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are interdependent; meaning evaluating a single parameter requires verifying multiple related variables across the document set. The aforementioned are a few examples.
-
-### Basic Rules vs. DelhiTSR Interdependent Checks
-
-| Parameter | Naive If-Else Check | DelhiTSR Interdependent Enforcement |
-| :--- | :--- | :--- |
-| **Prior Link Deeds** | Flags any cited document number not found in the upload list. | Checks document origin first. Exempts government allotments (DDA, L&DO, Gazette notifications) from missing root deed defects while enforcing link deed continuity for private transfers. |
-| **e-Stamp Authorization** | Checks if an e-stamp certificate exists on page 1. | Scans all pages, validates state certificate number formatting, and cross-checks the e-stamp buyer against deed transferors and power of attorney records. |
-| **Encumbrance Recitals** | Reads text phrases like "free from encumbrances". | Cross-references body text declarations against active mortgage entries, court attachment notices, and bank charge records in the session bundle. |
-| **Legal Heir Succession** | Checks if the word "heir" or "intestate" is present. | When a deceased owner's property is sold by one family member, the engine checks whether all other legal heirs have signed registered Relinquishment Deeds giving up their ownership shares. |
-
----
-
-### Interdependent Enforcement Capabilities
-
-1. **Document Provenance and Root Context**  
-   Before checking title continuity, the engine evaluates whether the starting deed is a government allotment (DDA, L&DO, President of India grant). If so, it exempts the initial transfer from missing root deed defects. For private transfers, it enforces complete link deed chain continuity.
-
-2. **Cross-Page Entity and Role Matching**  
-   The engine extracts party identities, aliases, and capacities across all pages. It verifies that e-stamp purchasers match the executing transferors, ensuring third-party stamp purchases without authorization are flagged immediately.
-
-3. **Recital and Encumbrance Reconciliation**  
-   Declarations made in deed text are checked against independent document findings. If a deed states the property is unencumbered but mortgage recitals or bank charges exist in related session documents, a contradiction flag is raised.
-
-4. **Legal Heir Relinquishment Verification**  
-   When a property owner dies without a Will, all legal heirs inherit equal ownership shares. If only one heir sells the property, the engine verifies whether registered Relinquishment or Release Deeds exist from all other legal heirs to confirm the seller has 100% transferable title.
-
-5. **Weighted Severity Classification**  
-   Findings are mapped to a 5-tier legal scale based on legal weight rather than binary flags:
-   - **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
-   - **Substantive Defect**: Major flaws (e-stamp party mismatches, invalid certificate formats).
-   - **Duty Requisition**: Financial deficits (stamp duty shortfalls).
-   - **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
-   - **Record Notation**: System logs and informational observations.
-
----
-
-## Module 3: Universal Tax & Local Authority Reconciliation Engine
-
-### Delhi Stamp Duty & MCD Tax Matrix
+#### Delhi Stamp Duty & MCD Tax Matrix
 
 Evaluates compliance under the Indian Stamp Act, 1899 (Schedule I-A Delhi Amendment) and Section 147 of the Delhi Municipal Corporation Act, 1957:
 
 | Period / Document Category | Sole Female Purchaser | Joint (Female + Male) | Male Purchaser | Statutory Reference |
 | :--- | :--- | :--- | :--- | :--- |
 | **Pre-2003 Resale Conveyances** | 8.00% | 8.00% | 8.00% | Article 23 (5% SD + 3% MCD Tax) |
-| **Pre-2003 DDA / Government Conveyances** | **6.00%** | **6.00%** | **6.00%** | Pre-2003 DDA Statutory Rule |
+| **Pre-2003 DDA / Government Conveyances** | **6.00%** | **6.00%** | **6.00%** | Pre-2003 DDA Rule |
 | **2003 – 2007 Conveyance Deeds** | 5.00% | 7.00% | 8.00% | Delhi Notification 2003 Tariff |
 | **2008 – Present Conveyance Deeds** | **4.00%** *(3% SD + 1% MCD)* | **5.00%** *(3.5% SD + 1.5% MCD)* | **6.00%** *(3% SD + 3% MCD)* | Current NCT Delhi Duty Schedule |
 | **Blood Relative Gift Deed** | 3.00% | 3.00% | 3.00% | Family Concession Schedule (+ 1% Reg Fee) |
 | **Simple Mortgage without Possession** | 2.00% | 2.00% | 2.00% | Article 40 (2% on Principal Amount) |
 | **Equitable Mortgage (Title Deposit)** | 0.50% | 0.50% | 0.50% | Article 40(b) Capped Schedule |
 
-### Haryana Urban vs. Rural Jurisdiction Engine [BETA]
+#### Haryana Urban vs. Rural Jurisdiction Engine [BETA]
 
-> **[BETA STAGE MODULE]**: *All Haryana statutory stamp duty, registration fee slab, and urban vs. rural Gram Panchayat jurisdiction rules operate under BETA status.*
+> **[BETA STAGE MODULE]**: *All Haryana stamp duty, registration fee slab, and urban vs. rural Gram Panchayat jurisdiction rules operate under BETA status.*
 
 Evaluates compliance under the Haryana Stamp Act and Haryana Municipal Corporation Act:
 
@@ -161,16 +105,6 @@ Evaluates compliance under the Haryana Stamp Act and Haryana Municipal Corporati
 | **Sole Female Purchaser(s)** | **5.00%** *(3% Stamp Duty + 2% Municipal Duty)* | **3.00%** *(3% Stamp Duty + 0% Municipal Duty)* |
 | **Joint Purchasers (Male + Female)** | **6.00%** *(4% Stamp Duty + 2% Municipal Duty)* | **4.00%** *(4% Stamp Duty + 0% Municipal Duty)* |
 | **Male Purchaser(s)** | **7.00%** *(5% Stamp Duty + 2% Municipal Duty)* | **5.00%** *(5% Stamp Duty + 0% Municipal Duty)* |
-
-* **Haryana Registration Fee Slabs [BETA]**: Haryana applies a slab-based registration fee structure capped at ₹50,000 for considerations over ₹1 Crore.
-
-### Constituent Tax Aggregation Algorithm
-
-To prevent false deficit findings when stamp duty and local body transfer taxes are paid on separate receipts, `_compute_total_stamp_duty_paid` executes dynamic aggregation:
-
-`Total Duty Paid = Max(E-Stamp Certificate Amount, Total Non-Judicial Stamp Paper, Sum of Constituent Line Items)`
-
-Where `Sum of Constituent Line Items = State Stamp Duty (Article 23) + MCD Transfer Tax (Sec 147) + Local Body Tax`.
 
 ---
 
@@ -189,17 +123,45 @@ The engine incorporates a normalized lender entity ledger that resolves spelling
 
 ## 5-Tier Legal Severity Classification Framework
 
-- **Material Defect**
-- **Substantive Defect**
-- **Statutory Requisition**
-- **Procedural Anomaly**
-- **Record Notation**
+Findings are classified into a 5-tier legal scale based on legal weight:
+
+- **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
+- **Substantive Defect**: Major flaws (e-stamp party mismatches, invalid certificate formats).
+- **Statutory Requisition**: Financial deficits (stamp duty shortfalls).
+- **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
+- **Record Notation**: System logs and informational observations.
+
+---
+
+## Legal Privilege Policy
+
+1. **Factual Output Only**: The engine reports objective observations (such as stamp duty calculations, boundary discrepancies, or missing authorization documents). It does not declare titles void, defective, or invalid.
+2. **Advocate Support**: Output is structured to support legal review while preserving advocate-client privilege.
+
+---
+
+## Security Architecture & OWASP Controls
+
+The platform implements security controls to protect sensitive real estate transactions, identity data, and document processing routines:
+
+### 1. Indirect Prompt Injection (IPI) & LLM Boundaries
+* **Payload Encapsulation**: Document text supplied to LLM extraction routines (`main.py`) is bounded inside `<untrusted_document_payload>` XML tags.
+* **Defensive System Mandates**: Prompts enforce system-level instructions requiring the engine to process tag contents strictly as static data.
+* **Stateless API Executions**: Extraction passes execute statelessly without context memory or database access.
+* **Strict Schema Sanitization**: Responses are validated against explicit JSON schemas.
+
+### 2. Authentication & Data Protection
+* **AES-256 PII Encryption**: Aadhaar identifiers are encrypted at rest using Fernet symmetric encryption (`cryptography.fernet`). Decryption occurs strictly in-memory during real-time audit evaluation.
+* **Access Control**: Project workspace endpoints enforce ownership validation (`check_project_owner`), restricting access to the authenticated user ID.
+
+### 3. Network & Transport Security Headers
+* **HTTP Security Headers**: Every HTTP response sets `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, and `Cache-Control`.
 
 ---
 
 ## Complete Specification of All 94 Discrepancy & Validation Rules
 
-The engine executes 94 deterministic audit routines across 12 specialized functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 platform legal severity tiers:
+The engine executes 94 deterministic audit routines across 12 functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 legal severity tiers:
 
 ### 1. Legal & Regulatory Compliance Audits
 
@@ -400,33 +362,42 @@ Enforces no-verdict AI output boundaries, legal privilege disclaimers, and PII c
 
 ---
 
-## Legal Privilege Policy
+## Parameter Enforcement Note
 
-1. **Factual Output Only**: The engine reports objective observations (such as stamp duty calculations, boundary discrepancies, or missing authorization documents). It does not declare titles void, defective, or invalid.
-2. **Advocate Support**: Output is structured to support legal review while preserving advocate-client privilege.
+DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are interdependent; meaning evaluating a single parameter requires verifying multiple related variables across the document set. The aforementioned are a few examples.
+
+### Basic Rules vs. DelhiTSR Interdependent Checks
+
+| Parameter | Naive If-Else Check | DelhiTSR Interdependent Enforcement |
+| :--- | :--- | :--- |
+| **Prior Link Deeds** | Flags any cited document number not found in the upload list. | Checks document origin first. Exempts government allotments (DDA, L&DO, Gazette notifications) from missing root deed defects while enforcing link deed continuity for private transfers. |
+| **e-Stamp Authorization** | Checks if an e-stamp certificate exists on page 1. | Scans all pages, validates state certificate number formatting, and cross-checks the e-stamp buyer against deed transferors and power of attorney records. |
+| **Encumbrance Recitals** | Reads text phrases like "free from encumbrances". | Cross-references body text declarations against active mortgage entries, court attachment notices, and bank charge records in the session bundle. |
+| **Legal Heir Succession** | Checks if the word "heir" or "intestate" is present. | When a deceased owner's property is sold by one family member, the engine checks whether all other legal heirs have signed registered Relinquishment Deeds giving up their ownership shares. |
 
 ---
 
-## Security Architecture & OWASP Controls
+### Interdependent Enforcement Capabilities
 
-The platform implements multi-layered security controls to protect sensitive real estate transactions, identity data, and document processing routines against standard web vulnerabilities and LLM-specific threat vectors:
+1. **Document Provenance and Root Context**  
+   Before checking title continuity, the engine evaluates whether the starting deed is a government allotment (DDA, L&DO, President of India grant). If so, it exempts the initial transfer from missing root deed defects. For private transfers, it enforces complete link deed chain continuity.
 
-### 1. Indirect Prompt Injection (IPI) & LLM Boundaries
-* **Payload Encapsulation**: All OCR document text supplied to LLM extraction routines (`main.py`) is explicitly bounded inside `<untrusted_document_payload>` XML tags.
-* **Defensive System Mandates**: Prompts enforce system-level instructions requiring the engine to process tag contents strictly as static data and ignore any embedded command overrides or queries.
-* **Stateless API Executions**: Extraction passes execute statelessly without context memory or database access, preventing cross-document information disclosure.
-* **Strict Schema Sanitization**: Responses are validated against explicit JSON schemas. Unstructured text or non-conforming fields returned by the model are automatically stripped.
+2. **Cross-Page Entity and Role Matching**  
+   The engine extracts party identities, aliases, and capacities across all pages. It verifies that e-stamp purchasers match the executing transferors, ensuring third-party stamp purchases without authorization are flagged immediately.
 
-### 2. Authentication & Data Protection
-* **Constant-Time Verification**: Passwordless email OTP verification uses `secrets.compare_digest` to prevent timing side-channel analysis.
-* **AES-256 PII Encryption**: Aadhaar identifiers are encrypted at rest using Fernet symmetric encryption (`cryptography.fernet`). Decryption occurs strictly in-memory during real-time audit evaluation.
-* **Broken Object-Level Authorization (BOLA) Defense**: All project workspace endpoints enforce ownership validation (`check_project_owner`), restricting access to the authenticated user ID.
+3. **Recital and Encumbrance Reconciliation**  
+   Declarations made in deed text are checked against independent document findings. If a deed states the property is unencumbered but mortgage recitals or bank charges exist in related session documents, a contradiction flag is raised.
 
-### 3. Network & Transport Security Headers
-* **HTTP Security Headers**: Every HTTP response sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 1; mode=block`, and `Referrer-Policy: strict-origin-when-cross-origin`.
-* **Cross-Origin & Permission Isolation**: Standard headers enforce `X-Permitted-Cross-Domain-Policies: none`, `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`, and `Permissions-Policy: geolocation=(), microphone=(), camera=()`.
-* **Transport Layer Security**: HTTPS Transport Security (`Strict-Transport-Security: max-age=31536000; includeSubDomains`) is enforced when operating in secure environments.
-* **Rate Limiting & Payload Limits**: Endpoint rate limits prevent automated brute-force attempts on authentication routes, while `MAX_CONTENT_LENGTH` restricts file uploads to 32MB.
+4. **Legal Heir Relinquishment Verification**  
+   When a property owner dies without a Will, all legal heirs inherit equal ownership shares. If only one heir sells the property, the engine verifies whether registered Relinquishment or Release Deeds exist from all other legal heirs to confirm the seller has 100% transferable title.
+
+5. **Weighted Severity Classification**  
+   Findings are mapped to a 5-tier legal scale based on legal weight rather than binary flags:
+   - **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
+   - **Substantive Defect**: Major flaws (e-stamp party mismatches, invalid certificate formats).
+   - **Duty Requisition**: Financial deficits (stamp duty shortfalls).
+   - **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
+   - **Record Notation**: System logs and informational observations.
 
 ---
 
