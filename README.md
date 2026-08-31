@@ -203,7 +203,7 @@ Audits 30-year ownership continuity, link deed sequencing, execution dates, and 
 
 | Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| `CHAIN_BREAK_TRANSFEROR_MISMATCH` | **Material Defect** | Ownership Chain Break | `Sec 5, Transfer of Property Act 1882` | Audits 30-year title continuity to ensure the seller in each deed matches the buyer in the preceding registered deed. |
+| `CHAIN_BREAK_TRANSFEROR_MISMATCH` | **Material Defect** | Ownership Chain Break | `Sec 5, Transfer of Property Act 1882` | Audits title continuity to ensure the seller in each deed matches the buyer in the preceding registered deed. |
 | `CHRONOLOGICAL_DATE_ANOMALY` | **Material Defect** | Reverse Date Sequencing | `N/A (Engine Chronology Audit)` | Flags derivative deeds dated earlier than their parent root deed. |
 | `FUTURE_REGISTRATION_DATE` | **Material Defect** | Future Registration Stamp | `N/A (Engine Temporal Audit)` | Flags registration dates that occur in the future. |
 | `MUTATION_RECORD_MISSING` | **Substantive Defect** | Missing Revenue Mutation Record | `Delhi Land Revenue Act 1954 / DMC Act 1957` | Flags property transfers lacking government revenue mutation records (Khasra/Khatauni or MCD tax mutation). |
