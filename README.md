@@ -6,7 +6,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
   <a href="https://flask.palletsprojects.org/"><img src="https://img.shields.io/badge/Framework-Flask-000000?style=flat&logo=flask&logoColor=white" alt="Framework"></a>
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white" alt="OpenCV"></a>
   <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI-Gemini%202.5%20Vision-4285F4?style=flat&logo=google&logoColor=white" alt="AI Engine"></a>
-  <a href="#complete-specification-of-all-94-discrepancy--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
+  <a href="#94-discrepancy--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
   <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi%20NCT%20%7C%20Haryana%20[BETA]-0284C7?style=flat" alt="Coverage"></a>
   <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-10B981?style=flat" alt="Status"></a>
 </p>
@@ -19,53 +19,53 @@ DelhiTSR is a title verification engine for property ownership chains across the
 
 ## Table of Contents
 
-- [System Overview \& Processing Pipeline](#system-overview--processing-pipeline)
-  - [Module 1: Document Pre-processing \& Dual-Engine OCR](#module-1-document-pre-processing--dual-engine-ocr)
-  - [Module 2: 4-Pass 80-Parameter Extraction Pipeline](#module-2-4-pass-80-parameter-extraction-pipeline)
-  - [Module 3: Tax \& Local Authority Reconciliation](#module-3-tax--local-authority-reconciliation)
-- [Recognized Financial Institutions \& Mortgage Lenders](#recognized-financial-institutions--mortgage-lenders)
-- [5-Tier Legal Severity Classification Framework](#5-tier-legal-severity-classification-framework)
-- [Legal Privilege Policy](#legal-privilege-policy)
-- [Security Architecture \& OWASP Controls](#security-architecture--owasp-controls)
-- [Complete Specification of All 94 Discrepancy \& Validation Rules](#complete-specification-of-all-94-discrepancy--validation-rules)
+- [Processing Pipeline](#processing-pipeline)
+  - [1. Document Pre-Processing \& OCR](#1-document-pre-processing--ocr)
+  - [2. 80-Parameter Schema Extraction](#2-80-parameter-schema-extraction)
+  - [3. Tax \& Local Authority Reconciliation](#3-tax--local-authority-reconciliation)
+- [Recognized Banks \& Housing Finance Companies](#recognized-banks--housing-finance-companies)
+- [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
+- [Legal Privilege \& Compliance Policy](#legal-privilege--compliance-policy)
+- [Security \& Data Protection Controls](#security--data-protection-controls)
+- [94 Discrepancy \& Validation Rules](#94-discrepancy--validation-rules)
 - [Parameter Enforcement Note](#parameter-enforcement-note)
-- [Setup \& Local Development Installation](#setup--local-development-installation)
-- [Repository File Blueprint](#repository-file-blueprint)
+- [Installation \& Local Setup](#installation--local-setup)
+- [Repository Structure](#repository-structure)
 
 ---
 
-## System Overview & Processing Pipeline
+## Processing Pipeline
 
-Property title chains in India consist of heterogeneous, multi-page scanned documents spanning 30+ years of ownership history. DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, and rule evaluation into clear processing stages:
+Property title chains in India consist of multi-page scanned documents spanning 30+ years of ownership history. DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, and rule evaluation into clear processing stages:
 
 ```mermaid
 flowchart LR
-    A["Raw Deed PDF / Scan Ingestion"] --> B["Module 1: Vision OCR & Deskew"]
-    B --> C["Module 2: 4-Pass Schema Extraction"]
-    C --> D["Module 3: Tax & Local Body Reconciler"]
-    D --> E["Module 4: 94 Rule Discrepancy Engine"]
+    A["Raw Deed PDF / Scan Ingestion"] --> B["Stage 1: Vision OCR & Deskew"]
+    B --> C["Stage 2: 4-Pass Schema Extraction"]
+    C --> D["Stage 3: Tax & Local Body Reconciler"]
+    D --> E["Stage 4: 94 Rule Discrepancy Engine"]
     E --> F["Structured Workspace Dashboard"]
 ```
 
 ---
 
-### Module 1: Document Pre-processing & Dual-Engine OCR
+### 1. Document Pre-Processing & OCR
 
 Before document text is parsed, pages undergo automated computer vision processing:
 
 1. **Orientation Angle Detection**: `pypdfium2` renders PDF pages to numpy arrays. OpenCV detects baseline text orientation using minimum area bounding rectangles (`cv2.minAreaRect`).
 2. **Affine Rotation**: Rotates pages back to 0° alignment for detected skew angles between 0.5° and 45.0°.
 3. **Otsu Binarization**: Cleans background yellowing, shadow artifacts, and faint watermarks using Otsu thresholding (`cv2.THRESH_OTSU`).
-4. **Adaptive Text Extraction Pipeline**:
+4. **Adaptive Text Extraction**:
    * **Direct Vector Stream**: Embedded digital fonts are extracted directly via `pdfplumber`.
    * **RapidOCR Fallback**: If page text density is below 40 characters per page (indicating scanned images), pages automatically route to `rapidocr-onnxruntime` with OpenCV contrast enhancement.
    * **Multimodal Vision Fallback**: Handwritten recitals, faint endorsement stamps, or damaged paper marginalia route to Gemini 2.5 Vision.
 
 ---
 
-### Module 2: 4-Pass 80-Parameter Extraction Pipeline
+### 2. 80-Parameter Schema Extraction
 
-To prevent context drift and attention splitting across 50+ page legal deeds, extraction is partitioned into 4 specialized schema passes, extracting 80 target parameters per document:
+To prevent context drift across long legal deeds, extraction is partitioned into 4 specialized schema passes, extracting 80 target parameters per document:
 
 * **Pass 1: Document Identity & Stamp Paper Ledger**
   * Registration number, volume/page numbers, SRO office, e-stamp certificate number, issue date, article number, execution date, registration date.
@@ -78,9 +78,9 @@ To prevent context drift and attention splitting across 50+ page legal deeds, ex
 
 ---
 
-### Module 3: Tax & Local Authority Reconciliation
+### 3. Tax & Local Authority Reconciliation
 
-#### Delhi Stamp Duty & MCD Tax Matrix
+#### Delhi Stamp Duty & Municipal Tax Schedule
 
 Evaluates compliance under the Indian Stamp Act, 1899 (Schedule I-A Delhi Amendment) and Section 147 of the Delhi Municipal Corporation Act, 1957:
 
@@ -94,7 +94,7 @@ Evaluates compliance under the Indian Stamp Act, 1899 (Schedule I-A Delhi Amendm
 | **Simple Mortgage without Possession** | 2.00% | 2.00% | 2.00% | Article 40 (2% on Principal Amount) |
 | **Equitable Mortgage (Title Deposit)** | 0.50% | 0.50% | 0.50% | Article 40(b) Capped Schedule |
 
-#### Haryana Urban vs. Rural Jurisdiction Engine [BETA]
+#### Haryana Jurisdiction & Duty Rates [BETA]
 
 > **[BETA STAGE MODULE]**: *All Haryana stamp duty, registration fee slab, and urban vs. rural Gram Panchayat jurisdiction rules operate under BETA status.*
 
@@ -108,7 +108,7 @@ Evaluates compliance under the Haryana Stamp Act and Haryana Municipal Corporati
 
 ---
 
-## Recognized Financial Institutions & Mortgage Lenders
+## Recognized Banks & Housing Finance Companies
 
 The engine incorporates a normalized lender entity ledger that resolves spelling variations, branch suffixes, and historical bank mergers when auditing mortgage charges and release deeds:
 
@@ -121,7 +121,7 @@ The engine incorporates a normalized lender entity ledger that resolves spelling
 
 ---
 
-## 5-Tier Legal Severity Classification Framework
+## 5-Tier Legal Severity Scale
 
 Findings are classified into a 5-tier legal scale based on legal weight:
 
@@ -133,37 +133,37 @@ Findings are classified into a 5-tier legal scale based on legal weight:
 
 ---
 
-## Legal Privilege Policy
+## Legal Privilege & Compliance Policy
 
 1. **Factual Output Only**: The engine reports objective observations (such as stamp duty calculations, boundary discrepancies, or missing authorization documents). It does not declare titles void, defective, or invalid.
 2. **Advocate Support**: Output is structured to support legal review while preserving advocate-client privilege.
 
 ---
 
-## Security Architecture & OWASP Controls
+## Security & Data Protection Controls
 
 The platform implements security controls to protect sensitive real estate transactions, identity data, and document processing routines:
 
-### 1. Indirect Prompt Injection (IPI) & LLM Boundaries
+### 1. Prompt Injection & AI Safety Controls
 * **Payload Encapsulation**: Document text supplied to LLM extraction routines (`main.py`) is bounded inside `<untrusted_document_payload>` XML tags.
 * **Defensive System Mandates**: Prompts enforce system-level instructions requiring the engine to process tag contents strictly as static data.
 * **Stateless API Executions**: Extraction passes execute statelessly without context memory or database access.
 * **Strict Schema Sanitization**: Responses are validated against explicit JSON schemas.
 
-### 2. Authentication & Data Protection
+### 2. Authentication & Data Privacy
 * **AES-256 PII Encryption**: Aadhaar identifiers are encrypted at rest using Fernet symmetric encryption (`cryptography.fernet`). Decryption occurs strictly in-memory during real-time audit evaluation.
 * **Access Control**: Project workspace endpoints enforce ownership validation (`check_project_owner`), restricting access to the authenticated user ID.
 
-### 3. Network & Transport Security Headers
+### 3. Web Security Headers
 * **HTTP Security Headers**: Every HTTP response sets `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, and `Cache-Control`.
 
 ---
 
-## Complete Specification of All 94 Discrepancy & Validation Rules
+## 94 Discrepancy & Validation Rules
 
 The engine executes 94 deterministic audit routines across 12 functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 legal severity tiers:
 
-### 1. Legal & Regulatory Compliance Audits
+### 1. Legal & Statutory Registration Rules
 
 Audits compliance against registration laws, SRO territorial jurisdiction, and power of attorney execution mandates:
 
@@ -180,7 +180,7 @@ Audits compliance against registration laws, SRO territorial jurisdiction, and p
 | `SRO_LOCALITY_TOKEN_MATCH` | **Record Notation** | Locality Boundary Token Check | `N/A (Engine Token Matching)` | Performs tokenized string matching between the property schedule address and official SRO jurisdiction ledgers. |
 | `EXPLICIT_SRO_RECITAL` | **Record Notation** | Explicit Header SRO Recital | `Sec 28, Registration Act 1908` | Validates explicit SRO jurisdiction recitals in deed preambles against official endorsement registry stamps. |
 
-### 2. Consideration & Financial Valuation Audits
+### 2. Transaction Value & Consideration Rules
 
 Audits monetary consideration declarations, lease rentals, mortgage principal amounts, and gift deed validity:
 
@@ -194,7 +194,7 @@ Audits monetary consideration declarations, lease rentals, mortgage principal am
 | `CONSIDERATION_FORMAT_AUDIT` | **Record Notation** | Consideration Parsing Validation | `N/A (Engine Financial Parser)` | Audits numerical figures against written word consideration recitals (e.g., ₹5,00,000 vs 'Fifty Thousand') to detect monetary transcription discrepancies. |
 | `CONSIDERATION_CURRENCY_CHECK` | **Record Notation** | Currency Unit Standardization | `Reserve Bank of India Act 1934` | Verifies that monetary consideration values are recorded in standard Indian Rupee (INR / ₹) currency denominations. |
 
-### 3. Title Chain & Ownership Integrity Audits
+### 3. Ownership History & Title Chain Rules
 
 Audits 30-year ownership continuity, link deed sequencing, execution dates, and revenue mutation records:
 
@@ -211,7 +211,7 @@ Audits 30-year ownership continuity, link deed sequencing, execution dates, and 
 | `PARTIAL_SHARE_TRANSFER_CHECK` | **Record Notation** | Undivided Share Audit | `Sec 44, Transfer of Property Act 1882` | Tracks the exact percentage of undivided land share conveyed in each title deed to ensure full title conveyance. |
 | `DOCUMENT_SEQUENCE_NORMALIZER` | **Record Notation** | Chronological Ledger Order | `N/A (Engine Chronology Audit)` | Sorts multi-deed document packages into strict chronological sequence based on registration timestamps. |
 
-### 4. Party Identity, PAN & KYC Audits
+### 4. Party Identity & Tax ID Rules
 
 Audits party identities, Income Tax PAN compliance, corporate CIN numbers, and signatory capacity:
 
@@ -225,7 +225,7 @@ Audits party identities, Income Tax PAN compliance, corporate CIN numbers, and s
 | `PARTY_ADDRESS_MISSING` | **Procedural Anomaly** | Missing Party Address | `Sec 32A, Registration Act 1908` | Identifies deed parties lacking formal residential or corporate address recitals. |
 | `REPRESENTATIVE_CAPACITY_CHECK` | **Record Notation** | Execution Authority Audit | `Sec 180, Companies Act 2013` | Verifies board resolutions, power of attorney recitals, or trust authorizations for corporate and non-individual signatories. |
 
-### 5. Party Name Spelling Deviation Audits
+### 5. Name Spelling Variation Rules
 
 Audits party name spelling variations across title chain documents, alias recitals, and honorifics:
 
@@ -238,7 +238,7 @@ Audits party name spelling variations across title chain documents, alias recita
 | `SURNAME_INITIAL_EXPANSION` | **Record Notation** | Initial vs. Full Name Check | `N/A (Engine Name Normalizer)` | Matches abbreviated middle names or initials against full expanded names (e.g., 'R.K. Sharma' vs 'Rajesh Kumar Sharma'). |
 | `PARTY_ROLE_CANONICALIZER` | **Record Notation** | Party Role Normalization | `N/A (Engine Entity Canonicalizer)` | Maps vernacular party role terms (Vendor/Vendee, Lessor/Lessee, Donor/Donee) into standard system roles. |
 
-### 6. Mortgage, Encumbrance & Charge Release Audits
+### 6. Mortgage & Charge Release Rules
 
 Audits outstanding bank mortgages, reconveyance deeds, NOC certificates, court attachments, and lis pendens notices:
 
@@ -261,7 +261,7 @@ Audits outstanding bank mortgages, reconveyance deeds, NOC certificates, court a
 | `ENCUMBRANCE_FREE_DECLARATION` | **Record Notation** | Encumbrance Warranty Recital | `Sec 55(1)(g), Transfer of Property Act 1882` | Audits seller warranty recitals declaring the property free from all encumbrances, liens, and litigation. |
 | `CHARGE_REGISTER_CANONICALIZER` | **Record Notation** | Encumbrance Ledger Normalization | `N/A (Engine Charge Normalizer)` | Compiles all active, partial, and discharged charges into a unified property encumbrance ledger. |
 
-### 7. Lender Bank Match & Merger Audits
+### 7. Lender Registry & Bank Merger Rules
 
 Audits recognized lending institutions, historical bank mergers, and SARFAESI enforcement charges:
 
@@ -274,7 +274,7 @@ Audits recognized lending institutions, historical bank mergers, and SARFAESI en
 | `ASSIGNMENT_OF_DEBT_CHECK` | **Substantive Defect** | Debt Assignment Verification | `Sec 130, Transfer of Property Act 1882` | Verifies that when a successor bank or ARC releases a mortgage originally created by a different lender, a registered Deed of Assignment of Debt exists in the title chain to validate legal transfer of mortgage rights. |
 | `SARFAESI_NOTICE_CHECK` | **Material Defect** | SARFAESI Enforcement Charge | `Sec 13(2) & 13(4), SARFAESI Act 2002` | Scans title recitals, index records, and registry endorsements for active Sec 13(2) demand notices, Sec 13(4) possession notices, or bank auction proceedings under securitisation laws. |
 
-### 8. Project Metadata Reconciliation Audits
+### 8. Property Boundary & Schedule Rules
 
 Audits plot/unit numbers, square footage area calculations, four-sided boundaries, and locality names:
 
@@ -291,7 +291,7 @@ Audits plot/unit numbers, square footage area calculations, four-sided boundarie
 | `PROPERTY_TYPE_CANONICALIZER` | **Record Notation** | Property Classification | `Delhi Master Plan 2021 (MPD-2021)` | Classifies property nature (Residential, Commercial, Industrial, Agricultural) based on deed schedule recitals. |
 | `ADDRESS_LINE_RECONCILIATION` | **Record Notation** | Full Address Parsing | `N/A (Engine Address Parser)` | Reconciles complete address strings against postal and municipal records. |
 
-### 9. Stamp Duty & Municipal Tax Audit Matrix
+### 9. Stamp Duty & Municipal Tax Rules
 
 Audits stamp duty compliance, MCD transfer taxes, gender concessions, e-stamp validation, and minimum circle rates:
 
@@ -321,7 +321,7 @@ Audits stamp duty compliance, MCD transfer taxes, gender concessions, e-stamp va
 | `PAST_STAMP_LAW_AMENDMENT_MAP` | **Record Notation** | Historical Stamp Rate Ledger | `N/A (Engine Historical Tax Matrix)` | Maps historical stamp duty rate amendments in Delhi (1995, 2003, 2008, 2012) against deed registration dates. |
 | `TAX_EXEMPTION_RECITAL_VERIFY` | **Record Notation** | Tax Exemption Recital | `Sec 9, Indian Stamp Act 1899` | Verifies tax exemption recitals (e.g., government grants, educational trusts) against official notification orders. |
 
-### 10. Haryana Jurisdiction & Revenue Estate Audits [BETA]
+### 10. Haryana Local Jurisdiction Rules [BETA]
 
 > **Note**: *All Haryana rules and jurisdiction audit routines operate in BETA.*
 
@@ -334,7 +334,7 @@ Audits Haryana Municipal Corporation (MCG/MCF) vs. rural Gram Panchayat duty rat
 | `HADBAST_NUMBER_AUDIT` | **Substantive Defect** | Hadbast / Khasra Verification | `Haryana Land Revenue Act 1887` | Cross-checks Hadbast (Revenue Estate) numbers and Khasra parcel identifiers against Haryana Land Records ledgers. |
 | `HARYANA_GRAM_PANCHAYAT_DUTY` | **Statutory Requisition** | 2% Gram Panchayat Duty Audit | `Haryana Panchayati Raj Act 1994 (Sec 200)` | Audits the 2% local body transfer duty levied in rural Haryana Gram Panchayat jurisdictions. |
 
-### 11. Pre-Processing & Computer Vision Rules
+### 11. Page Quality & Computer Vision Rules
 
 Audits document page orientation, affine deskewing, binarization quality, and dual-engine OCR routing:
 
@@ -350,7 +350,7 @@ Audits document page orientation, affine deskewing, binarization quality, and du
 | `ENDORSEMENT_STAMP_CROP` | **Record Notation** | SRO Endorsement Bounding Box | `N/A (Computer Vision / Bounding Box)` | Locates and crops registration endorsement stamps on deed margins for targeted OCR text extraction. |
 | `IMAGE_BLUR_QUALITY_AUDIT` | **Record Notation** | Image Clarity Audit | `N/A (Computer Vision / Laplacian Variance)` | Measures Laplacian variance to flag illegible, blurry, or low-quality document scans requiring re-upload. |
 
-### 12. Meta-Rules & Legal Privilege Enforcement
+### 12. Output Safety & Privilege Rules
 
 Enforces no-verdict AI output boundaries, legal privilege disclaimers, and PII confidentiality filters:
 
@@ -366,7 +366,7 @@ Enforces no-verdict AI output boundaries, legal privilege disclaimers, and PII c
 
 DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are interdependent; meaning evaluating a single parameter requires verifying multiple related variables across the document set. The aforementioned are a few examples.
 
-### Basic Rules vs. DelhiTSR Interdependent Checks
+### Basic Rules vs. Interdependent Enforcement
 
 | Parameter | Naive If-Else Check | DelhiTSR Interdependent Enforcement |
 | :--- | :--- | :--- |
@@ -377,7 +377,7 @@ DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are in
 
 ---
 
-### Interdependent Enforcement Capabilities
+### Core Enforcement Mechanisms
 
 1. **Document Provenance and Root Context**  
    Before checking title continuity, the engine evaluates whether the starting deed is a government allotment (DDA, L&DO, President of India grant). If so, it exempts the initial transfer from missing root deed defects. For private transfers, it enforces complete link deed chain continuity.
@@ -401,7 +401,7 @@ DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are in
 
 ---
 
-## Setup & Local Development Installation
+## Installation & Local Setup
 
 ### Prerequisites
 
@@ -451,7 +451,7 @@ python app.py
 
 ---
 
-## Repository File Blueprint
+## Repository Structure
 
 ```
 tsr-engine/
