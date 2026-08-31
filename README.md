@@ -13,7 +13,10 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
 
 DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for property title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
 
-> **Note**: DelhiTSR is under active development. While the engine currently audits title deeds, reconciles stamp duty tariffs, and evaluates 94 verification checks, compiled Title Search Report (TSR) generation will be introduced in future releases.
+> **What is a Title Search Report (TSR)?**  
+> A Title Search Report is a legal audit of a property's ownership history, verifying that the title is clear, marketable, and unencumbered. In India, financial institutions require a TSR prepared by an empanelled legal advocate before disbursing mortgage loans. **DelhiTSR** automates this legal due diligence workflow, auditing document chains against 94 defined parameters to generate structured Title Search Reports.
+> 
+> *Note: DelhiTSR is under active development. Compiled TSR document export will be introduced in future releases.*
 
 ---
 
@@ -27,7 +30,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 - [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
 - [Legal Privilege \& Compliance Policy](#legal-privilege--compliance-policy)
 - [Security \& Data Protection Controls](#security--data-protection-controls)
-- [Complete Specification of All 94 Parameters](#complete-specification-of-all-94-parameters)
+- **[Complete Specification of All 94 Parameters](#complete-specification-of-all-94-parameters)**
   - [1. Tier 1: Material Defects (Critical Severity)](#1-tier-1-material-defects-critical-severity)
   - [2. Tier 2: Substantive Defects (Major Severity)](#2-tier-2-substantive-defects-major-severity)
   - [3. Tier 3: Statutory Requisitions](#3-tier-3-statutory-requisitions-financial--legal-requisitions)
