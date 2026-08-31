@@ -6,7 +6,7 @@ Title Intelligence Engine (Delhi NCT & Haryana [BETA])
   <a href="https://flask.palletsprojects.org/"><img src="https://img.shields.io/badge/Framework-Flask-000000?style=flat&logo=flask&logoColor=white" alt="Framework"></a>
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white" alt="OpenCV"></a>
   <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI-Gemini%202.5%20Vision-4285F4?style=flat&logo=google&logoColor=white" alt="AI Engine"></a>
-  <a href="#94-discrepancy--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
+  <a href="#complete-specification-of-all-94-parameters--validation-rules"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
   <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi%20NCT%20%7C%20Haryana%20[BETA]-0284C7?style=flat" alt="Coverage"></a>
   <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-10B981?style=flat" alt="Status"></a>
 </p>
@@ -21,7 +21,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 
 - [Processing Pipeline](#processing-pipeline)
   - [1. Document Pre-Processing \& OCR](#1-document-pre-processing--ocr)
-  - [2. 80-Parameter Schema Extraction](#2-80-parameter-schema-extraction)
+  - [2. 80-Field Schema Extraction](#2-80-field-schema-extraction)
   - [3. Tax \& Local Authority Reconciliation](#3-tax--local-authority-reconciliation)
 - [Recognized Banks \& Housing Finance Companies](#recognized-banks--housing-finance-companies)
 - [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
@@ -63,7 +63,7 @@ Before document text is parsed, pages undergo automated computer vision processi
 
 ---
 
-### 2. 80-Parameter Schema Extraction
+### 2. 80-Field Schema Extraction
 
 To prevent context drift across long legal deeds, extraction is partitioned into 4 specialized schema passes, extracting 80 target parameters per document:
 
@@ -159,7 +159,7 @@ The platform implements security controls to protect sensitive real estate trans
 
 ---
 
-## 94 Discrepancy & Validation Rules
+## Complete Specification of All 94 Parameters & Validation Rules
 
 The engine executes 94 deterministic audit routines across 12 functional modules. Each rule evaluates specific document inputs, statutory provisions, and title parameters, assigning one of the 5 legal severity tiers:
 
