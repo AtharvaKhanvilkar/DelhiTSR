@@ -31,11 +31,11 @@ DelhiTSR is a title verification engine for property ownership chains across the
 - [Legal Privilege \& Compliance Policy](#legal-privilege--compliance-policy)
 - [Security \& Data Protection Controls](#security--data-protection-controls)
 - **[Complete Specification of All 94 Parameters](#complete-specification-of-all-94-parameters)**
-  - [1. Tier 1: Material Defects (Critical Severity)](#1-tier-1-material-defects-critical-severity)
-  - [2. Tier 2: Substantive Defects (Major Severity)](#2-tier-2-substantive-defects-major-severity)
-  - [3. Tier 3: Statutory Requisitions](#3-tier-3-statutory-requisitions-financial--legal-requisitions)
-  - [4. Tier 4: Procedural Anomalies](#4-tier-4-procedural-anomalies-minor--formatting-anomalies)
-  - [5. Tier 5: Record Notations](#5-tier-5-record-notations-system-observations--logs)
+  - [1. Tier 1: Material Defects](#1-tier-1-material-defects)
+  - [2. Tier 2: Substantive Defects](#2-tier-2-substantive-defects)
+  - [3. Tier 3: Statutory Requisitions](#3-tier-3-statutory-requisitions)
+  - [4. Tier 4: Procedural Anomalies](#4-tier-4-procedural-anomalies)
+  - [5. Tier 5: Record Notations](#5-tier-5-record-notations)
 - [Parameter Enforcement Note](#parameter-enforcement-note)
 - [Installation \& Local Setup](#installation--local-setup)
 - [Repository Structure](#repository-structure)
@@ -174,7 +174,7 @@ The platform implements security controls to protect sensitive real estate trans
 
 The engine evaluates 94 parameters across 12 domains, checking reconciled metadata for an event against governing laws, title continuity requirements, and state stamp schedules to assign each finding a 5-tier severity rating. All identified defects surface directly as findings within the platform's workspace dashboard:
 
-### 1. Tier 1: Material Defects (Critical Severity)
+### 1. Tier 1: Material Defects
 
 Material defects represent critical title or legal failures that compromise ownership validity or transferability:
 
@@ -201,7 +201,7 @@ Material defects represent critical title or legal failures that compromise owne
 | `CHRONOLOGICAL_DATE_ANOMALY` | **Material Defect** | Reverse Date Sequencing | `N/A (Engine Chronology Audit)` | Flags derivative deeds dated earlier than their parent root deed. |
 | `FUTURE_REGISTRATION_DATE` | **Material Defect** | Future Registration Stamp | `N/A (Engine Temporal Audit)` | Flags registration dates that occur in the future. |
 
-### 2. Tier 2: Substantive Defects (Major Severity)
+### 2. Tier 2: Substantive Defects
 
 Substantive defects represent major legal, registration, or document discrepancies requiring corrective action:
 
@@ -221,7 +221,7 @@ Substantive defects represent major legal, registration, or document discrepanci
 | `HADBAST_NUMBER_AUDIT` | **Substantive Defect** | Hadbast / Khasra Verification | `Haryana Land Revenue Act 1887` | Cross-checks Hadbast revenue estate numbers and Khasra parcel identifiers against Haryana Land Records. |
 | `IMPOUNDING_RISK_ASSESSMENT` | **Substantive Defect** | Deed Impounding Risk | `Sec 33, Indian Stamp Act 1899` | Flags inadequately stamped deeds subject to impounding under Section 33. |
 
-### 3. Tier 3: Statutory Requisitions (Financial & Legal Requisitions)
+### 3. Tier 3: Statutory Requisitions
 
 Statutory requisitions represent duty shortfalls, tax deficits, and fee reconciliation requirements:
 
@@ -250,7 +250,7 @@ Statutory requisitions represent duty shortfalls, tax deficits, and fee reconcil
 | `HARYANA_FEMALE_CONCESSION` | **Statutory Requisition** | Haryana Female Concession Audit | `Indian Stamp (Haryana Amendment) Act` | Audits Haryana stamp duty rates (5% Urban / 3% Rural for females vs 7% Urban / 5% Rural for males). |
 | `HARYANA_GRAM_PANCHAYAT_DUTY` | **Statutory Requisition** | 2% Gram Panchayat Duty Audit | `Haryana Panchayati Raj Act 1994 (Sec 200)` | Audits the 2% local body transfer duty levied in rural Haryana Gram Panchayat areas. |
 
-### 4. Tier 4: Procedural Anomalies (Minor & Formatting Anomalies)
+### 4. Tier 4: Procedural Anomalies
 
 Procedural anomalies represent minor formatting, date precedence, or boundary description gaps:
 
@@ -269,7 +269,7 @@ Procedural anomalies represent minor formatting, date precedence, or boundary de
 | `BOUNDARY_WEST_MISMATCH` | **Procedural Anomaly** | West Boundary Mismatch | `Sec 21, Registration Act 1908` | Cross-references West boundary descriptions across successive deeds. |
 | `STAMP_PAPER_DATE_PRECEDENCE` | **Procedural Anomaly** | Stamp Paper Date Precedence | `Sec 29, Indian Stamp Act 1899` | Verifies that non-judicial stamp paper purchase dates precede or match deed execution date. |
 
-### 5. Tier 5: Record Notations (System Observations & Logs)
+### 5. Tier 5: Record Notations
 
 Record notations represent system logs, name normalizations, and informational observations:
 
