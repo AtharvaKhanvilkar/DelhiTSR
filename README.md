@@ -22,6 +22,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
 - [System Architecture \& Pipeline Workflow](#system-architecture--pipeline-workflow)
 - [Module 1: Document Pre-processing \& Dual-Engine OCR](#module-1-document-pre-processing--dual-engine-ocr)
 - [Module 2: 4-Pass 80-Parameter Extraction Pipeline](#module-2-4-pass-80-parameter-extraction-pipeline)
+- [Parameter Enforcement Architecture](#parameter-enforcement-architecture)
 - [Module 3: Universal Tax \& Local Authority Reconciliation Engine](#module-3-universal-tax--local-authority-reconciliation-engine)
   - [Delhi Stamp Duty \& MCD Tax Matrix](#delhi-stamp-duty--mcd-tax-matrix)
   - [Haryana Urban vs. Rural Jurisdiction Engine [BETA]](#haryana-urban-vs-rural-jurisdiction-engine-beta)
@@ -91,6 +92,45 @@ To prevent context drift and attention splitting across 50+ page legal deeds, ex
   * Stated consideration, rental fee/premium, secured loan principal, e-stamp value, MCD tax amount, local authority tax, cheque/DD/RTGS numbers, TDS Form 26QB verification.
 * **Pass 4: Property Schedule & Boundary Chain**
   * Property address, plot/flat number, survey/khasra/hadbast number, floor level, share percentage, area measurement and units (Sq. Yards, Bigha, Biswas, Sq. Meters), north/south/east/west boundaries.
+
+---
+
+## Parameter Enforcement Architecture
+
+DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are interdependent; meaning evaluating a single parameter requires verifying multiple related variables across the document set. The aforementioned are a few examples.
+
+### Basic Rules vs. DelhiTSR Interdependent Checks
+
+| Parameter | Naive If-Else Check | DelhiTSR Interdependent Enforcement |
+| :--- | :--- | :--- |
+| **Prior Link Deeds** | Flags any cited document number not found in the upload list. | Checks document origin first. Exempts government allotments (DDA, L&DO, Gazette notifications) from missing root deed defects while enforcing link deed continuity for private transfers. |
+| **e-Stamp Authorization** | Checks if an e-stamp certificate exists on page 1. | Scans all pages, validates state certificate number formatting, and cross-checks the e-stamp buyer against deed transferors and power of attorney records. |
+| **Encumbrance Recitals** | Reads text phrases like "free from encumbrances". | Cross-references body text declarations against active mortgage entries, court attachment notices, and bank charge records in the session bundle. |
+| **Legal Heir Succession** | Checks if the word "heir" or "intestate" is present. | When a deceased owner's property is sold by one family member, the engine checks whether all other legal heirs have signed registered Relinquishment Deeds giving up their ownership shares. |
+
+---
+
+### Interdependent Enforcement Capabilities
+
+1. **Document Provenance and Root Context**  
+   Before checking title continuity, the engine evaluates whether the starting deed is a government allotment (DDA, L&DO, President of India grant). If so, it exempts the initial transfer from missing root deed defects. For private transfers, it enforces complete link deed chain continuity.
+
+2. **Cross-Page Entity and Role Matching**  
+   The engine extracts party identities, aliases, and capacities across all pages. It verifies that e-stamp purchasers match the executing transferors, ensuring third-party stamp purchases without authorization are flagged immediately.
+
+3. **Recital and Encumbrance Reconciliation**  
+   Declarations made in deed text are checked against independent document findings. If a deed states the property is unencumbered but mortgage recitals or bank charges exist in related session documents, a contradiction flag is raised.
+
+4. **Legal Heir Relinquishment Verification**  
+   When a property owner dies without a Will, all legal heirs inherit equal ownership shares. If only one heir sells the property, the engine verifies whether registered Relinquishment or Release Deeds exist from all other legal heirs to confirm the seller has 100% transferable title.
+
+5. **Weighted Severity Classification**  
+   Findings are mapped to a 5-tier legal scale based on legal weight rather than binary flags:
+   - **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
+   - **Substantive Defect**: Major flaws (e-stamp party mismatches, invalid certificate formats).
+   - **Duty Requisition**: Financial deficits (stamp duty shortfalls).
+   - **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
+   - **Record Notation**: System logs and informational observations.
 
 ---
 
