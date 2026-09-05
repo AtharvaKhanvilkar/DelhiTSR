@@ -796,16 +796,17 @@ def parse_index_ii(file_path, forced_subtype=None):
     except Exception:
         estamp_amt = 0.0
 
-    # Determine exact total stamp duty paid without restricting to rigid formulas or equal split assumptions
-    if total_stamp_paper > 0 and total_stamp_paper >= (sd_val + mcd_val):
+    # Determine exact total stamp duty paid using e-stamp certificate & stamp paper as primary physical proof
+    if estamp_amt > 0 and (total_stamp_paper == 0 or estamp_amt == total_stamp_paper):
+        best_sd = estamp_amt
+    elif total_stamp_paper > 0 and (estamp_amt == 0 or total_stamp_paper >= estamp_amt):
+        best_sd = total_stamp_paper
+    elif total_stamp_paper > 0 and total_stamp_paper >= (sd_val + mcd_val):
         best_sd = total_stamp_paper
     elif estamp_amt > 0 and estamp_amt >= (sd_val + mcd_val):
         best_sd = estamp_amt
-    elif mcd_val > 0:
-        if sd_val > 0 and sd_val < (sd_val + mcd_val) * 0.9:
-            best_sd = sd_val + mcd_val
-        else:
-            best_sd = max(sd_val, mcd_val, total_stamp_paper, estamp_amt)
+    elif mcd_val > 0 and sd_val > 0 and sd_val < (sd_val + mcd_val) * 0.9 and (sd_val + mcd_val) < max(sd_val, mcd_val) * 2:
+        best_sd = sd_val + mcd_val
     else:
         best_sd = max(sd_val, total_stamp_paper, estamp_amt)
 

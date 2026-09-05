@@ -2385,7 +2385,7 @@
 
       <!-- Document Sorter Panel -->
       <div class="panel" id="panel-sorter">
-        <div class="flex flex-col h-full bg-white p-6 overflow-y-auto space-y-5">
+        <div class="flex flex-col h-full bg-white p-6 overflow-y-auto space-y-6">
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base font-bold text-zinc-900 tracking-tight">Document Sorter</h3>
@@ -2393,29 +2393,110 @@
                 <span class="h-1.5 w-1.5 rounded-full bg-zinc-900"></span> AI Classifier
               </span>
             </div>
-            <p class="text-xs text-zinc-500 mt-0.5 max-w-xl">Upload a raw, uncleaned registration bundle. The AI separates the deed instrument from supporting documents (PAN, Aadhaar, bills, tax) and discards blank pages. Text-based PDFs only.</p>
+            <p class="text-xs text-zinc-500 mt-0.5 max-w-xl">Upload a raw, uncleaned registration bundle. The AI separates the deed instrument from supporting documents (PAN, Aadhaar, bills, tax) and discards blank pages.</p>
           </div>
 
-          <!-- Upload Card -->
-          <div id="sorter-upload-card" class="rounded-xl border border-zinc-200 bg-zinc-50/50 p-5 transition-all">
-            <div class="flex flex-wrap items-center gap-3">
-              <label for="sorter-file" class="flex-1 flex items-center justify-between h-9 px-3 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-700 cursor-pointer hover:border-zinc-300 transition-all shadow-2xs">
-                <span id="sorter-file-name-display" class="truncate font-medium text-zinc-500">Select raw PDF bundle file...</span>
-                <span class="px-2.5 py-1 rounded bg-zinc-200/70 text-zinc-800 font-semibold text-[11px] shrink-0">Browse</span>
-                <input type="file" id="sorter-file" accept="application/pdf" class="hidden" onchange="onSorterFileSelected(this)">
-              </label>
-              <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800 shadow-2xs transition-all cursor-pointer shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
-                <span>Sort & Classify Document</span>
-              </button>
+          <!-- Modern File Upload Dropzone (Matching Hugeicons React FileUpload Component) -->
+          <div id="sorter-upload-card" class="space-y-3">
+            <div
+              id="sorter-dropzone"
+              role="button"
+              tabindex="0"
+              onclick="document.getElementById('sorter-file').click()"
+              onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); document.getElementById('sorter-file').click(); }"
+              class="group relative flex min-h-[16rem] cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-[1.125rem] border border-dashed border-zinc-300 bg-zinc-50/40 px-6 py-8 text-center transition-all duration-300 ease-out hover:border-zinc-500 hover:bg-zinc-100/50"
+            >
+              <!-- Upload Icon Cluster (3 Stacked Cards fanning out on drag/hover) -->
+              <div class="relative h-14 w-36 select-none">
+                <!-- Left Card: Image -->
+                <div class="absolute top-1/2 left-1/2 grid size-12 place-items-center rounded-xl bg-white border border-zinc-200/90 text-zinc-400 shadow-2xs transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] -translate-x-[78%] -translate-y-1/2 -rotate-8 group-hover:-translate-x-[114%] group-hover:-rotate-12 group-hover:scale-105 sorter-cluster-left">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                    <circle cx="9" cy="9" r="2"/>
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                  </svg>
+                </div>
+                <!-- Center Card: PDF (Elevated) -->
+                <div class="absolute top-1/2 left-1/2 z-10 grid size-12 place-items-center rounded-xl bg-white border border-zinc-300 text-zinc-900 shadow-xs transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] -translate-x-1/2 -translate-y-1/2 group-hover:scale-115 sorter-cluster-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                    <path d="M14 2v4a1 1 0 0 0 1 1h4"/>
+                    <path d="M10 9H8"/>
+                    <path d="M16 13H8"/>
+                    <path d="M16 17H8"/>
+                  </svg>
+                </div>
+                <!-- Right Card: Sheet/Doc -->
+                <div class="absolute top-1/2 left-1/2 grid size-12 place-items-center rounded-xl bg-white border border-zinc-200/90 text-zinc-400 shadow-2xs transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] -translate-x-[22%] -translate-y-1/2 rotate-8 group-hover:translate-x-[14%] group-hover:rotate-12 group-hover:scale-105 sorter-cluster-right">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="8" y1="13" x2="16" y2="13"/>
+                    <line x1="8" y1="17" x2="16" y2="17"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Title & Descriptions -->
+              <div class="space-y-1">
+                <div class="text-sm font-semibold text-zinc-900" id="sorter-drop-title">Click to upload or drop raw PDF bundle</div>
+                <div class="text-xs text-zinc-500" id="sorter-drop-desc">Text-based PDF registration bundle (up to 50MB)</div>
+                <div id="sorter-rejection-msg" class="text-xs text-red-600 font-semibold hidden mt-1"></div>
+              </div>
+
+              <!-- Pill Badge -->
+              <div class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-700 shadow-2xs transition-colors group-hover:border-zinc-300">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <span id="sorter-browse-label">Browse files</span>
+              </div>
+
+              <!-- Hidden File Input -->
+              <input
+                type="file"
+                id="sorter-file"
+                accept=".pdf,application/pdf"
+                class="hidden"
+                onchange="onSorterFileSelected(this)"
+              />
             </div>
-            <p id="sorter-status" class="text-xs text-zinc-600 font-medium mt-2 min-h-[1rem]"></p>
+
+            <!-- Selected File Card (Matching showFileList in React Component) -->
+            <div id="sorter-file-card" class="rounded-xl border border-zinc-200 bg-white p-3.5 shadow-2xs hidden transition-all">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <div class="h-10 w-10 shrink-0 rounded-lg bg-red-50 border border-red-200 text-red-700 flex items-center justify-center font-bold text-xs">
+                    PDF
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div id="sorter-file-name-display" class="truncate text-sm font-semibold text-zinc-900">No file selected</div>
+                    <div id="sorter-file-meta-display" class="truncate text-xs text-zinc-500">PDF • Ready to classify</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="rounded-full bg-zinc-100 border border-zinc-200 px-2.5 py-1 text-xs font-semibold text-zinc-600">
+                    Ready
+                  </span>
+                  <button id="sorter-upload-btn" onclick="sorterUpload()" class="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-zinc-900 text-xs font-semibold text-white hover:bg-zinc-800 shadow-2xs transition-all cursor-pointer">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+                    <span>Sort & Classify Document</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Message -->
+            <p id="sorter-status" class="text-xs text-zinc-600 font-medium min-h-[1rem]"></p>
           </div>
 
           <!-- Results Section -->
           <div id="sorter-results" class="space-y-5"></div>
 
-          <!-- Inline Multi-Tab Extract Viewer (Right inside the Document Sorter panel!) -->
+          <!-- Inline Multi-Tab Extract Viewer -->
           <div id="sorter-inline-viewer" class="rounded-xl border border-zinc-200 bg-white overflow-hidden shadow-sm hidden">
             <!-- Multi-Tab Navigation Bar -->
             <div id="sorter-tab-bar" class="flex items-center gap-1.5 px-3 py-2 bg-zinc-100/90 border-b border-zinc-200 overflow-x-auto"></div>
@@ -10575,20 +10656,36 @@
   let _sorterInstrumentPages = [];
   let _sorterCurrentManifest = null;
 
+  function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${(bytes / (1024 ** index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+  }
+
   function onSorterFileSelected(input) {
+    const fileCard = document.getElementById('sorter-file-card');
     const display = document.getElementById('sorter-file-name-display');
+    const meta = document.getElementById('sorter-file-meta-display');
+    const rej = document.getElementById('sorter-rejection-msg');
+
     if (input && input.files && input.files[0]) {
-      if (display) {
-        display.textContent = input.files[0].name;
-        display.classList.remove('text-zinc-500');
-        display.classList.add('text-zinc-900', 'font-semibold');
+      const file = input.files[0];
+      if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+        if (rej) {
+          rej.textContent = 'This file type is not supported. Please select a PDF file.';
+          rej.classList.remove('hidden');
+        }
+        if (fileCard) fileCard.classList.add('hidden');
+        return;
       }
+      if (rej) rej.classList.add('hidden');
+
+      if (display) display.textContent = file.name;
+      if (meta) meta.textContent = `PDF Document • ${formatBytes(file.size)}`;
+      if (fileCard) fileCard.classList.remove('hidden');
     } else {
-      if (display) {
-        display.textContent = 'Choose PDF bundle file...';
-        display.classList.remove('text-zinc-900', 'font-semibold');
-        display.classList.add('text-zinc-500');
-      }
+      if (fileCard) fileCard.classList.add('hidden');
     }
   }
 
@@ -10599,16 +10696,63 @@
         if (d.ok && d.manifest) {
           _sorterFilename = d.filename;
           const display = document.getElementById('sorter-file-name-display');
+          const fileCard = document.getElementById('sorter-file-card');
           if (display && d.filename) {
             display.textContent = d.filename;
-            display.classList.remove('text-zinc-500');
-            display.classList.add('text-zinc-900', 'font-semibold');
           }
+          if (fileCard) fileCard.classList.remove('hidden');
           renderSorterManifest(d.manifest);
         }
       })
       .catch(() => {});
   }
+
+  // Attach Drag & Drop event handlers to #sorter-dropzone
+  document.addEventListener('DOMContentLoaded', () => {
+    const dropzone = document.getElementById('sorter-dropzone');
+    const browseLabel = document.getElementById('sorter-browse-label');
+    if (!dropzone) return;
+
+    let dragDepth = 0;
+
+    dropzone.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragDepth++;
+      dropzone.classList.add('border-zinc-900', 'bg-zinc-100/70', 'shadow-md');
+      if (browseLabel) browseLabel.textContent = 'Drop to add';
+    });
+
+    dropzone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (dragDepth === 0) {
+        dropzone.classList.remove('border-zinc-900', 'bg-zinc-100/70', 'shadow-md');
+        if (browseLabel) browseLabel.textContent = 'Browse files';
+      }
+    });
+
+    dropzone.addEventListener('dragover', (e) => e.preventDefault());
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragDepth = 0;
+      dropzone.classList.remove('border-zinc-900', 'bg-zinc-100/70', 'shadow-md');
+      if (browseLabel) browseLabel.textContent = 'Browse files';
+
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        const input = document.getElementById('sorter-file');
+        if (input) {
+          // Assign dropped files to input element via DataTransfer
+          const dt = new DataTransfer();
+          for (let f of e.dataTransfer.files) {
+            dt.items.add(f);
+          }
+          input.files = dt.files;
+          onSorterFileSelected(input);
+        }
+      }
+    });
+  });
 
   function sorterUpload() {
     const input   = document.getElementById('sorter-file');
