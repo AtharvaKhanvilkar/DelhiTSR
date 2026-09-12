@@ -68,15 +68,17 @@ flowchart LR
 
 ### 1. Document Pre-Processing & OCR
 
-Before document text is parsed, pages undergo automated computer vision processing:
+Older title documents in Indian registries (spanning the 1950s through 2010s) often suffer from faded typewriter ink, heavy background stamp paper seals, crooked scans, or low portal resolutions. Before text is parsed, pages pass through an image preparation and extraction pipeline:
 
-1. **Orientation Angle Detection**: `pypdfium2` renders PDF pages to numpy arrays. OpenCV detects baseline text orientation using minimum area bounding rectangles (`cv2.minAreaRect`).
-2. **Affine Rotation**: Rotates pages back to 0° alignment for detected skew angles between 0.5° and 45.0°.
-3. **Otsu Binarization**: Cleans background yellowing, shadow artifacts, and faint watermarks using Otsu thresholding (`cv2.THRESH_OTSU`).
-4. **Adaptive Text Extraction**:
-   * **Direct Vector Stream**: Embedded digital fonts are extracted directly via `pdfplumber`.
-   * **RapidOCR Fallback**: If page text density is below 40 characters per page (indicating scanned images), pages automatically route to `rapidocr-onnxruntime` with OpenCV contrast enhancement.
-   * **Multimodal Vision Fallback**: Handwritten recitals, faint endorsement stamps, or damaged paper marginalia route to Gemini 2.5 Vision.
+1. **High-Resolution Page Rendering**: `pypdfium2` renders scanned pages at 3.0x scale (~300 DPI equivalent) with anti-aliasing, ensuring small footnotes, document numbers, and margin seals retain sharp boundaries.
+2. **Page Deskewing & Angle Alignment**: OpenCV detects baseline text tilt using minimum area bounding boxes (`cv2.minAreaRect`). Any rotation between 0.5° and 45.0° is automatically leveled back to 0° using 2D affine transformation.
+3. **Local Contrast Enhancement (CLAHE)**: Faded carbon copies and light typewriter print are enhanced using Contrast Limited Adaptive Histogram Equalization (`cv2.createCLAHE`). This amplifies faint character strokes across localized tiles without darkening clean white paper margins.
+4. **Stamp Duty Watermark Suppression**: Non-judicial stamp papers and e-stamps frequently place colored seals (red, blue, or purple) across recitals. Pages are mapped into HSV color space to detect and lighten these background ink tones, making text printed underneath readable.
+5. **3-Tier Text Extraction Fallback**:
+   * **Direct Digital Stream**: Clean, digitally generated PDFs have their text layer extracted directly via `pdfplumber`.
+   * **Pre-Processed OCR**: When native text is missing or sparse (<40 characters per page), pages route through `rapidocr-onnxruntime` on the deskewed and contrast-adjusted image.
+   * **Direct Multimodal Vision**: When physical degradation is severe (yielding <60 characters through standard OCR due to torn paper, heavy blur, or handwritten attestations), page images route directly to Gemini 2.5 Vision to transcribe recitals, party names, and Sub-Registrar endorsement stamps straight from pixel layout.
+6. **Sidecar Text Caching**: Extracted page text is automatically saved to local `.pdf.txt` files, so repeated audits or project re-openings load instantly without redundant computation.
 
 ---
 
