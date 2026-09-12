@@ -3242,7 +3242,15 @@ def _phase1_supporting_checks(data, source):
 
     # 5. MORTGAGE_DEED & INTIMATION_OF_MORTGAGE Specific Rules
     elif "MORTGAGE" in doc_txn or "EQUITABLE" in doc_txn:
-        loan_amt = num(data.get("loan_amount")) or num(data.get("amount_secured")) or num(data.get("consideration"))
+        loan_amt = (
+            num(data.get("principal_amount")) or
+            num(data.get("principal_amount_figures")) or
+            num(data.get("loan_amount")) or
+            num(data.get("amount_secured")) or
+            num(data.get("secured_amount")) or
+            num(data.get("consideration")) or
+            num(data.get("amount"))
+        )
         if loan_amt and loan_amt > 0:
             add("INFO", "MORTGAGE_CHARGE_CREATED",
                 f"A financial charge / mortgage encumbrance of ₹{loan_amt:,.0f} is registered against this property in favor of the lender bank/institution.",
@@ -3885,11 +3893,20 @@ def _build_events_and_errors(project_path):
                         expected_sd_val = valuation_basis * sd_rate
                         expected_reg_val = valuation_basis * 0.01
             elif "MORTGAGE" in txn or "INTIMATION" in txn:
-                principal = data.get("principal_amount_figures") or data.get("principal_amount") or data.get("consideration")
-                if isinstance(principal, (int, float)) and principal > 0:
+                principal = (
+                    data.get("principal_amount_figures") or
+                    data.get("principal_amount") or
+                    data.get("loan_amount") or
+                    data.get("amount_secured") or
+                    data.get("secured_amount") or
+                    data.get("consideration") or
+                    data.get("amount")
+                )
+                principal_val = _safe_float(principal)
+                if principal_val > 0:
                     rate = 0.005 if "INTIMATION" in txn or "DEPOSIT" in txn else 0.02
-                    expected_sd_val = principal * rate
-                    expected_reg_val = principal * 0.01
+                    expected_sd_val = principal_val * rate
+                    expected_reg_val = principal_val * 0.01
             elif "LEAVE" in txn or "LICENSE" in txn or "LEASE" in txn:
                 fee = data.get("license_fee") or data.get("rent")
                 if isinstance(fee, (int, float)) and fee > 0:
@@ -3985,8 +4002,16 @@ def _build_events_and_errors(project_path):
                         "actual": "Missing or Zero"
                     })
             elif "MORTGAGE" in txn or "INTIMATION" in txn:
-                principal = data.get("principal_amount_figures")
-                if principal is None or principal == "" or (isinstance(principal, (int, float)) and principal == 0):
+                principal_val = (
+                    _safe_float(data.get("principal_amount")) or
+                    _safe_float(data.get("principal_amount_figures")) or
+                    _safe_float(data.get("loan_amount")) or
+                    _safe_float(data.get("amount_secured")) or
+                    _safe_float(data.get("secured_amount")) or
+                    _safe_float(data.get("consideration")) or
+                    _safe_float(data.get("amount"))
+                )
+                if principal_val <= 0:
                     errors.append({
                         "severity": "ERROR",
                         "type": "MISSING_MORTGAGE_VALUE",
@@ -4445,7 +4470,11 @@ def _build_events_and_errors(project_path):
                 if _is_missing(data.get("consideration")):
                     val_missing = True
             elif is_mortgage:
-                if _is_missing(data.get("principal_amount_figures")):
+                has_principal = any(not _is_missing(data.get(k)) for k in [
+                    "principal_amount", "principal_amount_figures", "loan_amount",
+                    "amount_secured", "secured_amount", "consideration", "amount"
+                ])
+                if not has_principal:
                     val_missing = True
             if val_missing:
                 missing_fields.append("Transaction Value / Loan Amount")
@@ -4683,7 +4712,15 @@ def _build_events_and_errors(project_path):
         elif "MORTGAGE" in txn or "INTIMATION" in txn:
             event["mortgagor_name"] = data.get("mortgagor_name")
             event["mortgagee_name"] = data.get("mortgagee_name")
-            event["principal_amount"] = data.get("principal_amount_figures")
+            event["principal_amount"] = (
+                data.get("principal_amount_figures") or
+                data.get("principal_amount") or
+                data.get("loan_amount") or
+                data.get("amount_secured") or
+                data.get("secured_amount") or
+                data.get("consideration") or
+                data.get("amount")
+            )
             event["interest_rate"] = data.get("interest_rate")
             # Mortgage does NOT transfer ownership — skip chain update
 
@@ -5069,7 +5106,15 @@ def _build_events_and_errors(project_path):
                 "valid":      mortgagor_is_current,
                 "sro":        _normalize_sro(data.get("sub_registrar_office")),
                 "year":       data.get("registration_year"),
-                "principal_amount": _parse_money(data.get("principal_amount_figures")),
+                "principal_amount": _parse_money(
+                    data.get("principal_amount_figures") or
+                    data.get("principal_amount") or
+                    data.get("loan_amount") or
+                    data.get("amount_secured") or
+                    data.get("secured_amount") or
+                    data.get("consideration") or
+                    data.get("amount")
+                ),
                 "loan_account_no": data.get("loan_account_no"),
                 "source_file": source,
                 "released_amount": 0.0,
@@ -5436,6 +5481,43 @@ def _build_events_and_errors(project_path):
             "actual":     f"Chain ends with GPA held by: {', '.join(active_gpa_owners)}"
         })
 
+    # ── Check 5: Revenue Mutation Record Check ────────────────────────
+    has_transfer_txn = False
+    for ev in events:
+        t = (ev.get("event_type") or "").upper()
+        if any(x in t for x in ["SALE", "CONVEYANCE", "GIFT", "RELINQUISHMENT", "PARTITION", "SETTLEMENT", "WILL", "FREEHOLD"]):
+            has_transfer_txn = True
+            break
+
+    has_mutation_doc = False
+    for rf, data in results:
+        t_type = str(data.get("txn_type") or "").upper()
+        d_type = str(data.get("doc_type") or "").upper()
+        cls_info = data.get("_classification") or {}
+        c_type = str(cls_info.get("type") or cls_info.get("subtype") or "").upper()
+
+        if "MUTATION" in t_type or "MUTATION" in d_type or "MUTATION" in c_type or "KHATAUNI" in t_type or "KHASRA" in t_type:
+            has_mutation_doc = True
+            break
+
+        source_pdf = rf.replace("_result.json", ".pdf")
+        pdf_txt = (pdf_text_lookup.get(source_pdf) or "").upper()
+        if "MUTATION CERTIFICATE" in pdf_txt or "REVENUE MUTATION" in pdf_txt or "MCD TAX MUTATION" in pdf_txt or "KHATAUNI" in pdf_txt or "NAMANTARAN" in pdf_txt:
+            has_mutation_doc = True
+            break
+
+    if has_transfer_txn and not has_mutation_doc:
+        errors.append({
+            "severity":   "WARNING",
+            "type":       "MUTATION_RECORD_MISSING",
+            "doc_no":     None,
+            "event_date": None,
+            "source":     "revenue mutation verification",
+            "message":    "Missing Revenue Mutation Record: Property title transfer(s) detected in the chain without accompanying government or municipal revenue mutation records (Khasra/Khatauni or MCD tax mutation). Verification of revenue record mutation is recommended.",
+            "expected":   "Government revenue mutation certificate (Khasra/Khatauni or MCD Tax Mutation Record)",
+            "actual":     "No revenue mutation records found for property transfers in the title chain"
+        })
+
     # ── Post-processing: extract authorized signatories and extended metadata ──
 
     for key, c in claimants.items():
@@ -5581,6 +5663,9 @@ def _build_events_and_errors(project_path):
             
         elif etype == "UNREGULARIZED_GPA_CHAIN":
             err["message"] = f"Unregularized title: Chain ends with a GPA held by {actual_str} rather than a registered Sale Deed or allotment conveyance."
+
+        elif etype == "MUTATION_RECORD_MISSING":
+            err["message"] = "Missing Revenue Mutation Record: Property title transfer(s) detected in the chain without accompanying government or municipal revenue mutation records (Khasra/Khatauni or MCD tax mutation). Verification of revenue record mutation is recommended."
 
         elif etype == "MISSING_CRITICAL_FIELDS":
             err["message"] = f"Missing metadata: Mandatory fields could not be verified: {actual_str.replace('Missing fields: ', '')}."

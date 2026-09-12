@@ -4879,7 +4879,7 @@
     // Serious legal defects risking litigation, clouded ownership, or regulatory breach.
     const substantiveTypes = [
       'UNDER_CIRCLE_RATE_VALUATION', 'MISSING_GPA_AUTHORIZATION',
-      'UNREGULARIZED_GPA_CHAIN', 'DEED_AADHAAR_NAME_MISMATCH',
+      'UNREGULARIZED_GPA_CHAIN', 'MUTATION_RECORD_MISSING', 'DEED_AADHAAR_NAME_MISMATCH',
       'WITNESS_IS_PARTY', 'ID_PROOF_PAN_MISMATCH',
       'MISSING_SALE_CONSIDERATION', 'MISSING_MORTGAGE_VALUE',
       'AREA_MISMATCH', 'SOCIETY_MISMATCH', 'ID_MISMATCH',
@@ -4960,7 +4960,7 @@
             'VOID_DEED_WRONG_SRO', 'LEASEHOLD_UNCONVERTED', 'UNRESOLVED_MORTGAGE', 'PARTIALLY_RELEASED',
             'RELEASE_ORPHAN', 'RELEASE_PARTY_MISMATCH', 'RELEASE_AMOUNT_MISMATCH', 'RELEASE_AMBIGUOUS',
             'RELEASE_OVERFLOW', 'LENDER_MISMATCH', 'MORTGAGE_RESOLVED', 'MISSING_GPA_AUTHORIZATION',
-            'UNREGULARIZED_GPA_CHAIN', 'DATE_ORDER_DEVIATION', 'RECTIFICATION_APPLIED',
+            'UNREGULARIZED_GPA_CHAIN', 'MUTATION_RECORD_MISSING', 'DATE_ORDER_DEVIATION', 'RECTIFICATION_APPLIED',
             'AREA_MISMATCH', 'AREA_MISMATCH_MILD', 'SOCIETY_MISMATCH', 'ID_MISMATCH'
           ];
           if (!titleCats.includes(cat) && !titleTypes.includes(type)) return false;
@@ -7361,6 +7361,7 @@
       'PROPERTY_TYPE_MISMATCH':          'Property Type Conflict',
       'GPA_POST_2011_INVALID':           'GPA Post-2011 Non-Conveyance',
       'UNREGULARIZED_GPA_CHAIN':         'Unregularized GPA Conveyance',
+      'MUTATION_RECORD_MISSING':         'Missing Revenue Mutation Record',
       'MISSING_GPA_AUTHORIZATION':       'Missing GPA Authorization',
       'MISSING_CRITICAL_FIELDS':         'Incomplete Document Records',
       'UNDER_CIRCLE_RATE_VALUATION':     'Undervalued Consideration',
