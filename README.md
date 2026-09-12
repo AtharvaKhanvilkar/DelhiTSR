@@ -2,7 +2,7 @@
 
 <h1 align="center">DelhiTSR</h1>
 
-<h3 align="center">Title Intelligence Engine (Delhi NCT & Haryana [BETA])</h3>
+<h3 align="center">Title Verification Engine for Accelerated Loan Underwriting.</h3>
 
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=flat&logo=python&logoColor=white" alt="Python Version"></a>
