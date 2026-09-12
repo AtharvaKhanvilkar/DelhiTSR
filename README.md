@@ -70,15 +70,16 @@ flowchart LR
 
 Older title documents in Indian registries (spanning the 1950s through 2010s) often suffer from faded typewriter ink, heavy background stamp paper seals, crooked scans, or low portal resolutions. Before text is parsed, pages pass through an image preparation and extraction pipeline:
 
-1. **High-Resolution Page Rendering**: `pypdfium2` renders scanned pages at 3.0x scale (~300 DPI equivalent) with anti-aliasing, ensuring small footnotes, document numbers, and margin seals retain sharp boundaries.
-2. **Page Deskewing & Angle Alignment**: OpenCV detects baseline text tilt using minimum area bounding boxes (`cv2.minAreaRect`). Any rotation between 0.5° and 45.0° is automatically leveled back to 0° using 2D affine transformation.
-3. **Local Contrast Enhancement (CLAHE)**: Faded carbon copies and light typewriter print are enhanced using Contrast Limited Adaptive Histogram Equalization (`cv2.createCLAHE`). This amplifies faint character strokes across localized tiles without darkening clean white paper margins.
-4. **Stamp Duty Watermark Suppression**: Non-judicial stamp papers and e-stamps frequently place colored seals (red, blue, or purple) across recitals. Pages are mapped into HSV color space to detect and lighten these background ink tones, making text printed underneath readable.
-5. **3-Tier Text Extraction Fallback**:
-   * **Direct Digital Stream**: Clean, digitally generated PDFs have their text layer extracted directly via `pdfplumber`.
-   * **Pre-Processed OCR**: When native text is missing or sparse (<40 characters per page), pages route through `rapidocr-onnxruntime` on the deskewed and contrast-adjusted image.
+1. **High-Resolution Rasterization (`pypdfium2` 3.0x / 300 DPI)**: Renders scanned pages at 3.0x scale with anti-aliasing, ensuring small footnotes, document numbers, and margin seals retain sharp boundaries.
+2. **Minimum-Area Deskewing & Affine Alignment (`cv2.minAreaRect` + `cv2.warpAffine`)**: OpenCV detects baseline text tilt by computing minimum area bounding boxes over foreground contours. Any tilt between 0.5° and 45.0° is leveled back to 0° using 2D affine transformation matrices.
+3. **Contrast Limited Adaptive Histogram Equalization (CLAHE)**: Faded carbon copies and light typewriter print are enhanced using CLAHE (`cv2.createCLAHE`, `clipLimit=2.5`, `tileGridSize=(8,8)`). This amplifies faint character strokes across localized image tiles without darkening clean white paper margins.
+4. **HSV Color-Space Watermark Suppression**: Non-judicial stamp papers and e-stamps frequently place colored seals (red, blue, or purple) across recitals. Pages are mapped into HSV color space to isolate and lighten background stamp ink masks, making text printed underneath readable.
+5. **Otsu Binarization & Adaptive Thresholding (`cv2.THRESH_OTSU`)**: Applies Otsu binarization to calculate optimal global threshold limits across contrast-enhanced channels, separating foreground text glyphs from background paper texture and shadow gradients.
+6. **3-Tier Hybrid Extraction Fallback (Vector Stream $\rightarrow$ RapidOCR $\rightarrow$ Multimodal Vision)**:
+   * **Direct Vector Stream**: Clean, digitally generated PDFs have their text layer extracted directly via `pdfplumber`.
+   * **Pre-Processed RapidOCR**: When native text is missing or sparse (<40 characters per page), pages route through `rapidocr-onnxruntime` on the deskewed and contrast-adjusted image.
    * **Direct Multimodal Vision**: When physical degradation is severe (yielding <60 characters through standard OCR due to torn paper, heavy blur, or handwritten attestations), page images route directly to Gemini 2.5 Vision to transcribe recitals, party names, and Sub-Registrar endorsement stamps straight from pixel layout.
-6. **Sidecar Text Caching**: Extracted page text is automatically saved to local `.pdf.txt` files, so repeated audits or project re-openings load instantly without redundant computation.
+7. **Sidecar Text Layer Caching (`.pdf.txt`)**: Extracted page text is automatically saved to local `.pdf.txt` files, so repeated audits or project re-openings load instantly without redundant computation.
 
 ---
 
