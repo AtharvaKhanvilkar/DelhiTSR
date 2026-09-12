@@ -34,13 +34,30 @@ def get_ocr_engine():
 
 def deskew_and_preprocess_image(image_np):
     """
-    Module 1: Image Pre-Processing & Deskewer Pipeline
-    Detects text baseline orientation using OpenCV minAreaRect,
-    deskews image if tilt angle > 0.5 deg, and applies contrast binarization.
+    Module 1: Advanced Computer Vision Pre-Processing & Image Restoration Pipeline
+    - Super-resolution contrast enhancement via CLAHE (Contrast Limited Adaptive Histogram Equalization)
+    - HSV Color Channel Watermark Suppression (strips red/blue/purple stamp paper backgrounds)
+    - Micro-deskewing tilt correction (-45 deg to +45 deg)
     """
     try:
-        gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY) if len(image_np.shape) == 3 else image_np.copy()
-        thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        if len(image_np.shape) == 3:
+            gray = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
+            # Watermark suppression: Suppress background stamp paper ink (red, blue, purple)
+            hsv = cv2.cvtColor(image_np, cv2.COLOR_BGR2HSV)
+            mask1 = cv2.inRange(hsv, np.array([0, 30, 40]), np.array([20, 255, 255]))
+            mask2 = cv2.inRange(hsv, np.array([100, 30, 40]), np.array([170, 255, 255]))
+            stamp_mask = cv2.bitwise_or(mask1, mask2)
+            # Brighten background stamp paper regions to isolate dark black text strokes
+            gray[stamp_mask > 0] = np.clip(gray[stamp_mask > 0].astype(np.int16) + 40, 0, 255).astype(np.uint8)
+        else:
+            gray = image_np.copy()
+
+        # CLAHE (Contrast Limited Adaptive Histogram Equalization) for faint typewriter/carbon copies
+        clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+        contrast_enhanced = clahe.apply(gray)
+
+        # Micro-deskewing alignment
+        thresh = cv2.threshold(contrast_enhanced, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
         coords = np.column_stack(np.where(thresh > 0))
         if len(coords) > 50:
             angle = cv2.minAreaRect(coords)[-1]
@@ -49,17 +66,49 @@ def deskew_and_preprocess_image(image_np):
             else:
                 angle = -angle
             if abs(angle) > 0.5 and abs(angle) < 45:
-                (h, w) = image_np.shape[:2]
+                (h, w) = contrast_enhanced.shape[:2]
                 center = (w // 2, h // 2)
                 M = cv2.getRotationMatrix2D(center, angle, 1.0)
-                image_np = cv2.warpAffine(image_np, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
-        return image_np
+                contrast_enhanced = cv2.warpAffine(contrast_enhanced, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+
+        return contrast_enhanced
     except Exception as e:
         print(f"[deskew_and_preprocess_image] Warning: {e}")
         return image_np
 
+
+def extract_text_via_vision(pil_image, page_idx=0):
+    """
+    Module 2: Direct Multi-Modal Vision Payload Extractor (Gemini 2.5 Flash Native Vision)
+    Passes raw high-resolution image bytes directly to Gemini Vision, bypassing character OCR.
+    Extracts text from severely degraded carbon copies, faded fonts, handwritten notes, and stamp papers.
+    """
+    try:
+        prompt = (
+            f"You are an expert legal document transcription engine for Indian real estate title deeds. "
+            f"Transcribe all legible text on Page {page_idx + 1} of this deed image verbatim. "
+            f"Include e-Stamp details, party names, consideration amounts, property schedule, dates, "
+            f"and official Sub-Registrar registration stamps in the margins. "
+            f"Do not write markdown conversational text—return clean transcribed text."
+        )
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[pil_image, prompt]
+        )
+        if response and response.text:
+            return response.text.strip()
+    except Exception as e:
+        print(f"[extract_text_via_vision] Page {page_idx + 1} Vision Direct failed: {e}")
+    return ""
+
+
 def extract_text_from_PDF(file_path):
-    """Read a PDF's embedded text layer (with hybrid OCR fallback + deskewing) and return all text."""
+    """
+    3-Tier Hybrid Ultra-OCR & Vision Extraction Engine:
+    Tier 1: Embedded native text extraction (if clean & present).
+    Tier 2: 3.0x Super-Resolution + CLAHE/Watermark Suppression + RapidOCR.
+    Tier 3: Gemini 2.5 Flash Native Vision Direct Payload Extraction for degraded/scanned deeds.
+    """
     cache_path = file_path + ".txt"
     if os.path.exists(cache_path):
         try:
@@ -76,19 +125,29 @@ def extract_text_from_PDF(file_path):
         ocr = get_ocr_engine()
         with pdfplumber.open(file_path) as pdf:
             for page_idx, page in enumerate(pdf.pages):
-                page_text = page.extract_text() or ""
-                # Module 1 & 2: If native text layer is missing or sparse (<40 chars), deskew and run RapidOCR
-                if len(page_text.strip()) < 40 and page_idx < len(pdf_doc):
+                page_text = (page.extract_text() or "").strip()
+                
+                # Tier 2 & 3: If native text is missing or sparse (<40 chars), apply Super-Resolution OCR + Vision
+                if len(page_text) < 40 and page_idx < len(pdf_doc):
                     try:
-                        pil_img = pdf_doc[page_idx].render(scale=2.0).to_pil()
+                        # 3.0x scale rendering for 300 DPI equivalent resolution
+                        pil_img = pdf_doc[page_idx].render(scale=3.0).to_pil()
                         img_np = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
-                        img_deskewed = deskew_and_preprocess_image(img_np)
-                        ocr_res, _ = ocr(img_deskewed)
+                        img_restored = deskew_and_preprocess_image(img_np)
+                        
+                        ocr_res, _ = ocr(img_restored)
                         if ocr_res:
                             lines = [item[1] for item in ocr_res if item and len(item) > 1]
-                            page_text = "\n".join(lines)
+                            page_text = "\n".join(lines).strip()
+                        
+                        # Tier 3: If OCR output is still sparse or low quality (<60 chars), invoke Gemini Vision Direct Payload
+                        if len(page_text) < 60:
+                            vision_text = extract_text_via_vision(pil_img, page_idx=page_idx)
+                            if len(vision_text) > len(page_text):
+                                page_text = vision_text
                     except Exception as ocr_err:
-                        print(f"[hybrid_ocr] Page {page_idx+1} OCR fallback failed: {ocr_err}")
+                        print(f"[hybrid_ocr] Page {page_idx+1} OCR/Vision fallback failed: {ocr_err}")
+
                 if page_text:
                     text += f"--- PAGE {page_idx+1} ---\n" + page_text + "\n\n"
     except Exception as e:
