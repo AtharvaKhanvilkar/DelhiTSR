@@ -5863,15 +5863,7 @@
     const regPaid = Math.round(Number(ev.registration_fee) || 0);
 
     let circleRateTableHtml = '';
-    if (expectedSd > 0) {
-      const isGiftOrRelease = t.includes('GIFT') || t.includes('RELEASE') || t.includes('RELINQUISHMENT') || t.includes('RECONVEYANCE');
-      const priceStatus = circleVal > 0 
-        ? (isGiftOrRelease 
-           ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Compliant</span>'
-           : (price < circleVal ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Undervalued</span>' : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Compliant</span>')
-          )
-        : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-50 text-zinc-650 border border-zinc-200 shadow-sm">Exempt</span>';
-
+    if (expectedSd > 0 || expectedReg > 0 || stampVal > 0 || regPaid > 0) {
       const sdStatus = stampVal < expectedSd 
         ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Shortfall</span>' 
         : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Paid</span>';
@@ -5880,32 +5872,9 @@
         ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-650 border border-red-200 shadow-sm">Shortfall</span>' 
         : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">Paid</span>';
 
-      let circleRequiredText = '';
-      if (circleVal > 0) {
-        circleRequiredText = `₹${circleVal.toLocaleString('en-IN')}`;
-      } else {
-        let label = 'Exempt';
-        if (t.includes('MORTGAGE') || t.includes('INTIMATION')) label = 'Exempt (Mortgage)';
-        else if (t.includes('LEAVE') || t.includes('LICENSE')) label = 'Exempt (Lease)';
-        else if (t.includes('RELEASE')) label = 'Exempt (Release)';
-        else if (t.includes('RECONVEYANCE')) label = 'Exempt (Reconveyance)';
-        else label = 'Exempt (Pre-2007)';
-        circleRequiredText = `<span class="text-zinc-500 font-medium">${label}</span>`;
-      }
-
-      const circleValRowHtml = circleVal > 0
-        ? `Property Value (Area: ${areaSqm} sqm)`
-        : 'Property Value (Circle Rate)';
-
-      let baseValuationText = price > 0 ? `₹${price.toLocaleString('en-IN')}` : '—';
-      if (price === 0 && isGiftOrRelease) {
-        if (t.includes('GIFT')) baseValuationText = '<span class="text-zinc-500 font-medium">N/A (Gift Deed)</span>';
-        else if (t.includes('RELINQUISHMENT') || t.includes('RELEASE')) baseValuationText = '<span class="text-zinc-500 font-medium">N/A (Release)</span>';
-      }
-
       circleRateTableHtml = `
         <div class="mt-5 pt-4 border-t border-zinc-150 space-y-2 select-text">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-900">Delhi Tax & Circle Rate Audit</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-900">Registration Details</span>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
@@ -5917,12 +5886,6 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-zinc-100 text-zinc-900 text-xs">
-                <tr>
-                  <td class="py-2.5 font-medium text-zinc-800">${circleValRowHtml}</td>
-                  <td class="py-2.5 text-right font-semibold text-zinc-950">${baseValuationText}</td>
-                  <td class="py-2.5 text-right font-semibold text-zinc-950">${circleRequiredText}</td>
-                  <td class="py-2.5 text-right">${priceStatus}</td>
-                </tr>
                 <tr>
                   <td class="py-2.5 font-medium text-zinc-800">Stamp Duty</td>
                   <td class="py-2.5 text-right font-semibold text-zinc-950">₹${stampVal.toLocaleString('en-IN')}</td>
