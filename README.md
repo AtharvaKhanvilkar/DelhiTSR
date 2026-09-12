@@ -1,6 +1,5 @@
 # DelhiTSR
 Title Verification Engine for Accelerated Loan Underwriting.
-geographically limited to Delhi
 
 <p align="left">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=flat&logo=python&logoColor=white" alt="Python Version"></a>
