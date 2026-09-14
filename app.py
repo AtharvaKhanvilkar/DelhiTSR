@@ -2825,7 +2825,11 @@ def _phase1_supporting_checks(data, source):
         """True/False if both known, None if either is unknown (can't judge)."""
         if a is None or b is None:
             return None
-        return abs(a - b) <= max(tol_abs, abs(b) * tol_frac)
+        na = num(a) if not isinstance(a, (int, float)) else float(a)
+        nb = num(b) if not isinstance(b, (int, float)) else float(b)
+        if na is None or nb is None:
+            return None
+        return abs(na - nb) <= max(tol_abs, abs(nb) * tol_frac)
 
     def norm_name(s):
         if not s:
@@ -3110,9 +3114,10 @@ def _phase1_supporting_checks(data, source):
             comparisons = [c for c in (close(only, cons), close(incl, cons)) if c is not None]
             if comparisons and not any(comparisons):
                 shown = incl if incl is not None else only
+                shown_val = num(shown) or 0.0
                 add("WARNING", "PAYMENT_SUM_MISMATCH",
-                    f"The listed payments total ₹{(shown or 0):,.0f} but the sale consideration is ₹{cons:,.0f}. Verify the payment schedule.",
-                    expected=f"₹{cons:,.0f}", actual=f"₹{(shown or 0):,.0f}", category="supporting_docs")
+                    f"The listed payments total ₹{shown_val:,.0f} but the sale consideration is ₹{cons:,.0f}. Verify the payment schedule.",
+                    expected=f"₹{cons:,.0f}", actual=f"₹{shown_val:,.0f}", category="supporting_docs")
 
     # ===== e-Stamp consistency =====
     est_amt = num(data.get("estamp_amount"))
@@ -3518,14 +3523,6 @@ def _build_events_and_errors(project_path):
             except Exception:
                 pass
 
-        # Extract PDF text for detailed substring matches
-        pdf_path = os.path.join(project_path, source)
-        doc_text = ""
-        if os.path.exists(pdf_path):
-            try:
-                doc_text = extract_text_from_PDF(pdf_path)
-            except Exception:
-                pass
         text_l = (doc_text or "").lower()
 
         # ── Project metadata reconciliation checks ─────────────────────
@@ -3693,347 +3690,6 @@ def _build_events_and_errors(project_path):
                         "message": f"SRO jurisdiction mismatch: Registered at '{doc_sro or 'Not stated'}' for property in '{meta_locality}'. Under Section 28 of the Registration Act, 1908, this presents a potential title risk.",
                         "expected": f"Any SRO for {meta_locality} (e.g. {', '.join(allowed_sros)})",
                         "actual": doc_sro or "Not stated"
-                    })
-            elif meta_sro:
-                if _normalize_sro(meta_sro) != _normalize_sro(doc_sro):
-                    errors.append({
-                        "severity": "WARNING",
-                        "type": "METADATA_SRO_MISMATCH",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"SRO mismatch: Project SRO code '{meta_sro}' does not match document SRO '{doc_sro or 'Not stated'}'.",
-                        "expected": meta_sro,
-                        "actual": doc_sro or "Not stated"
-                    })
-
-            # Calculate circle rate value and expected stamp duty / registration fee
-            circle_val = 0.0
-            area_sqm_val = 0.0
-            expected_sd_val = 0.0
-            expected_reg_val = 0.0
-            actual_sd_val = _compute_total_stamp_duty_paid(data)
-            
-            doc_area = data.get("built_up_area") or data.get("covered_area") or data.get("area")
-            price = data.get("consideration")
-            
-            if "SALE" in txn or "AGREEMENT" in txn or "GIFT" in txn:
-                meta_locality = meta.get("locality", "").strip()
-                p_type = data.get("property_type") or meta.get("property_type") or "private_flat"
-                const_year = data.get("construction_year") or meta.get("construction_year")
-                
-                # Parse execution year
-                reg_year = None
-                exec_date = data.get("date_of_execution")
-                usage_type = data.get("usage_type") or data.get("land_use") or meta.get("land_use")
-                locality_category = data.get("locality_category")
-                if exec_date and "-" in exec_date:
-                    parts = exec_date.split("-")
-                    if len(parts) == 3 and len(parts[2]) == 4:
-                        reg_year = parts[2]
-                        
-                smart_res = resolve_smart_circle_valuation(data, meta, locality_category)
-                circle_val = smart_res.get("circle_value", 0.0)
-                area_sqm_val = smart_res.get("area_sqm", 0.0)
-                
-                # Check for property classification mismatch between reviewer meta and document
-                meta_cat = (meta.get("category") or "").strip().lower()
-                doc_p_type = (data.get("property_type") or "").strip().lower()
-                if doc_p_type and meta_cat:
-                    is_meta_dda = "dda" in meta_cat or "society" in meta_cat or "cghs" in meta_cat
-                    is_doc_dda = "dda" in doc_p_type or "society" in doc_p_type or "cghs" in doc_p_type
-                    is_meta_plot = "plot" in meta_cat or "land" in meta_cat
-                    is_doc_plot = "plot" in doc_p_type or "land" in doc_p_type
-                    
-                    mismatch = False
-                    if is_meta_dda != is_doc_dda:
-                        mismatch = True
-                    elif is_meta_plot != is_doc_plot:
-                        mismatch = True
-                        
-                    if mismatch:
-                        meta_label = "DDA/Society Flat" if is_meta_dda else ("Land Plot" if is_meta_plot else "Private Builder Flat")
-                        doc_label = "DDA/Society Flat" if is_doc_dda else ("Land Plot" if is_doc_plot else "Private Builder Flat")
-                        
-                        msg = f"Property Type Conflict: Reviewer classified property as '{meta_label}', but the document extraction suggests it is a '{doc_label}'."
-                        if is_meta_dda and not is_doc_dda:
-                            msg += " This presents a stamp duty under-valuation risk as private builder flats carry higher circle rates."
-                        else:
-                            msg += " This may result in incorrect circle rate valuation."
-                            
-                        errors.append({
-                            "severity": "WARNING",
-                            "type": "PROPERTY_TYPE_MISMATCH",
-                            "doc_no": data.get("doc_no"),
-                            "event_date": data.get("date_of_execution"),
-                            "source": source,
-                            "message": msg,
-                            "expected": meta_label,
-                            "actual": doc_label
-                        })
-                
-                # Valuation basis is the higher of consideration or circle rate value
-                if circle_val > 0.0:
-                    actual_price = price if isinstance(price, (int, float)) else 0.0
-                    valuation_basis = max(actual_price, circle_val)
-                    
-                    # Calculate expected stamp duty based on transferee party composition (male, female, joint)
-                    active_gender = _determine_transferee_gender_composition(data, meta)
-                        
-                    # Get historical stamp duty rate
-                    if "GIFT" in txn:
-                        # In Delhi, stamp duty on Gift Deeds executed in favor of family members (blood relatives/spouse) is 3%
-                        sd_rate = 0.03
-                    else:
-                        seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
-                        state_val = str(data.get("state") or meta.get("state") or "DELHI")
-                        h_jur = classify_haryana_jurisdiction(data)
-                        sd_rate = get_historical_stamp_duty_rate(
-                            reg_year or 2026, active_gender, valuation_basis,
-                            seller_name=seller_info, doc_type=str(source or txn),
-                            state=state_val, is_urban=h_jur["is_urban"]
-                        )
-                        
-                    expected_sd_val = valuation_basis * sd_rate
-                    expected_reg_val = valuation_basis * 0.01
-                    
-                    actual_sd_val = _compute_total_stamp_duty_paid(data)
-                    actual_reg = data.get("registration_fee")
-                    actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
-                    
-                    if "HARYANA" in state_val.upper() or any(h_c in str(data).upper() for h_c in ["GURGAON", "GURUGRAM", "FARIDABAD", "PANCHKULA", "SONIPAT", "AMBALA"]):
-                        j_label = "Urban Municipal Area" if h_jur["is_urban"] else "Rural Gram Panchayat Area"
-                        errors.append({
-                            "severity": "INFO",
-                            "type": "HARYANA_JURISDICTION_CLASSIFIED",
-                            "doc_no": data.get("doc_no"),
-                            "event_date": data.get("date_of_execution"),
-                            "source": source,
-                            "is_beta": True,
-                            "module_status": "BETA",
-                            "message": f"Jurisdiction Audit: Property classified under {j_label} ({h_jur['basis']}). Applicable statutory stamp duty rate evaluated at {sd_rate*100}%.",
-                            "expected": j_label,
-                            "actual": h_jur["basis"]
-                        })
-                    
-                    # 1. Under Circle Rate Valuation check
-                    if "SALE" in txn and actual_price > 0 and actual_price < circle_val:
-                        errors.append({
-                            "severity": "ERROR",
-                            "type": "UNDER_CIRCLE_RATE_VALUATION",
-                            "doc_no": data.get("doc_no"),
-                            "event_date": data.get("date_of_execution"),
-                            "source": source,
-                            "message": f"Critical Error: Declared consideration (₹{format_inr(int(round(actual_price)))}) is lower than government circle rate valuation (₹{format_inr(int(round(circle_val)))}). This presents a legal undervaluation risk under Section 47-A.",
-                            "expected": f"₹{format_inr(int(round(circle_val)))}",
-                            "actual": f"₹{format_inr(int(round(actual_price)))}"
-                        })
-                        
-                    # 2. Insufficient Stamp Duty check
-                    if actual_sd_val > 0 and actual_sd_val < expected_sd_val:
-                        errors.append({
-                            "severity": "ERROR",
-                            "type": "INSUFFICIENT_STAMP_DUTY",
-                            "doc_no": data.get("doc_no"),
-                            "event_date": data.get("date_of_execution"),
-                            "source": source,
-                            "message": f"Critical Error: Stamp duty paid (₹{format_inr(int(round(actual_sd_val)))}) is lower than the expected rate of {sd_rate*100}% on the valuation basis (₹{format_inr(int(round(expected_sd_val)))}).",
-                            "expected": f"₹{format_inr(int(round(expected_sd_val)))} ({sd_rate*100}%)",
-                            "actual": f"₹{format_inr(int(round(actual_sd_val)))}"
-                        })
-                        
-                    # 3. Insufficient Registration Fee check
-                    if actual_reg_val > 0 and actual_reg_val < expected_reg_val:
-                        errors.append({
-                            "severity": "ERROR",
-                            "type": "INSUFFICIENT_REGISTRATION_FEE",
-                            "doc_no": data.get("doc_no"),
-                            "event_date": data.get("date_of_execution"),
-                            "source": source,
-                            "message": f"Critical Error: Registration fee paid (₹{format_inr(int(round(actual_reg_val)))}) is lower than the expected 1% rate (₹{format_inr(int(round(expected_reg_val)))}).",
-                            "expected": f"₹{format_inr(int(round(expected_reg_val)))}",
-                            "actual": f"₹{format_inr(int(round(actual_reg_val)))}"
-                        })
-                else:
-                    # Pre-2007 or exempt document: check stamp duty using declared price as basis
-                    actual_price = price if isinstance(price, (int, float)) else 0.0
-                    valuation_basis = actual_price
-                    if valuation_basis > 0.0:
-                        gender = (data.get("buyer_gender") or meta.get("buyer_gender") or "").strip().lower()
-                        
-                        if not gender:
-                            # Attempt to infer gender from transferee/buyer names
-                            transferee_names = []
-                            if data.get("buyer_names"):
-                                transferee_names.extend(data.get("buyer_names"))
-                            if data.get("donee_name"):
-                                transferee_names.append(data.get("donee_name"))
-                            for p in data.get("transferee_parties") or []:
-                                if p.get("name"):
-                                    transferee_names.append(p.get("name"))
-                                    
-                            inferred_gender = None
-                            for name in transferee_names:
-                                name_lower = name.lower()
-                                if any(p in name_lower for p in ["mrs.", "smt.", "miss.", "कुमारी", "श्रीमती"]):
-                                    inferred_gender = "female"
-                                    break
-                                elif any(p in name_lower for p in ["mr.", "shri.", "sh.", "श्री"]):
-                                    inferred_gender = "male"
-                                    
-                            active_gender = inferred_gender or "male"
-                        else:
-                            active_gender = gender
-                            
-                        if "GIFT" in txn:
-                            sd_rate = 0.03
-                        else:
-                            seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
-                            sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis, seller_name=seller_info, doc_type=str(source or txn))
-                        expected_sd_val = valuation_basis * sd_rate
-                        expected_reg_val = valuation_basis * 0.01
-            elif "MORTGAGE" in txn or "INTIMATION" in txn:
-                principal = (
-                    data.get("principal_amount_figures") or
-                    data.get("principal_amount") or
-                    data.get("loan_amount") or
-                    data.get("amount_secured") or
-                    data.get("secured_amount") or
-                    data.get("consideration") or
-                    data.get("amount")
-                )
-                principal_val = _safe_float(principal)
-                if principal_val > 0:
-                    rate = 0.005 if "INTIMATION" in txn or "DEPOSIT" in txn else 0.02
-                    expected_sd_val = principal_val * rate
-                    expected_reg_val = principal_val * 0.01
-            elif "LEAVE" in txn or "LICENSE" in txn or "LEASE" in txn:
-                fee = data.get("license_fee") or data.get("rent")
-                if isinstance(fee, (int, float)) and fee > 0:
-                    annual_rent = fee * 12
-                    expected_sd_val = annual_rent * 0.02
-                    expected_reg_val = annual_rent * 0.01
-            elif "RELEASE" in txn or "RELINQUISHMENT" in txn:
-                # Check if it is a mortgage release
-                cls_info = data.get("_classification") or {}
-                sub_type_l = (cls_info.get("subtype") or "").lower()
-                is_mortgage_release = "mortgage" in sub_type_l or "reconveyance" in sub_type_l or "discharge" in sub_type_l
-                
-                if is_mortgage_release:
-                    expected_sd_val = 100.0 # Delhi nominal mortgage release stamp duty
-                    expected_reg_val = 100.0
-                else:
-                    # Relinquishment/Release Deed among family members / co-heirs for inherited property.
-                    # In Delhi: Stamp duty is ₹150 nominal, Registration fee is ₹100 nominal!
-                    # If there is a specified consideration amount (rel_amt > 0), then it's calculated as 2% stamp duty and 1% reg fee.
-                    rel_amt = data.get("released_amount") or data.get("released_amount_figures") or data.get("consideration")
-                    actual_rel_amt = rel_amt if isinstance(rel_amt, (int, float)) else 0.0
-                    if actual_rel_amt > 0:
-                        expected_sd_val = actual_rel_amt * 0.02
-                        expected_reg_val = actual_rel_amt * 0.01
-                    else:
-                        expected_sd_val = 150.0
-                        expected_reg_val = 100.0
-            elif "RECONVEYANCE" in txn:
-                expected_sd_val = 100.0
-                expected_reg_val = 100.0
-            
-            data["circle_value"] = int(round(circle_val))
-            data["area_sqm"] = round(area_sqm_val, 2)
-            data["expected_stamp_duty"] = int(round(expected_sd_val))
-            data["expected_registration_fee"] = int(round(expected_reg_val))
-            if actual_sd_val > 0:
-                data["stamp_duty"] = int(round(actual_sd_val))
-            
-            # Global Insufficient Stamp Duty & Registration Fee Audit across ALL document types (Sale, Mortgage, Gift, Lease, Release)
-            if expected_sd_val > 0 and actual_sd_val > 0 and actual_sd_val < expected_sd_val:
-                if not any(e.get("type") == "INSUFFICIENT_STAMP_DUTY" and e.get("doc_no") == data.get("doc_no") for e in errors):
-                    errors.append({
-                        "severity": "ERROR",
-                        "type": "INSUFFICIENT_STAMP_DUTY",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"Critical Error: Stamp duty paid (₹{format_inr(int(round(actual_sd_val)))}) is lower than statutory required stamp duty (₹{format_inr(int(round(expected_sd_val)))}).",
-                        "expected": f"₹{format_inr(int(round(expected_sd_val)))}",
-                        "actual": f"₹{format_inr(int(round(actual_sd_val)))}"
-                    })
-                    
-            actual_reg = data.get("registration_fee")
-            actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
-            if expected_reg_val > 0 and actual_reg_val > 0 and actual_reg_val < expected_reg_val:
-                if not any(e.get("type") == "INSUFFICIENT_REGISTRATION_FEE" and e.get("doc_no") == data.get("doc_no") for e in errors):
-                    errors.append({
-                        "severity": "ERROR",
-                        "type": "INSUFFICIENT_REGISTRATION_FEE",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"Critical Error: Registration fee paid (₹{format_inr(int(round(actual_reg_val)))}) is lower than the expected statutory rate (₹{format_inr(int(round(expected_reg_val)))}).",
-                        "expected": f"₹{format_inr(int(round(expected_reg_val)))}",
-                        "actual": f"₹{format_inr(int(round(actual_reg_val)))}"
-                    })
-            
-            # Delhi property law consideration validations
-            if "SALE" in txn or "AGREEMENT" in txn:
-                price = data.get("consideration")
-                if price is None or price == "" or (isinstance(price, (int, float)) and price == 0):
-                    errors.append({
-                        "severity": "ERROR",
-                        "type": "MISSING_SALE_CONSIDERATION",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"Critical Error: Sale Consideration is missing or specified as zero. Under Section 54 of the Transfer of Property Act 1882, a sale deed without price/consideration is invalid.",
-                        "expected": "Valid monetary consideration",
-                        "actual": "Missing or Zero"
-                    })
-            elif "LEAVE" in txn or "LICENSE" in txn:
-                fee = data.get("license_fee")
-                if fee is None or fee == "" or (isinstance(fee, (int, float)) and fee == 0):
-                    errors.append({
-                        "severity": "ERROR",
-                        "type": "MISSING_RENTAL_CONSIDERATION",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"Critical Error: Monthly Rental Consideration (License Fee) is missing or specified as zero. Leave and license agreements must specify the license fee/rent.",
-                        "expected": "Valid monthly license fee",
-                        "actual": "Missing or Zero"
-                    })
-            elif "MORTGAGE" in txn or "INTIMATION" in txn:
-                principal_val = (
-                    _safe_float(data.get("principal_amount")) or
-                    _safe_float(data.get("principal_amount_figures")) or
-                    _safe_float(data.get("loan_amount")) or
-                    _safe_float(data.get("amount_secured")) or
-                    _safe_float(data.get("secured_amount")) or
-                    _safe_float(data.get("consideration")) or
-                    _safe_float(data.get("amount"))
-                )
-                if principal_val <= 0:
-                    errors.append({
-                        "severity": "ERROR",
-                        "type": "MISSING_MORTGAGE_VALUE",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"Critical Error: Principal loan amount is missing or specified as zero. Under Section 58 of the Transfer of Property Act 1882, a mortgage must secure a principal debt amount.",
-                        "expected": "Valid principal loan amount",
-                        "actual": "Missing or Zero"
-                    })
-            elif "GIFT" in txn:
-                price = data.get("consideration")
-                if price is not None and price != "" and (isinstance(price, (int, float)) and price > 0):
-                    errors.append({
-                        "severity": "ERROR",
-                        "type": "GIFT_DEED_WITH_CONSIDERATION",
-                        "doc_no": data.get("doc_no"),
-                        "event_date": data.get("date_of_execution"),
-                        "source": source,
-                        "message": f"Critical Error: Gift Deed specifies a monetary consideration of ₹{price}. Under Section 122 of the Transfer of Property Act 1882, a gift must be made voluntarily and without consideration. Specifying consideration invalidates the gift deed.",
-                        "expected": "Zero Consideration (Voluntary Transfer)",
-                        "actual": f"₹{price}"
                     })
 
             # 3. MCD or DDA category
@@ -4240,6 +3896,336 @@ def _build_events_and_errors(project_path):
                         "expected": meta_addr,
                         "actual": "Not found"
                     })
+
+        # ── Statutory Valuation, Stamp Duty & Consideration Audits ────
+        # Calculate circle rate value and expected stamp duty / registration fee
+        circle_val = 0.0
+        area_sqm_val = 0.0
+        expected_sd_val = 0.0
+        expected_reg_val = 0.0
+        actual_sd_val = _compute_total_stamp_duty_paid(data)
+        
+        doc_area = data.get("built_up_area") or data.get("covered_area") or data.get("area")
+        price = data.get("consideration")
+        
+        if "SALE" in txn or "AGREEMENT" in txn or "GIFT" in txn:
+            meta_locality = meta.get("locality", "").strip()
+            p_type = data.get("property_type") or meta.get("property_type") or "private_flat"
+            const_year = data.get("construction_year") or meta.get("construction_year")
+            
+            # Parse execution year
+            reg_year = None
+            exec_date = data.get("date_of_execution")
+            usage_type = data.get("usage_type") or data.get("land_use") or meta.get("land_use")
+            locality_category = data.get("locality_category")
+            if exec_date and "-" in exec_date:
+                parts = exec_date.split("-")
+                if len(parts) == 3 and len(parts[2]) == 4:
+                    reg_year = parts[2]
+                    
+            smart_res = resolve_smart_circle_valuation(data, meta, locality_category)
+            circle_val = smart_res.get("circle_value", 0.0)
+            area_sqm_val = smart_res.get("area_sqm", 0.0)
+            
+            # Check for property classification mismatch between reviewer meta and document
+            meta_cat = (meta.get("category") or "").strip().lower()
+            doc_p_type = (data.get("property_type") or "").strip().lower()
+            if doc_p_type and meta_cat:
+                is_meta_dda = "dda" in meta_cat or "society" in meta_cat or "cghs" in meta_cat
+                is_doc_dda = "dda" in doc_p_type or "society" in doc_p_type or "cghs" in doc_p_type
+                is_meta_plot = "plot" in meta_cat or "land" in meta_cat
+                is_doc_plot = "plot" in doc_p_type or "land" in doc_p_type
+                
+                mismatch = False
+                if is_meta_dda != is_doc_dda:
+                    mismatch = True
+                elif is_meta_plot != is_doc_plot:
+                    mismatch = True
+                    
+                if mismatch:
+                    meta_label = "DDA/Society Flat" if is_meta_dda else ("Land Plot" if is_meta_plot else "Private Builder Flat")
+                    doc_label = "DDA/Society Flat" if is_doc_dda else ("Land Plot" if is_doc_plot else "Private Builder Flat")
+                    
+                    msg = f"Property Type Conflict: Reviewer classified property as '{meta_label}', but the document extraction suggests it is a '{doc_label}'."
+                    if is_meta_dda and not is_doc_dda:
+                        msg += " This presents a stamp duty under-valuation risk as private builder flats carry higher circle rates."
+                    else:
+                        msg += " This may result in incorrect circle rate valuation."
+                        
+                    errors.append({
+                        "severity": "WARNING",
+                        "type": "PROPERTY_TYPE_MISMATCH",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": msg,
+                        "expected": meta_label,
+                        "actual": doc_label
+                    })
+            
+            # Valuation basis is the higher of consideration or circle rate value
+            if circle_val > 0.0:
+                actual_price = price if isinstance(price, (int, float)) else 0.0
+                valuation_basis = max(actual_price, circle_val)
+                
+                # Calculate expected stamp duty based on transferee party composition (male, female, joint)
+                active_gender = _determine_transferee_gender_composition(data, meta)
+                    
+                # Get historical stamp duty rate
+                if "GIFT" in txn:
+                    # In Delhi, stamp duty on Gift Deeds executed in favor of family members (blood relatives/spouse) is 3%
+                    sd_rate = 0.03
+                else:
+                    seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
+                    state_val = str(data.get("state") or meta.get("state") or "DELHI")
+                    h_jur = classify_haryana_jurisdiction(data)
+                    sd_rate = get_historical_stamp_duty_rate(
+                        reg_year or 2026, active_gender, valuation_basis,
+                        seller_name=seller_info, doc_type=str(source or txn),
+                        state=state_val, is_urban=h_jur["is_urban"]
+                    )
+                    
+                expected_sd_val = valuation_basis * sd_rate
+                expected_reg_val = valuation_basis * 0.01
+                
+                actual_sd_val = _compute_total_stamp_duty_paid(data)
+                actual_reg = data.get("registration_fee")
+                actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
+                
+                if "HARYANA" in state_val.upper() or any(h_c in str(data).upper() for h_c in ["GURGAON", "GURUGRAM", "FARIDABAD", "PANCHKULA", "SONIPAT", "AMBALA"]):
+                    j_label = "Urban Municipal Area" if h_jur["is_urban"] else "Rural Gram Panchayat Area"
+                    errors.append({
+                        "severity": "INFO",
+                        "type": "HARYANA_JURISDICTION_CLASSIFIED",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "is_beta": True,
+                        "module_status": "BETA",
+                        "message": f"Jurisdiction Audit: Property classified under {j_label} ({h_jur['basis']}). Applicable statutory stamp duty rate evaluated at {sd_rate*100}%.",
+                        "expected": j_label,
+                        "actual": h_jur["basis"]
+                    })
+                
+                # 1. Under Circle Rate Valuation check
+                if "SALE" in txn and actual_price > 0 and actual_price < circle_val:
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "UNDER_CIRCLE_RATE_VALUATION",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Declared consideration (₹{format_inr(int(round(actual_price)))}) is lower than government circle rate valuation (₹{format_inr(int(round(circle_val)))}). This presents a legal undervaluation risk under Section 47-A.",
+                        "expected": f"₹{format_inr(int(round(circle_val)))}",
+                        "actual": f"₹{format_inr(int(round(actual_price)))}"
+                    })
+                    
+                # 2. Insufficient Stamp Duty check
+                if actual_sd_val > 0 and actual_sd_val < expected_sd_val:
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "INSUFFICIENT_STAMP_DUTY",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Stamp duty paid (₹{format_inr(int(round(actual_sd_val)))}) is lower than the expected rate of {sd_rate*100}% on the valuation basis (₹{format_inr(int(round(expected_sd_val)))}).",
+                        "expected": f"₹{format_inr(int(round(expected_sd_val)))} ({sd_rate*100}%)",
+                        "actual": f"₹{format_inr(int(round(actual_sd_val)))}"
+                    })
+                    
+                # 3. Insufficient Registration Fee check
+                if actual_reg_val > 0 and actual_reg_val < expected_reg_val:
+                    errors.append({
+                        "severity": "ERROR",
+                        "type": "INSUFFICIENT_REGISTRATION_FEE",
+                        "doc_no": data.get("doc_no"),
+                        "event_date": data.get("date_of_execution"),
+                        "source": source,
+                        "message": f"Critical Error: Registration fee paid (₹{format_inr(int(round(actual_reg_val)))}) is lower than the expected 1% rate (₹{format_inr(int(round(expected_reg_val)))}).",
+                        "expected": f"₹{format_inr(int(round(expected_reg_val)))}",
+                        "actual": f"₹{format_inr(int(round(actual_reg_val)))}"
+                    })
+            else:
+                # Pre-2007 or exempt document: check stamp duty using declared price as basis
+                actual_price = price if isinstance(price, (int, float)) else 0.0
+                valuation_basis = actual_price
+                if valuation_basis > 0.0:
+                    gender = (data.get("buyer_gender") or meta.get("buyer_gender") or "").strip().lower()
+                    
+                    if not gender:
+                        # Attempt to infer gender from transferee/buyer names
+                        transferee_names = []
+                        if data.get("buyer_names"):
+                            transferee_names.extend(data.get("buyer_names"))
+                        if data.get("donee_name"):
+                            transferee_names.append(data.get("donee_name"))
+                        for p in data.get("transferee_parties") or []:
+                            if p.get("name"):
+                                transferee_names.append(p.get("name"))
+                                
+                        inferred_gender = None
+                        for name in transferee_names:
+                            name_lower = name.lower()
+                            if any(p in name_lower for p in ["mrs.", "smt.", "miss.", "कुमारी", "श्रीमती"]):
+                                inferred_gender = "female"
+                                break
+                            elif any(p in name_lower for p in ["mr.", "shri.", "sh.", "श्री"]):
+                                inferred_gender = "male"
+                                
+                        active_gender = inferred_gender or "male"
+                    else:
+                        active_gender = gender
+                        
+                    if "GIFT" in txn:
+                        sd_rate = 0.03
+                    else:
+                        seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
+                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis, seller_name=seller_info, doc_type=str(source or txn))
+                    expected_sd_val = valuation_basis * sd_rate
+                    expected_reg_val = valuation_basis * 0.01
+        elif "MORTGAGE" in txn or "INTIMATION" in txn:
+            principal = (
+                data.get("principal_amount_figures") or
+                data.get("principal_amount") or
+                data.get("loan_amount") or
+                data.get("amount_secured") or
+                data.get("secured_amount") or
+                data.get("consideration") or
+                data.get("amount")
+            )
+            principal_val = _safe_float(principal)
+            if principal_val > 0:
+                rate = 0.005 if "INTIMATION" in txn or "DEPOSIT" in txn else 0.02
+                expected_sd_val = principal_val * rate
+                expected_reg_val = principal_val * 0.01
+        elif "LEAVE" in txn or "LICENSE" in txn or "LEASE" in txn:
+            fee = data.get("license_fee") or data.get("rent")
+            if isinstance(fee, (int, float)) and fee > 0:
+                annual_rent = fee * 12
+                expected_sd_val = annual_rent * 0.02
+                expected_reg_val = annual_rent * 0.01
+        elif "RELEASE" in txn or "RELINQUISHMENT" in txn:
+            # Check if it is a mortgage release
+            cls_info = data.get("_classification") or {}
+            sub_type_l = (cls_info.get("subtype") or "").lower()
+            is_mortgage_release = "mortgage" in sub_type_l or "reconveyance" in sub_type_l or "discharge" in sub_type_l
+            
+            if is_mortgage_release:
+                expected_sd_val = 100.0 # Delhi nominal mortgage release stamp duty
+                expected_reg_val = 100.0
+            else:
+                # Relinquishment/Release Deed among family members / co-heirs for inherited property.
+                # In Delhi: Stamp duty is ₹150 nominal, Registration fee is ₹100 nominal!
+                # If there is a specified consideration amount (rel_amt > 0), then it's calculated as 2% stamp duty and 1% reg fee.
+                rel_amt = data.get("released_amount") or data.get("released_amount_figures") or data.get("consideration")
+                actual_rel_amt = rel_amt if isinstance(rel_amt, (int, float)) else 0.0
+                if actual_rel_amt > 0:
+                    expected_sd_val = actual_rel_amt * 0.02
+                    expected_reg_val = actual_rel_amt * 0.01
+                else:
+                    expected_sd_val = 150.0
+                    expected_reg_val = 100.0
+        elif "RECONVEYANCE" in txn:
+            expected_sd_val = 100.0
+            expected_reg_val = 100.0
+        
+        data["circle_value"] = int(round(circle_val))
+        data["area_sqm"] = round(area_sqm_val, 2)
+        data["expected_stamp_duty"] = int(round(expected_sd_val))
+        data["expected_registration_fee"] = int(round(expected_reg_val))
+        if actual_sd_val > 0:
+            data["stamp_duty"] = int(round(actual_sd_val))
+        
+        # Global Insufficient Stamp Duty & Registration Fee Audit across ALL document types (Sale, Mortgage, Gift, Lease, Release)
+        if expected_sd_val > 0 and actual_sd_val > 0 and actual_sd_val < expected_sd_val:
+            if not any(e.get("type") == "INSUFFICIENT_STAMP_DUTY" and e.get("doc_no") == data.get("doc_no") for e in errors):
+                errors.append({
+                    "severity": "ERROR",
+                    "type": "INSUFFICIENT_STAMP_DUTY",
+                    "doc_no": data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source": source,
+                    "message": f"Critical Error: Stamp duty paid (₹{format_inr(int(round(actual_sd_val)))}) is lower than statutory required stamp duty (₹{format_inr(int(round(expected_sd_val)))}).",
+                    "expected": f"₹{format_inr(int(round(expected_sd_val)))}",
+                    "actual": f"₹{format_inr(int(round(actual_sd_val)))}"
+                })
+                
+        actual_reg = data.get("registration_fee")
+        actual_reg_val = actual_reg if isinstance(actual_reg, (int, float)) else 0.0
+        if expected_reg_val > 0 and actual_reg_val > 0 and actual_reg_val < expected_reg_val:
+            if not any(e.get("type") == "INSUFFICIENT_REGISTRATION_FEE" and e.get("doc_no") == data.get("doc_no") for e in errors):
+                errors.append({
+                    "severity": "ERROR",
+                    "type": "INSUFFICIENT_REGISTRATION_FEE",
+                    "doc_no": data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source": source,
+                    "message": f"Critical Error: Registration fee paid (₹{format_inr(int(round(actual_reg_val)))}) is lower than the expected statutory rate (₹{format_inr(int(round(expected_reg_val)))}).",
+                    "expected": f"₹{format_inr(int(round(expected_reg_val)))}",
+                    "actual": f"₹{format_inr(int(round(actual_reg_val)))}"
+                })
+        
+        # Delhi property law consideration validations
+        if "SALE" in txn or "AGREEMENT" in txn:
+            price = data.get("consideration")
+            if price is None or price == "" or (isinstance(price, (int, float)) and price == 0):
+                errors.append({
+                    "severity": "ERROR",
+                    "type": "MISSING_SALE_CONSIDERATION",
+                    "doc_no": data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source": source,
+                    "message": f"Critical Error: Sale Consideration is missing or specified as zero. Under Section 54 of the Transfer of Property Act 1882, a sale deed without price/consideration is invalid.",
+                    "expected": "Valid monetary consideration",
+                    "actual": "Missing or Zero"
+                })
+        elif "LEAVE" in txn or "LICENSE" in txn:
+            fee = data.get("license_fee")
+            if fee is None or fee == "" or (isinstance(fee, (int, float)) and fee == 0):
+                errors.append({
+                    "severity": "ERROR",
+                    "type": "MISSING_RENTAL_CONSIDERATION",
+                    "doc_no": data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source": source,
+                    "message": f"Critical Error: Monthly Rental Consideration (License Fee) is missing or specified as zero. Leave and license agreements must specify the license fee/rent.",
+                    "expected": "Valid monthly license fee",
+                    "actual": "Missing or Zero"
+                })
+        elif "MORTGAGE" in txn or "INTIMATION" in txn:
+            principal_val = (
+                _safe_float(data.get("principal_amount")) or
+                _safe_float(data.get("principal_amount_figures")) or
+                _safe_float(data.get("loan_amount")) or
+                _safe_float(data.get("amount_secured")) or
+                _safe_float(data.get("secured_amount")) or
+                _safe_float(data.get("consideration")) or
+                _safe_float(data.get("amount"))
+            )
+            if principal_val <= 0:
+                errors.append({
+                    "severity": "ERROR",
+                    "type": "MISSING_MORTGAGE_VALUE",
+                    "doc_no": data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source": source,
+                    "message": f"Critical Error: Principal loan amount is missing or specified as zero. Under Section 58 of the Transfer of Property Act 1882, a mortgage must secure a principal debt amount.",
+                    "expected": "Valid principal loan amount",
+                    "actual": "Missing or Zero"
+                })
+        elif "GIFT" in txn:
+            price = data.get("consideration")
+            if price is not None and price != "" and (isinstance(price, (int, float)) and price > 0):
+                errors.append({
+                    "severity": "ERROR",
+                    "type": "GIFT_DEED_WITH_CONSIDERATION",
+                    "doc_no": data.get("doc_no"),
+                    "event_date": data.get("date_of_execution"),
+                    "source": source,
+                    "message": f"Critical Error: Gift Deed specifies a monetary consideration of ₹{price}. Under Section 122 of the Transfer of Property Act 1882, a gift must be made voluntarily and without consideration. Specifying consideration invalidates the gift deed.",
+                    "expected": "Zero Consideration (Voluntary Transfer)",
+                    "actual": f"₹{price}"
+                })
 
         # ── Property type ──────────────────────────────────────────────
         flat_no      = data.get("flat_no")
