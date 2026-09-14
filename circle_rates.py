@@ -801,13 +801,25 @@ def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, s
         else:
             return 0.08
     else:
-        # Standard Delhi Rates (Stamp Duty + MCD Transfer Tax):
-        # Female Buyer: 4% (3% SD + 1% MCD)
-        # Joint (Female + Male): 5% (3.5% SD + 1.5% MCD)
-        # Male Buyers: 6% (3% SD + 3% MCD)
-        if g == "female":
-            return 0.04
-        elif g == "joint":
-            return 0.05
+        # Standard Delhi Rates (Indian Stamp Act, 1899 + MCD Transfer Duty under Section 147 of DMC Act, 1957)
+        # Base Indian Stamp Act levy: Male 3%, Female 2%, Joint 2.5%
+        # MCD Transfer Duty (Corporation Tax):
+        #   - Base / Properties <= ₹25 Lakhs (or prior to 10-July-2023):
+        #     Male 3% (Total 6%), Female 2% (Total 4%), Joint 2.5% (Total 5%)
+        #   - Properties > ₹25 Lakhs registered post 10-July-2023 (Delhi Govt Notification / MCD 1% Transfer Duty Hike):
+        #     Male 4% (Total 7%), Female 3% (Total 5%), Joint 3.5% (Total 6%)
+        is_post_july_2023_high_val = (year >= 2024 or year == 2023) and (valuation_basis > 2500000)
+        if is_post_july_2023_high_val:
+            if g == "female":
+                return 0.05  # 2% Base Stamp Duty + 3% MCD Corporation Tax
+            elif g == "joint":
+                return 0.06  # 2.5% Base Stamp Duty + 3.5% MCD Corporation Tax
+            else:
+                return 0.07  # 3% Base Stamp Duty + 4% MCD Corporation Tax
         else:
-            return 0.06
+            if g == "female":
+                return 0.04  # 2% Base Stamp Duty + 2% MCD Corporation Tax
+            elif g == "joint":
+                return 0.05  # 2.5% Base Stamp Duty + 2.5% MCD Corporation Tax
+            else:
+                return 0.06  # 3% Base Stamp Duty + 3% MCD Corporation Tax
