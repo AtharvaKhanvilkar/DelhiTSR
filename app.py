@@ -2082,12 +2082,231 @@ def _normalize_document_data(data, doc_text="", project_path=""):
     # 5. Extract Relinquished Share & Legal Clauses & Supporting Documents
     if txn_type == "RELEASE_DEED":
         data["released_share_display"] = _extract_relinquished_share_text(doc_text, data)
+    elif txn_type == "GIFT_DEED" or "GIFT" in txn_type:
+        gift_rel = _extract_and_verify_gift_relationship(doc_text, data)
+        data["gift_relationship_details"] = gift_rel
+        data["donor_donee_relationship"] = gift_rel.get("relationship")
+        data["is_blood_relative"] = gift_rel.get("is_blood_or_spouse")
 
     data["clauses"] = _extract_document_clauses(doc_text, data)
     data["inclusions"] = _extract_property_inclusions(doc_text, data)
     data["supporting_documents"] = _build_supporting_docs_summary(data)
 
     return data
+
+def _extract_and_verify_gift_relationship(doc_text, data):
+    """
+    3-Layer Relationship Verification Engine for Gift Deeds:
+    Layer 1: Discrete LLM / Schema extractions (donor_donee_relationship, is_blood_relative)
+    Layer 2: Regex scanner over recitals & covenants for kinship declarations
+    Layer 3: KYC parentage & lineage cross-match (Donor vs Donee's father_or_husband, sibling parentage)
+    
+    Returns structured dictionary:
+    {
+        "relationship": str,
+        "relationship_display": str,
+        "is_blood_or_spouse": bool or None,
+        "recital_quote": str,
+        "verification_basis": str,
+        "status": "VERIFIED_FAMILY" | "VERIFIED_NON_FAMILY" | "UNRECITED"
+    }
+    """
+    if not isinstance(data, dict):
+        data = {}
+
+    text_to_scan = (str(doc_text or "") + "\n" + str(data.get("property_schedule_text") or "")).strip()
+
+    STATUTORY_FAMILY_MAP = {
+        "SON": "Son (Blood Relative)",
+        "DAUGHTER": "Daughter (Blood Relative)",
+        "WIFE": "Spouse (Wife)",
+        "HUSBAND": "Spouse (Husband)",
+        "SPOUSE": "Spouse",
+        "FATHER": "Father (Blood Relative)",
+        "MOTHER": "Mother (Blood Relative)",
+        "BROTHER": "Brother (Blood Relative)",
+        "SISTER": "Sister (Blood Relative)",
+        "GRANDSON": "Grandson (Lineal Descendant)",
+        "GRANDDAUGHTER": "Granddaughter (Lineal Descendant)",
+        "GRANDFATHER": "Grandfather (Lineal Ascendant)",
+        "GRANDMOTHER": "Grandmother (Lineal Ascendant)",
+    }
+
+    NON_FAMILY_MAP = {
+        "NEPHEW": "Nephew (Non-Exempt Collateral Relative)",
+        "NIECE": "Niece (Non-Exempt Collateral Relative)",
+        "COUSIN": "Cousin (Non-Exempt Collateral Relative)",
+        "UNCLE": "Uncle (Non-Exempt Collateral Relative)",
+        "AUNT": "Aunt (Non-Exempt Collateral Relative)",
+        "IN_LAW": "In-Law (Non-Exempt)",
+        "FRIEND": "Friend / Unrelated (Stranger)",
+        "STRANGER": "Third-Party Stranger",
+        "UNRELATED": "Unrelated Party",
+        "THIRD_PARTY": "Third-Party Stranger",
+    }
+
+    # ── LAYER 1: LLM / Extracted discrete fields ──
+    raw_rel = str(data.get("donor_donee_relationship") or "").strip().upper()
+    llm_is_blood = data.get("is_blood_relative")
+    recital_q = str(data.get("relationship_recital") or "").strip()
+
+    matched_rel = None
+    matched_disp = None
+    is_blood = None
+    basis_parts = []
+
+    if raw_rel and raw_rel not in ("NULL", "NONE", "N/A", "UNKNOWN"):
+        for k, disp in STATUTORY_FAMILY_MAP.items():
+            if k in raw_rel:
+                matched_rel = k
+                matched_disp = disp
+                is_blood = True
+                basis_parts.append(f"Declared as {disp} in deed schema")
+                break
+        if not matched_rel:
+            for k, disp in NON_FAMILY_MAP.items():
+                if k in raw_rel:
+                    matched_rel = k
+                    matched_disp = disp
+                    is_blood = False
+                    basis_parts.append(f"Declared as {disp} in deed schema")
+                    break
+
+    # ── LAYER 2: Deterministic Regex Scanner over recitals ──
+    if text_to_scan:
+        # Pattern A: Love and affection
+        m_love = re.search(r'(?:natural\s+)?love\s+and\s+affection\s+(?:which\s+he\s+bears\s+|which\s+she\s+bears\s+)?towards\s+(?:his|her)?\s*(son|daughter|wife|husband|brother|sister|father|mother|grandson|granddaughter|cousin|nephew|niece|friend)', text_to_scan, re.I)
+        if m_love:
+            kin_word = m_love.group(1).upper()
+            quote_snippet = m_love.group(0).strip()
+            if not recital_q:
+                recital_q = quote_snippet
+            for k, disp in STATUTORY_FAMILY_MAP.items():
+                if k == kin_word or (k == "SPOUSE" and kin_word in ("WIFE", "HUSBAND")):
+                    matched_rel = matched_rel or k
+                    matched_disp = matched_disp or disp
+                    is_blood = True
+                    basis_parts.append(f"Recital: '{quote_snippet}'")
+                    break
+            if is_blood is None:
+                for k, disp in NON_FAMILY_MAP.items():
+                    if k == kin_word:
+                        matched_rel = matched_rel or k
+                        matched_disp = matched_disp or disp
+                        is_blood = False
+                        basis_parts.append(f"Recital: '{quote_snippet}'")
+                        break
+
+        # Pattern B: Donee is the X of the Donor
+        m_donee = re.search(r'(?:donee|party\s+of\s+(?:the\s+)?second\s+part)\s+is\s+(?:the|his|her)?\s*(son|daughter|wife|husband|brother|sister|father|mother|grandson|granddaughter|nephew|niece|friend)\s+of\s+(?:the\s+)?donor', text_to_scan, re.I)
+        if m_donee:
+            kin_word = m_donee.group(1).upper()
+            quote_snippet = m_donee.group(0).strip()
+            if not recital_q:
+                recital_q = quote_snippet
+            for k, disp in STATUTORY_FAMILY_MAP.items():
+                if k == kin_word or (k == "SPOUSE" and kin_word in ("WIFE", "HUSBAND")):
+                    matched_rel = matched_rel or k
+                    matched_disp = matched_disp or disp
+                    is_blood = True
+                    basis_parts.append(f"Recital: '{quote_snippet}'")
+                    break
+
+        # Pattern C: Donor is the X of the Donee
+        m_donor = re.search(r'(?:donor|party\s+of\s+(?:the\s+)?first\s+part)\s+is\s+(?:the)?\s*(father|mother|husband|brother)\s+of\s+(?:the\s+)?donee', text_to_scan, re.I)
+        if m_donor:
+            kin_word = m_donor.group(1).upper()
+            quote_snippet = m_donor.group(0).strip()
+            if not recital_q:
+                recital_q = quote_snippet
+            rel_rev = "SON" if kin_word in ("FATHER", "MOTHER") else ("WIFE" if kin_word == "HUSBAND" else "BROTHER")
+            matched_rel = matched_rel or rel_rev
+            matched_disp = matched_disp or STATUTORY_FAMILY_MAP.get(rel_rev, "Family Relative")
+            is_blood = True
+            basis_parts.append(f"Recital: '{quote_snippet}'")
+
+    # ── LAYER 3: KYC Parentage & Lineage Cross-Matching ──
+    transferor_parties = data.get("transferor_parties") or []
+    transferee_parties = data.get("transferee_parties") or []
+    donor_p = transferor_parties[0] if transferor_parties and isinstance(transferor_parties[0], dict) else {}
+    donee_p = transferee_parties[0] if transferee_parties and isinstance(transferee_parties[0], dict) else {}
+
+    donor_name = str(donor_p.get("name") or data.get("donor_name") or "").strip()
+    donee_name = str(donee_p.get("name") or data.get("donee_name") or "").strip()
+    donor_foh = str(donor_p.get("father_or_husband") or "").strip()
+    donee_foh = str(donee_p.get("father_or_husband") or "").strip()
+
+    def _clean_name(n):
+        return re.sub(r'^(?:mr\.|mrs\.|ms\.|smt\.|shri|sh\.|late\s+sh\.|late)\s+', '', n, flags=re.I).strip().lower()
+
+    d_name_c = _clean_name(donor_name)
+    de_name_c = _clean_name(donee_name)
+    d_foh_c = _clean_name(donor_foh)
+    de_foh_c = _clean_name(donee_foh)
+
+    if d_name_c and de_foh_c:
+        d_tokens = set(d_name_c.split())
+        de_foh_tokens = set(de_foh_c.split())
+        token_overlap = len(d_tokens.intersection(de_foh_tokens))
+        if token_overlap >= 2 or (len(d_tokens) == 1 and d_name_c == de_foh_c):
+            is_wife = False
+            if text_to_scan and re.search(r'(?:w\/o|wife\s+of)\s+' + re.escape(donor_name), text_to_scan, re.I):
+                is_wife = True
+            if is_wife:
+                matched_rel = matched_rel or "WIFE"
+                matched_disp = matched_disp or "Spouse (Wife)"
+                is_blood = True
+                basis_parts.append(f"KYC Match: Donee's husband matches Donor ('{donor_name}')")
+            else:
+                rel_k = "DAUGHTER" if (donee_p.get("gender") == "female" or "smt" in donee_name.lower()) else "SON"
+                matched_rel = matched_rel or rel_k
+                matched_disp = matched_disp or STATUTORY_FAMILY_MAP.get(rel_k, "Child")
+                is_blood = True
+                basis_parts.append(f"KYC Match: Donee's father matches Donor ('{donor_name}')")
+
+    if d_foh_c and de_foh_c and d_foh_c == de_foh_c and len(d_foh_c.split()) >= 2:
+        matched_rel = matched_rel or "BROTHER"
+        matched_disp = matched_disp or "Sibling (Brother/Sister)"
+        is_blood = True
+        basis_parts.append(f"KYC Match: Shared parentage ('{donor_foh}')")
+
+    # ── Final Reconciliation ──
+    if is_blood is True:
+        status = "VERIFIED_FAMILY"
+        final_rel = matched_rel or "FAMILY"
+        final_disp = matched_disp or "Family / Blood Relative"
+    elif is_blood is False:
+        status = "VERIFIED_NON_FAMILY"
+        final_rel = matched_rel or "STRANGER"
+        final_disp = matched_disp or "Unrelated / Stranger (Non-Exempt)"
+    else:
+        if llm_is_blood is True:
+            status = "VERIFIED_FAMILY"
+            final_rel = matched_rel or "FAMILY"
+            final_disp = matched_disp or "Family / Blood Relative"
+            is_blood = True
+            basis_parts.append("Extracted family relation in document schema")
+        elif llm_is_blood is False:
+            status = "VERIFIED_NON_FAMILY"
+            final_rel = matched_rel or "STRANGER"
+            final_disp = matched_disp or "Unrelated / Stranger (Non-Exempt)"
+            is_blood = False
+            basis_parts.append("Extracted non-family relation in document schema")
+        else:
+            status = "UNRECITED"
+            final_rel = "UNRECITED"
+            final_disp = "Unstated Kinship"
+            is_blood = None
+            basis_parts.append("No kinship or relationship recitals found in deed")
+
+    return {
+        "relationship": final_rel,
+        "relationship_display": final_disp,
+        "is_blood_or_spouse": is_blood,
+        "recital_quote": recital_q,
+        "verification_basis": "; ".join(basis_parts) if basis_parts else "Default",
+        "status": status
+    }
 
 def _extract_relinquished_share_text(doc_text, data):
     cls_info = data.get("_classification") or {}
@@ -3972,18 +4191,23 @@ def _build_events_and_errors(project_path):
                 active_gender = _determine_transferee_gender_composition(data, meta)
                     
                 # Get historical stamp duty rate
-                if "GIFT" in txn:
-                    # In Delhi, stamp duty on Gift Deeds executed in favor of family members (blood relatives/spouse) is 3%
-                    sd_rate = 0.03
-                else:
-                    seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
-                    state_val = str(data.get("state") or meta.get("state") or "DELHI")
-                    h_jur = classify_haryana_jurisdiction(data)
-                    sd_rate = get_historical_stamp_duty_rate(
-                        reg_year or 2026, active_gender, valuation_basis,
-                        seller_name=seller_info, doc_type=str(source or txn),
-                        state=state_val, is_urban=h_jur["is_urban"]
-                    )
+                seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
+                state_val = str(data.get("state") or meta.get("state") or "DELHI")
+                h_jur = classify_haryana_jurisdiction(data)
+
+                gift_rel = data.get("gift_relationship_details")
+                if not gift_rel and "GIFT" in txn:
+                    gift_rel = _extract_and_verify_gift_relationship(text_l, data)
+                    data["gift_relationship_details"] = gift_rel
+
+                is_blood = gift_rel.get("is_blood_or_spouse") if gift_rel else None
+
+                sd_rate = get_historical_stamp_duty_rate(
+                    reg_year or 2026, active_gender, valuation_basis,
+                    seller_name=seller_info, doc_type=str(source or txn),
+                    state=state_val, is_urban=h_jur["is_urban"],
+                    is_blood_relative=is_blood
+                )
                     
                 expected_sd_val = valuation_basis * sd_rate
                 expected_reg_val = valuation_basis * 0.01
@@ -4019,6 +4243,54 @@ def _build_events_and_errors(project_path):
                         "expected": f"₹{format_inr(int(round(circle_val)))}",
                         "actual": f"₹{format_inr(int(round(actual_price)))}"
                     })
+
+                # Gift Deed Kinship & Tariff Audits
+                if "GIFT" in txn and gift_rel:
+                    if gift_rel.get("is_blood_or_spouse") is True:
+                        errors.append({
+                            "severity": "INFO",
+                            "type": "GIFT_RELATIONSHIP_VERIFIED",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": f"Kinship Verification: Donee verified as {gift_rel.get('relationship_display')} ({gift_rel.get('verification_basis')}). Statutory family concession/exemption applied.",
+                            "expected": "Recognized Statutory Blood Relative / Spouse",
+                            "actual": gift_rel.get("relationship_display")
+                        })
+                    elif gift_rel.get("is_blood_or_spouse") is False:
+                        if "HARYANA" in state_val.upper() or any(h_c in str(data).upper() for h_c in ["GURGAON", "GURUGRAM", "FARIDABAD", "PANCHKULA", "SONIPAT", "AMBALA"]):
+                            errors.append({
+                                "severity": "ERROR",
+                                "type": "GIFT_DUTY_DEFICIT_NON_FAMILY",
+                                "doc_no": data.get("doc_no"),
+                                "event_date": data.get("date_of_execution"),
+                                "source": source,
+                                "message": f"Critical Substantive Defect: Under Haryana Stamp Act, stamp duty exemption (₹100 nominal) applies strictly to specified blood relatives & spouses. Donee is recorded as '{gift_rel.get('relationship_display')}' ({gift_rel.get('verification_basis')}), which is not an exempt blood relation. Standard conveyance stamp duty of {sd_rate*100}% (₹{format_inr(int(round(expected_sd_val)))}) is statutorily required.",
+                                "expected": f"Full Conveyance Rate ₹{format_inr(int(round(expected_sd_val)))} ({sd_rate*100}%)",
+                                "actual": f"₹{format_inr(int(round(actual_sd_val)))} (Non-Family Gift)"
+                            })
+                        else:
+                            errors.append({
+                                "severity": "ERROR",
+                                "type": "GIFT_TO_STRANGER_CONVEYANCE_TARIFF",
+                                "doc_no": data.get("doc_no"),
+                                "event_date": data.get("date_of_execution"),
+                                "source": source,
+                                "message": f"Critical Substantive Defect: In Delhi, the 3% concessional stamp duty applies exclusively to gifts within the family (blood relatives and spouse). Donee is recorded as '{gift_rel.get('relationship_display')}' ({gift_rel.get('verification_basis')}), requiring standard conveyance duty of {sd_rate*100}% (₹{format_inr(int(round(expected_sd_val)))}).",
+                                "expected": f"Standard Conveyance Rate ₹{format_inr(int(round(expected_sd_val)))} ({sd_rate*100}%)",
+                                "actual": f"₹{format_inr(int(round(actual_sd_val)))} (Non-Family Gift)"
+                            })
+                    else:
+                        errors.append({
+                            "severity": "WARNING",
+                            "type": "GIFT_RELATIONSHIP_UNSTATED",
+                            "doc_no": data.get("doc_no"),
+                            "event_date": data.get("date_of_execution"),
+                            "source": source,
+                            "message": f"Procedural Anomaly: The Gift Deed does not explicitly recite or substantiate the blood relationship or spousal connection between Donor and Donee ({gift_rel.get('verification_basis')}). Concessional or exempt statutory stamp duty cannot be conclusively cleared without proof of kinship / legal heirship certificate.",
+                            "expected": "Explicit kinship recital or parentage proof (Son/Daughter/Spouse/Sibling)",
+                            "actual": "Unstated Kinship / Unverified Relation"
+                        })
                     
                 # 2. Insufficient Stamp Duty check
                 if actual_sd_val > 0 and actual_sd_val < expected_sd_val:
@@ -4076,11 +4348,18 @@ def _build_events_and_errors(project_path):
                     else:
                         active_gender = gender
                         
-                    if "GIFT" in txn:
-                        sd_rate = 0.03
-                    else:
-                        seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
-                        sd_rate = get_historical_stamp_duty_rate(reg_year or 2026, active_gender, valuation_basis, seller_name=seller_info, doc_type=str(source or txn))
+                    gift_rel = data.get("gift_relationship_details")
+                    if not gift_rel and "GIFT" in txn:
+                        gift_rel = _extract_and_verify_gift_relationship(text_l, data)
+                        data["gift_relationship_details"] = gift_rel
+
+                    is_blood = gift_rel.get("is_blood_or_spouse") if gift_rel else None
+                    seller_info = str(data.get("first_party") or data.get("seller_names") or data.get("transferor") or "")
+                    sd_rate = get_historical_stamp_duty_rate(
+                        reg_year or 2026, active_gender, valuation_basis,
+                        seller_name=seller_info, doc_type=str(source or txn),
+                        is_blood_relative=is_blood
+                    )
                     expected_sd_val = valuation_basis * sd_rate
                     expected_reg_val = valuation_basis * 0.01
         elif "MORTGAGE" in txn or "INTIMATION" in txn:
@@ -4694,6 +4973,9 @@ def _build_events_and_errors(project_path):
             transferees = [de] if de else []
             event["donor_name"] = dn
             event["donee_name"] = de
+            event["donor_donee_relationship"] = data.get("donor_donee_relationship")
+            event["is_blood_relative"] = data.get("is_blood_relative")
+            event["gift_relationship_details"] = data.get("gift_relationship_details")
 
         elif "MORTGAGE" in txn or "INTIMATION" in txn:
             event["mortgagor_name"] = data.get("mortgagor_name")

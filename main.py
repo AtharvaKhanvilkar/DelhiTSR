@@ -728,6 +728,9 @@ Extract party identity & KYC details as raw valid JSON:
 - transferor_pin: list of seller PIN strings.
 - transferee_pan: list of buyer PAN strings.
 - transferee_pin: list of buyer PIN strings.
+- donor_donee_relationship: Stated kinship/relationship of Donee to Donor in Gift Deeds (e.g. "SON", "DAUGHTER", "WIFE", "HUSBAND", "BROTHER", "SISTER", "FATHER", "MOTHER", "GRANDSON", "GRANDDAUGHTER", "NEPHEW", "NIECE", "COUSIN", "FRIEND", "UNRELATED", or null).
+- relationship_recital: Verbatim sentence or clause from recitals describing the relationship, love and affection, or connection between Donor and Donee.
+- is_blood_relative: true if parties are recognized statutory family (parent, child, spouse, sibling, grandchild), false if unrelated/distant/stranger, null if unrecited.
 
 RULE FOR AADHAAR: For Aadhaar, extract exact digits or masked format (e.g. "XXXX-XXXX-9661"). If illegible or unstated, return null. NEVER guess.
 
@@ -947,6 +950,9 @@ def parse_index_ii(file_path, forced_subtype=None):
                 ACT_data["donee_name"] = transferee_names[0]
             if transferee_parties:
                 ACT_data["donee_address"] = transferee_parties[0].get("address")
+            ACT_data["donor_donee_relationship"] = ACT_data.get("donor_donee_relationship")
+            ACT_data["relationship_recital"] = ACT_data.get("relationship_recital")
+            ACT_data["is_blood_relative"] = ACT_data.get("is_blood_relative")
         elif "MORTGAGE" in txn or "INTIMATION" in txn:
             if transferor_names:
                 ACT_data["mortgagor_name"] = transferor_names[0]
@@ -1135,7 +1141,7 @@ Finding Details:
 
 CRITICAL MANDATORY RULES:
 1. NEVER ANNOUNCE A VERDICT. Do NOT use words like "void", "invalid", "illegal", "defective", "null", or declare any final legal ruling. The final verdict belongs strictly to the reviewing advocate.
-2. KEEP IT SIMPLE AND NON-TECHNICAL. Explain what the difference is between the expected record and the actual document in plain, everyday language without complicated legal jargon or statutory section dumping.
+2. KEEP IT SIMPLE AND NON-TECHNICAL. Explain what the difference is between the expected record and the actual document in plain, everyday language without complicated legal jargon or statutory section dumping use natural and friendly language.
 3. Output ONLY the 2-sentence explanation in clean plain text. No markdown formatting, no bullet points, no headers.
 """
     try:

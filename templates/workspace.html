@@ -6004,10 +6004,36 @@
           ${circleRateTableHtml}
         </div>`;
     } else if (t.includes('GIFT')) {
+      const gRel = ev.gift_relationship_details || {};
+      const relDisp = gRel.relationship_display || ev.donor_donee_relationship || 'Gift Deed';
+      const isFamily = gRel.is_blood_or_spouse === true;
+      const isNonFamily = gRel.is_blood_or_spouse === false;
+      
+      let badgeHtml = '';
+      if (isFamily) {
+        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Verified Family (Concessional/Exempt)
+        </span>`;
+      } else if (isNonFamily) {
+        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Non-Family / Stranger (Full Conveyance Duty)
+        </span>`;
+      } else {
+        badgeHtml = `<span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> Kinship Unrecited
+        </span>`;
+      }
+
+      const recitalNote = gRel.recital_quote ? `<span class="text-[10px] text-zinc-500 mt-0.5 block italic truncate" title="${gRel.recital_quote}">"${gRel.recital_quote}"</span>` : `<span class="text-[10px] text-zinc-500 mt-0.5 block">${gRel.verification_basis || 'Executed out of natural love and affection'}</span>`;
+
       primaryMetricHtml = `
         <div class="pb-4 border-b border-zinc-100">
-          <span class="text-xs text-zinc-550 font-medium">Voluntary Transfer</span>
-          <div class="text-lg font-semibold text-zinc-955 mt-0.5">Gift Deed</div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-zinc-550 font-medium">Donor-Donee Relationship</span>
+            ${badgeHtml}
+          </div>
+          <div class="text-lg font-semibold text-zinc-955 mt-0.5">${relDisp}</div>
+          ${recitalNote}
           ${circleRateTableHtml}
         </div>`;
     }

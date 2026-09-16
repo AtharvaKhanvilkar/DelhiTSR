@@ -9,15 +9,15 @@
   <a href="https://flask.palletsprojects.org/"><img src="https://img.shields.io/badge/Framework-Flask-000000?style=flat&logo=flask&logoColor=white" alt="Framework"></a>
   <a href="https://opencv.org/"><img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white" alt="OpenCV"></a>
   <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI-Gemini%202.5%20Vision-4285F4?style=flat&logo=google&logoColor=white" alt="AI Engine"></a>
-  <a href="#complete-specification-of-all-94-parameters"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
+  <a href="#complete-specification-of-all-94-audit-parameters"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
   <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi%20NCT%20%7C%20Haryana%20[BETA]-0284C7?style=flat" alt="Coverage"></a>
-  <a href="#recognized-banks--housing-finance-companies"><img src="https://img.shields.io/badge/Audits-Mortgage%20%26%20Lender%20Ledger-0F766E?style=flat" alt="Lender Ledger"></a>
+  <a href="#institutional-lender-ledger"><img src="https://img.shields.io/badge/Audits-Mortgage%20%26%20Lender%20Ledger-0F766E?style=flat" alt="Lender Ledger"></a>
   <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-10B981?style=flat" alt="Status"></a>
 </p>
 
 </div>
 
-DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
+DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across 4 specialized passes, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
 
 > **What is a Title Search Report (TSR)?**  
 > A Title Search Report (TSR) verifies a property's legal ownership history to confirm clear, marketable, and unencumbered title prior to mortgage loan sanction and disbursal. In secured real estate lending, financial institutions require rigorous title verification to ensure collateral enforceability, identify outstanding bank charges, and detect breaks in title continuity.
@@ -30,27 +30,27 @@ DelhiTSR is an automated title verification engine designed for loan underwritin
 
 ## Table of Contents
 
-- [Processing Pipeline](#processing-pipeline)
-  - [1. Document Pre-Processing \& OCR](#1-document-pre-processing--ocr)
+- [Document Processing Architecture](#document-processing-architecture)
+  - [1. Image Enhancement \& OCR](#1-image-enhancement--ocr)
   - [2. 80-Field Schema Extraction](#2-80-field-schema-extraction)
-  - [3. Tax \& Local Authority Reconciliation](#3-tax--local-authority-reconciliation)
-- [Recognized Banks \& Housing Finance Companies](#recognized-banks--housing-finance-companies)
-- [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
-- [Underwriting \& Compliance Policy](#underwriting--compliance-policy)
+  - [3. Tax \& Stamp Duty Reconciliation](#3-tax--stamp-duty-reconciliation)
+- [Institutional Lender Ledger](#institutional-lender-ledger)
+- [5-Tier Finding Severity Framework](#5-tier-finding-severity-framework)
+- [Underwriting Risk Policy](#underwriting-risk-policy)
 - [Security \& Data Protection Controls](#security--data-protection-controls)
-- **[Complete Specification of All 94 Parameters](#complete-specification-of-all-94-parameters)**
+- **[Complete Specification of All 94 Audit Parameters](#complete-specification-of-all-94-audit-parameters)**
   - [1. Tier 1: Material Defects](#1-tier-1-material-defects)
   - [2. Tier 2: Substantive Defects](#2-tier-2-substantive-defects)
-  - [3. Tier 3: Statutory Requisitions](#3-tier-3-statutory-requisitions)
+  - [3. Tier 3: Duty Requisitions](#3-tier-3-duty-requisitions)
   - [4. Tier 4: Procedural Anomalies](#4-tier-4-procedural-anomalies)
   - [5. Tier 5: Record Notations](#5-tier-5-record-notations)
-- [Parameter Enforcement Note](#parameter-enforcement-note)
-- [Installation \& Local Setup](#installation--local-setup)
+- [Interdependent Parameter Enforcement](#interdependent-parameter-enforcement)
+- [Installation \& Setup](#installation--setup)
 - [Repository Structure](#repository-structure)
 
 ---
 
-## Processing Pipeline
+## Document Processing Architecture
 
 Property title chains in India consist of multi-page scanned documents spanning 30+ years of ownership history. DelhiTSR decouples image pre-processing, schema extraction, tax reconciliation, and rule evaluation into clear processing stages:
 
@@ -65,9 +65,9 @@ flowchart LR
 
 ---
 
-### 1. Document Pre-Processing & OCR
+### 1. Image Enhancement & OCR
 
-Older title documents in Indian registries (spanning the 1950s through 2010s) often suffer from faded typewriter ink, heavy background stamp paper seals, crooked scans, or low portal resolutions. Before text is parsed, pages pass through an image preparation and extraction pipeline:
+Older title documents in Indian registries (spanning the 1950s through 2010s) often suffer from faded typewriter ink, heavy background stamp paper seals, crooked scans, or low portal resolutions. Before text is parsed, pages pass through an image enhancement and text extraction workflow:
 
 1. **High-Resolution Rasterization (`pypdfium2` 3.0x / 300 DPI)**: Renders scanned pages at 3.0x scale with anti-aliasing, ensuring small footnotes, document numbers, and margin seals retain sharp boundaries.
 2. **Minimum-Area Deskewing & Affine Alignment (`cv2.minAreaRect` + `cv2.warpAffine`)**: OpenCV detects baseline text tilt by computing minimum area bounding boxes over foreground contours. Any tilt between 0.5° and 45.0° is leveled back to 0° using 2D affine transformation matrices.
@@ -97,7 +97,7 @@ To prevent context drift across long legal deeds, extraction is partitioned into
 
 ---
 
-### 3. Tax & Local Authority Reconciliation
+### 3. Tax & Stamp Duty Reconciliation
 
 #### Delhi Stamp Duty & Municipal Tax Schedule
 
@@ -132,7 +132,7 @@ Evaluates compliance under the Haryana Stamp Act and Haryana Municipal Corporati
 
 ---
 
-## Recognized Banks & Housing Finance Companies
+## Institutional Lender Ledger
 
 The engine incorporates a normalized lender entity ledger that resolves spelling variations, branch suffixes, and historical bank mergers when auditing mortgage charges and release deeds:
 
@@ -145,7 +145,7 @@ The engine incorporates a normalized lender entity ledger that resolves spelling
 
 ---
 
-## 5-Tier Legal Severity Scale
+## 5-Tier Finding Severity Framework
 
 > **Platform Findings Integration**: All defects, requisitions, procedural anomalies, and record notations identified by the engine are surfaced directly as interactive **findings** within the platform's workspace dashboard, complete with document location markers and contextual risk details.
 
@@ -154,13 +154,13 @@ Findings are classified into a 5-tier severity scale based on legal weight and u
 
 - **Material Defect**: Critical title flaws directly impairing security creation (missing private link deeds, unreleased prior mortgages, invalid post-2011 GPA transfers).
 - **Substantive Defect**: Major legal, party, or revenue discrepancies requiring pre-disbursal resolution (missing mutation records, unreleased legal heir shares, lender entity mismatches).
-- **Statutory Requisition**: Fiscal deficits and under-collateralization risks (stamp duty deficits, circle rate undervaluation).
+- **Duty Requisition**: Fiscal deficits and under-collateralization risks (stamp duty deficits, circle rate undervaluation).
 - **Procedural Anomaly**: Administrative and registry variances requiring operational verification (SRO jurisdiction mismatches, unit or floor numbering discrepancies).
 - **Record Notation**: Informational observations and logged classifications (satisfied historical charges, applied rectification deeds).
 
 ---
 
-## Underwriting & Compliance Policy
+## Underwriting Risk Policy
 
 1. **Objective Risk Assessment**: The engine reports deterministic, verifiable findings (such as stamp duty shortfalls, boundary variances, or missing authority link deeds) to support collateral evaluation and credit decisions.
 2. **Underwriting Decision Support**: Audit findings are formatted to accelerate title scrutiny, enabling credit and risk teams to isolate material defects and clear marketable titles with a complete, auditable verification trail.
@@ -186,7 +186,7 @@ The platform implements security controls to protect sensitive real estate trans
 
 ---
 
-## Complete Specification of All 94 Parameters
+## Complete Specification of All 94 Audit Parameters
 
 The engine evaluates 94 parameters across 12 domains, checking reconciled metadata for an event against governing laws, title continuity requirements, and state stamp schedules to assign each finding a 5-tier severity rating. All identified defects surface directly as findings within the platform's workspace dashboard.
 
@@ -196,7 +196,7 @@ The engine evaluates 94 parameters across 12 domains, checking reconciled metada
 
 Material defects represent critical title or legal failures that compromise ownership validity or transferability:
 
-| Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
+| Code | Severity | Finding Name | Governing Rule / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `CHAIN_BREAK` | **Material Defect** | Ownership Chain Break | `Sec 5, Transfer of Property Act 1882` | Audits title continuity to ensure the seller in each deed matches the buyer in the preceding registered deed. |
 | `UNRESOLVED_MORTGAGE` | **Material Defect** | Outstanding Bank Charge | `Sec 58, Transfer of Property Act 1882` | Identifies outstanding mortgages in title history lacking a registered Release Deed or Reconveyance Deed. |
@@ -218,7 +218,7 @@ Material defects represent critical title or legal failures that compromise owne
 
 Substantive defects represent major legal, registration, or document discrepancies requiring corrective action:
 
-| Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
+| Code | Severity | Finding Name | Governing Rule / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `UNREGULARIZED_GPA_CHAIN` | **Substantive Defect** | Unregularized GPA Chain | `Sec 54, Transfer of Property Act 1882` | Detects title chains ending with an unregularized Power of Attorney or Agreement to Sell without a registered Sale Deed. |
 | `MUTATION_RECORD_MISSING` | **Substantive Defect** | Missing Revenue Mutation Record | `Delhi Land Revenue Act 1954 / DMC Act 1957` | Flags property transfers lacking government revenue mutation records. |
@@ -234,27 +234,27 @@ Substantive defects represent major legal, registration, or document discrepanci
 | `RELEASE_OVERFLOW` | **Substantive Defect** | Release Amount Overflow | `Sec 60, Transfer of Property Act 1882` | Flags release deeds where released amount exceeds original loan principal. |
 | `RELEASE_AMOUNT_MISMATCH` | **Substantive Defect** | Release Amount Discrepancy | `Sec 60, Transfer of Property Act 1882` | Identifies discrepancies between original mortgage principal and release amount. |
 
-### 3. Tier 3: Statutory Requisitions
+### 3. Tier 3: Duty Requisitions
 
-Statutory requisitions represent duty shortfalls, tax deficits, and fee reconciliation requirements:
+Duty requisitions represent duty shortfalls, tax deficits, and fee reconciliation requirements:
 
-| Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
+| Code | Severity | Finding Name | Governing Rule / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
-| `INSUFFICIENT_STAMP_DUTY` | **Statutory Requisition** | Statutory Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid against statutory gender-adjusted rates (Female 4%, Joint 5%, Male 6%). |
-| `UNDER_CIRCLE_RATE_VALUATION` | **Statutory Requisition** | Under Circle Rate Valuation | `Delhi Stamp (Prevention of Undervaluation) Rules 2007` | Calculates minimum valuation based on Delhi Category A-H circle rates and flags undervaluation under Sec 47A. |
-| `INSUFFICIENT_REGISTRATION_FEE` | **Statutory Requisition** | Registration Fee Audit | `Table of Registration Fees (Sec 78, Reg Act 1908)` | Reconciles 1% registration fees paid at Sub-Registrar Office. |
-| `ESTAMP_VALUE_MISMATCH` | **Statutory Requisition** | e-Stamp Certificate Value Mismatch | `Sec 3, Indian Stamp Act 1899 / SHCIL System` | Flags discrepancies between e-Stamp certificate face value and deed recited stamp paper amount. |
-| `ESTAMP_RECITAL_AMOUNT_MISMATCH` | **Statutory Requisition** | e-Stamp Certificate Recital Mismatch | `Sec 3, Indian Stamp Act 1899` | Compares e-Stamp certificate denomination against deed header recitals. |
-| `ESTAMP_RECITAL_CERT_MISMATCH` | **Statutory Requisition** | e-Stamp Certificate Number Mismatch | `Sec 3, Indian Stamp Act 1899` | Cross-checks e-Stamp certificate serial numbers against deed endorsements. |
-| `INVALID_ESTAMP_CERT_NUMBER` | **Statutory Requisition** | Invalid e-Stamp Certificate Format | `SHCIL e-Stamping Regulations` | Validates e-Stamp certificate serial string formatting. |
-| `STAMP_CERTIFICATE_UNVERIFIED` | **Statutory Requisition** | Stamp Certificate Unverified | `Sec 33, Indian Stamp Act 1899` | Flags documents missing e-Stamp / physical stamp certificate numbers. |
-| `PARTIALLY_RELEASED` | **Statutory Requisition** | Partial Reconveyance Charge | `Sec 60, Transfer of Property Act 1882` | Identifies partial mortgage releases where encumbrance remains active on remaining property. |
+| `INSUFFICIENT_STAMP_DUTY` | **Duty Requisition** | Stamp Duty Deficit | `Indian Stamp Act 1899 / Delhi Govt Notification 2008` | Reconciles stamp duty paid against gender-adjusted rates (Female 4%, Joint 5%, Male 6%). |
+| `UNDER_CIRCLE_RATE_VALUATION` | **Duty Requisition** | Under Circle Rate Valuation | `Delhi Stamp (Prevention of Undervaluation) Rules 2007` | Calculates minimum valuation based on Delhi Category A-H circle rates and flags undervaluation under Sec 47A. |
+| `INSUFFICIENT_REGISTRATION_FEE` | **Duty Requisition** | Registration Fee Audit | `Table of Registration Fees (Sec 78, Reg Act 1908)` | Reconciles 1% registration fees paid at Sub-Registrar Office. |
+| `ESTAMP_VALUE_MISMATCH` | **Duty Requisition** | e-Stamp Certificate Value Mismatch | `Sec 3, Indian Stamp Act 1899 / SHCIL System` | Flags discrepancies between e-Stamp certificate face value and deed recited stamp paper amount. |
+| `ESTAMP_RECITAL_AMOUNT_MISMATCH` | **Duty Requisition** | e-Stamp Certificate Recital Mismatch | `Sec 3, Indian Stamp Act 1899` | Compares e-Stamp certificate denomination against deed header recitals. |
+| `ESTAMP_RECITAL_CERT_MISMATCH` | **Duty Requisition** | e-Stamp Certificate Number Mismatch | `Sec 3, Indian Stamp Act 1899` | Cross-checks e-Stamp certificate serial numbers against deed endorsements. |
+| `INVALID_ESTAMP_CERT_NUMBER` | **Duty Requisition** | Invalid e-Stamp Certificate Format | `SHCIL e-Stamping Regulations` | Validates e-Stamp certificate serial string formatting. |
+| `STAMP_CERTIFICATE_UNVERIFIED` | **Duty Requisition** | Stamp Certificate Unverified | `Sec 33, Indian Stamp Act 1899` | Flags documents missing e-Stamp / physical stamp certificate numbers. |
+| `PARTIALLY_RELEASED` | **Duty Requisition** | Partial Reconveyance Charge | `Sec 60, Transfer of Property Act 1882` | Identifies partial mortgage releases where encumbrance remains active on remaining property. |
 
 ### 4. Tier 4: Procedural Anomalies
 
 Procedural anomalies represent metadata mismatches, property classification variations, and procedural gaps:
 
-| Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
+| Code | Severity | Finding Name | Governing Rule / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `METADATA_FLAT_MISMATCH` | **Procedural Anomaly** | Flat / Unit Number Mismatch | `Sec 21, Registration Act 1908` | Flags flat/unit number variations between workspace project metadata and deed schedule. |
 | `METADATA_FLOOR_MISMATCH` | **Procedural Anomaly** | Floor Level Mismatch | `Sec 21, Registration Act 1908` | Flags floor level discrepancies between project metadata and extracted deed schedule. |
@@ -271,14 +271,14 @@ Procedural anomalies represent metadata mismatches, property classification vari
 
 ### 5. Tier 5: Record Notations
 
-Record notations represent system logs, statutory jurisdiction notes, and informational observations:
+Record notations represent system logs, jurisdiction classifications, and informational observations:
 
-| Code | Severity | Finding Name | Statutory Provision / Authority | Verification Function & Technical Scope |
+| Code | Severity | Finding Name | Governing Rule / Authority | Verification Function & Technical Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | `RECTIFICATION_APPLIED` | **Record Notation** | Rectification Deed Applied | `Sec 26, Specific Relief Act 1963` | Tracks registered Rectification Deeds modifying errors in prior registered link deeds. |
 | `MORTGAGE_RESOLVED` | **Record Notation** | Bank Charge Satisfied & Released | `Sec 60, Transfer of Property Act 1882` | Log entry confirming an underlying mortgage charge has been fully satisfied and released. |
 | `HARYANA_JURISDICTION_CLASSIFIED` | **Record Notation** | Haryana Jurisdiction Audit [BETA] | `Haryana Stamp Act / Municipal Act` | Log entry classifying property into Haryana Urban Municipal vs Rural Gram Panchayat area. |
-| `MISSING_CRITICAL_FIELDS` | **Record Notation** | Missing Extracted Fields | `N/A (Engine Pipeline Log)` | Log entry identifying unextracted optional schema fields in document parsing. |
+| `MISSING_CRITICAL_FIELDS` | **Record Notation** | Missing Extracted Fields | `N/A (System Log)` | Log entry identifying unextracted optional schema fields in document parsing. |
 
 ---
 
@@ -299,7 +299,7 @@ The following parameter specifications represent external public registry integr
 
 ---
 
-## Parameter Enforcement Note
+## Interdependent Parameter Enforcement
 
 Title parameters cannot be evaluated through isolated heuristics. Due diligence requires evaluating interdependent conditions across the entire title bundle:
 
@@ -342,7 +342,7 @@ Title parameters cannot be evaluated through isolated heuristics. Due diligence 
 
 ---
 
-## Installation & Local Setup
+## Installation & Setup
 
 ### Prerequisites
 

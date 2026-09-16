@@ -617,7 +617,7 @@ def resolve_smart_circle_valuation(data, meta, locality_category=None):
         "valuation_source": "Dormant (Not Stated in Deed Recitals)"
     }
 
-def get_haryana_stamp_duty_rate(gender="male", is_urban=True, doc_type="SALE_DEED"):
+def get_haryana_stamp_duty_rate(gender="male", is_urban=True, doc_type="SALE_DEED", is_blood_relative=None):
     """
     Computes statutory stamp duty rate for Haryana under the Haryana Stamp Act & Municipal Act.
     
@@ -638,7 +638,18 @@ def get_haryana_stamp_duty_rate(gender="male", is_urban=True, doc_type="SALE_DEE
 
     if "GIFT" in d_type:
         # Gift to Blood Relatives in Haryana: Exempt / Nominal ₹100, Gift to Third Party: Full Conveyance Rate
-        return 0.0 if any(k in d_type for k in ["FAMILY", "BLOOD", "RELATIVE", "SPOUSE", "CHILD"]) else (0.05 if g == "female" else (0.06 if g == "joint" else 0.07))
+        if is_blood_relative is True:
+            return 0.0
+        elif is_blood_relative is False:
+            if is_urban:
+                return 0.05 if g == "female" else (0.06 if g == "joint" else 0.07)
+            else:
+                return 0.03 if g == "female" else (0.04 if g == "joint" else 0.05)
+        else:
+            # Fallback heuristic if not explicitly evaluated
+            return 0.0 if any(k in d_type for k in ["FAMILY", "BLOOD", "RELATIVE", "SPOUSE", "CHILD"]) else (
+                (0.05 if g == "female" else (0.06 if g == "joint" else 0.07)) if is_urban else (0.03 if g == "female" else (0.04 if g == "joint" else 0.05))
+            )
 
     if "MORTGAGE" in d_type or "INTIMATION" in d_type:
         if "POSSESSION" in d_type and "WITHOUT" not in d_type:
@@ -763,7 +774,7 @@ def classify_haryana_jurisdiction(data, doc_text=""):
         "status": "BETA"
     }
 
-def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type="", state="DELHI", is_urban=True):
+def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, seller_name="", doc_type="", state="DELHI", is_urban=True, is_blood_relative=None):
     try:
         year = int(registration_year)
     except Exception:
@@ -778,7 +789,12 @@ def get_historical_stamp_duty_rate(registration_year, gender, valuation_basis, s
     st = str(state or "").upper()
 
     if "HARYANA" in st or any(h_city in s_name or h_city in d_type for h_city in ["GURGAON", "GURUGRAM", "FARIDABAD", "PANCHKULA", "SONIPAT", "AMBALA", "KARNAL", "PANIPAT", "ROHTAK"]):
-        return get_haryana_stamp_duty_rate(gender=g, is_urban=is_urban, doc_type=d_type)
+        return get_haryana_stamp_duty_rate(gender=g, is_urban=is_urban, doc_type=d_type, is_blood_relative=is_blood_relative)
+
+    # In Delhi: Gift Deeds to blood relatives / spouse qualify for 3% family concession.
+    # Non-family gifts to strangers must pay full conveyance tariff.
+    if "GIFT" in d_type and is_blood_relative is not False:
+        return 0.03
 
     is_dda = ("DELHI DEVELOPMENT AUTHORITY" in s_name or 
               "DDA" in s_name or 
