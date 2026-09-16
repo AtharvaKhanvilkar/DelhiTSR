@@ -103,7 +103,7 @@ To prevent context drift across long legal deeds, extraction is partitioned into
 
 Evaluates compliance under the Indian Stamp Act, 1899 (Schedule I-A Delhi Amendment) and Section 147 of the Delhi Municipal Corporation Act, 1957:
 
-| Period / Document Category | Sole Female Purchaser | Joint (Female + Male) | Male Purchaser | Statutory Reference |
+| Period / Document Category | Sole Female Purchaser | Joint (Female + Male) | Male Purchaser | Tariff Reference |
 | :--- | :--- | :--- | :--- | :--- |
 | **Pre-2003 Resale Conveyances** | 8.00% | 8.00% | 8.00% | Article 23 (5% SD + 3% MCD Tax) |
 | **Pre-2003 DDA / Government Conveyances** | **6.00%** | **6.00%** | **6.00%** | Pre-2003 DDA Rule |
@@ -112,6 +112,8 @@ Evaluates compliance under the Indian Stamp Act, 1899 (Schedule I-A Delhi Amendm
 | **Blood Relative Gift Deed** | 3.00% | 3.00% | 3.00% | Family Concession Schedule (+ 1% Reg Fee) |
 | **Simple Mortgage without Possession** | 2.00% | 2.00% | 2.00% | Article 40 (2% on Principal Amount) |
 | **Equitable Mortgage (Title Deposit)** | 0.50% | 0.50% | 0.50% | Article 40(b) Capped Schedule |
+
+> **Gift Deed Family Concession**: The 3.00% rate applies strictly to immediate family (parents, children, spouses, siblings, and grandchildren). Gifts to extended relations (nephews, nieces, cousins, in-laws) or third parties must pay the standard conveyance rate (4.00% to 7.00%).
 
 #### Haryana Jurisdiction & Duty Rates [BETA]
 
@@ -124,6 +126,9 @@ Evaluates compliance under the Haryana Stamp Act and Haryana Municipal Corporati
 | **Sole Female Purchaser(s)** | **5.00%** *(3% Stamp Duty + 2% Municipal Duty)* | **3.00%** *(3% Stamp Duty + 0% Municipal Duty)* |
 | **Joint Purchasers (Male + Female)** | **6.00%** *(4% Stamp Duty + 2% Municipal Duty)* | **4.00%** *(4% Stamp Duty + 0% Municipal Duty)* |
 | **Male Purchaser(s)** | **7.00%** *(5% Stamp Duty + 2% Municipal Duty)* | **5.00%** *(5% Stamp Duty + 0% Municipal Duty)* |
+| **Blood Relative Gift Deed** | **0.00%** *(₹100 Nominal Stamp Duty)* | **0.00%** *(₹100 Nominal Stamp Duty)* |
+
+> **Haryana Family Gift Exemption**: The zero-duty rate applies strictly to immediate family (parents, children, spouses, siblings, and grandparents/grandchildren). Transfers to extended relations (nephews, nieces, cousins, in-laws) or third parties pay the standard conveyance rate (5.00% to 7.00% Urban, 3.00% to 5.00% Rural).
 
 ---
 
@@ -306,6 +311,7 @@ Title parameters cannot be evaluated through isolated heuristics. Due diligence 
 | **e-Stamp Authorization** | Checks if an e-stamp certificate exists on page 1. | Scans all pages, validates state certificate number formatting, and cross-checks the e-stamp buyer against deed transferors and power of attorney records. |
 | **Encumbrance Recitals** | Reads text phrases like "free from encumbrances". | Cross-references body text declarations against active mortgage entries, court attachment notices, and bank charge records in the session bundle. |
 | **Legal Heir Succession** | Checks if the word "heir" or "intestate" is present. | When a deceased owner's property is sold by one family member, the engine checks whether all other legal heirs have signed registered Relinquishment Deeds giving up their ownership shares. |
+| **Gift Deed Kinship Audit** | Assumes all gift deeds qualify for family concession rates. | Scans deed recitals and verifies parentage across identity records. Confirms whether the recipient is a qualifying immediate relative (parent, child, spouse, sibling, grandchild) or an extended relative/third party subject to standard conveyance rates. |
 
 ---
 
@@ -323,11 +329,14 @@ Title parameters cannot be evaluated through isolated heuristics. Due diligence 
 4. **Legal Heir Relinquishment Verification**  
    When a property owner dies without a Will, all legal heirs inherit equal ownership shares. If only one heir sells the property, the engine verifies whether registered Relinquishment or Release Deeds exist from all other legal heirs to confirm the seller has 100% transferable title.
 
-5. **Weighted Severity Classification**  
+5. **Gift Deed Kinship and Tariff Enforcement**  
+   Family concessions and zero-duty exemptions apply only to immediate family (parents, children, spouses, siblings, grandchildren). The engine cross-examines deed recitals and parentage lines to distinguish these from transfers to extended relatives (nephews, nieces, cousins, in-laws) or third parties, enforcing standard conveyance tariffs where exemptions do not apply.
+
+6. **Weighted Severity Classification**  
    Findings are mapped to a 5-tier scale based on legal weight and underwriting impact:
    - **Material Defect**: Critical title flaws directly impairing security creation (missing private link deeds, unreleased legal heir ownership shares).
    - **Substantive Defect**: Major flaws requiring pre-disbursal resolution (e-stamp party mismatches, invalid certificate formats).
-   - **Statutory Requisition**: Financial deficits (stamp duty shortfalls).
+   - **Duty Requisition**: Financial deficits (stamp duty shortfalls).
    - **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
    - **Record Notation**: System logs and informational observations.
 
