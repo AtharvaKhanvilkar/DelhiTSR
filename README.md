@@ -11,19 +11,18 @@
   <a href="https://deepmind.google/"><img src="https://img.shields.io/badge/AI-Gemini%202.5%20Vision-4285F4?style=flat&logo=google&logoColor=white" alt="AI Engine"></a>
   <a href="#complete-specification-of-all-94-parameters"><img src="https://img.shields.io/badge/Rules-94%20Deterministic%20Audits-7B2CBF?style=flat" alt="Rule Engine"></a>
   <a href="#"><img src="https://img.shields.io/badge/Coverage-Delhi%20NCT%20%7C%20Haryana%20[BETA]-0284C7?style=flat" alt="Coverage"></a>
+  <a href="#recognized-banks--housing-finance-companies"><img src="https://img.shields.io/badge/Audits-Mortgage%20%26%20Lender%20Ledger-0F766E?style=flat" alt="Lender Ledger"></a>
   <a href="#"><img src="https://img.shields.io/badge/Status-Active%20Development-10B981?style=flat" alt="Status"></a>
 </p>
 
 </div>
 
-DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for property title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
+DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic statutory parameters covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
 
 > **What is a Title Search Report (TSR)?**  
-> A Title Search Report checks a property's past ownership documents to confirm ownership integrity and ensure there are no unsettled loans & mortgages, title continuity defects, or hidden claims. In India, financial institutions require a TSR certified by an empanelled advocate to verify a clear and marketable title prior to the disbursal of loan.
+> A Title Search Report (TSR) verifies a property's legal ownership history to confirm clear, marketable, and unencumbered title prior to mortgage loan sanction and disbursal. In secured real estate lending, financial institutions require rigorous title verification to ensure collateral enforceability, identify outstanding bank charges, and detect breaks in title continuity.
 > 
-> The process of checking & examining title deeds and the reconciliation of related records (also consisting metadata-level checks) required for the preparation of the Title Search Report is known as **title auditing**. This job is usually undertaken by an Advocate.
-> 
-> **DelhiTSR** aims for the automated production of a Title Search Report with the help of **94** distinct & defined rules acting as parameters for title audit which'd take hours on end to do manually.
+> **DelhiTSR** automates this examination through **94 deterministic statutory and title continuity parameters**, replacing manual, multi-hour deed scrutiny with instant, auditable discrepancy detection.
 > 
 > *Note: DelhiTSR is under active development. Compiled TSR document export will be introduced in future releases.*
 
@@ -37,7 +36,7 @@ DelhiTSR is a title verification engine for property ownership chains across the
   - [3. Tax \& Local Authority Reconciliation](#3-tax--local-authority-reconciliation)
 - [Recognized Banks \& Housing Finance Companies](#recognized-banks--housing-finance-companies)
 - [5-Tier Legal Severity Scale](#5-tier-legal-severity-scale)
-- [Legal Privilege \& Compliance Policy](#legal-privilege--compliance-policy)
+- [Underwriting \& Compliance Policy](#underwriting--compliance-policy)
 - [Security \& Data Protection Controls](#security--data-protection-controls)
 - **[Complete Specification of All 94 Parameters](#complete-specification-of-all-94-parameters)**
   - [1. Tier 1: Material Defects](#1-tier-1-material-defects)
@@ -146,20 +145,20 @@ The engine incorporates a normalized lender entity ledger that resolves spelling
 > **Platform Findings Integration**: All defects, requisitions, procedural anomalies, and record notations identified by the engine are surfaced directly as interactive **findings** within the platform's workspace dashboard, complete with document location markers and contextual risk details.
 
 
-Findings are classified into a 5-tier legal scale based on legal weight:
+Findings are classified into a 5-tier severity scale based on legal weight and underwriting impact:
 
-- **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
-- **Substantive Defect**: Major flaws (e-stamp party mismatches, invalid certificate formats).
-- **Statutory Requisition**: Financial deficits (stamp duty shortfalls).
-- **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
-- **Record Notation**: System logs and informational observations.
+- **Material Defect**: Critical title flaws directly impairing security creation (missing private link deeds, unreleased prior mortgages, invalid post-2011 GPA transfers).
+- **Substantive Defect**: Major legal, party, or revenue discrepancies requiring pre-disbursal resolution (missing mutation records, unreleased legal heir shares, lender entity mismatches).
+- **Statutory Requisition**: Fiscal deficits and under-collateralization risks (statutory stamp duty deficits, circle rate undervaluation).
+- **Procedural Anomaly**: Administrative and registry variances requiring operational verification (SRO jurisdiction mismatches, unit or floor numbering discrepancies).
+- **Record Notation**: Informational observations and logged statutory classifications (satisfied historical charges, applied rectification deeds).
 
 ---
 
-## Legal Privilege & Compliance Policy
+## Underwriting & Compliance Policy
 
-1. **Factual Output Only**: The engine reports objective observations (such as stamp duty calculations, boundary discrepancies, or missing authorization documents). It does not declare titles void, defective, or invalid.
-2. **Advocate Support**: Output is structured to support legal review while preserving advocate-client privilege.
+1. **Objective Risk Assessment**: The engine reports deterministic, verifiable findings (such as statutory stamp duty shortfalls, boundary variances, or missing authority link deeds) to support collateral evaluation and credit decisions.
+2. **Underwriting Decision Support**: Audit findings are formatted to accelerate title scrutiny, enabling credit and risk teams to isolate material defects and clear marketable titles with a complete, auditable verification trail.
 
 ---
 
@@ -297,11 +296,11 @@ The following parameter specifications represent external public registry integr
 
 ## Parameter Enforcement Note
 
-DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are interdependent; meaning evaluating a single parameter requires verifying multiple related variables across the document set. The aforementioned are a few examples.
+Title parameters cannot be evaluated through isolated heuristics. Due diligence requires evaluating interdependent statutory conditions across the entire title bundle:
 
-### Basic Rules vs. Interdependent Enforcement
+### Isolated Heuristics vs. Interdependent Enforcement
 
-| Parameter | Naive If-Else Check | DelhiTSR Interdependent Enforcement |
+| Parameter | Isolated Heuristic Check | DelhiTSR Interdependent Enforcement |
 | :--- | :--- | :--- |
 | **Prior Link Deeds** | Flags any cited document number not found in the upload list. | Checks document origin first. Exempts government allotments (DDA, L&DO, Gazette notifications) from missing root deed defects while enforcing link deed continuity for private transfers. |
 | **e-Stamp Authorization** | Checks if an e-stamp certificate exists on page 1. | Scans all pages, validates state certificate number formatting, and cross-checks the e-stamp buyer against deed transferors and power of attorney records. |
@@ -325,10 +324,10 @@ DelhiTSR does NOT use isolated (and naive) if-else checks. Rules enforced are in
    When a property owner dies without a Will, all legal heirs inherit equal ownership shares. If only one heir sells the property, the engine verifies whether registered Relinquishment or Release Deeds exist from all other legal heirs to confirm the seller has 100% transferable title.
 
 5. **Weighted Severity Classification**  
-   Findings are mapped to a 5-tier legal scale based on legal weight rather than binary flags:
-   - **Material Defect**: Critical flaws (missing private link deeds, unreleased legal heir ownership shares).
-   - **Substantive Defect**: Major flaws (e-stamp party mismatches, invalid certificate formats).
-   - **Duty Requisition**: Financial deficits (stamp duty shortfalls).
+   Findings are mapped to a 5-tier scale based on legal weight and underwriting impact:
+   - **Material Defect**: Critical title flaws directly impairing security creation (missing private link deeds, unreleased legal heir ownership shares).
+   - **Substantive Defect**: Major flaws requiring pre-disbursal resolution (e-stamp party mismatches, invalid certificate formats).
+   - **Statutory Requisition**: Financial deficits (stamp duty shortfalls).
    - **Procedural Anomaly**: Operational gaps (missing witness details, unverified SRO seals).
    - **Record Notation**: System logs and informational observations.
 
