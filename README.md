@@ -17,12 +17,14 @@
 
 </div>
 
-DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic statutory parameters covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
+DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
 
 > **What is a Title Search Report (TSR)?**  
-> A Title Search Report (TSR) verifies a property's legal ownership history to confirm clear, marketable, and unencumbered title prior to mortgage loan sanction and disbursal. In secured real estate lending, financial institutions require rigorous title verification to ensure collateral enforceability, identify outstanding bank charges, and detect breaks in title continuity.
+> A Title Search Report checks a property's past ownership documents to confirm ownership integrity and ensure there are no unsettled loans & mortgages, title continuity defects, or hidden claims. In property lending, financial institutions require a clear and marketable title prior to loan sanction and disbursal.
 > 
-> **DelhiTSR** automates this examination through **94 deterministic statutory and title continuity parameters**, replacing manual, multi-hour deed scrutiny with instant, auditable discrepancy detection.
+> The process of checking & examining title deeds and reconciling related records (including metadata-level checks across registrations, taxes, and boundaries) required for the preparation of the report is known as **title auditing**. Conducting this examination manually takes hours on end per title chain.
+> 
+> **DelhiTSR** automates this title audit through **94** distinct, defined rules acting as verification parameters, replacing multi-hour manual deed examination with instant, auditable discrepancy detection.
 > 
 > *Note: DelhiTSR is under active development. Compiled TSR document export will be introduced in future releases.*
 
@@ -149,15 +151,15 @@ Findings are classified into a 5-tier severity scale based on legal weight and u
 
 - **Material Defect**: Critical title flaws directly impairing security creation (missing private link deeds, unreleased prior mortgages, invalid post-2011 GPA transfers).
 - **Substantive Defect**: Major legal, party, or revenue discrepancies requiring pre-disbursal resolution (missing mutation records, unreleased legal heir shares, lender entity mismatches).
-- **Statutory Requisition**: Fiscal deficits and under-collateralization risks (statutory stamp duty deficits, circle rate undervaluation).
+- **Statutory Requisition**: Fiscal deficits and under-collateralization risks (stamp duty deficits, circle rate undervaluation).
 - **Procedural Anomaly**: Administrative and registry variances requiring operational verification (SRO jurisdiction mismatches, unit or floor numbering discrepancies).
-- **Record Notation**: Informational observations and logged statutory classifications (satisfied historical charges, applied rectification deeds).
+- **Record Notation**: Informational observations and logged classifications (satisfied historical charges, applied rectification deeds).
 
 ---
 
 ## Underwriting & Compliance Policy
 
-1. **Objective Risk Assessment**: The engine reports deterministic, verifiable findings (such as statutory stamp duty shortfalls, boundary variances, or missing authority link deeds) to support collateral evaluation and credit decisions.
+1. **Objective Risk Assessment**: The engine reports deterministic, verifiable findings (such as stamp duty shortfalls, boundary variances, or missing authority link deeds) to support collateral evaluation and credit decisions.
 2. **Underwriting Decision Support**: Audit findings are formatted to accelerate title scrutiny, enabling credit and risk teams to isolate material defects and clear marketable titles with a complete, auditable verification trail.
 
 ---
@@ -296,7 +298,7 @@ The following parameter specifications represent external public registry integr
 
 ## Parameter Enforcement Note
 
-Title parameters cannot be evaluated through isolated heuristics. Due diligence requires evaluating interdependent statutory conditions across the entire title bundle:
+Title parameters cannot be evaluated through isolated heuristics. Due diligence requires evaluating interdependent conditions across the entire title bundle:
 
 ### Isolated Heuristics vs. Interdependent Enforcement
 
