@@ -17,12 +17,12 @@
 
 </div>
 
-DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for property title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
+DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
 
 > **What is a Title Search Report (TSR)?**  
 > A Title Search Report (TSR) verifies a property's legal ownership history to confirm clear, marketable, and unencumbered title prior to mortgage loan sanction and disbursal. In secured real estate lending, financial institutions require rigorous title verification to ensure collateral enforceability, identify outstanding bank charges, and detect breaks in title continuity.
 > 
-> **DelhiTSR** automates this examination through **94 deterministic statutory and title continuity parameters**, replacing manual, multi-hour deed scrutiny with instant, auditable discrepancy detection.
+> **DelhiTSR** aims for the automated production of a Title Search Report with the help of **94** distinct & defined rules acting as parameters for title audit which'd take hours on end to do manually.
 > 
 > *Note: DelhiTSR is under active development. Compiled TSR document export will be introduced in future releases.*
 
