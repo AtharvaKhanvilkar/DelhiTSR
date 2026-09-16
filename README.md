@@ -17,14 +17,12 @@
 
 </div>
 
-DelhiTSR is an automated title verification engine designed for loan underwriting and legal due diligence across property ownership chains in the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built to power institutional Title Search Reports (TSR), it ingests property deeds, executes computer vision deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, chain continuity, and Sub-Registrar Office (SRO) regulations.
+DelhiTSR is a title verification engine for property ownership chains across the National Capital Territory (NCT) of Delhi and Haryana *(Haryana support operates in BETA)*. Built for property title search reporting (TSR), it ingests property deeds, executes computer vision page deskewing and dual-engine OCR, extracts 80 structured parameters across a 4-pass pipeline, and audits title history against 94 deterministic rules covering stamp duty tariffs, municipal transfer taxes, boundary continuity, and Sub-Registrar Office (SRO) regulations.
 
 > **What is a Title Search Report (TSR)?**  
-> A Title Search Report checks a property's past ownership documents to confirm ownership integrity and ensure there are no unsettled loans & mortgages, title continuity defects, or hidden claims. In property lending, financial institutions require a clear and marketable title prior to loan sanction and disbursal.
+> A Title Search Report (TSR) verifies a property's legal ownership history to confirm clear, marketable, and unencumbered title prior to mortgage loan sanction and disbursal. In secured real estate lending, financial institutions require rigorous title verification to ensure collateral enforceability, identify outstanding bank charges, and detect breaks in title continuity.
 > 
-> The process of checking & examining title deeds and reconciling related records (including metadata-level checks across registrations, taxes, and boundaries) required for the preparation of the report is known as **title auditing**. Conducting this examination manually takes hours on end per title chain.
-> 
-> **DelhiTSR** automates this title audit through **94** distinct, defined rules acting as verification parameters, replacing multi-hour manual deed examination with instant, auditable discrepancy detection.
+> **DelhiTSR** automates this examination through **94 deterministic statutory and title continuity parameters**, replacing manual, multi-hour deed scrutiny with instant, auditable discrepancy detection.
 > 
 > *Note: DelhiTSR is under active development. Compiled TSR document export will be introduced in future releases.*
 
